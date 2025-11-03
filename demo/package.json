@@ -8,7 +8,8 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "preview": "nuxt preview"
+    "preview": "nuxt preview",
+    "vercel-build": "cd .. && pnpm vercel-build"
   },
   "dependencies": {
     "@desource/phone-mask-nuxt": "workspace:*",
