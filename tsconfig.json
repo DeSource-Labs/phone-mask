@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "sourceMap": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "outDir": "dist"
+  },
+  "references": [
+    { "path": "./packages/phone-mask" },
+    { "path": "./packages/phone-mask-vue" },
+    { "path": "./packages/phone-mask-nuxt" }
+  ],
+  "include": [],
+  "exclude": ["node_modules", "dist"]
+}
