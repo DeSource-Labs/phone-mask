@@ -1,0 +1,15 @@
+# @desource/phone-mask-vue
+
+## 0.2.0
+
+### Minor Changes
+
+- Initial release of phone-mask monorepo packages
+  - Core phone masking library with Google libphonenumber integration
+  - Vue 3 component and directive for phone input
+  - Nuxt 3 module with zero-config setup
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @desource/phone-mask@0.2.0

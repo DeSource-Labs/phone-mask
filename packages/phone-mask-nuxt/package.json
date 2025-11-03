@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask-nuxt",
-  "version": "0.0.0",
+  "version": "0.2.0",
   "description": "🎯 Zero-config Nuxt 3 module for international phone masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
   "type": "module",
   "exports": {
@@ -13,7 +13,7 @@
   "main": "./dist/module.mjs",
   "files": [
     "dist",
-    "package.json",
+    "CHANGELOG.md",
     "README.md"
   ],
   "keywords": [
@@ -45,6 +45,10 @@
     "url": "https://github.com/DeSource-Labs/phone-mask/issues"
   },
   "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-nuxt#readme",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "postinstall": "nuxt prepare",
     "clean": "rimraf dist",

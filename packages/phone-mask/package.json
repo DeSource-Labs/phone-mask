@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask",
-  "version": "0.0.0",
+  "version": "0.2.0",
   "description": "⚡ Ultra-lightweight international phone number formatter & validator with auto-sync to Google libphonenumber. Framework-agnostic core library.",
   "keywords": [
     "phone",
@@ -29,12 +29,15 @@
   },
   "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask#readme",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/phone-mask.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
   "files": [
     "dist",
-    "package.json",
+    "CHANGELOG.md",
     "README.md"
   ],
   "sideEffects": false,
