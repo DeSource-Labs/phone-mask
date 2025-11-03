@@ -1,0 +1,92 @@
+html {
+  scroll-behavior: smooth;
+  background-color: var(--color-background);
+  font-size: 16px;
+  overflow: hidden;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background-color: var(--color-background);
+  color: var(--color-primary);
+
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100,
+    "YTLC" 500;
+}
+
+section {
+  min-height: 100svh;
+  width: 100%;
+  padding: 1rem;
+}
+
+.secondary {
+  color: var(--color-secondary);
+}
+
+.emoji {
+  color: transparent;
+  text-shadow: 0 0 0 var(--color-primary);
+}
+
+/* #region NuxtImg */
+.image {
+  opacity: 1;
+  transition: transform .7s 0.7s ease, opacity .7s 0.7s ease;
+}
+
+.image.preload {
+  transform: translateY(2rem);
+  opacity: 0;
+}
+/* #endregion */
+
+/* #region TABINDEX */
+/* Add custom focus styles for better accessibility */
+:focus-visible {
+  outline: 3px dashed var(--color-primary);
+  outline-offset: 4px;
+  border-radius: 4px;
+  transition: outline-color 0.2s ease-in-out, outline-offset 0.2s ease-in-out;
+}
+/* #endregion */
+
+/* #region LINKS */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.animated-link {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  pointer-events: all;
+}
+
+.animated-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.animated-link:hover::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+/* #endregion */

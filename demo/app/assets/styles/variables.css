@@ -1,0 +1,13 @@
+:root {
+  --gradient-bg: linear-gradient(180deg, rgba(217, 217, 217, 0.12) 0%, rgba(115, 115, 115, 0) 20%);
+  --color-primary: #fff;
+  --color-background: #000;
+  --color-secondary: rgba(255, 255, 255, 0.5);
+  --color-tertiary: rgba(255, 255, 255, 0.6);
+  --xs: 320px;
+  --sm: 640px;
+  --md: 768px;
+  --lg: 1024px;
+  --xl: 1280px;
+  --xxl: 1536px;
+}

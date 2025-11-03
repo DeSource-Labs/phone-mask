@@ -1,0 +1,72 @@
+h1 {
+  font-size: 3rem;
+  font-weight: 200;
+  letter-spacing: 0.25em;
+}
+
+.h3 {
+  font-size: 1.2rem;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+}
+
+.h4 {
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+.p1 {
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.p2 {
+  font-size: 1.4rem;
+  font-weight: 400;
+}
+
+.p3 {
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.p4 {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+@media screen and (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .h3 {
+    font-size: 1.05rem;
+  }
+
+  .h4 {
+    font-size: 1.125rem;
+  }
+
+  .p1 {
+    font-size: 1rem;
+  }
+
+  .p2 {
+    font-size: 1.25rem;
+  }
+
+  .p3 {
+    font-size: 1.25rem;
+  }
+
+  .p4 {
+    font-size: 0.9rem;
+  }
+}
