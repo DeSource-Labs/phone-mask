@@ -1,0 +1,61 @@
+{
+  "name": "@desource/phone-mask",
+  "version": "0.0.0",
+  "description": "⚡ Ultra-lightweight international phone number formatter & validator with auto-sync to Google libphonenumber. Framework-agnostic core library.",
+  "keywords": [
+    "phone",
+    "mask",
+    "international",
+    "libphonenumber",
+    "google",
+    "phone-number",
+    "formatting",
+    "validation",
+    "country-code",
+    "intl",
+    "input",
+    "typescript",
+    "tree-shakeable"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
+    "directory": "packages/phone-mask"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/phone-mask/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask#readme",
+  "private": false,
+  "main": "dist/phone-mask.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/phone-mask.cjs.js"
+    }
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "vite build",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
+    "dev": "vite",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "gen": "pnpm add -D google-libphonenumber@latest && node scripts/gen.js"
+  },
+  "devDependencies": {
+    "google-libphonenumber": "^3.2.43",
+    "@rollup/plugin-terser": "^0.4.4",
+    "vite-plugin-dts": "^4.5.4"
+  }
+}
