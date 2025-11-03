@@ -11,10 +11,10 @@
     "preview": "nuxt preview"
   },
   "dependencies": {
+    "@desource/phone-mask-nuxt": "workspace:*",
     "@nuxt/image": "^1.11.0",
     "@nuxtjs/sitemap": "^7.4.7",
     "gsap": "^3.13.0",
-    "@desource/phone-mask-nuxt": "workspace:*",
     "nuxt": "^4.1.3",
     "ogl": "^1.0.11",
     "vue": "^3.5.22"

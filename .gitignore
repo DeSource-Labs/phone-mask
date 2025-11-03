@@ -6,6 +6,7 @@ build
 coverage
 node_modules
 .nuxt
+.output
 *.tsbuildinfo
 playwright-report
 test-results
