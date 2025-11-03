@@ -1,0 +1,65 @@
+{
+  "name": "@desource/phone-mask-nuxt",
+  "version": "0.0.0",
+  "description": "🎯 Zero-config Nuxt 3 module for international phone masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.mts",
+      "import": "./dist/module.mjs",
+      "require": "./dist/module.mjs"
+    }
+  },
+  "main": "./dist/module.mjs",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
+  ],
+  "keywords": [
+    "nuxt",
+    "nuxt-module",
+    "nuxt3",
+    "vue",
+    "vue3",
+    "phone",
+    "mask",
+    "input",
+    "international",
+    "libphonenumber",
+    "country-code",
+    "phone-number",
+    "ssr",
+    "formatting",
+    "validation",
+    "typescript"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
+    "directory": "packages/phone-mask-nuxt"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/phone-mask/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-nuxt#readme",
+  "scripts": {
+    "postinstall": "nuxt prepare",
+    "clean": "rimraf dist",
+    "build": "nuxt-module-build build"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.33"
+  },
+  "dependencies": {
+    "@desource/phone-mask-vue": "workspace:*"
+  },
+  "devDependencies": {
+    "@nuxt/kit": "^4.2.0",
+    "@nuxt/module-builder": "^1.0.2",
+    "nuxt": "^4.1.3",
+    "vue": "^3.5.22"
+  }
+}
