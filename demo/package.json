@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "clean": "rimraf dist",
-    "postinstall": "nuxt prepare",
+    "deps:prepare": "nuxt prepare",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
