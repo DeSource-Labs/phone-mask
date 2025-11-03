@@ -6,7 +6,7 @@
     "clean": "pnpm -w -r --filter \"./packages/**\" --stream run clean",
     "dev:demo": "pnpm --filter demo dev",
     "build:demo": "pnpm --filter demo build",
-    "vercel:build": "pnpm build && pnpm build:demo",
+    "vercel-build": "pnpm build && pnpm build:demo",
     "gen": "pnpm --filter phone-mask gen",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
