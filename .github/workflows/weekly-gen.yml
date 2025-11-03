@@ -1,0 +1,77 @@
+name: Weekly data generation
+
+on:
+  schedule:
+    # Every Friday at 09:00 UTC
+    - cron: '0 9 * * 5'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: weekly-gen
+  cancel-in-progress: false
+
+jobs:
+  generate-and-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate data
+        run: pnpm gen
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(data): weekly sync from Google lib"
+          title: "chore(data): weekly sync"
+          body: |
+            Automated weekly generation via GitHub Actions.
+
+            This PR was created automatically after running `pnpm gen`.
+
+            cc @stefashkaa
+          branch: chore/weekly-gen
+          branch-suffix: timestamp
+          labels: |
+            automation
+            chore
+            data
+          assignees: |
+            stefashkaa
+          reviewers: |
+            stefashkaa
+          signoff: false
+          delete-branch: true
+          draft: false
+
+      - name: PR created output
+        if: steps.cpr.outputs.pull-request-number != ''
+        run: |
+          echo "Created PR #${{ steps.cpr.outputs.pull-request-number }}"
+
+      - name: No changes detected
+        if: steps.cpr.outputs.pull-request-number == ''
+        run: echo "No changes to commit; skipping PR."
