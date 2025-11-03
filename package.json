@@ -1,0 +1,32 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -w -r --filter \"./packages/**\" --stream run build",
+    "clean": "pnpm -w -r --filter \"./packages/**\" --stream run clean",
+    "dev:demo": "pnpm --filter demo dev",
+    "build:demo": "pnpm --filter demo build",
+    "vercel:build": "pnpm build && pnpm build:demo",
+    "gen": "pnpm --filter phone-mask gen",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
+    "format:check": "prettier --check \"**/*.{vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\""
+  },
+  "packageManager": "pnpm@10.18.0",
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "24.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.5.1",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.1.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vue-eslint-parser": "^10.2.0"
+  }
+}
