@@ -4,15 +4,15 @@ First off, thank you for considering contributing to Phone Mask! It's people lik
 
 ## 📋 Table of Contents
 
-- [Code of Conduct](#code-of-conduct)
-- [How Can I Contribute?](#how-can-i-contribute)
-- [Development Setup](#development-setup)
-- [Project Structure](#project-structure)
-- [Development Workflow](#development-workflow)
-- [Coding Standards](#coding-standards)
-- [Commit Guidelines](#commit-guidelines)
-- [Pull Request Process](#pull-request-process)
-- [Release Process](#release-process)
+- [Code of Conduct](#-code-of-conduct)
+- [How Can I Contribute?](#-how-can-i-contribute)
+- [Development Setup](#-development-setup)
+- [Project Structure](#-project-structure)
+- [Development Workflow](#-development-workflow)
+- [Coding Standards](#-coding-standards)
+- [Commit Guidelines](#-commit-guidelines)
+- [Pull Request Process](#-pull-request-process)
+- [Release Process](#-release-process)
 
 ## 📜 Code of Conduct
 

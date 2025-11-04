@@ -10,11 +10,11 @@
   </p>
 
   <p>
-    <a href="#quick-start">Quick Start</a> •
-    <a href="#packages">Packages</a> •
-    <a href="#features">Features</a> •
-    <a href="#demo">Demo</a> •
-    <a href="#contributing">Contributing</a>
+    <a href="#-quick-start">Quick Start</a> •
+    <a href="#-packages">Packages</a> •
+    <a href="#-features">Features</a> •
+    <a href="#-demo">Demo</a> •
+    <a href="#-contributing">Contributing</a>
   </p>
 </div>
 
