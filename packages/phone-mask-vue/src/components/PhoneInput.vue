@@ -219,7 +219,7 @@ const dropdownRef = useTemplateRef('dropdownRef');
 const usedLocale = computed(() => {
   if (props.locale) return props.locale;
   if (typeof navigator !== 'undefined') {
-    return navigator.language || (navigator as any).userLanguage || 'en';
+    return navigator.language || 'en';
   }
   return 'en';
 });
