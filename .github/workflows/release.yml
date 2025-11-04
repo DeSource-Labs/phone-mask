@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'packages/**/package.json'
+      - 'packages/**/CHANGELOG.md'
+  workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -11,6 +15,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # Only publish when explicitly signaled by commit message or manual dispatch
+    if: "${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore: release packages') }}"
     permissions:
       contents: write
       pull-requests: write
@@ -22,7 +28,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.18.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,15 +43,16 @@ jobs:
       - name: Build Packages
         run: pnpm build
 
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
+      - name: Publish to npm (Changesets)
+        id: publish
         uses: changesets/action@v1
         with:
-          version: pnpm changeset:version
           publish: pnpm changeset:publish
-          title: 'chore: release packages'
-          commit: 'chore: release packages'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Push tags to GitHub
+        run: git push --follow-tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
