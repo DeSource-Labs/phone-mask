@@ -1,0 +1,75 @@
+name: Bug Report
+about: Create a report to help us improve
+labels: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug: Please describe the issue clearly and provide steps to reproduce.
+  - type: input
+    id: title
+    attributes:
+      label: Bug Title
+      description: Short, descriptive title of the bug
+      placeholder: Placeholder not updating on country change
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? What did you expect?
+      placeholder: Describe the bug in detail
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the bug
+      placeholder: |
+        1. Select "United States"
+        2. Type phone number
+        3. Change country to "United Kingdom"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs Actual Behavior
+      description: What did you expect to happen? What actually happened?
+      placeholder: |
+        **Expected:** Placeholder updates to UK format
+        **Actual:** Placeholder remains US format
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, browser, package versions, etc.
+      placeholder: |
+        - Browser: Chrome 120
+        - Vue: 3.4.0
+        - @desource/phone-mask-vue: 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Add screenshots if applicable
+      placeholder: Drag and drop images here
+    validations:
+      required: false
+  - type: textarea
+    id: code
+    attributes:
+      label: Minimal Reproduction
+      description: Provide a minimal code sample if possible
+      placeholder: |
+        ```js
+        // Your code here
+        ```
+    validations:
+      required: false
