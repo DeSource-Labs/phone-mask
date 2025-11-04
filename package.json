@@ -16,7 +16,7 @@
     "gen": "pnpm --filter phone-mask gen",
     "changeset": "changeset",
     "changeset:version": "changeset version && pnpm install --lockfile-only",
-    "changeset:publish": "pnpm build && changeset publish",
+    "changeset:publish": "pnpm clean && pnpm build && changeset publish",
     "release": "pnpm changeset:version && pnpm changeset:publish",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
