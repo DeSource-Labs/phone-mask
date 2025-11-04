@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & Discussions
+    url: https://github.com/DeSource-Labs/phone-mask/discussions
+    about: Please use Discussions for Q&A and general ideas
