@@ -84,12 +84,14 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   const [country, setCountry] = useState<MaskFull>(() => getCountry(propCountry || 'US', locale));
   const [digits, setDigits] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [search, setSearch] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [copied, setCopied] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
   const [showValidationHint, setShowValidationHint] = useState(false);
   const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
 
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
@@ -199,25 +201,35 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     (async () => {
       if (propCountry && hasCountry(propCountry)) {
         const newCountry = getCountry(propCountry, locale);
-        setCountry((prev) => (prev.id === newCountry.id ? prev : newCountry));
+        setCountry((prev) => {
+          if (prev.id === newCountry.id) return prev;
+          onCountryChange?.(newCountry);
+          return newCountry;
+        });
         return;
       }
       if (!detect) return;
       const geo = await detectByGeoIp();
       if (geo) {
         const detected = getCountry(geo, locale);
-        setCountry((prev) => (prev.id === detected.id ? prev : detected));
-        onCountryChange?.(detected);
+        setCountry((prev) => {
+          if (prev.id === detected.id) return prev;
+          onCountryChange?.(detected);
+          return detected;
+        });
         return;
       }
       const loc = detectFromLocale();
       if (loc) {
         const detected = getCountry(loc, locale);
-        setCountry((prev) => (prev.id === detected.id ? prev : detected));
-        onCountryChange?.(detected);
+        setCountry((prev) => {
+          if (prev.id === detected.id) return prev;
+          onCountryChange?.(detected);
+          return detected;
+        });
       }
     })();
-  }, [propCountry, detect, countries, locale, onCountryChange]);
+  }, [propCountry, detect, countries, locale]);
 
   // Clamp digits when country or formatter changes
   useEffect(() => {
@@ -407,12 +419,23 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     [inactive, formatter, digits]
   );
 
+  // Close dropdown with animation
+  const closeDropdown = useCallback(() => {
+    if (!dropdownOpen) return;
+    setIsClosing(true);
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = setTimeout(() => {
+      setDropdownOpen(false);
+      setIsClosing(false);
+    }, 200);
+  }, [dropdownOpen]);
+
   // Input focus behavior (close dropdown, keep existing hint state)
   const handleFocusInput = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
     if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    setDropdownOpen(false);
+    closeDropdown();
     onFocus?.(e);
-  }, [onFocus]);
+  }, [onFocus, closeDropdown]);
 
   // Attach native event listeners
   useEffect(() => {
@@ -439,13 +462,13 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     (code: CountryKey) => {
       const newCountry = getCountry(code, locale);
       setCountry(newCountry);
-      setDropdownOpen(false);
+      closeDropdown();
       setSearch('');
       setFocusedIndex(0);
       onCountryChange?.(newCountry);
       setTimeout(() => telRef.current?.focus(), 0);
     },
-    [locale, onCountryChange]
+    [locale, onCountryChange, closeDropdown]
   );
 
   // Dropdown positioning
@@ -472,7 +495,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
       if (!target) return;
       if (dropdownEl?.contains(target)) return;
       if (selectorEl?.contains(target)) return;
-      setDropdownOpen(false);
+      closeDropdown();
     };
 
     window.addEventListener('resize', positionDropdown);
@@ -485,7 +508,14 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
       window.removeEventListener('scroll', positionDropdown, true);
       window.removeEventListener('click', onDocClick, true);
     };
-  }, [dropdownOpen, positionDropdown]);
+  }, [dropdownOpen, positionDropdown, closeDropdown]);
+
+  // Cleanup close timer
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
 
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
@@ -554,10 +584,10 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
         e.preventDefault();
         selectCountry(filteredCountries[focusedIndex]!.id);
       } else if (e.key === 'Escape') {
-        setDropdownOpen(false);
+        closeDropdown();
       }
     },
-    [filteredCountries, focusedIndex, selectCountry]
+    [filteredCountries, focusedIndex, selectCountry, closeDropdown]
   );
 
   // Theme class
@@ -605,11 +635,14 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
             aria-haspopup={hasDropdown ? 'listbox' : undefined}
             onClick={() => {
               if (inactive || !hasDropdown) return;
-              setDropdownOpen((o) => {
-                const next = !o;
-                if (next) setFocusedIndex(0);
-                return next;
-              });
+              if (dropdownOpen) {
+                closeDropdown();
+              } else {
+                if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+                setIsClosing(false);
+                setDropdownOpen(true);
+                setFocusedIndex(0);
+              }
             }}
           >
             <span className="pi-flag" role="img" aria-label={`${country.name} flag`}>
@@ -717,7 +750,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
         createPortal(
           <div
             ref={dropdownRef}
-            className={`phone-dropdown ${dropdownClass} ${themeClass}`}
+            className={`phone-dropdown ${dropdownClass} ${themeClass} ${isClosing ? 'is-closing' : ''}`}
             style={dropdownStyle}
             role="dialog"
             aria-modal="false"
