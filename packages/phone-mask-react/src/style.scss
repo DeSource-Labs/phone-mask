@@ -1,0 +1,400 @@
+// Global resets within component scope (unscoped in Vue)
+.phone-input,
+.phone-dropdown {
+  // CSS custom properties
+  --pi-bg: #ffffff;
+  --pi-fg: #111827;
+  --pi-muted: #6b7280;
+  --pi-border: #e5e7eb;
+  --pi-border-hover: #d1d5db;
+  --pi-border-focus: #3b82f6;
+  --pi-radius: 8px;
+  --pi-padding: 12px;
+  --pi-font-size: 16px;
+  --pi-height: 44px;
+  --pi-actions-size: 32px;
+  --pi-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --pi-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.05);
+  --pi-warning: #f59e0b;
+  --pi-warning-light: #fbbf24;
+  --pi-success: #10b981;
+  --pi-focus-ring: 3px solid rgb(59 130 246 / 0.15);
+  --pi-focus-ring-warning: 3px solid rgb(245 158 11 / 0.15);
+  --pi-focus-ring-success: 3px solid rgb(16 185 129 / 0.15);
+  --pi-disabled-bg: #f9fafb;
+  --pi-disabled-fg: #9ca3af;
+
+  // Theme variants
+  &.theme-dark {
+    --pi-bg: #1f2937;
+    --pi-fg: #f9fafb;
+    --pi-muted: #9ca3af;
+    --pi-border: #374151;
+    --pi-border-hover: #4b5563;
+    --pi-border-focus: #60a5fa;
+    --pi-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+    --pi-shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 10px 10px -5px rgb(0 0 0 / 0.2);
+    --pi-warning: #fbbf24;
+    --pi-warning-light: #fcd34d;
+    --pi-focus-ring: 3px solid rgb(96 165 250 / 0.2);
+    --pi-focus-ring-warning: 3px solid rgb(251 191 24 / 0.2);
+    --pi-focus-ring-success: 3px solid rgb(16 185 129 / 0.2);
+    --pi-disabled-bg: #374151;
+  }
+
+  // Reset styles
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  button,
+  input {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+
+  input {
+    outline: none;
+    &::placeholder {
+      opacity: 0.5;
+    }
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+}
+
+// Scoped styles section
+// Root (dropdown shares some variables because of teleport)
+.phone-input,
+.phone-dropdown {
+  font-size: var(--pi-font-size);
+  background: var(--pi-bg);
+  color: var(--pi-fg);
+  border-radius: var(--pi-radius);
+  border: 1px solid var(--pi-border);
+}
+
+.phone-input {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+
+  &:focus-within {
+    outline: var(--pi-focus-ring);
+  }
+
+  &.is-incomplete {
+    border-color: var(--pi-warning);
+    &:focus-within {
+      outline: var(--pi-focus-ring-warning);
+    }
+  }
+
+  &.is-complete {
+    border-color: var(--pi-success);
+    &:focus-within {
+      outline: var(--pi-focus-ring-success);
+    }
+  }
+
+  &.is-disabled {
+    background: var(--pi-disabled-bg);
+    color: var(--pi-disabled-fg);
+  }
+
+  &.is-readonly {
+    cursor: default;
+  }
+
+  // Size variants
+  &.size-compact {
+    --pi-font-size: 14px;
+    --pi-height: 36px;
+    --pi-padding: 10px;
+    --pi-actions-size: 24px;
+  }
+
+  &.size-large {
+    --pi-font-size: 18px;
+    --pi-height: 52px;
+    --pi-padding: 16px;
+    --pi-actions-size: 32px;
+  }
+
+  &.is-unstyled {
+    all: initial;
+    display: block;
+  }
+
+  // Selector
+  .pi-selector {
+    flex-shrink: 0;
+  }
+
+  .pi-selector-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: var(--pi-padding);
+    padding-right: 0;
+    min-height: var(--pi-height);
+    border: 1px solid transparent;
+    border-radius: var(--pi-radius) 0 0 var(--pi-radius);
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.no-dropdown {
+      cursor: default;
+    }
+
+    &:focus-visible {
+      border-color: var(--pi-border-focus);
+      outline: none;
+    }
+
+    &:disabled > .pi-flag {
+      opacity: 0.5;
+    }
+  }
+
+  .pi-flag {
+    font-size: 1.25em;
+    line-height: 1;
+    display: inline-flex;
+  }
+
+  .pi-code {
+    color: var(--pi-fg);
+  }
+
+  .pi-chevron {
+    margin-left: 2px;
+    color: var(--pi-muted);
+    transition: transform 200ms ease;
+
+    &.is-open {
+      transform: rotate(180deg);
+    }
+  }
+
+  // Input wrap
+  .pi-input-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  // Input
+  .pi-input {
+    flex: 1;
+    width: 100%;
+    padding-left: var(--pi-padding);
+    // Calc right padding based on number of action buttons + 2px gaps + base padding
+    padding-right: calc((var(--pi-actions-size) + 2px) * var(--pi-actions-count) + var(--pi-padding));
+    min-height: var(--pi-height);
+    border-radius: 0 var(--pi-radius) var(--pi-radius) 0;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover:not(:disabled):not(:read-only) {
+      border-color: var(--pi-border-hover);
+    }
+
+    &:focus {
+      border-color: var(--pi-border-focus);
+      position: relative;
+    }
+  }
+
+  // Actions
+  .pi-actions {
+    position: absolute;
+    right: 2px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .pi-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--pi-actions-size);
+    height: var(--pi-actions-size);
+    background: transparent;
+    color: var(--pi-muted);
+    border: none;
+    border-radius: 9999px;
+    transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      background: var(--pi-disabled-bg);
+      color: var(--pi-fg);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    &:focus {
+      outline: 1px solid var(--pi-border-focus);
+      outline-offset: -1px;
+    }
+
+    &.is-copied {
+      color: var(--pi-success);
+      border-color: var(--pi-success);
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  // Screen reader only
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+// Dropdown styles (teleported, so separate)
+.phone-dropdown {
+  position: absolute;
+  z-index: 9999;
+  max-width: 400px;
+  box-shadow: var(--pi-shadow-lg);
+  overflow: hidden;
+
+  .pi-search-wrap {
+    padding: 8px;
+    border-bottom: 1px solid var(--pi-border);
+  }
+
+  .pi-search {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 0.875em;
+    border: 1px solid var(--pi-border);
+    border-radius: calc(var(--pi-radius) - 2px);
+    background: var(--pi-bg);
+    transition: border-color 150ms ease;
+
+    &:focus {
+      border-color: var(--pi-border-focus);
+    }
+  }
+
+  .pi-options {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 4px 0;
+    margin: 0;
+    list-style: none;
+
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--pi-border);
+      border-radius: 4px;
+
+      &:hover {
+        background: var(--pi-border-hover);
+      }
+    }
+  }
+
+  .pi-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 100ms ease;
+
+    &:hover,
+    &.is-focused {
+      background: var(--pi-disabled-bg);
+    }
+
+    &.is-selected {
+      background: var(--pi-border);
+      font-weight: 500;
+    }
+  }
+
+  .pi-opt-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pi-opt-code {
+    color: var(--pi-muted);
+    font-size: 0.875em;
+  }
+
+  .pi-empty {
+    padding: 12px;
+    text-align: center;
+    color: var(--pi-muted);
+    font-size: 0.875em;
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .phone-input {
+    --pi-padding: 8px;
+    --pi-actions-size: 24px;
+  }
+
+  .size-compact {
+    --pi-actions-size: 20px;
+  }
+
+  .phone-dropdown {
+    left: 0;
+    right: 0;
+    max-width: none;
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
