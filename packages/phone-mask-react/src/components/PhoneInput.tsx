@@ -61,6 +61,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     dropdownClass = '',
     disableDefaultStyles = false,
     onChange,
+    onPhoneChange,
     onCountryChange,
     onValidationChange,
     onFocus,
@@ -88,10 +89,12 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   const [search, setSearch] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
   const [showValidationHint, setShowValidationHint] = useState(false);
   const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
 
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
@@ -252,11 +255,12 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     onValidationChange?.(isComplete);
   }, [isComplete, onValidationChange]);
 
-  // Emit onChange
+  // Emit onChange and onPhoneChange
   const emitChange = useCallback(() => {
+    onChange?.(digits);
     const phoneData: PhoneNumber = { full, fullFormatted, digits };
-    onChange?.(phoneData);
-  }, [full, fullFormatted, digits, onChange]);
+    onPhoneChange?.(phoneData);
+  }, [digits, full, fullFormatted, onChange, onPhoneChange]);
 
   useEffect(() => {
     emitChange();
@@ -514,28 +518,45 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   useEffect(() => {
     return () => {
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
     };
   }, []);
 
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
+    if (isCopying) return;
+    const trimmedValue = fullFormatted.trim();
+    if (!trimmedValue) return;
+    
+    setIsCopying(true);
     try {
-      await navigator.clipboard.writeText(fullFormatted);
+      await navigator.clipboard.writeText(trimmedValue);
       setCopied(true);
-      onCopy?.(fullFormatted);
+      onCopy?.(trimmedValue);
       if (liveRef.current) liveRef.current.textContent = 'Phone number copied to clipboard';
-      setTimeout(() => setCopied(false), 2000);
+      
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => {
+        setCopied(false);
+        copyTimerRef.current = null;
+      }, 1800);
     } catch (err) {
-      console.error('Copy failed:', err);
+      console.warn('Copy failed', err);
+    } finally {
+      setIsCopying(false);
     }
-  }, [fullFormatted, onCopy]);
+  }, [fullFormatted, onCopy, isCopying]);
 
   // Clear functionality
   const handleClearClick = useCallback(() => {
     setDigits('');
+    setShowValidationHint(false);
+    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    onChange?.('');
+    onPhoneChange?.({ full: '', fullFormatted: '', digits: '' });
     onClear?.();
     setTimeout(() => telRef.current?.focus(), 0);
-  }, [onClear]);
+  }, [onChange, onPhoneChange, onClear]);
 
   // Imperative handle
   useImperativeHandle(

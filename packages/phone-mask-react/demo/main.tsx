@@ -86,7 +86,7 @@ function Playground() {
           <div style={previewAreaStyle}>
             <PhoneInput
               value={digits}
-              onChange={(data) => setDigits(data.digits)}
+              onChange={setDigits}
               onCountryChange={(c) => console.log('Country:', c.name)}
               onValidationChange={(v) => console.log('Valid:', v)}
               country={country || undefined}

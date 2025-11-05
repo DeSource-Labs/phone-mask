@@ -83,13 +83,18 @@ export interface PhoneInputProps {
 
   // Callbacks
   /**
-   * Callback when the value changes.
+   * Callback when the digits value changes.
+   * Returns only the digits without country code (e.g. '234567890')
+   */
+  onChange?: (digits: string) => void;
+  /**
+   * Callback when the phone number changes.
    * Provides an object with:
    * - full: Full phone number with country code (e.g. +1234567890)
    * - fullFormatted: Full phone number formatted according to country rules (e.g. +1 234-567-890)
    * - digits: Only the digits of the phone number without country code (e.g. 234567890)
    */
-  onChange?: (value: PhoneNumber) => void;
+  onPhoneChange?: (value: PhoneNumber) => void;
   /** Callback when the country changes */
   onCountryChange?: (country: MaskFull) => void;
   /** Callback when validation state changes */
