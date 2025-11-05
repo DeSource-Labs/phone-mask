@@ -313,7 +313,7 @@ const playgroundGridStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: '1fr 1fr',
   gap: 24,
-  '@media (max-width: 768px)': {
+  '@media (maxWidth: 768px)': {
     gridTemplateColumns: '1fr'
   }
 };

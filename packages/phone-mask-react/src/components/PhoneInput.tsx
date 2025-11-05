@@ -11,7 +11,7 @@ import React, {
 import { createPortal } from 'react-dom';
 import { MasksFullMap, MasksFullMapEn, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
-import { Delimiters, NavigationKeys, InvalidPattern, GEO_IP_URL, GEO_IP_TIMEOUT } from '../consts';
+import { Delimiters, NavigationKeys, InvalidPattern, GEO_IP_URL, GEO_IP_TIMEOUT, CACHE_KEY, CACHE_EXPIRY_MS } from '../consts';
 import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
 
 /** Get navigator language */
@@ -35,22 +35,7 @@ function getCountries(locale: string): MaskFull[] {
   return Object.entries(map).map(([id, data]) => ({ id: id as CountryKey, ...data }));
 }
 
-/** Detect country from geo IP */
-async function detectCountry(): Promise<string | null> {
-  try {
-    const controller = new AbortController();
-    setTimeout(() => controller.abort(), GEO_IP_TIMEOUT);
-    const res = await fetch(GEO_IP_URL, {
-      signal: controller.signal,
-      headers: { Accept: 'application/json' }
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return (json.country || json.country_code || '').toString().toUpperCase() || null;
-  } catch {
-    return null;
-  }
-}
+//
 
 /**
  * PhoneInput Component
@@ -93,6 +78,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
+  const selectorRef = useRef<HTMLDivElement>(null);
 
   const locale = propLocale || getNavigatorLang();
   const [country, setCountry] = useState<MaskFull>(() => getCountry(propCountry || 'US', locale));
@@ -102,6 +88,9 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [copied, setCopied] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
+  const [showValidationHint, setShowValidationHint] = useState(false);
+  const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
 
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
   const countries = useMemo(() => getCountries(locale), [locale]);
@@ -110,44 +99,133 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   const displayPlaceholder = formatter.getPlaceholder();
   const isComplete = formatter.isComplete(digits);
   const isEmpty = digits.length === 0;
-  const shouldShowWarn = !isEmpty && !isComplete;
+  const shouldShowWarn = showValidationHint && !isEmpty && !isComplete;
 
   const full = `${country.code}${digits}`;
   const fullFormatted = digits ? `${country.code} ${displayValue}` : '';
 
   const filteredCountries = useMemo(() => {
-    if (!search.trim()) return countries;
-    const q = search.toLowerCase();
-    return countries.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
-    );
+    const raw = search.trim();
+    if (!raw) return countries;
+    const q = raw.toUpperCase();
+    const qDigits = q.replace(/\D/g, '');
+    const isNumeric = qDigits.length > 0;
+
+    return countries
+      .map((c) => {
+        const nameUpper = c.name.toUpperCase();
+        const idUpper = c.id.toUpperCase();
+        const codeUpper = c.code.toUpperCase();
+        const codeDigits = c.code.replace(/\D/g, '');
+        let score = 0;
+        if (nameUpper.startsWith(q)) score = 1000;
+        else if (nameUpper.includes(q)) score = 500;
+
+        if (codeUpper.startsWith(q)) score += 100;
+        else if (codeUpper.includes(q)) score += 50;
+
+        if (idUpper === q) score += 200;
+        else if (idUpper.startsWith(q)) score += 150;
+
+        if (isNumeric && codeDigits.startsWith(qDigits)) score += 80;
+        else if (isNumeric && codeDigits.includes(qDigits)) score += 40;
+
+        return { country: c, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => (b.score !== a.score ? b.score - a.score : a.country.name.localeCompare(b.country.name)))
+      .map((x) => x.country);
   }, [countries, search]);
 
   const inactive = disabled || readonly;
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
 
-  // Auto-detect country
+  // Country initialization and detection with cache + locale fallback
   useEffect(() => {
-    if (!detect || propCountry) return;
-    detectCountry().then((code) => {
-      if (code) {
-        const detected = getCountry(code, locale);
-        setCountry(detected);
+    setHasDropdown(!propCountry && countries.length > 1);
+
+    const hasCountry = (code?: string | null) => {
+      if (!code) return false;
+      const id = code.toUpperCase();
+      return countries.some((c) => c.id === id);
+    };
+
+    const detectFromLocale = (): string | null => {
+      const lang = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : '';
+      // Use Intl.Locale when available
+      try {
+        if (Intl.Locale) {
+          const loc = new Intl.Locale(lang);
+          if (loc?.region && hasCountry(loc.region)) return loc.region.toUpperCase();
+        }
+      } catch { /* ignore */ }
+      const parts = lang.split(/[-_]/);
+      if (parts.length > 1 && hasCountry(parts[1])) return parts[1].toUpperCase();
+      return null;
+    };
+
+    const detectByGeoIp = async (): Promise<string | null> => {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached) as { country_code?: string; ts: number };
+          const expired = Date.now() - parsed.ts > CACHE_EXPIRY_MS;
+          if (!expired && parsed.country_code && hasCountry(parsed.country_code)) {
+            return parsed.country_code.toUpperCase();
+          }
+          if (expired) localStorage.removeItem(CACHE_KEY);
+        }
+      } catch { /* ignore */ }
+
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), GEO_IP_TIMEOUT);
+      try {
+        const res = await fetch(GEO_IP_URL, { signal: controller.signal, headers: { Accept: 'application/json' } });
+        if (!res.ok) return null;
+        const json = await res.json();
+        const raw = (json.country || json.country_code || json.countryCode || json.country_code2 || '')
+          .toString()
+          .toUpperCase();
+        if (hasCountry(raw)) {
+          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ country_code: raw, ts: Date.now() })); } catch { /* ignore */ }
+          return raw;
+        }
+      } catch { /* ignore */ }
+      finally { clearTimeout(t); }
+      return null;
+    };
+
+    (async () => {
+      if (propCountry && hasCountry(propCountry)) {
+        const newCountry = getCountry(propCountry, locale);
+        setCountry((prev) => (prev.id === newCountry.id ? prev : newCountry));
+        return;
+      }
+      if (!detect) return;
+      const geo = await detectByGeoIp();
+      if (geo) {
+        const detected = getCountry(geo, locale);
+        setCountry((prev) => (prev.id === detected.id ? prev : detected));
+        onCountryChange?.(detected);
+        return;
+      }
+      const loc = detectFromLocale();
+      if (loc) {
+        const detected = getCountry(loc, locale);
+        setCountry((prev) => (prev.id === detected.id ? prev : detected));
         onCountryChange?.(detected);
       }
-    });
-  }, [detect, propCountry, locale, onCountryChange]);
+    })();
+  }, [propCountry, detect, countries, locale, onCountryChange]);
 
-  // Sync prop country changes
+  // Clamp digits when country or formatter changes
   useEffect(() => {
-    if (propCountry) {
-      const newCountry = getCountry(propCountry, locale);
-      if (newCountry.id !== country.id) {
-        setCountry(newCountry);
-      }
+    const maxDigits = formatter.getMaxDigits();
+    if (digits.length > maxDigits) {
+      setDigits((d) => d.slice(0, maxDigits));
     }
-  }, [propCountry, locale]);
+  }, [formatter]);
 
   // Sync value prop
   useEffect(() => {
@@ -197,6 +275,14 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
       const pos = formatter.getCaretPosition(newDigits.length);
       setCaret(el, pos);
     }, 0);
+    // validation hint debounce (500ms)
+    setShowValidationHint(false);
+    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    if (newDigits.length > 0) {
+      validationTimerRef.current = setTimeout(() => {
+        setShowValidationHint(true);
+      }, 500);
+    }
   }, [formatter, inactive]);
 
   const handleKeydown = useCallback(
@@ -208,6 +294,16 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
       if (e.ctrlKey || e.metaKey || e.altKey || NavigationKeys.includes(e.key)) return;
 
       const [selStart, selEnd] = getSelection(el);
+
+      // debounce validation hint during typing (300ms)
+      setShowValidationHint(false);
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+      const scheduleHint = () => {
+        if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+        validationTimerRef.current = setTimeout(() => {
+          setShowValidationHint(true);
+        }, 300);
+      };
 
       if (e.key === 'Backspace') {
         e.preventDefault();
@@ -230,6 +326,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
             }
           }
         }
+        scheduleHint();
         return;
       }
 
@@ -250,15 +347,18 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
             setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
           }
         }
+        scheduleHint();
         return;
       }
 
       if (/^[0-9]$/.test(e.key)) {
         if (digits.length >= formatter.getMaxDigits()) e.preventDefault();
+        scheduleHint();
         return;
       }
 
       if (e.key.length === 1) e.preventDefault();
+      scheduleHint();
     },
     [inactive, formatter, digits]
   );
@@ -297,9 +397,22 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
         setDigits(newDigits);
         setTimeout(() => setCaret(el, formatter.getCaretPosition(insertIndex + pastedDigits.length)), 0);
       }
+      // show validation hint after paste (300ms)
+      setShowValidationHint(false);
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+      validationTimerRef.current = setTimeout(() => {
+        setShowValidationHint(true);
+      }, 300);
     },
     [inactive, formatter, digits]
   );
+
+  // Input focus behavior (close dropdown, keep existing hint state)
+  const handleFocusInput = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    setDropdownOpen(false);
+    onFocus?.(e);
+  }, [onFocus]);
 
   // Attach native event listeners
   useEffect(() => {
@@ -347,12 +460,31 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   }, []);
 
   useEffect(() => {
-    if (dropdownOpen) {
-      positionDropdown();
-      setTimeout(() => searchRef.current?.focus(), 0);
-      window.addEventListener('resize', positionDropdown);
-      return () => window.removeEventListener('resize', positionDropdown);
-    }
+    if (!dropdownOpen) return;
+
+    positionDropdown();
+    const focusTimer = setTimeout(() => searchRef.current?.focus(), 0);
+
+    const onDocClick = (ev: Event) => {
+      const target = ev.target as Node | null;
+      const dropdownEl = dropdownRef.current;
+      const selectorEl = selectorRef.current;
+      if (!target) return;
+      if (dropdownEl?.contains(target)) return;
+      if (selectorEl?.contains(target)) return;
+      setDropdownOpen(false);
+    };
+
+    window.addEventListener('resize', positionDropdown);
+    window.addEventListener('scroll', positionDropdown, true);
+    window.addEventListener('click', onDocClick, true);
+
+    return () => {
+      clearTimeout(focusTimer);
+      window.removeEventListener('resize', positionDropdown);
+      window.removeEventListener('scroll', positionDropdown, true);
+      window.removeEventListener('click', onDocClick, true);
+    };
   }, [dropdownOpen, positionDropdown]);
 
   // Copy functionality
@@ -400,10 +532,24 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     (e: React.KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setFocusedIndex((i) => Math.min(i + 1, filteredCountries.length - 1));
+        setFocusedIndex((i) => {
+          const next = Math.min(i + 1, filteredCountries.length - 1);
+          setTimeout(() => {
+            const list = dropdownRef.current?.lastElementChild as HTMLUListElement | null;
+            list?.children[next]?.scrollIntoView?.({ block: 'nearest' });
+          }, 0);
+          return next;
+        });
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setFocusedIndex((i) => Math.max(i - 1, 0));
+        setFocusedIndex((i) => {
+          const prev = Math.max(i - 1, 0);
+          setTimeout(() => {
+            const list = dropdownRef.current?.lastElementChild as HTMLUListElement | null;
+            list?.children[prev]?.scrollIntoView?.({ block: 'nearest' });
+          }, 0);
+          return prev;
+        });
       } else if (e.key === 'Enter' && filteredCountries[focusedIndex]) {
         e.preventDefault();
         selectCountry(filteredCountries[focusedIndex]!.id);
@@ -448,22 +594,29 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
         aria-label="Phone input with country selector"
       >
         {/* Country Selector */}
-        <div className="pi-selector">
+        <div className="pi-selector" ref={selectorRef}>
           <button
             type="button"
-            className={`pi-selector-btn ${!countries.length || readonly ? 'no-dropdown' : ''}`}
+            className={`pi-selector-btn ${!hasDropdown || readonly ? 'no-dropdown' : ''}`}
             disabled={disabled}
-            tabIndex={inactive || !countries.length ? -1 : undefined}
+            tabIndex={inactive || !hasDropdown ? -1 : undefined}
             aria-label={`Selected country: ${country.name}`}
             aria-expanded={dropdownOpen}
-            aria-haspopup={countries.length ? 'listbox' : undefined}
-            onClick={() => !inactive && countries.length && setDropdownOpen(!dropdownOpen)}
+            aria-haspopup={hasDropdown ? 'listbox' : undefined}
+            onClick={() => {
+              if (inactive || !hasDropdown) return;
+              setDropdownOpen((o) => {
+                const next = !o;
+                if (next) setFocusedIndex(0);
+                return next;
+              });
+            }}
           >
             <span className="pi-flag" role="img" aria-label={`${country.name} flag`}>
               {renderFlag ? renderFlag(country) : country.flag}
             </span>
             <span className="pi-code">{country.code}</span>
-            {!inactive && countries.length > 0 && (
+            {!inactive && hasDropdown && (
               <svg
                 className={`pi-chevron ${dropdownOpen ? 'is-open' : ''}`}
                 width="12"
@@ -501,7 +654,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
             readOnly={readonly}
             aria-invalid={shouldShowWarn}
             onInput={handleInput}
-            onFocus={onFocus}
+            onFocus={handleFocusInput}
             onBlur={onBlur}
           />
 
