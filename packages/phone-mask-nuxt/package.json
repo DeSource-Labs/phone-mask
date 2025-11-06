@@ -50,9 +50,9 @@
     "access": "public"
   },
   "scripts": {
-    "postinstall": "nuxt prepare",
+    "dev:prepare": "nuxt prepare",
     "clean": "rimraf dist",
-    "build": "nuxt-module-build build"
+    "build": "pnpm dev:prepare && nuxt-module-build build"
   },
   "peerDependencies": {
     "vue": "^3.4.33"
