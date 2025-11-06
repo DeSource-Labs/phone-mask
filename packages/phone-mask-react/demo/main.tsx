@@ -1,9 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 // Import directly from source to ensure live edits
 import { PhoneInput, usePhoneMask } from '../src';
-import type { Size, Theme } from '../src';
+import type { CountryKey, Size, Theme } from '../src';
 
 function DemoPhoneInput() {
   const [digits, setDigits] = useState('');
@@ -13,7 +13,7 @@ function DemoPhoneInput() {
       <h2 style={headingStyle}>PhoneInput Component</h2>
       <PhoneInput
         value={digits}
-        onChange={(data) => setDigits(data.digits)}
+        onChange={setDigits}
         onCountryChange={(c) => console.log('Country:', c.name)}
         onValidationChange={(v) => console.log('Valid:', v)}
         country="US"
@@ -58,7 +58,7 @@ function DemoHook() {
 
 function Playground() {
   const [digits, setDigits] = useState('');
-  const [country, setCountry] = useState('');
+  const [country, setCountry] = useState<CountryKey | undefined>(undefined);
   const [detect, setDetect] = useState(true);
   const [showCopy, setShowCopy] = useState(true);
   const [showClear, setShowClear] = useState(true);
@@ -71,7 +71,7 @@ function Playground() {
   const onDetectChange = (checked: boolean) => {
     setDetect(checked);
     if (checked) {
-      setCountry('');
+      setCountry(undefined);
     }
   };
 
@@ -112,8 +112,8 @@ function Playground() {
           <div style={controlGroupStyle}>
             <label style={labelStyle}>
               <span>Country:</span>
-              <select value={country} onChange={(e) => setCountry(e.target.value)} style={selectStyle}>
-                <option value="">Not Selected</option>
+              <select value={country} onChange={(e) => setCountry(e.target.value as CountryKey | undefined)} style={selectStyle}>
+                <option value={undefined}>Not Selected</option>
                 <option value="US">United States</option>
                 <option value="GB">United Kingdom</option>
                 <option value="DE">Germany</option>
@@ -311,11 +311,8 @@ const subheadingStyle: React.CSSProperties = {
 
 const playgroundGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: 24,
-  '@media (maxWidth: 768px)': {
-    gridTemplateColumns: '1fr'
-  }
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+  gap: 24
 };
 
 const previewPanelStyle: React.CSSProperties = {
