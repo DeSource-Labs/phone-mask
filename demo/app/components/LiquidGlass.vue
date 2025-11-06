@@ -385,7 +385,6 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* Only opacity transitions (matching transition-opacity) */
   transition: opacity 260ms ease-out;
 }
 
