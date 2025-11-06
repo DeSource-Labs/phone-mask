@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask-vue",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "🔌 Vue 3 component & directive for international phone number masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
   "keywords": [
     "vue",

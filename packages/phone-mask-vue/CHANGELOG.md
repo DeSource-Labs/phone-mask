@@ -1,5 +1,14 @@
 # @desource/phone-mask-vue
 
+## 0.2.1
+
+### Patch Changes
+
+- Nuxt: Improve install process of the package
+  Vue: Improve locale init of PhoneMask
+- Updated dependencies []:
+  - @desource/phone-mask@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
