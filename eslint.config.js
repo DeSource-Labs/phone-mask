@@ -54,12 +54,7 @@ export default [
 
   // Vue composables and Nuxt files (TypeScript with Vue APIs)
   {
-    files: [
-      '**/composables/**/*.ts',
-      '**/utils/**/*.ts',
-      'demo/app/**/*.ts',
-      'demo/**/*.config.ts'
-    ],
+    files: ['**/composables/**/*.ts', '**/utils/**/*.ts', 'demo/app/**/*.ts', 'demo/**/*.config.ts'],
     languageOptions: {
       parser: tsParser,
       globals: {
