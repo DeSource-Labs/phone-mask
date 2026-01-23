@@ -91,8 +91,8 @@ importers:
         specifier: ^0.4.4
         version: 0.4.4(rollup@4.53.2)
       google-libphonenumber:
-        specifier: ^3.2.43
-        version: 3.2.43
+        specifier: ^3.2.44
+        version: 3.2.44
       vite-plugin-dts:
         specifier: ^4.5.4
         version: 4.5.4(@types/node@24.10.6)(rollup@4.53.2)(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.6)(jiti@2.6.1)(sass@1.97.2)(terser@5.44.0)(yaml@2.8.2))
@@ -2671,8 +2671,8 @@ packages:
     resolution: {integrity: sha512-oB4vkQGqlMl682wL1IlWd02tXCbquGWM4voPEI85QmNKCaw8zGTm1f1rubFgkg3Eli2PtKlFgrnmUqasbQWlkw==}
     engines: {node: '>=20'}
 
-  google-libphonenumber@3.2.43:
-    resolution: {integrity: sha512-TbIX/UC3BFRJwCxbBeCPwuRC4Qws9Jz/CECmfTM1t9RFoI3X6eRThurv6AYr9wSrt640IA9KFIHuAD/vlyjqRw==}
+  google-libphonenumber@3.2.44:
+    resolution: {integrity: sha512-9p2TghluF2LTChFMLWsDRD5N78SZDsILdUk4gyqYxBXluCyxoPiOq+Fqt7DKM+LUd33+OgRkdrc+cPR93AypCQ==}
     engines: {node: '>=0.10'}
 
   graceful-fs@4.2.11:
@@ -7262,7 +7262,7 @@ snapshots:
       slash: 5.1.0
       unicorn-magic: 0.3.0
 
-  google-libphonenumber@3.2.43: {}
+  google-libphonenumber@3.2.44: {}
 
   graceful-fs@4.2.11: {}
 
