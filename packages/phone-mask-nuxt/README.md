@@ -1,11 +1,11 @@
 # @desource/phone-mask-nuxt
 
-> Nuxt 3 module for phone input with Google's libphonenumber data
+> Nuxt module for phone input with Google's libphonenumber data
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt.js)](https://www.npmjs.com/package/@desource/phone-mask-nuxt)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
-Drop-in Nuxt 3 module with auto-imports, SSR support, and zero configuration.
+Drop-in Nuxt module with auto-imports, SSR support, and zero configuration.
 
 ## ✨ Features
 

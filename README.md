@@ -42,7 +42,7 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 Ready-made plugins for your stack:
 
 - ✅ **Vue 3** — Composition API component + directive
-- ✅ **Nuxt 3** — Auto-imported, SSR-compatible
+- ✅ **Nuxt** — Auto-imported, SSR-compatible
 - ✅ **TypeScript/Vanilla JS** — Framework-agnostic core
 - 🔜 **React** — Coming soon
 
@@ -54,7 +54,7 @@ Ready-made plugins for your stack:
 | ------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- |
 | [@desource/phone-mask](./packages/phone-mask)           | ![npm](https://img.shields.io/npm/v/@desource/phone-mask)      | Core library — TypeScript/JS |
 | [@desource/phone-mask-vue](./packages/phone-mask-vue)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue)  | Vue 3 component + directive  |
-| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt) | Nuxt 3 module                |
+| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt) | Nuxt module                |
 
 ---
 
@@ -79,7 +79,7 @@ const phone = ref('');
 </template>
 ```
 
-### Nuxt 3
+### Nuxt
 
 ```bash
 npm install @desource/phone-mask-nuxt
