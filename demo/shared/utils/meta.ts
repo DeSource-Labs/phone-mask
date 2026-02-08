@@ -1,7 +1,7 @@
 export const meta = {
   url: 'https://phonemask.desource-labs.org',
   domain: 'desource-labs.org',
-  title: 'Intl Phone Mask library: Extreme Small & Fast | DeSource Labs',
+  title: 'Phone Mask: Extreme Small & Fast | DeSource Labs',
   description:
     'An extremely small, fast, and easy-to-use international phone mask library for Vue, Nuxt, React and JavaScript/TypeScript projects. Supports 250+ countries with localization.',
   keywords:
