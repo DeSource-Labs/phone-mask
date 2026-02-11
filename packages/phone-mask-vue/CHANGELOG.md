@@ -1,5 +1,14 @@
 # @desource/phone-mask-vue
 
+## 0.2.3
+
+### Patch Changes
+
+- Vue: Improve country dropdown scroll
+
+- Updated dependencies []:
+  - @desource/phone-mask@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes

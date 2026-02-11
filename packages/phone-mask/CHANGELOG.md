@@ -1,5 +1,11 @@
 # @desource/phone-mask
 
+## 0.2.3
+
+### Patch Changes
+
+- Vue: Improve country dropdown scroll
+
 ## 0.2.2
 
 ### Patch Changes
