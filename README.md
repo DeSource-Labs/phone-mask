@@ -54,7 +54,7 @@ Ready-made plugins for your stack:
 | ------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- |
 | [@desource/phone-mask](./packages/phone-mask)           | ![npm](https://img.shields.io/npm/v/@desource/phone-mask)      | Core library — TypeScript/JS |
 | [@desource/phone-mask-vue](./packages/phone-mask-vue)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue)  | Vue 3 component + directive  |
-| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt) | Nuxt module                |
+| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt) | Nuxt module                  |
 
 ---
 

@@ -386,7 +386,25 @@ const scrollFocusedIntoView = async () => {
   await nextTick();
   const list = dropdownRef.value?.lastElementChild;
   if (!list) return;
-  (list.children[focusedIndex.value] as HTMLElement | undefined)?.scrollIntoView?.({ block: 'nearest' });
+
+  const option = list.children[focusedIndex.value];
+  if (!option) return;
+
+  // Scroll only the list container with smooth behavior
+  const listRect = list.getBoundingClientRect();
+  const optionRect = option.getBoundingClientRect();
+
+  let scrollAmount = 0;
+
+  if (optionRect.top < listRect.top) {
+    scrollAmount = list.scrollTop - (listRect.top - optionRect.top); // Option is above visible area
+  } else if (optionRect.bottom > listRect.bottom) {
+    scrollAmount = list.scrollTop + (optionRect.bottom - listRect.bottom); // Option is below visible area
+  } else {
+    return; // Already visible, no need to scroll
+  }
+
+  list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
 };
 
 const onDocClick = (ev: MouseEvent) => {
