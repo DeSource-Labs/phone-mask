@@ -404,10 +404,7 @@ const scrollFocusedIntoView = async () => {
     return; // Already visible, no need to scroll
   }
 
-  list.scrollTo({
-    top: scrollAmount,
-    behavior: 'smooth'
-  });
+  list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
 };
 
 const onDocClick = (ev: MouseEvent) => {
