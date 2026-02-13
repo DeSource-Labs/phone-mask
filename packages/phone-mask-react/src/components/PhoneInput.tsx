@@ -35,13 +35,6 @@ function getCountries(locale: string): MaskFull[] {
   return Object.entries(map).map(([id, data]) => ({ id: id as CountryKey, ...data }));
 }
 
-//
-
-/**
- * PhoneInput Component
- * 
- * A comprehensive phone number input with country selector, masking, and validation.
- */
 export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref) => {
   const {
     value = '',
@@ -490,7 +483,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     if (!dropdownOpen) return;
 
     positionDropdown();
-    const focusTimer = setTimeout(() => searchRef.current?.focus(), 0);
+    const focusTimer = setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
 
     const onDocClick = (ev: Event) => {
       const target = ev.target as Node | null;
@@ -514,11 +507,12 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     };
   }, [dropdownOpen, positionDropdown, closeDropdown]);
 
-  // Cleanup close timer
+  // Cleanup timers
   useEffect(() => {
     return () => {
       if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
     };
   }, []);
 
@@ -527,14 +521,14 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     if (isCopying) return;
     const trimmedValue = fullFormatted.trim();
     if (!trimmedValue) return;
-    
+
     setIsCopying(true);
     try {
       await navigator.clipboard.writeText(trimmedValue);
       setCopied(true);
       onCopy?.(trimmedValue);
       if (liveRef.current) liveRef.current.textContent = 'Phone number copied to clipboard';
-      
+
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
       copyTimerRef.current = setTimeout(() => {
         setCopied(false);
@@ -566,6 +560,10 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
       blur: () => telRef.current?.blur(),
       clear: () => {
         setDigits('');
+        setShowValidationHint(false);
+        if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+        onChange?.('');
+        onPhoneChange?.({ full: '', fullFormatted: '', digits: '' });
         onClear?.();
       },
       selectCountry,
@@ -575,8 +573,32 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
       isValid: () => isComplete,
       isComplete: () => isComplete
     }),
-    [selectCountry, full, fullFormatted, digits, isComplete, onClear]
+    [selectCountry, full, fullFormatted, digits, isComplete, onClear, onChange, onPhoneChange]
   );
+
+  const scrollFocusedIntoView = (index: number) => {
+    setTimeout(() => {
+      const list = dropdownRef.current?.lastElementChild;
+      const option = list?.children[index];
+      if (!list || !option) return;
+
+      // Scroll only the list container with smooth behavior
+      const listRect = list.getBoundingClientRect();
+      const optionRect = option.getBoundingClientRect();
+
+      let scrollAmount = 0;
+
+      if (optionRect.top < listRect.top) {
+        scrollAmount = list.scrollTop - (listRect.top - optionRect.top); // Option is above visible area
+      } else if (optionRect.bottom > listRect.bottom) {
+        scrollAmount = list.scrollTop + (optionRect.bottom - listRect.bottom); // Option is below visible area
+      } else {
+        return; // Already visible, no need to scroll
+      }
+
+      list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
+    }, 0);
+  };
 
   // Keyboard navigation for dropdown
   const handleSearchKeydown = useCallback(
@@ -585,20 +607,14 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
         e.preventDefault();
         setFocusedIndex((i) => {
           const next = Math.min(i + 1, filteredCountries.length - 1);
-          setTimeout(() => {
-            const list = dropdownRef.current?.lastElementChild as HTMLUListElement | null;
-            list?.children[next]?.scrollIntoView?.({ block: 'nearest' });
-          }, 0);
+          scrollFocusedIntoView(next);
           return next;
         });
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setFocusedIndex((i) => {
           const prev = Math.max(i - 1, 0);
-          setTimeout(() => {
-            const list = dropdownRef.current?.lastElementChild as HTMLUListElement | null;
-            list?.children[prev]?.scrollIntoView?.({ block: 'nearest' });
-          }, 0);
+          scrollFocusedIntoView(prev);
           return prev;
         });
       } else if (e.key === 'Enter' && filteredCountries[focusedIndex]) {
