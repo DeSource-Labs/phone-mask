@@ -84,7 +84,7 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
     if (!dropdownOpened.value) return;
 
     await nextTick();
-    searchRef.value?.focus();
+    searchRef.value?.focus({ preventScroll: true });
     focusedIndex.value = 0;
   };
 

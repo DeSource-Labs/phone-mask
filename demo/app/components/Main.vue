@@ -2,7 +2,6 @@
   <main class="main">
     <LibContainer />
     <CardSwap :card-distance="60" :vertical-distance="70" :delay="5000" :skew-amount="6">
-      <!-- Card 0: Always Fresh Data (cloud icon) -->
       <template #card-0>
         <div class="card">
           <div class="card-header">
@@ -36,7 +35,7 @@
           />
         </div>
       </template>
-      <!-- Card 1: Tiny & Fast (code icon) -->
+
       <template #card-1>
         <div class="card">
           <div class="card-header">
@@ -68,7 +67,7 @@
           />
         </div>
       </template>
-      <!-- Card 2: Easy to integrate (sliders icon) -->
+
       <template #card-2>
         <div class="card">
           <div class="card-header">
@@ -125,8 +124,6 @@
   </main>
 </template>
 
-<script setup></script>
-
 <style scoped>
 .main {
   flex: 1;
@@ -135,6 +132,7 @@
   align-items: baseline;
   padding: 0 2rem;
 }
+
 .card {
   padding: 1rem;
   display: flex;
@@ -142,12 +140,12 @@
   gap: 1rem;
 }
 
-/* header */
 .card-header {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .header-logo {
   width: 34px;
   height: 34px;

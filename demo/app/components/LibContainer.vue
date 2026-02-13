@@ -38,6 +38,7 @@
         v-model="testPhone"
         class="phone-input-main"
         dropdown-class="phone-dropdown-main"
+        theme="dark"
         :with-validity="false"
       />
     </LiquidGlass>

@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask",
-  "version": "0.2.0",
+  "version": "0.2.3",
   "description": "⚡ Ultra-lightweight international phone number formatter & validator with auto-sync to Google libphonenumber. Framework-agnostic core library.",
   "keywords": [
     "phone",
@@ -57,8 +57,8 @@
     "gen": "pnpm add -D google-libphonenumber@latest && node scripts/gen.js"
   },
   "devDependencies": {
-    "google-libphonenumber": "^3.2.43",
     "@rollup/plugin-terser": "^0.4.4",
+    "google-libphonenumber": "^3.2.44",
     "vite-plugin-dts": "^4.5.4"
   }
 }

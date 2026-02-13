@@ -169,7 +169,7 @@ phone-mask/
 │   │   │   └── index.ts       # Public API
 │   │   └── package.json
 │   │
-│   └── phone-mask-nuxt/       # Nuxt 3 module
+│   └── phone-mask-nuxt/       # Nuxt module
 │       ├── src/
 │       │   ├── runtime/                   # Nuxt runtime files
 │       │   │   ├── component.ts           # Auto-registered component

@@ -27,19 +27,21 @@ pnpm changeset
 ```
 
 You'll be prompted to:
+
 1. **Select packages**: Choose which packages were affected
-2. **Select bump type**: 
+2. **Select bump type**:
    - `patch` (0.0.X) - Bug fixes, minor changes
    - `minor` (0.X.0) - New features, backwards compatible
    - `major` (X.0.0) - Breaking changes
 3. **Write summary**: Describe the changes (supports markdown)
 
 Example changeset file (`.changeset/happy-pandas-dance.md`):
+
 ```md
 ---
-"@desource/phone-mask": minor
-"@desource/phone-mask-vue": minor
-"@desource/phone-mask-nuxt": minor
+'@desource/phone-mask': minor
+'@desource/phone-mask-vue': minor
+'@desource/phone-mask-nuxt': minor
 ---
 
 Add support for dynamic country list updates and improve performance
@@ -98,9 +100,7 @@ If packages should always be versioned together, add to `.changeset/config.json`
 
 ```json
 {
-  "linked": [
-    ["@desource/phone-mask-vue", "@desource/phone-mask-nuxt"]
-  ]
+  "linked": [["@desource/phone-mask-vue", "@desource/phone-mask-nuxt"]]
 }
 ```
 
@@ -110,9 +110,7 @@ If packages should have the same version number:
 
 ```json
 {
-  "fixed": [
-    ["@desource/phone-mask", "@desource/phone-mask-vue", "@desource/phone-mask-nuxt"]
-  ]
+  "fixed": [["@desource/phone-mask", "@desource/phone-mask-vue", "@desource/phone-mask-nuxt"]]
 }
 ```
 
@@ -165,17 +163,20 @@ pnpm release
 ## Changeset Types
 
 ### Patch (0.0.X)
+
 - Bug fixes
 - Documentation updates
 - Internal refactoring
 - Dependency updates
 
 ### Minor (0.X.0)
+
 - New features
 - Non-breaking API additions
 - Performance improvements
 
 ### Major (X.0.0)
+
 - Breaking API changes
 - Removal of deprecated features
 - Major refactoring affecting public API
@@ -191,15 +192,18 @@ pnpm release
 ## Troubleshooting
 
 ### Package not publishing
+
 - Check `private: false` in package.json
 - Verify npm authentication: `npm whoami`
 - Check package scope permissions
 
 ### Version conflicts
+
 - Ensure all changesets are consumed before adding new ones
 - Run `pnpm changeset:version` to clear pending changesets
 
 ### GitHub Action fails
+
 - Verify NPM_TOKEN secret is set
 - Check GITHUB_TOKEN has write permissions
 - Review workflow logs for specific errors
@@ -207,6 +211,7 @@ pnpm release
 ## Example Workflow
 
 1. **Feature branch**:
+
    ```bash
    git checkout -b feat/new-feature
    # Make changes to @desource/phone-mask

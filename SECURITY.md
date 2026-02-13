@@ -91,6 +91,7 @@ Security updates are released as:
 - **Changelog entries** marked with `[SECURITY]`
 
 Subscribe to:
+
 - [GitHub Security Advisories](https://github.com/DeSource-Labs/phone-mask/security/advisories)
 - [npm Advisories](https://www.npmjs.com/advisories)
 

@@ -7,6 +7,7 @@
   - _Describe the problem the PR solves, the feature it adds or/and attach the related issue._
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking)
 - [ ] New feature (non-breaking)
 - [ ] Breaking change
@@ -15,12 +16,15 @@
 - [ ] Other (describe below):
 
 ## Testing
+
 Describe how you tested your changes
 
 ## Screenshots (if applicable)
+
 Add screenshots for UI changes
 
 ## Checklist
+
 - [ ] Code follows project style guidelines
 - [ ] Self-review completed
 - [ ] Comments added for complex code
