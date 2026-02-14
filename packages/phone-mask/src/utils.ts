@@ -3,6 +3,11 @@ export type FormatResult = {
   map: number[];
 };
 
+/** Get navigator language with fallback to 'en' */
+export function getNavigatorLang(): string {
+  return typeof navigator !== 'undefined' ? navigator.language || 'en' : 'en';
+}
+
 /** Ensure mask is an array of strings */
 export function toArray<T>(mask: T | T[]): T[] {
   return Array.isArray(mask) ? mask : [mask];

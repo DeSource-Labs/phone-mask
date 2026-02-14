@@ -4,6 +4,7 @@ import {
   MasksFullMap,
   MasksFullEn,
   MasksFullMapEn,
+  getNavigatorLang,
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
@@ -113,7 +114,7 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
   // #region Country Detection
   const detectFromLocale = () => {
     try {
-      const lang = navigator.language || '';
+      const lang = getNavigatorLang();
       try {
         const loc = new Intl.Locale(lang);
         if (loc.region && hasCountry(loc.region)) return loc.region.toUpperCase() as CountryKey;

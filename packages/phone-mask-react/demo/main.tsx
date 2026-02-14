@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 
 // Import directly from source to ensure live edits
 import { PhoneInput, usePhoneMask } from '../src';
-import type { CountryKey, Size, Theme } from '../src';
+import type { PCountryKey as CountryKey, PhoneInputSize as Size, PhoneInputTheme as Theme } from '../src';
 
 function DemoPhoneInput() {
   const [digits, setDigits] = useState('');

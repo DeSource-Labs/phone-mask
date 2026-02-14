@@ -1,17 +1,9 @@
 import { type Directive, type DirectiveBinding, nextTick } from 'vue';
-import { MasksFullMap, MasksFullMapEn, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { MasksFullMap, MasksFullMapEn, getNavigatorLang, type CountryKey, type MaskFull } from '@desource/phone-mask';
 
 import { createPhoneFormatter, setCaret, extractDigits, getSelection } from '../composables/usePhoneFormatter';
 import { Delimiters, GEO_IP_TIMEOUT, GEO_IP_URL, InvalidPattern, NavigationKeys } from '../consts';
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
-
-/** Get browser navigator language */
-function getNavigatorLang(): string {
-  if (typeof navigator !== 'undefined') {
-    return navigator.language || '';
-  }
-  return '';
-}
 
 /** Get country data by ISO code and locale */
 function getCountry(countryCode: string, locale: string): MaskFull | null {
@@ -97,7 +89,7 @@ async function initState(binding: DirectiveBinding): Promise<PMaskDirectiveState
     options = value;
   }
 
-  const locale = options.locale || getNavigatorLang() || 'en';
+  const locale = options.locale || getNavigatorLang();
   let country: MaskFull | null = null;
 
   // Determine country

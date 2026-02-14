@@ -1,16 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { MasksFullMap, MasksFullMapEn, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { MasksFullMap, MasksFullMapEn, getNavigatorLang, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, getSelection, setCaret } from '../utils';
 import { Delimiters, GEO_IP_TIMEOUT, GEO_IP_URL, InvalidPattern, NavigationKeys } from '../consts';
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn, PhoneNumber } from '../types';
-
-/** Get browser navigator language */
-function getNavigatorLang(): string {
-  if (typeof navigator !== 'undefined') {
-    return navigator.language || '';
-  }
-  return '';
-}
 
 /** Get country data by ISO code and locale */
 function getCountry(countryCode: string, locale: string): MaskFull | null {
@@ -87,7 +79,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   const inputRef = useRef<HTMLInputElement>(null);
   const [digits, setDigits] = useState<string>('');
   const [country, setCountryState] = useState<MaskFull>(() => {
-    const locale = options.locale || getNavigatorLang() || 'en';
+    const locale = options.locale || getNavigatorLang();
     if (options.country) {
       const c = getCountry(options.country, locale);
       if (c) return c;
@@ -95,7 +87,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     return getDefaultCountry(locale);
   });
 
-  const locale = options.locale || getNavigatorLang() || 'en';
+  const locale = options.locale || getNavigatorLang();
   const formatter = createPhoneFormatter(country);
 
   const displayValue = formatter.formatDisplay(digits);

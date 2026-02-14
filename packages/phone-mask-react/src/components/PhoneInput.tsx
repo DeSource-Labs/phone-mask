@@ -1,23 +1,18 @@
 import React, {
-  forwardRef,
   useImperativeHandle,
   useRef,
   useState,
   useEffect,
   useCallback,
   useMemo,
-  type CSSProperties
+  type CSSProperties,
+  type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { MasksFullMap, MasksFullMapEn, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { MasksFullMap, MasksFullMapEn, getNavigatorLang, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
 import { Delimiters, NavigationKeys, InvalidPattern, GEO_IP_URL, GEO_IP_TIMEOUT, CACHE_KEY, CACHE_EXPIRY_MS } from '../consts';
 import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
-
-/** Get navigator language */
-function getNavigatorLang(): string {
-  return typeof navigator !== 'undefined' ? navigator.language || 'en' : 'en';
-}
 
 /** Get country by code */
 function getCountry(code: string, locale: string): MaskFull {
@@ -35,7 +30,10 @@ function getCountries(locale: string): MaskFull[] {
   return Object.entries(map).map(([id, data]) => ({ id: id as CountryKey, ...data }));
 }
 
-export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref) => {
+export const PhoneInput = ({
+  ref,
+  ...props
+}: PhoneInputProps & { ref?: Ref<PhoneInputRef> }) => {
   const {
     value = '',
     country: propCountry,
@@ -842,6 +840,6 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
       <div ref={liveRef} className="sr-only" role="status" aria-live="polite" aria-atomic="true" />
     </>
   );
-});
+};
 
 PhoneInput.displayName = 'PhoneInput';
