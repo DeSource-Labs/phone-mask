@@ -1,41 +1,36 @@
 import React, {
-  forwardRef,
   useImperativeHandle,
   useRef,
   useState,
   useEffect,
   useCallback,
   useMemo,
-  type CSSProperties
+  type CSSProperties,
+  type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { MasksFullMap, MasksFullMapEn, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import {
+  getNavigatorLang,
+  getCountry,
+  getMasksFullMapByLocale,
+  detectByGeoIp,
+  type CountryKey,
+  type MaskFull
+} from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
-import { Delimiters, NavigationKeys, InvalidPattern, GEO_IP_URL, GEO_IP_TIMEOUT, CACHE_KEY, CACHE_EXPIRY_MS } from '../consts';
+import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
-
-/** Get navigator language */
-function getNavigatorLang(): string {
-  return typeof navigator !== 'undefined' ? navigator.language || 'en' : 'en';
-}
-
-/** Get country by code */
-function getCountry(code: string, locale: string): MaskFull {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const map = isEn ? MasksFullMapEn : MasksFullMap(locale);
-  const id = code.toUpperCase() as CountryKey;
-  const data = map[id] || map.US;
-  return { id: (map[id] ? id : 'US') as CountryKey, ...data };
-}
 
 /** Get all countries */
 function getCountries(locale: string): MaskFull[] {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const map = isEn ? MasksFullMapEn : MasksFullMap(locale);
+  const map = getMasksFullMapByLocale(locale);
+
   return Object.entries(map).map(([id, data]) => ({ id: id as CountryKey, ...data }));
 }
 
-export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref) => {
+type PhoneInputComponent = PhoneInputProps & { ref?: Ref<PhoneInputRef> };
+
+export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const {
     value = '',
     country: propCountry,
@@ -150,47 +145,18 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     };
 
     const detectFromLocale = (): string | null => {
-      const lang = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : '';
+      const lang = typeof navigator !== 'undefined' && navigator.language ? navigator.language : '';
       // Use Intl.Locale when available
       try {
         if (Intl.Locale) {
           const loc = new Intl.Locale(lang);
           if (loc?.region && hasCountry(loc.region)) return loc.region.toUpperCase();
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       const parts = lang.split(/[-_]/);
       if (parts.length > 1 && hasCountry(parts[1])) return parts[1].toUpperCase();
-      return null;
-    };
-
-    const detectByGeoIp = async (): Promise<string | null> => {
-      try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached) as { country_code?: string; ts: number };
-          const expired = Date.now() - parsed.ts > CACHE_EXPIRY_MS;
-          if (!expired && parsed.country_code && hasCountry(parsed.country_code)) {
-            return parsed.country_code.toUpperCase();
-          }
-          if (expired) localStorage.removeItem(CACHE_KEY);
-        }
-      } catch { /* ignore */ }
-
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), GEO_IP_TIMEOUT);
-      try {
-        const res = await fetch(GEO_IP_URL, { signal: controller.signal, headers: { Accept: 'application/json' } });
-        if (!res.ok) return null;
-        const json = await res.json();
-        const raw = (json.country || json.country_code || json.countryCode || json.country_code2 || '')
-          .toString()
-          .toUpperCase();
-        if (hasCountry(raw)) {
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ country_code: raw, ts: Date.now() })); } catch { /* ignore */ }
-          return raw;
-        }
-      } catch { /* ignore */ }
-      finally { clearTimeout(t); }
       return null;
     };
 
@@ -205,7 +171,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
         return;
       }
       if (!detect) return;
-      const geo = await detectByGeoIp();
+      const geo = await detectByGeoIp(hasCountry);
       if (geo) {
         const detected = getCountry(geo, locale);
         setCountry((prev) => {
@@ -260,18 +226,15 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   }, [emitChange]);
 
   // Input handlers
-  const handleBeforeInput = useCallback(
-    (e: InputEvent) => {
-      const data = e.data;
-      if (e.inputType !== 'insertText' || !data) return;
-      const el = telRef.current;
-      if (!el) return;
-      if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-        e.preventDefault();
-      }
-    },
-    []
-  );
+  const handleBeforeInput = useCallback((e: InputEvent) => {
+    const data = e.data;
+    if (e.inputType !== 'insertText' || !data) return;
+    const el = telRef.current;
+    if (!el) return;
+    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
+      e.preventDefault();
+    }
+  }, []);
 
   const handleInput = useCallback(() => {
     const el = telRef.current;
@@ -389,10 +352,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
         const range = formatter.getDigitRange(digits, selStart, selEnd);
         if (range) {
           const [start, end] = range;
-          const newDigits = extractDigits(
-            digits.slice(0, start) + pastedDigits + digits.slice(end),
-            maxDigits
-          );
+          const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
           setDigits(newDigits);
           setTimeout(() => setCaret(el, formatter.getCaretPosition(start + pastedDigits.length)), 0);
         }
@@ -428,11 +388,14 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
   }, [dropdownOpen]);
 
   // Input focus behavior (close dropdown, keep existing hint state)
-  const handleFocusInput = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    closeDropdown();
-    onFocus?.(e);
-  }, [onFocus, closeDropdown]);
+  const handleFocusInput = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+      closeDropdown();
+      onFocus?.(e);
+    },
+    [onFocus, closeDropdown]
+  );
 
   // Attach native event listeners
   useEffect(() => {
@@ -475,7 +438,7 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
     setDropdownStyle({
       top: `${rect.bottom + window.scrollY + 8}px`,
       left: `${rect.left + window.scrollX}px`,
-      width: `${rect.width}px`,
+      width: `${rect.width}px`
     });
   }, []);
 
@@ -842,6 +805,6 @@ export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>((props, ref
       <div ref={liveRef} className="sr-only" role="status" aria-live="polite" aria-atomic="true" />
     </>
   );
-});
+};
 
 PhoneInput.displayName = 'PhoneInput';

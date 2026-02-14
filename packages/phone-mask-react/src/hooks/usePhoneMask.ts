@@ -1,60 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { MasksFullMap, MasksFullMapEn, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { getNavigatorLang, getCountry, detectCountryFromGeoIP, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, getSelection, setCaret } from '../utils';
-import { Delimiters, GEO_IP_TIMEOUT, GEO_IP_URL, InvalidPattern, NavigationKeys } from '../consts';
+import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn, PhoneNumber } from '../types';
-
-/** Get browser navigator language */
-function getNavigatorLang(): string {
-  if (typeof navigator !== 'undefined') {
-    return navigator.language || '';
-  }
-  return '';
-}
-
-/** Get country data by ISO code and locale */
-function getCountry(countryCode: string, locale: string): MaskFull | null {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const countriesMap = isEn ? MasksFullMapEn : MasksFullMap(locale);
-  const id = countryCode.toUpperCase() as CountryKey;
-  const found = countriesMap[id];
-  return found ? { id, ...found } : null;
-}
-
-/** Get default country (US) for the given locale */
-function getDefaultCountry(locale: string): MaskFull {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const countries = isEn ? MasksFullMapEn : MasksFullMap(locale);
-  return { id: 'US', ...countries.US };
-}
-
-/**
- * Detect country from GeoIP service.
- */
-async function detectCountryFromGeoIP(): Promise<string | null> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), GEO_IP_TIMEOUT);
-
-    const res = await fetch(GEO_IP_URL, {
-      signal: controller.signal,
-      headers: { Accept: 'application/json' }
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!res.ok) return null;
-
-    const json = await res.json();
-    const code = (json.country || json.country_code || json.countryCode || json.country_code2 || '')
-      .toString()
-      .toUpperCase();
-
-    return code || null;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Detect country from browser locale.
@@ -87,15 +35,11 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   const inputRef = useRef<HTMLInputElement>(null);
   const [digits, setDigits] = useState<string>('');
   const [country, setCountryState] = useState<MaskFull>(() => {
-    const locale = options.locale || getNavigatorLang() || 'en';
-    if (options.country) {
-      const c = getCountry(options.country, locale);
-      if (c) return c;
-    }
-    return getDefaultCountry(locale);
+    const locale = options.locale || getNavigatorLang();
+    return getCountry(options.country || 'US', locale);
   });
 
-  const locale = options.locale || getNavigatorLang() || 'en';
+  const locale = options.locale || getNavigatorLang();
   const formatter = createPhoneFormatter(country);
 
   const displayValue = formatter.formatDisplay(digits);
@@ -110,21 +54,17 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     if (!options.detect) return;
 
     (async () => {
-      let detected: MaskFull | null = null;
-
       const geoCountry = await detectCountryFromGeoIP();
       if (geoCountry) {
-        detected = getCountry(geoCountry, locale);
+        const detected = getCountry(geoCountry, locale);
+        setCountryState(detected);
+        options.onCountryChange?.(detected);
+        return;
       }
 
-      if (!detected) {
-        const localeCountry = detectCountryFromLocale();
-        if (localeCountry) {
-          detected = getCountry(localeCountry, locale);
-        }
-      }
-
-      if (detected) {
+      const localeCountry = detectCountryFromLocale();
+      if (localeCountry) {
+        const detected = getCountry(localeCountry, locale);
         setCountryState(detected);
         options.onCountryChange?.(detected);
       }
@@ -135,7 +75,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   useEffect(() => {
     if (options.country) {
       const newCountry = getCountry(options.country, locale);
-      if (newCountry && newCountry.id !== country.id) {
+      if (newCountry.id !== country.id) {
         setCountryState(newCountry);
         options.onCountryChange?.(newCountry);
       }
@@ -164,21 +104,18 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   }, [digits, full, fullFormatted]);
 
   // Event handler: beforeinput
-  const handleBeforeInput = useCallback(
-    (e: InputEvent) => {
-      const data = e.data;
-      if (e.inputType !== 'insertText' || !data) return;
+  const handleBeforeInput = useCallback((e: InputEvent) => {
+    const data = e.data;
+    if (e.inputType !== 'insertText' || !data) return;
 
-      const el = inputRef.current;
-      if (!el) return;
+    const el = inputRef.current;
+    if (!el) return;
 
-      // Block invalid characters & multiple spaces
-      if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-        e.preventDefault();
-      }
-    },
-    []
-  );
+    // Block invalid characters & multiple spaces
+    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
+      e.preventDefault();
+    }
+  }, []);
 
   // Event handler: input
   const handleInput = useCallback(() => {
@@ -372,9 +309,9 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     };
   }, [handleBeforeInput, handleInput, handleKeydown, handlePaste, formatter]);
 
-  const setCountry = useCallback((countryCode: string) => {
-    const newCountry = getCountry(countryCode, locale);
-    if (newCountry) {
+  const setCountry = useCallback(
+    (countryCode: string) => {
+      const newCountry = getCountry(countryCode, locale);
       setCountryState(newCountry);
       const newFormatter = createPhoneFormatter(newCountry);
       const maxDigits = newFormatter.getMaxDigits();
@@ -382,8 +319,9 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
         setDigits(digits.slice(0, maxDigits));
       }
       options.onCountryChange?.(newCountry);
-    }
-  }, [locale, digits, options]);
+    },
+    [locale, digits, options]
+  );
 
   const clear = useCallback(() => {
     setDigits('');

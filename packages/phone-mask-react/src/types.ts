@@ -149,11 +149,6 @@ export interface FormatterHelpers {
   isComplete: (digits: string) => boolean;
 }
 
-export interface PMaskGeoCache {
-  country_code: string;
-  ts: number;
-}
-
 /** Configuration options for the phone mask hook */
 export interface UsePhoneMaskOptions {
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */
