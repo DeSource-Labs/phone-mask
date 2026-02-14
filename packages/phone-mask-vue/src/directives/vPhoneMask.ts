@@ -1,38 +1,9 @@
 import { type Directive, type DirectiveBinding, nextTick } from 'vue';
-import { getNavigatorLang, getCountry, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { getNavigatorLang, getCountry, detectCountryFromGeoIP, type MaskFull } from '@desource/phone-mask';
 
 import { createPhoneFormatter, setCaret, extractDigits, getSelection } from '../composables/usePhoneFormatter';
-import { Delimiters, GEO_IP_TIMEOUT, GEO_IP_URL, InvalidPattern, NavigationKeys } from '../consts';
+import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
-
-/**
- * Detect country from GeoIP service.
- * Attempts to fetch country code from external API with timeout
- */
-async function detectCountryFromGeoIP(): Promise<string | null> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), GEO_IP_TIMEOUT);
-
-    const res = await fetch(GEO_IP_URL, {
-      signal: controller.signal,
-      headers: { Accept: 'application/json' }
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!res.ok) return null;
-
-    const json = await res.json();
-    const code = (json.country || json.country_code || json.countryCode || json.country_code2 || '')
-      .toString()
-      .toUpperCase();
-
-    return code || null;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Detect country from browser locale.

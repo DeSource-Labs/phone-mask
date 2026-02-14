@@ -9,9 +9,9 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { MasksFullMap, MasksFullMapEn, getNavigatorLang, getCountry, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { MasksFullMap, MasksFullMapEn, getNavigatorLang, getCountry, detectByGeoIp, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
-import { Delimiters, NavigationKeys, InvalidPattern, GEO_IP_URL, GEO_IP_TIMEOUT, CACHE_KEY, CACHE_EXPIRY_MS } from '../consts';
+import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
 
 /** Get all countries */
@@ -152,37 +152,6 @@ export const PhoneInput = ({
       return null;
     };
 
-    const detectByGeoIp = async (): Promise<string | null> => {
-      try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (cached) {
-          const parsed = JSON.parse(cached) as { country_code?: string; ts: number };
-          const expired = Date.now() - parsed.ts > CACHE_EXPIRY_MS;
-          if (!expired && parsed.country_code && hasCountry(parsed.country_code)) {
-            return parsed.country_code.toUpperCase();
-          }
-          if (expired) localStorage.removeItem(CACHE_KEY);
-        }
-      } catch { /* ignore */ }
-
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), GEO_IP_TIMEOUT);
-      try {
-        const res = await fetch(GEO_IP_URL, { signal: controller.signal, headers: { Accept: 'application/json' } });
-        if (!res.ok) return null;
-        const json = await res.json();
-        const raw = (json.country || json.country_code || json.countryCode || json.country_code2 || '')
-          .toString()
-          .toUpperCase();
-        if (hasCountry(raw)) {
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ country_code: raw, ts: Date.now() })); } catch { /* ignore */ }
-          return raw;
-        }
-      } catch { /* ignore */ }
-      finally { clearTimeout(t); }
-      return null;
-    };
-
     (async () => {
       if (propCountry && hasCountry(propCountry)) {
         const newCountry = getCountry(propCountry, locale);
@@ -194,7 +163,7 @@ export const PhoneInput = ({
         return;
       }
       if (!detect) return;
-      const geo = await detectByGeoIp();
+      const geo = await detectByGeoIp(hasCountry);
       if (geo) {
         const detected = getCountry(geo, locale);
         setCountry((prev) => {

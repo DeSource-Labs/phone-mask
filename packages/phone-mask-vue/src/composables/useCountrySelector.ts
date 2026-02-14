@@ -5,13 +5,11 @@ import {
   MasksFullEn,
   MasksFullMapEn,
   getNavigatorLang,
+  detectByGeoIp,
   type CountryKey,
-  type MaskFull
+  type MaskFull,
 } from '@desource/phone-mask';
 import type { ShallowRef, ComputedRef } from 'vue';
-
-import { CACHE_EXPIRY_MS, CACHE_KEY, GEO_IP_TIMEOUT, GEO_IP_URL } from '../consts';
-import type { PMaskGeoCache } from '../types';
 
 const emptyCountry: MaskFull = { id: '' as CountryKey, code: '', mask: '', flag: '', name: '' };
 
@@ -129,63 +127,6 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
     return null;
   };
 
-  const detectByGeoIp = async (): Promise<CountryKey | null> => {
-    // Check cache first
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const parsed: PMaskGeoCache = JSON.parse(cached);
-        const isExpired = Date.now() - parsed.ts > CACHE_EXPIRY_MS;
-
-        if (!isExpired && parsed.country_code && hasCountry(parsed.country_code)) {
-          return parsed.country_code.toUpperCase() as CountryKey;
-        }
-        // Remove expired cache
-        if (isExpired) {
-          localStorage.removeItem(CACHE_KEY);
-        }
-      }
-    } catch {
-      // Silent fail for localStorage issues
-    }
-
-    // Fetch from GeoIP API
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), GEO_IP_TIMEOUT);
-
-    try {
-      const res = await fetch(GEO_IP_URL, {
-        signal: controller.signal,
-        headers: { Accept: 'application/json' }
-      });
-
-      if (!res.ok) {
-        return null;
-      }
-
-      const json = await res.json();
-      const code = (json.country || json.country_code || json.countryCode || json.country_code2 || '')
-        .toString()
-        .toUpperCase();
-
-      if (code && hasCountry(code)) {
-        // Cache the result
-        try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ country_code: code, ts: Date.now() } as PMaskGeoCache));
-        } catch {
-          // Silent fail for localStorage issues
-        }
-        return code as CountryKey;
-      }
-    } catch {
-      // ignore
-    } finally {
-      clearTimeout(timeoutId);
-    }
-
-    return null;
-  };
-
   const selectInitialCountry = (id: CountryKey, emitFn?: () => void) => {
     const previousId = selectedId.value;
     selectedId.value = id;
@@ -199,9 +140,9 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
       return;
     }
     if (!detect) return;
-    const geo = await detectByGeoIp();
+    const geo = await detectByGeoIp(hasCountry);
     if (geo) {
-      selectInitialCountry(geo, emitFn);
+      selectInitialCountry(geo as CountryKey, emitFn);
       return;
     }
     const loc = detectFromLocale();

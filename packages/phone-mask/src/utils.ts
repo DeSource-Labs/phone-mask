@@ -1,5 +1,7 @@
+import { CACHE_KEY, CACHE_EXPIRY_MS } from './consts'
 import { MasksFullMap, MasksFullMapEn } from './entries';
-import type { CountryKey, MaskFull } from './entries';
+import { detectCountryFromGeoIP } from './services';
+import type { CountryKey, MaskFull, MaskGeoCache } from './entries';
 
 export type FormatResult = {
   display: string;
@@ -23,6 +25,40 @@ export function getCountry(code: string, locale: string): MaskFull {
     return { id: 'US', ...map.US };
   }
 }
+
+export async function detectByGeoIp(
+  hasCountry: (code: string) => boolean,
+): Promise<CountryKey | null> {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const parsed: MaskGeoCache = JSON.parse(cached);
+      const expired = Date.now() - parsed.ts > CACHE_EXPIRY_MS;
+
+      if (!expired && parsed.country_code && hasCountry(parsed.country_code)) {
+        return parsed.country_code.toUpperCase() as CountryKey;
+      }
+
+      if (expired) localStorage.removeItem(CACHE_KEY);
+    }
+  } catch { /* ignore */ }
+
+  // Fetch from GeoIP API
+  const code = await detectCountryFromGeoIP();
+
+  if (code && hasCountry(code)) {
+    // Cache the result
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ country_code: code, ts: Date.now() } as MaskGeoCache));
+    } catch {
+      // Silent fail for localStorage issues
+    }
+
+    return code as CountryKey;
+  }
+
+  return null;
+};
 
 /** Ensure mask is an array of strings */
 export function toArray<T>(mask: T | T[]): T[] {

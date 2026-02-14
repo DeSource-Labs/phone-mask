@@ -143,11 +143,6 @@ export interface FormatterHelpers {
   isComplete: (digits: string) => boolean;
 }
 
-export interface PMaskGeoCache {
-  country_code: string;
-  ts: number;
-}
-
 /** Configuration options for the phone mask directive */
 export interface PMaskDirectiveOptions {
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */

@@ -1,36 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { getNavigatorLang, getCountry, type MaskFull } from '@desource/phone-mask';
+import { getNavigatorLang, getCountry, detectCountryFromGeoIP, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, getSelection, setCaret } from '../utils';
-import { Delimiters, GEO_IP_TIMEOUT, GEO_IP_URL, InvalidPattern, NavigationKeys } from '../consts';
+import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn, PhoneNumber } from '../types';
-
-/**
- * Detect country from GeoIP service.
- */
-async function detectCountryFromGeoIP(): Promise<string | null> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), GEO_IP_TIMEOUT);
-
-    const res = await fetch(GEO_IP_URL, {
-      signal: controller.signal,
-      headers: { Accept: 'application/json' }
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!res.ok) return null;
-
-    const json = await res.json();
-    const code = (json.country || json.country_code || json.countryCode || json.country_code2 || '')
-      .toString()
-      .toUpperCase();
-
-    return code || null;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Detect country from browser locale.
