@@ -9,15 +9,15 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { MasksFullMap, MasksFullMapEn, getNavigatorLang, getCountry, detectByGeoIp, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { getNavigatorLang, getCountry, getMasksFullMapByLocale, detectByGeoIp, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
 import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
 
 /** Get all countries */
 function getCountries(locale: string): MaskFull[] {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const map = isEn ? MasksFullMapEn : MasksFullMap(locale);
+  const map = getMasksFullMapByLocale(locale);
+
   return Object.entries(map).map(([id, data]) => ({ id: id as CountryKey, ...data }));
 }
 

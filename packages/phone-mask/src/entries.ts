@@ -16,10 +16,6 @@ interface MaskWithFlag extends Mask {
 interface MaskFull extends MaskWithFlag {
   name: string;
 }
-interface MaskGeoCache {
-  country_code: string;
-  ts: number;
-}
 type MaskBaseMap = Record<CountryKey, string | Array<string>>;
 type MaskMap = Record<CountryKey, Omit<Mask, 'id'>>;
 type MaskWithFlagMap = Record<CountryKey, Omit<MaskWithFlag, 'id'>>;
@@ -156,4 +152,4 @@ export const MasksFullEn = dataEntries.map<MaskFull>(([id, maskEntity]) => {
 /** Get flag emoji by country ISO code */
 export const getFlagEmoji = countryCodeEmoji;
 
-export type { CountryKey, MaskBaseMap, MaskBase, MaskMap, Mask, MaskWithFlagMap, MaskWithFlag, MaskFullMap, MaskFull, MaskGeoCache };
+export type { CountryKey, MaskBaseMap, MaskBase, MaskMap, Mask, MaskWithFlagMap, MaskWithFlag, MaskFullMap, MaskFull };
