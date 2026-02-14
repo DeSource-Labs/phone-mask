@@ -9,7 +9,14 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { getNavigatorLang, getCountry, getMasksFullMapByLocale, detectByGeoIp, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import {
+  getNavigatorLang,
+  getCountry,
+  getMasksFullMapByLocale,
+  detectByGeoIp,
+  type CountryKey,
+  type MaskFull
+} from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
 import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
@@ -23,10 +30,7 @@ function getCountries(locale: string): MaskFull[] {
 
 type PhoneInputComponent = PhoneInputProps & { ref?: Ref<PhoneInputRef> };
 
-export const PhoneInput = ({
-  ref,
-  ...props
-}: PhoneInputComponent) => {
+export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const {
     value = '',
     country: propCountry,
@@ -141,14 +145,16 @@ export const PhoneInput = ({
     };
 
     const detectFromLocale = (): string | null => {
-      const lang = (typeof navigator !== 'undefined' && navigator.language) ? navigator.language : '';
+      const lang = typeof navigator !== 'undefined' && navigator.language ? navigator.language : '';
       // Use Intl.Locale when available
       try {
         if (Intl.Locale) {
           const loc = new Intl.Locale(lang);
           if (loc?.region && hasCountry(loc.region)) return loc.region.toUpperCase();
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       const parts = lang.split(/[-_]/);
       if (parts.length > 1 && hasCountry(parts[1])) return parts[1].toUpperCase();
       return null;
@@ -220,18 +226,15 @@ export const PhoneInput = ({
   }, [emitChange]);
 
   // Input handlers
-  const handleBeforeInput = useCallback(
-    (e: InputEvent) => {
-      const data = e.data;
-      if (e.inputType !== 'insertText' || !data) return;
-      const el = telRef.current;
-      if (!el) return;
-      if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-        e.preventDefault();
-      }
-    },
-    []
-  );
+  const handleBeforeInput = useCallback((e: InputEvent) => {
+    const data = e.data;
+    if (e.inputType !== 'insertText' || !data) return;
+    const el = telRef.current;
+    if (!el) return;
+    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
+      e.preventDefault();
+    }
+  }, []);
 
   const handleInput = useCallback(() => {
     const el = telRef.current;
@@ -349,10 +352,7 @@ export const PhoneInput = ({
         const range = formatter.getDigitRange(digits, selStart, selEnd);
         if (range) {
           const [start, end] = range;
-          const newDigits = extractDigits(
-            digits.slice(0, start) + pastedDigits + digits.slice(end),
-            maxDigits
-          );
+          const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
           setDigits(newDigits);
           setTimeout(() => setCaret(el, formatter.getCaretPosition(start + pastedDigits.length)), 0);
         }
@@ -388,11 +388,14 @@ export const PhoneInput = ({
   }, [dropdownOpen]);
 
   // Input focus behavior (close dropdown, keep existing hint state)
-  const handleFocusInput = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
-    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    closeDropdown();
-    onFocus?.(e);
-  }, [onFocus, closeDropdown]);
+  const handleFocusInput = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+      closeDropdown();
+      onFocus?.(e);
+    },
+    [onFocus, closeDropdown]
+  );
 
   // Attach native event listeners
   useEffect(() => {
@@ -435,7 +438,7 @@ export const PhoneInput = ({
     setDropdownStyle({
       top: `${rect.bottom + window.scrollY + 8}px`,
       left: `${rect.left + window.scrollX}px`,
-      width: `${rect.width}px`,
+      width: `${rect.width}px`
     });
   }, []);
 

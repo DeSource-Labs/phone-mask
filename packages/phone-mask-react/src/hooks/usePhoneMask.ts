@@ -104,21 +104,18 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   }, [digits, full, fullFormatted]);
 
   // Event handler: beforeinput
-  const handleBeforeInput = useCallback(
-    (e: InputEvent) => {
-      const data = e.data;
-      if (e.inputType !== 'insertText' || !data) return;
+  const handleBeforeInput = useCallback((e: InputEvent) => {
+    const data = e.data;
+    if (e.inputType !== 'insertText' || !data) return;
 
-      const el = inputRef.current;
-      if (!el) return;
+    const el = inputRef.current;
+    if (!el) return;
 
-      // Block invalid characters & multiple spaces
-      if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-        e.preventDefault();
-      }
-    },
-    []
-  );
+    // Block invalid characters & multiple spaces
+    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
+      e.preventDefault();
+    }
+  }, []);
 
   // Event handler: input
   const handleInput = useCallback(() => {
@@ -312,16 +309,19 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     };
   }, [handleBeforeInput, handleInput, handleKeydown, handlePaste, formatter]);
 
-  const setCountry = useCallback((countryCode: string) => {
-    const newCountry = getCountry(countryCode, locale);
-    setCountryState(newCountry);
-    const newFormatter = createPhoneFormatter(newCountry);
-    const maxDigits = newFormatter.getMaxDigits();
-    if (digits.length > maxDigits) {
-      setDigits(digits.slice(0, maxDigits));
-    }
-    options.onCountryChange?.(newCountry);
-  }, [locale, digits, options]);
+  const setCountry = useCallback(
+    (countryCode: string) => {
+      const newCountry = getCountry(countryCode, locale);
+      setCountryState(newCountry);
+      const newFormatter = createPhoneFormatter(newCountry);
+      const maxDigits = newFormatter.getMaxDigits();
+      if (digits.length > maxDigits) {
+        setDigits(digits.slice(0, maxDigits));
+      }
+      options.onCountryChange?.(newCountry);
+    },
+    [locale, digits, options]
+  );
 
   const clear = useCallback(() => {
     setDigits('');

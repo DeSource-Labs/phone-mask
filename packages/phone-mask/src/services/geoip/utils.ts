@@ -34,9 +34,7 @@ export async function detectCountryFromGeoIP(
   }
 }
 
-export async function detectByGeoIp(
-  hasCountry: (code: string) => boolean,
-): Promise<string | null> {
+export async function detectByGeoIp(hasCountry: (code: string) => boolean): Promise<string | null> {
   try {
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
@@ -49,7 +47,9 @@ export async function detectByGeoIp(
 
       if (expired) localStorage.removeItem(CACHE_KEY);
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 
   // Fetch from GeoIP API
   const code = await detectCountryFromGeoIP();

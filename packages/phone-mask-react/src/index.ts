@@ -17,7 +17,7 @@ export type {
   UsePhoneMaskOptions,
   UsePhoneMaskReturn,
   Size as PhoneInputSize,
-  Theme as PhoneInputTheme,
+  Theme as PhoneInputTheme
 } from './types';
 
 export type {

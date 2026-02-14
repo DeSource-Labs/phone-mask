@@ -50,12 +50,12 @@ Ready-made plugins for your stack:
 
 ## 📦 Packages
 
-| Package                                                 | Version                                                        | Description                  |
-| ------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- |
-| [@desource/phone-mask](./packages/phone-mask)           | ![npm](https://img.shields.io/npm/v/@desource/phone-mask)      | Core library — TypeScript/JS |
-| [@desource/phone-mask-react](./packages/phone-mask-react) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react)  | React component + hook           |
-| [@desource/phone-mask-vue](./packages/phone-mask-vue)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue)  | Vue 3 component + directive  |
-| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt) | Nuxt module                  |
+| Package                                                   | Version                                                         | Description                  |
+| --------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------- |
+| [@desource/phone-mask](./packages/phone-mask)             | ![npm](https://img.shields.io/npm/v/@desource/phone-mask)       | Core library — TypeScript/JS |
+| [@desource/phone-mask-react](./packages/phone-mask-react) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react) | React component + hook       |
+| [@desource/phone-mask-vue](./packages/phone-mask-vue)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue)   | Vue 3 component + directive  |
+| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt)  | Nuxt module                  |
 
 ---
 
@@ -74,13 +74,7 @@ import '@desource/phone-mask-react/style.css';
 function App() {
   const [phone, setPhone] = useState('');
 
-  return (
-    <PhoneInput
-      value={phone}
-      onChange={(data) => setPhone(data.digits)}
-      country="US"
-    />
-  );
+  return <PhoneInput value={phone} onChange={(data) => setPhone(data.digits)} country="US" />;
 }
 ```
 

@@ -7,7 +7,7 @@ import {
   getNavigatorLang,
   detectByGeoIp,
   type CountryKey,
-  type MaskFull,
+  type MaskFull
 } from '@desource/phone-mask';
 import type { ShallowRef, ComputedRef } from 'vue';
 

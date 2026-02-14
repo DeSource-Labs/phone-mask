@@ -24,7 +24,9 @@ function DemoPhoneInput() {
         theme="dark"
       />
       <div style={metaStyle}>
-        <div><strong>Digits:</strong> {digits || '—'}</div>
+        <div>
+          <strong>Digits:</strong> {digits || '—'}
+        </div>
       </div>
     </section>
   );
@@ -42,15 +44,29 @@ function DemoHook() {
       <h2 style={headingStyle}>usePhoneMask Hook</h2>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <input ref={ref} type="tel" placeholder="Phone number" style={inputStyle} />
-        <button onClick={() => setCountry('US')} style={btnStyle}>US</button>
-        <button onClick={() => setCountry('DE')} style={btnStyle}>DE</button>
-        <button onClick={() => clear()} style={btnStyle}>Clear</button>
+        <button onClick={() => setCountry('US')} style={btnStyle}>
+          US
+        </button>
+        <button onClick={() => setCountry('DE')} style={btnStyle}>
+          DE
+        </button>
+        <button onClick={() => clear()} style={btnStyle}>
+          Clear
+        </button>
       </div>
       <div style={metaStyle}>
-        <div><strong>Digits:</strong> {digits || '—'}</div>
-        <div><strong>Full:</strong> {full || '—'}</div>
-        <div><strong>Formatted:</strong> {fullFormatted || '—'}</div>
-        <div><strong>Valid:</strong> {isComplete ? 'Yes' : 'No'}</div>
+        <div>
+          <strong>Digits:</strong> {digits || '—'}
+        </div>
+        <div>
+          <strong>Full:</strong> {full || '—'}
+        </div>
+        <div>
+          <strong>Formatted:</strong> {fullFormatted || '—'}
+        </div>
+        <div>
+          <strong>Valid:</strong> {isComplete ? 'Yes' : 'No'}
+        </div>
       </div>
     </section>
   );
@@ -78,7 +94,7 @@ function Playground() {
   return (
     <section style={playgroundStyle}>
       <h2 style={headingStyle}>Component Playground</h2>
-      
+
       <div style={playgroundGridStyle}>
         {/* Component Preview */}
         <div style={previewPanelStyle}>
@@ -100,7 +116,9 @@ function Playground() {
               readonly={readonly}
             />
             <div style={metaStyle}>
-              <div><strong>Value:</strong> {digits || '—'}</div>
+              <div>
+                <strong>Value:</strong> {digits || '—'}
+              </div>
             </div>
           </div>
         </div>
@@ -108,11 +126,15 @@ function Playground() {
         {/* Controls Panel */}
         <div style={controlsPanelStyle}>
           <h3 style={subheadingStyle}>Props</h3>
-          
+
           <div style={controlGroupStyle}>
             <label style={labelStyle}>
               <span>Country:</span>
-              <select value={country} onChange={(e) => setCountry(e.target.value as CountryKey | undefined)} style={selectStyle}>
+              <select
+                value={country}
+                onChange={(e) => setCountry(e.target.value as CountryKey | undefined)}
+                style={selectStyle}
+              >
                 <option value={undefined}>Not Selected</option>
                 <option value="US">United States</option>
                 <option value="GB">United Kingdom</option>
@@ -218,7 +240,7 @@ function App() {
         <h1 style={titleStyle}>@desource/phone-mask-react</h1>
         <p style={subtitleStyle}>Interactive Component Demo & Playground</p>
       </header>
-      
+
       <div style={contentStyle}>
         <Playground />
         <DemoPhoneInput />
@@ -436,4 +458,3 @@ const footerStyle: React.CSSProperties = {
 };
 
 createRoot(document.getElementById('root')!).render(<App />);
-
