@@ -21,7 +21,7 @@ export function getMasksFullMapByLocale(locale: string): MaskFullMap {
 
 /** Get country data by ISO code and locale with fallback to US */
 export function getCountry(code: string, locale: string): MaskFull {
-  const map = getMasksFullMapByLocale(locale)
+  const map = getMasksFullMapByLocale(locale);
   const id = code.toUpperCase() as CountryKey;
 
   if (id in map) {
