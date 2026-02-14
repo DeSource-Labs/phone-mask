@@ -66,4 +66,4 @@ export async function detectByGeoIp(
   }
 
   return null;
-};
+}
