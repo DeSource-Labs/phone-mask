@@ -21,10 +21,12 @@ function getCountries(locale: string): MaskFull[] {
   return Object.entries(map).map(([id, data]) => ({ id: id as CountryKey, ...data }));
 }
 
+type PhoneInputComponent = PhoneInputProps & { ref?: Ref<PhoneInputRef> };
+
 export const PhoneInput = ({
   ref,
   ...props
-}: PhoneInputProps & { ref?: Ref<PhoneInputRef> }) => {
+}: PhoneInputComponent) => {
   const {
     value = '',
     country: propCountry,
