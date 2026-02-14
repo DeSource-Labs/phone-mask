@@ -1,3 +1,6 @@
+import { MasksFullMap, MasksFullMapEn } from './entries';
+import type { CountryKey, MaskFull } from './entries';
+
 export type FormatResult = {
   display: string;
   map: number[];
@@ -6,6 +9,19 @@ export type FormatResult = {
 /** Get navigator language with fallback to 'en' */
 export function getNavigatorLang(): string {
   return typeof navigator !== 'undefined' ? navigator.language || 'en' : 'en';
+}
+
+/** Get country data by ISO code and locale with fallback to US */
+export function getCountry(code: string, locale: string): MaskFull {
+  const isEn = locale.toLowerCase().startsWith('en');
+  const map = isEn ? MasksFullMapEn : MasksFullMap(locale);
+  const id = code.toUpperCase() as CountryKey;
+
+  if (id in map) {
+    return { id, ...map[id] };
+  } else {
+    return { id: 'US', ...map.US };
+  }
 }
 
 /** Ensure mask is an array of strings */

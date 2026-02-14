@@ -1,25 +1,9 @@
 import { type Directive, type DirectiveBinding, nextTick } from 'vue';
-import { MasksFullMap, MasksFullMapEn, getNavigatorLang, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { getNavigatorLang, getCountry, type CountryKey, type MaskFull } from '@desource/phone-mask';
 
 import { createPhoneFormatter, setCaret, extractDigits, getSelection } from '../composables/usePhoneFormatter';
 import { Delimiters, GEO_IP_TIMEOUT, GEO_IP_URL, InvalidPattern, NavigationKeys } from '../consts';
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
-
-/** Get country data by ISO code and locale */
-function getCountry(countryCode: string, locale: string): MaskFull | null {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const countriesMap = isEn ? MasksFullMapEn : MasksFullMap(locale);
-  const id = countryCode.toUpperCase() as CountryKey;
-  const found = countriesMap[id];
-  return found ? { id, ...found } : null;
-}
-
-/** Get default country (US) for the given locale */
-function getDefaultCountry(locale: string): MaskFull {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const countries = isEn ? MasksFullMapEn : MasksFullMap(locale);
-  return { id: 'US', ...countries.US };
-}
 
 /**
  * Detect country from GeoIP service.
@@ -90,7 +74,7 @@ async function initState(binding: DirectiveBinding): Promise<PMaskDirectiveState
   }
 
   const locale = options.locale || getNavigatorLang();
-  let country: MaskFull | null = null;
+  let country: MaskFull;
 
   // Determine country
   if (options.country) {
@@ -99,18 +83,16 @@ async function initState(binding: DirectiveBinding): Promise<PMaskDirectiveState
     const geoCountry = await detectCountryFromGeoIP();
     if (geoCountry) {
       country = getCountry(geoCountry, locale);
-    }
-
-    if (!country) {
+    } else {
       const localeCountry = detectCountryFromLocale();
       if (localeCountry) {
         country = getCountry(localeCountry, locale);
+      } else {
+        country = getCountry('US', locale);
       }
     }
-  }
-
-  if (!country) {
-    country = getDefaultCountry(locale);
+  } else {
+    country = getCountry('US', locale);
   }
 
   return {
@@ -335,8 +317,6 @@ function createPasteHandler(el: HTMLInputElement, state: PMaskDirectiveState): (
  */
 async function updateCountry(el: HTMLInputElement, state: PMaskDirectiveState, newCountryCode: string): Promise<void> {
   const newCountry = getCountry(newCountryCode, state.locale);
-  if (!newCountry) return;
-
   state.country = newCountry;
   state.formatter = createPhoneFormatter(newCountry);
 

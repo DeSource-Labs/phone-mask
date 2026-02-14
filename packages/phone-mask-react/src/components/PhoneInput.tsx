@@ -9,19 +9,10 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { MasksFullMap, MasksFullMapEn, getNavigatorLang, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { MasksFullMap, MasksFullMapEn, getNavigatorLang, getCountry, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
 import { Delimiters, NavigationKeys, InvalidPattern, GEO_IP_URL, GEO_IP_TIMEOUT, CACHE_KEY, CACHE_EXPIRY_MS } from '../consts';
 import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
-
-/** Get country by code */
-function getCountry(code: string, locale: string): MaskFull {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const map = isEn ? MasksFullMapEn : MasksFullMap(locale);
-  const id = code.toUpperCase() as CountryKey;
-  const data = map[id] || map.US;
-  return { id: (map[id] ? id : 'US') as CountryKey, ...data };
-}
 
 /** Get all countries */
 function getCountries(locale: string): MaskFull[] {

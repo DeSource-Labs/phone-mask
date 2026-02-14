@@ -1,24 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { MasksFullMap, MasksFullMapEn, getNavigatorLang, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { getNavigatorLang, getCountry, type MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, getSelection, setCaret } from '../utils';
 import { Delimiters, GEO_IP_TIMEOUT, GEO_IP_URL, InvalidPattern, NavigationKeys } from '../consts';
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn, PhoneNumber } from '../types';
-
-/** Get country data by ISO code and locale */
-function getCountry(countryCode: string, locale: string): MaskFull | null {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const countriesMap = isEn ? MasksFullMapEn : MasksFullMap(locale);
-  const id = countryCode.toUpperCase() as CountryKey;
-  const found = countriesMap[id];
-  return found ? { id, ...found } : null;
-}
-
-/** Get default country (US) for the given locale */
-function getDefaultCountry(locale: string): MaskFull {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const countries = isEn ? MasksFullMapEn : MasksFullMap(locale);
-  return { id: 'US', ...countries.US };
-}
 
 /**
  * Detect country from GeoIP service.
@@ -80,11 +64,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   const [digits, setDigits] = useState<string>('');
   const [country, setCountryState] = useState<MaskFull>(() => {
     const locale = options.locale || getNavigatorLang();
-    if (options.country) {
-      const c = getCountry(options.country, locale);
-      if (c) return c;
-    }
-    return getDefaultCountry(locale);
+    return getCountry(options.country || 'US', locale);
   });
 
   const locale = options.locale || getNavigatorLang();
@@ -102,21 +82,17 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     if (!options.detect) return;
 
     (async () => {
-      let detected: MaskFull | null = null;
-
       const geoCountry = await detectCountryFromGeoIP();
       if (geoCountry) {
-        detected = getCountry(geoCountry, locale);
+        const detected = getCountry(geoCountry, locale);
+        setCountryState(detected);
+        options.onCountryChange?.(detected);
+        return;
       }
 
-      if (!detected) {
-        const localeCountry = detectCountryFromLocale();
-        if (localeCountry) {
-          detected = getCountry(localeCountry, locale);
-        }
-      }
-
-      if (detected) {
+      const localeCountry = detectCountryFromLocale();
+      if (localeCountry) {
+        const detected = getCountry(localeCountry, locale);
         setCountryState(detected);
         options.onCountryChange?.(detected);
       }
@@ -127,7 +103,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   useEffect(() => {
     if (options.country) {
       const newCountry = getCountry(options.country, locale);
-      if (newCountry && newCountry.id !== country.id) {
+      if (newCountry.id !== country.id) {
         setCountryState(newCountry);
         options.onCountryChange?.(newCountry);
       }
@@ -366,15 +342,13 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
 
   const setCountry = useCallback((countryCode: string) => {
     const newCountry = getCountry(countryCode, locale);
-    if (newCountry) {
-      setCountryState(newCountry);
-      const newFormatter = createPhoneFormatter(newCountry);
-      const maxDigits = newFormatter.getMaxDigits();
-      if (digits.length > maxDigits) {
-        setDigits(digits.slice(0, maxDigits));
-      }
-      options.onCountryChange?.(newCountry);
+    setCountryState(newCountry);
+    const newFormatter = createPhoneFormatter(newCountry);
+    const maxDigits = newFormatter.getMaxDigits();
+    if (digits.length > maxDigits) {
+      setDigits(digits.slice(0, maxDigits));
     }
+    options.onCountryChange?.(newCountry);
   }, [locale, digits, options]);
 
   const clear = useCallback(() => {
