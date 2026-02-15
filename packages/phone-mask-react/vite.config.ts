@@ -12,7 +12,7 @@ export default defineConfig({
       formats: ['es', 'cjs'],
       fileName: (format) => {
         if (format === 'es') return 'esm/index.js';
-        return 'phone-mask-react.cjs.js';
+        return 'phone-mask-react.cjs';
       }
     },
     rollupOptions: {

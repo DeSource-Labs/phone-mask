@@ -36,26 +36,21 @@
   },
   "sideEffects": false,
   "type": "module",
-  "main": "./dist/phone-mask-react.cjs.js",
+  "main": "./dist/phone-mask-react.cjs",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
-      },
-      "require": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/phone-mask-react.cjs.js"
-      }
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/phone-mask-react.cjs"
     },
     "./assets/lib.css": "./dist/phone-mask-react.css"
   },
   "files": [
     "dist/esm",
-    "dist/phone-mask-react.cjs.js",
-    "dist/phone-mask-react.cjs.js.map",
+    "dist/phone-mask-react.cjs",
+    "dist/phone-mask-react.cjs.map",
     "dist/phone-mask-react.css",
     "CHANGELOG.md",
     "README.md"
