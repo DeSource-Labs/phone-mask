@@ -50,7 +50,7 @@
         "default": "./dist/phone-mask-react.cjs.js"
       }
     },
-    "./style.css": "./dist/phone-mask-react.css"
+    "./assets/lib.css": "./dist/phone-mask-react.css"
   },
   "files": [
     "dist/esm",
