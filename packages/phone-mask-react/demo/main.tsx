@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-// Import directly from source to ensure live edits
+// Library imports
+// Import styles
+import '../src/style.scss';
+// Import components and hooks
 import { PhoneInput, usePhoneMask } from '../src';
+// Import types
 import type { PCountryKey as CountryKey, PhoneInputSize as Size, PhoneInputTheme as Theme } from '../src';
 
 function DemoPhoneInput() {
