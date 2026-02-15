@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask-react",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "📱 React component and hook for international phone number input with smart masking. Powered by @desource/phone-mask and Google libphonenumber.",
   "keywords": [
     "phone",
