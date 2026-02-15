@@ -74,7 +74,7 @@ import '@desource/phone-mask-react/assets/lib.css';
 function App() {
   const [phone, setPhone] = useState('');
 
-  return <PhoneInput value={phone} onChange={(data) => setPhone(data.digits)} country="US" />;
+  return <PhoneInput value={phone} onChange={setPhone} country="US" />;
 }
 ```
 
