@@ -10,10 +10,7 @@ export default defineConfig({
       },
       name: 'PhoneMaskReact',
       formats: ['es', 'cjs'],
-      fileName: (format, entryName) => {
-        if (entryName === 'style') {
-          return 'style.css';
-        }
+      fileName: (format) => {
         if (format === 'es') return 'esm/index.js';
         return 'phone-mask-react.cjs.js';
       }
