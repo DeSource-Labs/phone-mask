@@ -62,7 +62,7 @@ function App() {
     <>
       <PhoneInput
         value={phone}
-        onChange={(data) => setPhone(data.digits)}
+        onChange={setPhone}
         onValidationChange={setIsValid}
         country="US"
       />
@@ -107,17 +107,8 @@ function CustomPhoneInput() {
 
 ```ts
 interface PhoneInputProps {
-  // Controlled value (digits only)
+  // Controlled value (digits only, without country code)
   value?: string;
-
-  // Value change callback
-  onChange?: (value: PhoneNumber) => void;
-
-  // Country change callback
-  onCountryChange?: (country: MaskFull) => void;
-
-  // Validation state changed
-  onValidationChange?: (isValid: boolean) => void;
 
   // Preselected country (ISO 3166-1 alpha-2)
   country?: CountryKey;
@@ -163,25 +154,47 @@ interface PhoneInputProps {
 
   // Disable default styles
   disableDefaultStyles?: boolean; // Default: false
-}
-```
 
-### Events
+  // Callback when the digits value changes.
+  // Returns only the digits without country code (e.g. '234567890')
+  onChange?: (digits: string) => void;
 
-```ts
-interface PhoneInputEvents {
-  // Value changed
+  // Callback when the phone number changes.
   // Provides an object with:
   // - full: Full phone number with country code (e.g. +1234567890)
   // - fullFormatted: Full phone number formatted according to country rules (e.g. +1 234-567-890)
   // - digits: Only the digits of the phone number without country code (e.g. 234567890)
-  onChange: (value: PhoneNumber) => void;
+  onPhoneChange?: (value: PhoneNumber) => void;
 
-  // Country changed
-  onCountryChange: (country: MaskFull) => void;
+  // Callback when the selected country changes
+  onCountryChange?: (country: MaskFull) => void;
 
-  // Validation state changed
-  onValidationChange: (isValid: boolean) => void;
+  // Callback when the validation state changes
+  onValidationChange?: (isValid: boolean) => void;
+
+  // Callback when the input is focused
+  onFocus?: (event: FocusEvent<HTMLInputElement>) => void;
+
+  // Callback when the input is blurred
+  onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
+
+  // Callback when phone number is copied
+  onCopy?: (value: string) => void;
+
+  // Callback when input is cleared
+  onClear?: () => void;
+
+  // Render custom action buttons before default ones
+  renderActionsBefore?: () => ReactNode;
+
+  // Render custom flag icons in the country list and country selector
+  renderFlag?: (country: MaskFull) => ReactNode;
+
+  // Render custom copy button SVG
+  renderCopySvg?: (copied: boolean) => ReactNode;
+
+  // Render custom clear button SVG
+  renderClearSvg?: () => ReactNode;
 }
 ```
 
@@ -190,15 +203,15 @@ interface PhoneInputEvents {
 ```tsx
 const phoneInputRef = useRef<PhoneInputRef>(null);
 
-phoneInputRef.current?.focus();
-phoneInputRef.current?.blur();
-phoneInputRef.current?.clear();
-phoneInputRef.current?.selectCountry('GB');
-phoneInputRef.current?.getFullNumber();
-phoneInputRef.current?.getFullFormattedNumber();
-phoneInputRef.current?.getDigits();
-phoneInputRef.current?.isValid();
-phoneInputRef.current?.isComplete();
+phoneInputRef.current?.focus(); // Focuses the input
+phoneInputRef.current?.blur(); // Blurs the input
+phoneInputRef.current?.clear(); // Clears the input value
+phoneInputRef.current?.selectCountry('GB'); // Programmatically selects a country by ISO code (e.g., 'US', 'DE', 'GB')
+phoneInputRef.current?.getFullNumber(); // Returns the full phone number with country code (e.g., +1234567890)
+phoneInputRef.current?.getFullFormattedNumber(); // Returns the full phone number formatted according to country rules (e.g., +1 234-567-890)
+phoneInputRef.current?.getDigits(); // Returns only the digits of the phone number without country code (e.g., 234567890)
+phoneInputRef.current?.isValid(); // Checks if the current phone number is valid
+phoneInputRef.current?.isComplete(); // Checks if the current phone number is complete
 ```
 
 ## 🪝 Hook API
@@ -236,7 +249,7 @@ interface UsePhoneMaskReturn {
   isEmpty: boolean;
   shouldShowWarn: boolean;
   country: MaskFull;
-  setCountry: (code: string) => void;
+  setCountry: (countryCode: string) => void;
   clear: () => void;
 }
 ```
@@ -309,7 +322,7 @@ function Example() {
 
   return (
     <div>
-      <PhoneInput value={phone} onChange={(data) => setPhone(data.digits)} onValidationChange={setIsValid} />
+      <PhoneInput value={phone} onChange={setPhone} onValidationChange={setIsValid} />
 
       {isValid && <span>✓ Valid phone number</span>}
     </div>
@@ -332,7 +345,7 @@ function Example() {
       <PhoneInput
         value={phone}
         detect
-        onChange={(data) => setPhone(data.digits)}
+        onChange={setPhone}
         onCountryChange={(country) => setDetectedCountry(country.name)}
       />
 
@@ -362,7 +375,7 @@ function Example() {
       render={({ field }) => (
         <PhoneInput
           value={field.value}
-          onChange={(data) => field.onChange(data.digits)}
+          onChange={(digits) => field.onChange(digits)}
           onBlur={field.onBlur}
         />
       )}
@@ -384,17 +397,17 @@ function Example() {
     <div className="form">
       <label>
         Mobile
-        <PhoneInput value={form.mobile} onChange={(data) => setForm({ ...form, mobile: data.digits })} />
+        <PhoneInput value={form.mobile} onChange={(digits) => setForm({ ...form, mobile: digits })} />
       </label>
 
       <label>
         Home
-        <PhoneInput value={form.home} onChange={(data) => setForm({ ...form, home: data.digits })} />
+        <PhoneInput value={form.home} onChange={(digits) => setForm({ ...form, home: digits })} />
       </label>
 
       <label>
         Work
-        <PhoneInput value={form.work} onChange={(data) => setForm({ ...form, work: data.digits })} />
+        <PhoneInput value={form.work} onChange={(digits) => setForm({ ...form, work: digits })} />
       </label>
     </div>
   );
