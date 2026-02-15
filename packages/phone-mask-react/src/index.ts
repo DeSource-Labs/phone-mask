@@ -10,12 +10,14 @@ import {
 
 export { PhoneInput } from './components/PhoneInput';
 export { usePhoneMask } from './hooks/usePhoneMask';
+export { usePhoneMaskCore } from './hooks/usePhoneMaskCore';
 export type {
   PhoneInputProps,
   PhoneInputRef,
   PhoneNumber,
   UsePhoneMaskOptions,
   UsePhoneMaskReturn,
+  UsePhoneMaskCoreReturn,
   Size as PhoneInputSize,
   Theme as PhoneInputTheme
 } from './types';

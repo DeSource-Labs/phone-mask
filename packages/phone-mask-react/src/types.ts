@@ -166,12 +166,22 @@ export interface UsePhoneMaskOptions {
   onCountryChange?: (country: MaskFull) => void;
 }
 
-/** Return type for usePhoneMask hook */
-export interface UsePhoneMaskReturn {
-  /** Ref to attach to input element */
-  ref: RefObject<HTMLInputElement | null>;
+/** Return type for usePhoneMaskCore hook */
+export interface UsePhoneMaskCoreReturn {
+  /** Current country data */
+  country: MaskFull;
+  /** Change country programmatically */
+  setCountry: (countryCode: string) => void;
   /** Raw digits without formatting */
   digits: string;
+  /** Update digits */
+  setDigits: (value: string) => void;
+  /** Computed locale value */
+  locale: string;
+  /** Phone formatter instance */
+  formatter: FormatterHelpers;
+  /** Formatted display string */
+  displayValue: string;
   /** Full phone number with country code */
   full: string;
   /** Full phone number formatted */
@@ -182,10 +192,15 @@ export interface UsePhoneMaskReturn {
   isEmpty: boolean;
   /** Whether to show validation warning */
   shouldShowWarn: boolean;
-  /** Current country data */
-  country: MaskFull;
-  /** Change country programmatically */
-  setCountry: (countryCode: string) => void;
+}
+
+/** Return type for usePhoneMask hook */
+export interface UsePhoneMaskReturn extends Omit<
+  UsePhoneMaskCoreReturn,
+  'setDigits' | 'locale' | 'formatter' | 'displayValue'
+> {
+  /** Ref to attach to input element */
+  ref: RefObject<HTMLInputElement | null>;
   /** Clear the input */
   clear: () => void;
 }

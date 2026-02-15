@@ -10,17 +10,17 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  getNavigatorLang,
-  getCountry,
   getMasksFullMapByLocale,
   detectByGeoIp,
   detectCountryFromLocale,
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
-import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
+import { extractDigits, setCaret, getSelection } from '../utils';
 import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
-import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
+import { usePhoneMaskCore } from '../hooks/usePhoneMaskCore';
+
+import type { PhoneInputProps, PhoneInputRef } from '../types';
 
 /** Get all countries */
 function getCountries(locale: string): MaskFull[] {
@@ -70,10 +70,26 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const liveRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  const locale = useMemo(() => propLocale || getNavigatorLang(), [propLocale]);
+  const {
+    digits,
+    country,
+    locale,
+    formatter,
+    displayValue,
+    full,
+    fullFormatted,
+    isComplete,
+    isEmpty,
+    setDigits,
+    setCountry
+  } = usePhoneMaskCore({
+    country: propCountry,
+    locale: propLocale,
+    detect: false, // PhoneInput handles detection manually
+    onCountryChange,
+    onChange: onPhoneChange
+  });
 
-  const [country, setCountry] = useState<MaskFull>(() => getCountry(propCountry || 'US', locale));
-  const [digits, setDigits] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [search, setSearch] = useState('');
@@ -87,17 +103,10 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
 
-  const formatter = useMemo(() => createPhoneFormatter(country), [country]);
   const countries = useMemo(() => getCountries(locale), [locale]);
 
-  const displayValue = formatter.formatDisplay(digits);
   const displayPlaceholder = formatter.getPlaceholder();
-  const isComplete = formatter.isComplete(digits);
-  const isEmpty = digits.length === 0;
   const shouldShowWarn = showValidationHint && !isEmpty && !isComplete;
-
-  const full = `${country.code}${digits}`;
-  const fullFormatted = digits ? `${country.code} ${displayValue}` : '';
 
   const filteredCountries = useMemo(() => {
     const raw = search.trim();
@@ -146,42 +155,25 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       return countries.some((c) => c.id === id);
     };
 
-    const updateCountry = (newCountry: MaskFull) => {
-      setCountry((prev) => {
-        if (prev.id === newCountry.id) return prev;
-        onCountryChange?.(newCountry);
-        return newCountry;
-      });
-    };
-
     (async () => {
       if (propCountry && hasCountry(propCountry)) {
-        const newCountry = getCountry(propCountry, locale);
-        updateCountry(newCountry);
+        setCountry(propCountry);
         return;
       }
       if (!detect) return;
       const geo = await detectByGeoIp(hasCountry);
       if (geo) {
-        const detected = getCountry(geo, locale);
-        updateCountry(detected);
+        setCountry(geo);
         return;
       }
       const loc = detectCountryFromLocale();
       if (loc && hasCountry(loc)) {
-        const detected = getCountry(loc, locale);
-        updateCountry(detected);
+        setCountry(loc);
       }
     })();
-  }, [propCountry, detect, countries, locale]);
+  }, [propCountry, detect, countries, setCountry]);
 
-  // Clamp digits when country or formatter changes
-  useEffect(() => {
-    const maxDigits = formatter.getMaxDigits();
-    if (digits.length > maxDigits) {
-      setDigits((d) => d.slice(0, maxDigits));
-    }
-  }, [formatter]);
+  // Digits clamping is now handled by core hook
 
   // Sync value prop
   useEffect(() => {
@@ -189,23 +181,12 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     if (incomingDigits !== digits) {
       setDigits(incomingDigits);
     }
-  }, [value]);
+  }, [value, digits]);
 
   // Notify validation changes
   useEffect(() => {
     onValidationChange?.(isComplete);
   }, [isComplete, onValidationChange]);
-
-  // Emit onChange and onPhoneChange
-  const emitChange = useCallback(() => {
-    onChange?.(digits);
-    const phoneData: PhoneNumber = { full, fullFormatted, digits };
-    onPhoneChange?.(phoneData);
-  }, [digits, full, fullFormatted, onChange, onPhoneChange]);
-
-  useEffect(() => {
-    emitChange();
-  }, [emitChange]);
 
   // Input handlers
   const handleBeforeInput = useCallback((e: InputEvent) => {
@@ -402,15 +383,13 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   // Country selection
   const selectCountry = useCallback(
     (code: CountryKey) => {
-      const newCountry = getCountry(code, locale);
-      setCountry(newCountry);
+      setCountry(code);
       closeDropdown();
       setSearch('');
       setFocusedIndex(0);
-      onCountryChange?.(newCountry);
       setTimeout(() => telRef.current?.focus(), 0);
     },
-    [locale, onCountryChange, closeDropdown]
+    [setCountry, closeDropdown]
   );
 
   // Dropdown positioning
