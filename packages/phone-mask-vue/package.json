@@ -59,6 +59,9 @@
     "build-types": "vue-tsc --emitDeclarationOnly --declaration -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
+  "peerDependencies": {
+    "vue": "^3.4.33"
+  },
   "dependencies": {
     "@desource/phone-mask": "workspace:*"
   },
@@ -66,8 +69,5 @@
     "@vitejs/plugin-vue": "^6.0.4",
     "vue-tsc": "^3.2.4",
     "vue": "^3.5.28"
-  },
-  "peerDependencies": {
-    "vue": "^3.4.33"
   }
 }

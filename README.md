@@ -43,22 +43,40 @@ Ready-made plugins for your stack:
 
 - ✅ **Vue 3** — Composition API component + directive
 - ✅ **Nuxt** — Auto-imported, SSR-compatible
+- ✅ **React** — Component & hook with modern React patterns
 - ✅ **TypeScript/Vanilla JS** — Framework-agnostic core
-- 🔜 **React** — Coming soon
 
 ---
 
 ## 📦 Packages
 
-| Package                                                 | Version                                                        | Description                  |
-| ------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------- |
-| [@desource/phone-mask](./packages/phone-mask)           | ![npm](https://img.shields.io/npm/v/@desource/phone-mask)      | Core library — TypeScript/JS |
-| [@desource/phone-mask-vue](./packages/phone-mask-vue)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue)  | Vue 3 component + directive  |
-| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt) | Nuxt module                  |
+| Package                                                   | Version                                                         | Description                  |
+| --------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------- |
+| [@desource/phone-mask](./packages/phone-mask)             | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue)       | Core library — TypeScript/JS |
+| [@desource/phone-mask-react](./packages/phone-mask-react) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue) | React component + hook       |
+| [@desource/phone-mask-vue](./packages/phone-mask-vue)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue)   | Vue 3 component + directive  |
+| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue)  | Nuxt module                  |
 
 ---
 
 ## ⚡ Quick Start
+
+### React
+
+```bash
+npm install @desource/phone-mask-react
+```
+
+```tsx
+import { PhoneInput } from '@desource/phone-mask-react';
+import '@desource/phone-mask-react/assets/lib.css';
+
+function App() {
+  const [phone, setPhone] = useState('');
+
+  return <PhoneInput value={phone} onChange={setPhone} country="US" />;
+}
+```
 
 ### Vue 3
 
@@ -147,9 +165,8 @@ Try the interactive playground with:
 ## 📚 Documentation
 
 - [Core](./packages/phone-mask/README.md)
-
+- [React](./packages/phone-mask-react/README.md)
 - [Vue](./packages/phone-mask-vue/README.md)
-
 - [Nuxt](./packages/phone-mask-nuxt/README.md)
 
 ---
@@ -203,7 +220,7 @@ Developed and maintained by [DeSource Labs](https://github.com/DeSource-Labs).
 
 ## 📄 License
 
-[MIT](./LICENSE) © 2025 DeSource Labs
+[MIT](./LICENSE) © 2026 DeSource Labs
 
 ---
 

@@ -10,3 +10,4 @@ node_modules
 *.tsbuildinfo
 playwright-report
 test-results
+CLAUDE.md

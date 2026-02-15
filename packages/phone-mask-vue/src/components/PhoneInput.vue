@@ -183,6 +183,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, nextTick, watch, useTemplateRef, shallowRef, type CSSProperties } from 'vue';
+import { getNavigatorLang } from '@desource/phone-mask';
 
 import { useCountrySelector } from '../composables/useCountrySelector';
 import { useMask } from '../composables/useMask';
@@ -217,11 +218,7 @@ const liveRef = useTemplateRef('liveRef');
 const dropdownRef = useTemplateRef('dropdownRef');
 
 const usedLocale = computed(() => {
-  if (props.locale) return props.locale;
-  if (typeof navigator !== 'undefined') {
-    return navigator.language || 'en';
-  }
-  return 'en';
+  return props.locale || getNavigatorLang();
 });
 
 const dropdownStyle = shallowRef<CSSProperties>({});

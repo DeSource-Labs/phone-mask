@@ -1,0 +1,77 @@
+{
+  "name": "@desource/phone-mask-react",
+  "version": "0.2.3",
+  "description": "📱 React component and hook for international phone number input with smart masking. Powered by @desource/phone-mask and Google libphonenumber.",
+  "keywords": [
+    "phone",
+    "phone-input",
+    "phone-mask",
+    "phone-number",
+    "international-phone",
+    "react",
+    "libphonenumber",
+    "react-component",
+    "react-hook",
+    "input-mask",
+    "validation",
+    "tel",
+    "telephone",
+    "country-code",
+    "formatting"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
+    "directory": "packages/phone-mask-react"
+  },
+  "bugs": {
+    "url": "https://github.com/stefanpopov/phone-mask/issues"
+  },
+  "homepage": "https://github.com/stefanpopov/phone-mask/tree/main/packages/phone-mask-react#readme",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "main": "./dist/phone-mask-react.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/phone-mask-react.cjs"
+    },
+    "./assets/lib.css": "./dist/phone-mask-react.css"
+  },
+  "files": [
+    "dist/esm",
+    "dist/phone-mask-react.cjs",
+    "dist/phone-mask-react.cjs.map",
+    "dist/phone-mask-react.css",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "rimraf dist",
+    "dev": "cd demo && vite",
+    "build": "vite build && tsc --project tsconfig.build.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@desource/phone-mask": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  }
+}

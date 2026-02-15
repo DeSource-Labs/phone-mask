@@ -338,7 +338,7 @@ All exports are tree-shakeable — only import what you use!
 
 ## 📄 License
 
-[MIT](../../LICENSE) © 2025 DeSource Labs
+[MIT](../../LICENSE) © 2026 DeSource Labs
 
 ## 🤝 Contributing
 

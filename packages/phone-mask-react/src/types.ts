@@ -1,15 +1,18 @@
 import type { MaskFull, CountryKey } from '@desource/phone-mask';
+import type { ReactNode, FocusEvent, RefObject } from 'react';
 
 export type Size = 'compact' | 'normal' | 'large';
 export type Theme = 'auto' | 'light' | 'dark';
 
-export type PhoneNumber = {
+export interface PhoneNumber {
   full: string;
   fullFormatted: string;
   digits: string;
-};
+}
 
 export interface PhoneInputProps {
+  /** Controlled value (digits only, without country code) */
+  value?: string;
   /** Whether to preselect a country by its ISO 3166-1 alpha-2 code */
   country?: CountryKey;
   /**
@@ -77,43 +80,46 @@ export interface PhoneInputProps {
    * @default false
    */
   disableDefaultStyles?: boolean;
-}
 
-export interface PhoneInputEmits {
+  // Callbacks
   /**
-   * Emitted when the value changes.
+   * Callback when the digits value changes.
+   * Returns only the digits without country code (e.g. '234567890')
+   */
+  onChange?: (digits: string) => void;
+  /**
+   * Callback when the phone number changes.
    * Provides an object with:
    * - full: Full phone number with country code (e.g. +1234567890)
    * - fullFormatted: Full phone number formatted according to country rules (e.g. +1 234-567-890)
    * - digits: Only the digits of the phone number without country code (e.g. 234567890)
    */
-  (e: 'change', value: PhoneNumber): void;
-  /** Emitted when the country changes */
-  (e: 'country-change', country: MaskFull): void;
-  /** Emitted when validation state changes */
-  (e: 'validation-change', isValid: boolean): void;
-  /** Emitted on focus */
-  (e: 'focus', event: FocusEvent): void;
-  /** Emitted on blur */
-  (e: 'blur', event: FocusEvent): void;
-  /** Emitted when phone number is copied */
-  (e: 'copy', value: string): void;
-  /** Emitted when input is cleared */
-  (e: 'clear'): void;
+  onPhoneChange?: (value: PhoneNumber) => void;
+  /** Callback when the country changes */
+  onCountryChange?: (country: MaskFull) => void;
+  /** Callback when validation state changes */
+  onValidationChange?: (isValid: boolean) => void;
+  /** Callback on focus */
+  onFocus?: (event: FocusEvent<HTMLInputElement>) => void;
+  /** Callback on blur */
+  onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
+  /** Callback when phone number is copied */
+  onCopy?: (value: string) => void;
+  /** Callback when input is cleared */
+  onClear?: () => void;
+
+  // Render props (equivalent to Vue slots)
+  /** Render custom action buttons before default ones */
+  renderActionsBefore?: () => ReactNode;
+  /** Render custom flag icons in the country list and country selector */
+  renderFlag?: (country: MaskFull) => ReactNode;
+  /** Render custom copy button SVG */
+  renderCopySvg?: (copied: boolean) => ReactNode;
+  /** Render custom clear button SVG */
+  renderClearSvg?: () => ReactNode;
 }
 
-export interface PhoneInputSlots {
-  /** Slot for custom action buttons before default ones */
-  'actions-before': {};
-  /** Slots for flag icons in the country list and country selector */
-  flag: { country: MaskFull };
-  /** Slot for custom copy buttons */
-  'copy-svg': { copied: boolean };
-  /** Slot for custom clear button */
-  'clear-svg': {};
-}
-
-export interface PhoneInputExposed {
+export interface PhoneInputRef {
   /** Focus the phone input */
   focus: () => void;
   /** Blur the phone input */
@@ -143,8 +149,8 @@ export interface FormatterHelpers {
   isComplete: (digits: string) => boolean;
 }
 
-/** Configuration options for the phone mask directive */
-export interface PMaskDirectiveOptions {
+/** Configuration options for the phone mask hook */
+export interface UsePhoneMaskOptions {
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */
   country?: string;
   /** Locale for country names (default: navigator.language) */
@@ -154,32 +160,32 @@ export interface PMaskDirectiveOptions {
   /**
    * Callback when formatted value changes.
    * Provides full number, formatted phone number, and raw digits.
-   * @example
-   * onChange: (phone) => {
-   *   console.log(phone.full); // +1234567890
-   *   console.log(phone.fullFormatted); // +1 234-567-890
-   *   console.log(phone.digits); // 234567890
-   * }
    */
   onChange?: (phone: PhoneNumber) => void;
   /** Callback when country changes */
   onCountryChange?: (country: MaskFull) => void;
 }
 
-/** Internal state stored on the input element of the directive */
-export interface PMaskDirectiveState {
+/** Return type for usePhoneMask hook */
+export interface UsePhoneMaskReturn {
+  /** Ref to attach to input element */
+  ref: RefObject<HTMLInputElement | null>;
+  /** Raw digits without formatting */
+  digits: string;
+  /** Full phone number with country code */
+  full: string;
+  /** Full phone number formatted */
+  fullFormatted: string;
+  /** Whether the phone number is complete */
+  isComplete: boolean;
+  /** Whether the input is empty */
+  isEmpty: boolean;
+  /** Whether to show validation warning */
+  shouldShowWarn: boolean;
+  /** Current country data */
   country: MaskFull;
-  formatter: FormatterHelpers;
-  digits: string; // Raw digits without formatting
-  locale: string;
-  options: PMaskDirectiveOptions;
-  beforeInputHandler?: (e: InputEvent) => void;
-  inputHandler?: (e: Event) => void;
-  keydownHandler?: (e: KeyboardEvent) => void;
-  pasteHandler?: (e: ClipboardEvent) => void;
-}
-
-/** Extended HTMLInputElement with directive state */
-export interface DirectiveHTMLInputElement extends HTMLInputElement {
-  __phoneMaskState?: PMaskDirectiveState;
+  /** Change country programmatically */
+  setCountry: (countryCode: string) => void;
+  /** Clear the input */
+  clear: () => void;
 }
