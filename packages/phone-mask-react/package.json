@@ -1,7 +1,40 @@
 {
   "name": "@desource/phone-mask-react",
   "version": "0.2.0",
-  "description": "React component and hook for international phone number input with smart masking",
+  "description": "📱 React component and hook for international phone number input with smart masking. Powered by @desource/phone-mask and Google libphonenumber.",
+  "keywords": [
+    "phone",
+    "phone-input",
+    "phone-mask",
+    "phone-number",
+    "international-phone",
+    "react",
+    "libphonenumber",
+    "react-component",
+    "react-hook",
+    "input-mask",
+    "validation",
+    "tel",
+    "telephone",
+    "country-code",
+    "formatting"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
+    "directory": "packages/phone-mask-react"
+  },
+  "bugs": {
+    "url": "https://github.com/stefanpopov/phone-mask/issues"
+  },
+  "homepage": "https://github.com/stefanpopov/phone-mask/tree/main/packages/phone-mask-react#readme",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
   "type": "module",
   "main": "./dist/phone-mask-react.cjs.js",
   "module": "./dist/esm/index.js",
@@ -20,44 +53,19 @@
     "./style.css": "./dist/phone-mask-react.css"
   },
   "files": [
-    "dist",
-    "CHANGELOG.md"
+    "dist/esm",
+    "dist/phone-mask-react.cjs.js",
+    "dist/phone-mask-react.cjs.js.map",
+    "dist/phone-mask-react.css",
+    "CHANGELOG.md",
+    "README.md"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
-    "clean": "rimraf dist tsconfig.tsbuildinfo",
+    "clean": "rimraf dist",
     "dev": "cd demo && vite",
     "build": "vite build && tsc --project tsconfig.build.json",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": [
-    "phone",
-    "phone-input",
-    "phone-mask",
-    "phone-number",
-    "international-phone",
-    "react",
-    "react-component",
-    "react-hook",
-    "input-mask",
-    "tel",
-    "telephone",
-    "country-code",
-    "formatting"
-  ],
-  "author": "Stefan Popov",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/stefanpopov/phone-mask.git",
-    "directory": "packages/phone-mask-react"
-  },
-  "bugs": {
-    "url": "https://github.com/stefanpopov/phone-mask/issues"
-  },
-  "homepage": "https://github.com/stefanpopov/phone-mask/tree/main/packages/phone-mask-react#readme",
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
