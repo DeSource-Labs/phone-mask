@@ -50,8 +50,8 @@ Ready-made plugins for your stack:
 
 ## 📦 Packages
 
-| Package                                                   | Version                                                         | Description                  |
-| --------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------- |
+| Package                                                   | Version                                                                    | Description                  |
+| --------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------- |
 | [@desource/phone-mask](./packages/phone-mask)             | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue)       | Core library — TypeScript/JS |
 | [@desource/phone-mask-react](./packages/phone-mask-react) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue) | React component + hook       |
 | [@desource/phone-mask-vue](./packages/phone-mask-vue)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue)   | Vue 3 component + directive  |

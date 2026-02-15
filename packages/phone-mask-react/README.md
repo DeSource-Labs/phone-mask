@@ -37,12 +37,14 @@ pnpm add @desource/phone-mask-react
 ### Importing
 
 Component mode:
+
 ```tsx
 import { PhoneInput } from '@desource/phone-mask-react';
 import '@desource/phone-mask-react/assets/lib.css'; // Import styles
 ```
 
 Hook mode:
+
 ```tsx
 import { usePhoneMask } from '@desource/phone-mask-react';
 ```
@@ -60,12 +62,7 @@ function App() {
 
   return (
     <>
-      <PhoneInput
-        value={phone}
-        onChange={setPhone}
-        onValidationChange={setIsValid}
-        country="US"
-      />
+      <PhoneInput value={phone} onChange={setPhone} onValidationChange={setIsValid} country="US" />
 
       {isValid && <p>✓ Valid phone number</p>}
     </>
@@ -373,11 +370,7 @@ function Example() {
       name="phone"
       control={control}
       render={({ field }) => (
-        <PhoneInput
-          value={field.value}
-          onChange={(digits) => field.onChange(digits)}
-          onBlur={field.onBlur}
-        />
+        <PhoneInput value={field.value} onChange={(digits) => field.onChange(digits)} onBlur={field.onBlur} />
       )}
     />
   );
