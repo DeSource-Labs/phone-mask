@@ -10,10 +10,10 @@ export async function detectCountryFromGeoIP(
   url = GEO_IP_API_URL,
   timeout = GEO_IP_TIMEOUT_MS
 ): Promise<string | null> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+  try {
     const res = await fetch(url, {
       signal: controller.signal,
       headers: { Accept: 'application/json' }
@@ -30,6 +30,7 @@ export async function detectCountryFromGeoIP(
 
     return code || null;
   } catch {
+    clearTimeout(timeoutId);
     return null;
   }
 }
