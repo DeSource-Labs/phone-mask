@@ -1,31 +1,14 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
-import { getNavigatorLang, getCountry, detectCountryFromGeoIP, type MaskFull } from '@desource/phone-mask';
+import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  getNavigatorLang,
+  getCountry,
+  detectCountryFromGeoIP,
+  detectCountryFromLocale,
+  type MaskFull
+} from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits, getSelection, setCaret } from '../utils';
 import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn, PhoneNumber } from '../types';
-
-/**
- * Detect country from browser locale.
- */
-function detectCountryFromLocale(): string | null {
-  try {
-    const lang = getNavigatorLang();
-
-    try {
-      const loc = new Intl.Locale(lang);
-      if (loc.region) return loc.region.toUpperCase();
-    } catch {
-      // Ignore
-    }
-
-    const parts = lang.split(/[-_]/);
-    if (parts.length > 1) return parts[1]?.toUpperCase() || null;
-  } catch {
-    // Ignore
-  }
-
-  return null;
-}
 
 /**
  * React hook for phone number masking.
@@ -33,14 +16,13 @@ function detectCountryFromLocale(): string | null {
  */
 export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskReturn {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [digits, setDigits] = useState<string>('');
-  const [country, setCountryState] = useState<MaskFull>(() => {
-    const locale = options.locale || getNavigatorLang();
-    return getCountry(options.country || 'US', locale);
-  });
 
-  const locale = options.locale || getNavigatorLang();
-  const formatter = createPhoneFormatter(country);
+  const locale = useMemo(() => options.locale || getNavigatorLang(), [options.locale]);
+
+  const [digits, setDigits] = useState<string>('');
+  const [country, setCountryState] = useState<MaskFull>(() => getCountry(options.country || 'US', locale));
+
+  const formatter = useMemo(() => createPhoneFormatter(country), [country]);
 
   const displayValue = formatter.formatDisplay(digits);
   const full = `${country.code}${digits}`;

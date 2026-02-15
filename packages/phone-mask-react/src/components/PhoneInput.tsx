@@ -14,6 +14,7 @@ import {
   getCountry,
   getMasksFullMapByLocale,
   detectByGeoIp,
+  detectCountryFromLocale,
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
@@ -69,7 +70,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const liveRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  const locale = propLocale || getNavigatorLang();
+  const locale = useMemo(() => propLocale || getNavigatorLang(), [propLocale]);
+
   const [country, setCountry] = useState<MaskFull>(() => getCountry(propCountry || 'US', locale));
   const [digits, setDigits] = useState<string>('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -144,51 +146,31 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       return countries.some((c) => c.id === id);
     };
 
-    const detectFromLocale = (): string | null => {
-      const lang = typeof navigator !== 'undefined' && navigator.language ? navigator.language : '';
-      // Use Intl.Locale when available
-      try {
-        if (Intl.Locale) {
-          const loc = new Intl.Locale(lang);
-          if (loc?.region && hasCountry(loc.region)) return loc.region.toUpperCase();
-        }
-      } catch {
-        /* ignore */
-      }
-      const parts = lang.split(/[-_]/);
-      if (parts.length > 1 && hasCountry(parts[1])) return parts[1].toUpperCase();
-      return null;
+    const updateCountry = (newCountry: MaskFull) => {
+      setCountry((prev) => {
+        if (prev.id === newCountry.id) return prev;
+        onCountryChange?.(newCountry);
+        return newCountry;
+      });
     };
 
     (async () => {
       if (propCountry && hasCountry(propCountry)) {
         const newCountry = getCountry(propCountry, locale);
-        setCountry((prev) => {
-          if (prev.id === newCountry.id) return prev;
-          onCountryChange?.(newCountry);
-          return newCountry;
-        });
+        updateCountry(newCountry);
         return;
       }
       if (!detect) return;
       const geo = await detectByGeoIp(hasCountry);
       if (geo) {
         const detected = getCountry(geo, locale);
-        setCountry((prev) => {
-          if (prev.id === detected.id) return prev;
-          onCountryChange?.(detected);
-          return detected;
-        });
+        updateCountry(detected);
         return;
       }
-      const loc = detectFromLocale();
-      if (loc) {
+      const loc = detectCountryFromLocale();
+      if (loc && hasCountry(loc)) {
         const detected = getCountry(loc, locale);
-        setCountry((prev) => {
-          if (prev.id === detected.id) return prev;
-          onCountryChange?.(detected);
-          return detected;
-        });
+        updateCountry(detected);
       }
     })();
   }, [propCountry, detect, countries, locale]);

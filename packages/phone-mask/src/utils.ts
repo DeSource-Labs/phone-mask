@@ -11,6 +11,27 @@ export function getNavigatorLang(): string {
   return typeof navigator !== 'undefined' ? navigator.language || 'en' : 'en';
 }
 
+/** Detect country from browser locale */
+export function detectCountryFromLocale(): string | null {
+  try {
+    const lang = getNavigatorLang();
+
+    try {
+      const loc = new Intl.Locale(lang);
+      if (loc.region) return loc.region.toUpperCase();
+    } catch {
+      // Ignore
+    }
+
+    const parts = lang.split(/[-_]/);
+    if (parts.length > 1) return parts[1]?.toUpperCase() || null;
+  } catch {
+    // Ignore
+  }
+
+  return null;
+}
+
 /** Get full mask map for a given locale */
 export function getMasksFullMapByLocale(locale: string): MaskFullMap {
   const isEn = locale.toLowerCase().startsWith('en');
