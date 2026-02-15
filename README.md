@@ -220,7 +220,7 @@ Developed and maintained by [DeSource Labs](https://github.com/DeSource-Labs).
 
 ## 📄 License
 
-[MIT](./LICENSE) © 2025 DeSource Labs
+[MIT](./LICENSE) © 2026 DeSource Labs
 
 ---
 

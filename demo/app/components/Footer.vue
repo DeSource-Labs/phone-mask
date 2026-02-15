@@ -13,7 +13,7 @@
         />
       </div>
     </LiquidGlass>
-    <a class="legal animated-link p4" :href="Links.org" rel="nofollow noopener">2025, DESOURCE LABS LTD</a>
+    <a class="legal animated-link p4" :href="Links.org" rel="nofollow noopener">2026, DESOURCE LABS LTD</a>
   </footer>
 </template>
 
