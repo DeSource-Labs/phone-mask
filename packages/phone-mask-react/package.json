@@ -17,7 +17,7 @@
         "default": "./dist/phone-mask-react.cjs.js"
       }
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/phone-mask-react.css"
   },
   "files": [
     "dist",
