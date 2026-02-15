@@ -27,6 +27,7 @@
     "access": "public"
   },
   "scripts": {
+    "clean": "rimraf dist tsconfig.tsbuildinfo",
     "dev": "cd demo && vite",
     "build": "vite build && tsc --project tsconfig.build.json",
     "typecheck": "tsc --noEmit"
