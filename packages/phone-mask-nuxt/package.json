@@ -52,7 +52,7 @@
   },
   "scripts": {
     "dev:prepare": "nuxt prepare",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist .nuxt",
     "build": "pnpm dev:prepare && nuxt-module-build build"
   },
   "peerDependencies": {
