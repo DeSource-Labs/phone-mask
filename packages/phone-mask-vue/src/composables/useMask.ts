@@ -1,9 +1,9 @@
 // Mask/digits formatting and input handling
 import { ref, computed, watch, nextTick } from 'vue';
 import type { Ref, ComputedRef } from 'vue';
-import type { MaskFull } from '@desource/phone-mask';
+import { setCaret, extractDigits, getSelection, type MaskFull } from '@desource/phone-mask';
 
-import { createPhoneFormatter, setCaret, extractDigits, getSelection } from './usePhoneFormatter';
+import { createPhoneFormatter } from './usePhoneFormatter';
 import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 
 export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputElement | null>) {

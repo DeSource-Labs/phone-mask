@@ -13,13 +13,13 @@ import {
   getMasksFullMapByLocale,
   detectByGeoIp,
   detectCountryFromLocale,
+  extractDigits,
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
-import { extractDigits, getSelection } from '../utils';
-import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 import { usePhoneMaskCore } from '../hooks/usePhoneMaskCore';
 import { useTimer } from '../hooks/useTimer';
+import { usePhoneInputHandlers } from '../hooks/usePhoneInputHandlers';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
 
@@ -220,141 +220,30 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     [validationTimer]
   );
 
-  // Input handlers
-  const handleBeforeInput = useCallback((e: InputEvent) => {
-    const data = e.data;
-    if (e.inputType !== 'insertText' || !data) return;
-    const el = telRef.current;
-    if (!el) return;
-    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-      e.preventDefault();
-    }
-  }, []);
-
-  const handleInput = useCallback(() => {
-    const el = telRef.current;
-    if (!el || inactive) return;
-    const raw = el.value || '';
-    const maxDigits = formatter.getMaxDigits();
-    const newDigits = extractDigits(raw, maxDigits);
-    onChangeRef.current?.(newDigits);
-    scheduleCaretUpdate(el, newDigits.length);
-    // validation hint debounce (500ms)
+  // Validation hint callbacks
+  const handleValidationHintAfterInput = useCallback(() => {
     clearValidationHint();
-    if (newDigits.length > 0) {
+    if (digits.length > 0) {
       scheduleValidationHint(500);
     }
-  }, [formatter, inactive, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]);
+  }, [clearValidationHint, scheduleValidationHint, digits]);
 
-  const handleKeydown = useCallback(
-    (e: KeyboardEvent) => {
-      if (inactive) return;
-      const el = telRef.current;
-      if (!el) return;
+  const handleValidationHintAfterKeydown = useCallback(() => {
+    clearValidationHint();
+    scheduleValidationHint(300);
+  }, [clearValidationHint, scheduleValidationHint]);
 
-      if (e.ctrlKey || e.metaKey || e.altKey || NavigationKeys.includes(e.key)) return;
-
-      const [selStart, selEnd] = getSelection(el);
-
-      // debounce validation hint during typing (300ms)
-      clearValidationHint();
-      const scheduleHint = () => scheduleValidationHint(300);
-
-      if (e.key === 'Backspace') {
-        e.preventDefault();
-        if (selStart !== selEnd) {
-          const range = formatter.getDigitRange(digits, selStart, selEnd);
-          if (range) {
-            const [start, end] = range;
-            onChangeRef.current?.(digits.slice(0, start) + digits.slice(end));
-            scheduleCaretUpdate(el, start);
-          }
-        } else if (selStart > 0) {
-          let prevPos = selStart - 1;
-          while (prevPos >= 0 && Delimiters.includes(el.value[prevPos]!)) prevPos--;
-          if (prevPos >= 0) {
-            const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
-            if (range) {
-              const [start] = range;
-              onChangeRef.current?.(digits.slice(0, start) + digits.slice(start + 1));
-              scheduleCaretUpdate(el, start);
-            }
-          }
-        }
-        scheduleHint();
-        return;
-      }
-
-      if (e.key === 'Delete') {
-        e.preventDefault();
-        if (selStart !== selEnd) {
-          const range = formatter.getDigitRange(digits, selStart, selEnd);
-          if (range) {
-            const [start, end] = range;
-            onChangeRef.current?.(digits.slice(0, start) + digits.slice(end));
-            scheduleCaretUpdate(el, start);
-          }
-        } else if (selStart < el.value.length) {
-          const range = formatter.getDigitRange(digits, selStart, selStart + 1);
-          if (range) {
-            const [start] = range;
-            onChangeRef.current?.(digits.slice(0, start) + digits.slice(start + 1));
-            scheduleCaretUpdate(el, start);
-          }
-        }
-        scheduleHint();
-        return;
-      }
-
-      if (/^[0-9]$/.test(e.key)) {
-        if (digits.length >= formatter.getMaxDigits()) e.preventDefault();
-        scheduleHint();
-        return;
-      }
-
-      if (e.key.length === 1) e.preventDefault();
-      scheduleHint();
-    },
-    [inactive, formatter, digits, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
-  );
-
-  const handlePaste = useCallback(
-    (e: ClipboardEvent) => {
-      if (inactive) return;
-      e.preventDefault();
-      const el = telRef.current;
-      if (!el) return;
-
-      const text = e.clipboardData?.getData('text') || '';
-      const maxDigits = formatter.getMaxDigits();
-      const pastedDigits = extractDigits(text, maxDigits);
-      if (!pastedDigits) return;
-
-      const [selStart, selEnd] = getSelection(el);
-      if (selStart !== selEnd) {
-        const range = formatter.getDigitRange(digits, selStart, selEnd);
-        if (range) {
-          const [start, end] = range;
-          const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
-          onChangeRef.current?.(newDigits);
-          scheduleCaretUpdate(el, start + pastedDigits.length);
-        }
-      } else {
-        const range = formatter.getDigitRange(digits, selStart, selStart);
-        const insertIndex = range ? range[0] : digits.length;
-        const newDigits = extractDigits(
-          digits.slice(0, insertIndex) + pastedDigits + digits.slice(insertIndex),
-          maxDigits
-        );
-        onChangeRef.current?.(newDigits);
-        scheduleCaretUpdate(el, insertIndex + pastedDigits.length);
-      }
-      // show validation hint after paste (300ms)
-      clearValidationHint();
-      scheduleValidationHint(300);
-    },
-    [inactive, formatter, digits, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
-  );
+  // Use consolidated input handlers
+  const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = usePhoneInputHandlers({
+    formatter,
+    digits,
+    inactive,
+    onChange: (newDigits) => onChangeRef.current?.(newDigits),
+    onCaretUpdate: (digitIndex) => scheduleCaretUpdate(telRef.current, digitIndex),
+    onAfterInput: handleValidationHintAfterInput,
+    onAfterKeydown: handleValidationHintAfterKeydown,
+    onAfterPaste: handleValidationHintAfterKeydown
+  });
 
   // Close dropdown with animation
   const closeDropdown = useCallback(() => {
@@ -375,26 +264,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     },
     [onFocus, closeDropdown, clearValidationHint]
   );
-
-  // Attach native event listeners
-  useEffect(() => {
-    const el = telRef.current;
-    if (!el) return;
-
-    const beforeInputHandler = handleBeforeInput as unknown as (evt: Event) => void;
-    const keydownHandler = handleKeydown as unknown as (evt: Event) => void;
-    const pasteHandler = handlePaste as unknown as (evt: Event) => void;
-
-    el.addEventListener('beforeinput', beforeInputHandler);
-    el.addEventListener('keydown', keydownHandler);
-    el.addEventListener('paste', pasteHandler);
-
-    return () => {
-      el.removeEventListener('beforeinput', beforeInputHandler);
-      el.removeEventListener('keydown', keydownHandler);
-      el.removeEventListener('paste', pasteHandler);
-    };
-  }, [handleBeforeInput, handleKeydown, handlePaste]);
 
   // Country selection
   const selectCountry = useCallback(
@@ -647,6 +516,9 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             readOnly={readonly}
             aria-invalid={shouldShowWarn}
             onInput={handleInput}
+            onBeforeInput={handleBeforeInput}
+            onKeyDown={handleKeydown}
+            onPaste={handlePaste}
             onFocus={handleFocusInput}
             onBlur={onBlur}
           />

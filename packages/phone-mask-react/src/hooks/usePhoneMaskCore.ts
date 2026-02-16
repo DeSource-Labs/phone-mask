@@ -4,9 +4,10 @@ import {
   getCountry,
   detectCountryFromGeoIP,
   detectCountryFromLocale,
+  setCaret,
   type MaskFull
 } from '@desource/phone-mask';
-import { createPhoneFormatter, setCaret } from '../utils';
+import { createPhoneFormatter } from '../utils';
 
 import type { UsePhoneMaskCoreOptions, UsePhoneMaskCoreReturn, PhoneNumber } from '../types';
 
@@ -36,9 +37,15 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
   const setCountry = useCallback(
     (countryCode: string) => {
       const newCountry = getCountry(countryCode, locale);
-      setCountryState((prevCountry) => (prevCountry.id !== newCountry.id ? newCountry : prevCountry));
+      setCountryState((prevCountry) => {
+        if (prevCountry.id === newCountry.id) return prevCountry;
+
+        onCountryChange?.(newCountry);
+
+        return newCountry; // Update state
+      });
     },
-    [locale]
+    [locale, onCountryChange]
   );
 
   // Create formatter
@@ -81,11 +88,6 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
       setCountry(countryOption);
     }
   }, [countryOption, setCountry]);
-
-  // Effect: Emit onCountryChange
-  useEffect(() => {
-    onCountryChange?.(country);
-  }, [country, onCountryChange]);
 
   // Effect: Emit onPhoneChange
   useEffect(() => {

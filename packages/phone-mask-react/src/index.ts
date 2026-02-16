@@ -10,6 +10,7 @@ import {
 export { PhoneInput } from './components/PhoneInput';
 export { usePhoneMask } from './hooks/usePhoneMask';
 export { usePhoneMaskCore } from './hooks/usePhoneMaskCore';
+export { usePhoneInputHandlers } from './hooks/usePhoneInputHandlers';
 export type {
   PhoneInputProps,
   PhoneInputRef,
@@ -20,6 +21,7 @@ export type {
   Size as PhoneInputSize,
   Theme as PhoneInputTheme
 } from './types';
+export type { UsePhoneInputHandlersOptions, UsePhoneInputHandlersReturn } from './hooks/usePhoneInputHandlers';
 
 export type {
   CountryKey as PCountryKey,

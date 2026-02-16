@@ -4,10 +4,13 @@ import {
   getCountry,
   detectCountryFromGeoIP,
   detectCountryFromLocale,
+  setCaret,
+  extractDigits,
+  getSelection,
   type MaskFull
 } from '@desource/phone-mask';
 
-import { createPhoneFormatter, setCaret, extractDigits, getSelection } from '../composables/usePhoneFormatter';
+import { createPhoneFormatter } from '../composables/usePhoneFormatter';
 import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
 

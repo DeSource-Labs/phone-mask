@@ -71,31 +71,3 @@ export function createPhoneFormatter(country: MaskFull): FormatterHelpers {
     }
   };
 }
-
-/**
- * Caret manipulation helper
- */
-export function setCaret(el: HTMLInputElement | null, position: number): void {
-  if (!el) return;
-  try {
-    el.setSelectionRange(position, position);
-  } catch {
-    // Silently fail if element doesn't support selection
-  }
-}
-
-/**
- * Extract digits from any string
- */
-export function extractDigits(value: string, maxLength?: number): string {
-  const digits = value.replace(/\D/g, '');
-  return maxLength ? digits.slice(0, maxLength) : digits;
-}
-
-/**
- * Parse selection range for digit operations
- */
-export function getSelection(el: HTMLInputElement | null): [number, number] {
-  if (!el) return [0, 0];
-  return [el.selectionStart ?? 0, el.selectionEnd ?? 0];
-}
