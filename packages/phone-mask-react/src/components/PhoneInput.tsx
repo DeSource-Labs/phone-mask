@@ -70,13 +70,11 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const liveRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  // Local controlled state for digits
-  const [localDigits, setLocalDigits] = useState(() => extractDigits(value || ''));
-
   // Store parent callbacks in refs to avoid creating new functions
   const onChangeRef = useRef(onChange);
   const onPhoneChangeRef = useRef(onPhoneChange);
   const onCountryChangeRef = useRef(onCountryChange);
+  const onValidationChangeRef = useRef(onValidationChange);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -90,39 +88,22 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     onCountryChangeRef.current = onCountryChange;
   }, [onCountryChange]);
 
-  // Internal onChange - only notify parent, don't update local state
-  const handleInternalChange = useCallback((newDigits: string) => {
-    onChangeRef.current?.(newDigits);
-  }, []);
+  useEffect(() => {
+    onValidationChangeRef.current = onValidationChange;
+  }, [onValidationChange]);
 
-  const handleInternalPhoneChange = useCallback((phoneData: { full: string; fullFormatted: string; digits: string }) => {
-    onPhoneChangeRef.current?.(phoneData);
-  }, []);
+  // Compute digits from value prop (fully controlled)
+  const digits = useMemo(() => extractDigits(value || ''), [value]);
 
-  const handleInternalCountryChange = useCallback((country: MaskFull) => {
-    onCountryChangeRef.current?.(country);
-  }, []);
-
-  const {
-    digits,
-    country,
-    locale,
-    formatter,
-    displayValue,
-    full,
-    fullFormatted,
-    isComplete,
-    isEmpty,
-    setCountry
-  } = usePhoneMaskCore({
-    country: propCountry,
-    locale: propLocale,
-    detect: false, // PhoneInput handles detection manually
-    value: localDigits, // Use controlled mode
-    onChange: handleInternalChange,
-    onPhoneChange: handleInternalPhoneChange,
-    onCountryChange: handleInternalCountryChange,
-  });
+  const { country, locale, formatter, displayValue, full, fullFormatted, isComplete, isEmpty, setCountry } =
+    usePhoneMaskCore({
+      country: propCountry,
+      locale: propLocale,
+      detect: false, // PhoneInput handles detection manually
+      value: digits, // Pass computed digits
+      onChange: onPhoneChange,
+      onCountryChange
+    });
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -207,18 +188,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     })();
   }, [propCountry, detect, countries, setCountry]);
 
-  // Sync value prop with local state (controlled component pattern)
-  useEffect(() => {
-    const incomingDigits = extractDigits(value || '');
-    setLocalDigits(incomingDigits);
-  }, [value]); // Only depend on value prop, not on digits to avoid loops
-
-  // Store onValidationChange in ref to avoid unnecessary effects
-  const onValidationChangeRef = useRef(onValidationChange);
-  useEffect(() => {
-    onValidationChangeRef.current = onValidationChange;
-  }, [onValidationChange]);
-
   // Notify validation changes
   useEffect(() => {
     onValidationChangeRef.current?.(isComplete);
@@ -241,7 +210,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     const raw = el.value || '';
     const maxDigits = formatter.getMaxDigits();
     const newDigits = extractDigits(raw, maxDigits);
-    setLocalDigits(newDigits);
+    onChangeRef.current?.(newDigits);
     setTimeout(() => {
       const pos = formatter.getCaretPosition(newDigits.length);
       setCaret(el, pos);
@@ -282,7 +251,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           const range = formatter.getDigitRange(digits, selStart, selEnd);
           if (range) {
             const [start, end] = range;
-            setLocalDigits(digits.slice(0, start) + digits.slice(end));
+            onChangeRef.current?.(digits.slice(0, start) + digits.slice(end));
             setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
           }
         } else if (selStart > 0) {
@@ -292,7 +261,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
             if (range) {
               const [start] = range;
-              setLocalDigits(digits.slice(0, start) + digits.slice(start + 1));
+              onChangeRef.current?.(digits.slice(0, start) + digits.slice(start + 1));
               setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
             }
           }
@@ -307,14 +276,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           const range = formatter.getDigitRange(digits, selStart, selEnd);
           if (range) {
             const [start, end] = range;
-            setLocalDigits(digits.slice(0, start) + digits.slice(end));
+            onChangeRef.current?.(digits.slice(0, start) + digits.slice(end));
             setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
           }
         } else if (selStart < el.value.length) {
           const range = formatter.getDigitRange(digits, selStart, selStart + 1);
           if (range) {
             const [start] = range;
-            setLocalDigits(digits.slice(0, start) + digits.slice(start + 1));
+            onChangeRef.current?.(digits.slice(0, start) + digits.slice(start + 1));
             setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
           }
         }
@@ -352,7 +321,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
         if (range) {
           const [start, end] = range;
           const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
-          setLocalDigits(newDigits);
+          onChangeRef.current?.(newDigits);
           setTimeout(() => setCaret(el, formatter.getCaretPosition(start + pastedDigits.length)), 0);
         }
       } else {
@@ -362,7 +331,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           digits.slice(0, insertIndex) + pastedDigits + digits.slice(insertIndex),
           maxDigits
         );
-        setLocalDigits(newDigits);
+        onChangeRef.current?.(newDigits);
         setTimeout(() => setCaret(el, formatter.getCaretPosition(insertIndex + pastedDigits.length)), 0);
       }
       // show validation hint after paste (300ms)
@@ -503,10 +472,9 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
 
   // Clear functionality
   const handleClearClick = useCallback(() => {
-    setLocalDigits('');
+    onChangeRef.current?.('');
     setShowValidationHint(false);
     if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    // onChange and onPhoneChange will be called automatically via usePhoneMaskCore
     onClear?.();
     setTimeout(() => telRef.current?.focus(), 0);
   }, [onClear]);
@@ -518,10 +486,9 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       focus: () => telRef.current?.focus(),
       blur: () => telRef.current?.blur(),
       clear: () => {
-        setLocalDigits('');
+        onChangeRef.current?.('');
         setShowValidationHint(false);
         if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-        // onChange and onPhoneChange will be called automatically via usePhoneMaskCore
         onClear?.();
       },
       selectCountry,

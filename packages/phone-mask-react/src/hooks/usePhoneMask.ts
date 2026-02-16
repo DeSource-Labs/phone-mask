@@ -27,13 +27,8 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     shouldShowWarn,
     setCountry
   } = usePhoneMaskCore({
-    locale: options.locale,
-    country: options.country,
-    detect: options.detect,
     value: localDigits, // Pass local state as controlled value
-    onChange: setDigits,
-    onPhoneChange: options.onChange,
-    onCountryChange: options.onCountryChange
+    ...options
   });
 
   // Update display when digits or country change

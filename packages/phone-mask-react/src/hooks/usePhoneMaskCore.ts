@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getNavigatorLang,
   getCountry,
@@ -22,8 +22,7 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     country: countryOption,
     detect,
     value = '',
-    onChange,
-    onPhoneChange,
+    onChange: onPhoneChange,
     onCountryChange
   } = options;
 
@@ -35,23 +34,6 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
 
   // Initialize country state
   const [country, setCountryState] = useState<MaskFull>(() => getCountry(countryOption || 'US', locale));
-
-  // Store callbacks in refs to avoid recreating effects
-  const onChangeRef = useRef(onChange);
-  const onPhoneChangeRef = useRef(onPhoneChange);
-  const onCountryChangeRef = useRef(onCountryChange);
-
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  useEffect(() => {
-    onPhoneChangeRef.current = onPhoneChange;
-  }, [onPhoneChange]);
-
-  useEffect(() => {
-    onCountryChangeRef.current = onCountryChange;
-  }, [onCountryChange]);
 
   // State setter: setCountry if it changes from previous
   const setCountry = useCallback(
@@ -94,12 +76,7 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
         setCountry(localeCountry);
       }
     })();
-  }, [detect]); // Only run when detect changes, not setCountry
-
-  // Effect: Emit onChange with digits (stable reference via ref)
-  useEffect(() => {
-    onChangeRef.current?.(digits);
-  }, [digits]);
+  }, [detect, setCountry]);
 
   // Effect: Sync country when option changes
   useEffect(() => {
@@ -108,15 +85,15 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     }
   }, [countryOption, setCountry]);
 
-  // Effect: Emit onCountryChange (stable reference via ref)
+  // Effect: Emit onCountryChange
   useEffect(() => {
-    onCountryChangeRef.current?.(country);
-  }, [country]);
+    onCountryChange?.(country);
+  }, [country, onCountryChange]);
 
-  // Effect: Emit onPhoneChange (stable reference via ref)
+  // Effect: Emit onPhoneChange
   useEffect(() => {
-    onPhoneChangeRef.current?.(phoneData);
-  }, [phoneData]);
+    onPhoneChange?.(phoneData);
+  }, [phoneData, onPhoneChange]);
 
   return {
     digits,
