@@ -1,10 +1,16 @@
 // Mask/digits formatting and input handling
 import { ref, computed, watch, nextTick } from 'vue';
 import type { Ref, ComputedRef } from 'vue';
-import { setCaret, extractDigits, getSelection, type MaskFull } from '@desource/phone-mask';
+import {
+  setCaret,
+  processBeforeInput,
+  processInput,
+  processKeydown,
+  processPaste,
+  type MaskFull,
+} from '@desource/phone-mask';
 
 import { createPhoneFormatter } from './usePhoneFormatter';
-import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 
 export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputElement | null>) {
   const digits = ref('');
@@ -40,30 +46,11 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
     setCaret(telRef.value, pos);
   };
 
-  /** Remove range of digits */
-  const removeDigitsRange = (startIdx: number, endIdx: number) => {
-    if (startIdx >= endIdx) return;
-    digits.value = digits.value.slice(0, startIdx) + digits.value.slice(endIdx);
-  };
-
-  const handleBeforeInput = (e: InputEvent) => {
-    const el = e.target as HTMLInputElement;
-    if (!el) return;
-
-    const data = e.data;
-    if (e.inputType !== 'insertText' || !data) return;
-
-    // Block invalid characters & multiple spaces (to prevent autocomplete issues)
-    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-      e.preventDefault();
-    }
-  };
+  const handleBeforeInput = processBeforeInput;
 
   const handleInput = (e: Event) => {
-    const el = e.target as HTMLInputElement;
-    if (!el) return;
-
-    const newDigits = extractDigits(el.value, maxDigits.value);
+    const result = processInput(e, { formatter: formatter.value });
+    if (!result) return;
 
     // Clear validation hint while typing (will reappear after debounce)
     showValidationHint.value = false;
@@ -71,108 +58,32 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
       clearTimeout(validationTimer.value);
     }
 
-    digits.value = newDigits;
+    digits.value = result.newDigits;
     updateDisplay();
 
     // Show validation hint after 500ms of no typing (if incomplete)
-    if (newDigits.length > 0) {
+    if (result.newDigits.length > 0) {
       validationTimer.value = setTimeout(() => {
         showValidationHint.value = true;
       }, 500);
     }
 
     nextTick(() => {
-      setCaretToDigitPosition(digits.value.length);
+      setCaretToDigitPosition(result.caretDigitIndex);
     });
   };
 
   const handleKeydownInternal = (e: KeyboardEvent) => {
-    const el = telRef.value ?? (e.target as HTMLInputElement | null);
-    if (!el) return;
+    const result = processKeydown(e, {
+      currentDigits: digits.value,
+      formatter: formatter.value
+    });
 
-    // Allow meta & navigation keys
-    if (e.ctrlKey || e.metaKey || e.altKey || NavigationKeys.includes(e.key)) return;
+    if (!result) return;
 
-    const [selStart, selEnd] = getSelection(el);
-
-    // Backspace
-    if (e.key === 'Backspace') {
-      e.preventDefault();
-
-      if (selStart !== selEnd) {
-        // Delete selection
-        const range = formatter.value.getDigitRange(digits.value, selStart, selEnd);
-        if (range) {
-          const [start, end] = range;
-          removeDigitsRange(start, end);
-          updateDisplay();
-          nextTick(() => setCaretToDigitPosition(start));
-        }
-        return;
-      }
-
-      // Delete single character before caret
-      if (selStart > 0) {
-        const displayStr = displayValue.value;
-        // Find previous digit position
-        let prevPos = selStart - 1;
-        while (prevPos >= 0 && Delimiters.includes(displayStr[prevPos]!)) {
-          prevPos--;
-        }
-
-        if (prevPos >= 0) {
-          const range = formatter.value.getDigitRange(digits.value, prevPos, prevPos + 1);
-          if (range) {
-            const [start] = range;
-            removeDigitsRange(start, start + 1);
-            updateDisplay();
-            nextTick(() => setCaretToDigitPosition(start));
-          }
-        }
-      }
-      return;
-    }
-
-    // Delete key
-    if (e.key === 'Delete') {
-      e.preventDefault();
-
-      if (selStart !== selEnd) {
-        const range = formatter.value.getDigitRange(digits.value, selStart, selEnd);
-        if (range) {
-          const [start, end] = range;
-          removeDigitsRange(start, end);
-          updateDisplay();
-          nextTick(() => setCaretToDigitPosition(start));
-        }
-        return;
-      }
-
-      // Delete character at caret
-      if (selStart < displayValue.value.length) {
-        const range = formatter.value.getDigitRange(digits.value, selStart, selStart + 1);
-        if (range) {
-          const [start] = range;
-          removeDigitsRange(start, start + 1);
-          updateDisplay();
-          nextTick(() => setCaretToDigitPosition(start));
-        }
-      }
-      return;
-    }
-
-    // Block input if max digits reached
-    if (/^[0-9]$/.test(e.key)) {
-      if (digits.value.length >= maxDigits.value) {
-        e.preventDefault();
-      }
-      return;
-    }
-
-    // Block non-numeric input
-    if (e.key.length === 1) {
-      e.preventDefault();
-    }
+    digits.value = result.newDigits;
+    updateDisplay();
+    nextTick(() => setCaretToDigitPosition(result.caretDigitIndex));
   };
 
   const handleKeydown = (e: KeyboardEvent) => {
@@ -190,46 +101,23 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
   };
 
   const handlePaste = (e: ClipboardEvent) => {
-    e.preventDefault();
+    const result = processPaste(e, {
+      currentDigits: digits.value,
+      formatter: formatter.value
+    });
 
-    const text = e.clipboardData?.getData('text') || '';
-    const pastedDigits = extractDigits(text, maxDigits.value);
+    if (!result) return;
 
-    if (pastedDigits.length === 0) return;
-
-    const el = telRef.value;
-    if (!el) return;
-
-    const [selStart, selEnd] = getSelection(el);
-
-    if (selStart !== selEnd) {
-      // Replace selection with pasted content
-      const range = formatter.value.getDigitRange(digits.value, selStart, selEnd);
-      if (range) {
-        const [start, end] = range;
-        const left = digits.value.slice(0, start);
-        const right = digits.value.slice(end);
-        digits.value = extractDigits(left + pastedDigits + right, maxDigits.value);
-        updateDisplay();
-        nextTick(() => setCaretToDigitPosition(start + pastedDigits.length));
-        return;
-      }
-    }
-
-    // Insert at current position
-    const range = formatter.value.getDigitRange(digits.value, selStart, selStart);
-    const insertIndex = range ? range[0] : digits.value.length;
-
-    const left = digits.value.slice(0, insertIndex);
-    const right = digits.value.slice(insertIndex);
-    digits.value = extractDigits(left + pastedDigits + right, maxDigits.value);
+    digits.value = result.newDigits;
     updateDisplay();
+
     // Trigger validation hint shortly after paste if incomplete
     if (validationTimer.value) clearTimeout(validationTimer.value);
     validationTimer.value = setTimeout(() => {
       if (!isComplete.value && !isEmpty.value) showValidationHint.value = true;
     }, 300);
-    nextTick(() => setCaretToDigitPosition(insertIndex + pastedDigits.length));
+
+    nextTick(() => setCaretToDigitPosition(result.caretDigitIndex));
   };
 
   const handleFocus = () => {
