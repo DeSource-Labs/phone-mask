@@ -101,8 +101,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       locale: propLocale,
       detect: false, // PhoneInput handles detection manually
       value: digits, // Pass computed digits
-      onChange: onPhoneChange,
-      onCountryChange
+      onChange: onPhoneChangeRef.current,
+      onCountryChange: onCountryChangeRef.current
     });
 
   const [dropdownOpen, setDropdownOpen] = useState(false);

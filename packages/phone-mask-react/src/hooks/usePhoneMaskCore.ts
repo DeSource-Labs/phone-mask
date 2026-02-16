@@ -21,13 +21,10 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     locale: localeOption,
     country: countryOption,
     detect,
-    value = '',
+    value: digits = '',
     onChange: onPhoneChange,
     onCountryChange
   } = options;
-
-  // Use controlled value
-  const digits = value;
 
   // Compute locale
   const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);

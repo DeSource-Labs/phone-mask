@@ -31,6 +31,19 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     ...options
   });
 
+  // Helper: Schedule caret position update
+  const scheduleCaretUpdate = useCallback(
+    (digitIndex: number) => {
+      setTimeout(() => {
+        const el = inputRef.current;
+        if (!el) return;
+        const pos = formatter.getCaretPosition(digitIndex);
+        setCaret(el, pos);
+      }, 0);
+    },
+    [formatter]
+  );
+
   // Update display when digits or country change
   useEffect(() => {
     const el = inputRef.current;
@@ -64,13 +77,8 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     const newDigits = extractDigits(raw, maxDigits);
 
     setDigits(newDigits);
-
-    // Set caret position after state update
-    setTimeout(() => {
-      const pos = formatter.getCaretPosition(newDigits.length);
-      setCaret(el, pos);
-    }, 0);
-  }, [formatter]);
+    scheduleCaretUpdate(newDigits.length);
+  }, [formatter, scheduleCaretUpdate]);
 
   // Event handler: keydown
   const handleKeydown = useCallback(
@@ -92,10 +100,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
             const [start, end] = range;
             const newDigits = digits.slice(0, start) + digits.slice(end);
             setDigits(newDigits);
-            setTimeout(() => {
-              const pos = formatter.getCaretPosition(start);
-              setCaret(el, pos);
-            }, 0);
+            scheduleCaretUpdate(start);
           }
           return;
         }
@@ -113,10 +118,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
               const [start] = range;
               const newDigits = digits.slice(0, start) + digits.slice(start + 1);
               setDigits(newDigits);
-              setTimeout(() => {
-                const pos = formatter.getCaretPosition(start);
-                setCaret(el, pos);
-              }, 0);
+              scheduleCaretUpdate(start);
             }
           }
         }
@@ -132,10 +134,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
             const [start, end] = range;
             const newDigits = digits.slice(0, start) + digits.slice(end);
             setDigits(newDigits);
-            setTimeout(() => {
-              const pos = formatter.getCaretPosition(start);
-              setCaret(el, pos);
-            }, 0);
+            scheduleCaretUpdate(start);
           }
           return;
         }
@@ -146,10 +145,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
             const [start] = range;
             const newDigits = digits.slice(0, start) + digits.slice(start + 1);
             setDigits(newDigits);
-            setTimeout(() => {
-              const pos = formatter.getCaretPosition(start);
-              setCaret(el, pos);
-            }, 0);
+            scheduleCaretUpdate(start);
           }
         }
         return;
@@ -168,7 +164,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
         e.preventDefault();
       }
     },
-    [digits, formatter]
+    [digits, formatter, scheduleCaretUpdate]
   );
 
   // Event handler: paste
@@ -196,10 +192,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
           const right = digits.slice(end);
           const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
           setDigits(newDigits);
-          setTimeout(() => {
-            const pos = formatter.getCaretPosition(start + pastedDigits.length);
-            setCaret(el, pos);
-          }, 0);
+          scheduleCaretUpdate(start + pastedDigits.length);
           return;
         }
       }
@@ -211,13 +204,9 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
       const right = digits.slice(insertIndex);
       const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
       setDigits(newDigits);
-
-      setTimeout(() => {
-        const pos = formatter.getCaretPosition(insertIndex + pastedDigits.length);
-        setCaret(el, pos);
-      }, 0);
+      scheduleCaretUpdate(insertIndex + pastedDigits.length);
     },
-    [digits, formatter]
+    [digits, formatter, scheduleCaretUpdate]
   );
 
   // Attach event listeners
