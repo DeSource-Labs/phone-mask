@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
-import { extractDigits, getSelection, setCaret } from '../utils';
+import { extractDigits, getSelection } from '../utils';
 import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import { usePhoneMaskCore } from './usePhoneMaskCore';
 
@@ -25,24 +25,12 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setCountry
+    setCountry,
+    scheduleCaretUpdate
   } = usePhoneMaskCore({
     value: localDigits, // Pass local state as controlled value
     ...options
   });
-
-  // Helper: Schedule caret position update
-  const scheduleCaretUpdate = useCallback(
-    (digitIndex: number) => {
-      setTimeout(() => {
-        const el = inputRef.current;
-        if (!el) return;
-        const pos = formatter.getCaretPosition(digitIndex);
-        setCaret(el, pos);
-      }, 0);
-    },
-    [formatter]
-  );
 
   // Update display when digits or country change
   useEffect(() => {
@@ -77,7 +65,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     const newDigits = extractDigits(raw, maxDigits);
 
     setDigits(newDigits);
-    scheduleCaretUpdate(newDigits.length);
+    scheduleCaretUpdate(el, newDigits.length);
   }, [formatter, scheduleCaretUpdate]);
 
   // Event handler: keydown
@@ -100,7 +88,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
             const [start, end] = range;
             const newDigits = digits.slice(0, start) + digits.slice(end);
             setDigits(newDigits);
-            scheduleCaretUpdate(start);
+            scheduleCaretUpdate(el, start);
           }
           return;
         }
@@ -118,7 +106,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
               const [start] = range;
               const newDigits = digits.slice(0, start) + digits.slice(start + 1);
               setDigits(newDigits);
-              scheduleCaretUpdate(start);
+              scheduleCaretUpdate(el, start);
             }
           }
         }
@@ -134,7 +122,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
             const [start, end] = range;
             const newDigits = digits.slice(0, start) + digits.slice(end);
             setDigits(newDigits);
-            scheduleCaretUpdate(start);
+            scheduleCaretUpdate(el, start);
           }
           return;
         }
@@ -145,7 +133,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
             const [start] = range;
             const newDigits = digits.slice(0, start) + digits.slice(start + 1);
             setDigits(newDigits);
-            scheduleCaretUpdate(start);
+            scheduleCaretUpdate(el, start);
           }
         }
         return;
@@ -192,7 +180,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
           const right = digits.slice(end);
           const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
           setDigits(newDigits);
-          scheduleCaretUpdate(start + pastedDigits.length);
+          scheduleCaretUpdate(el, start + pastedDigits.length);
           return;
         }
       }
@@ -204,7 +192,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
       const right = digits.slice(insertIndex);
       const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
       setDigits(newDigits);
-      scheduleCaretUpdate(insertIndex + pastedDigits.length);
+      scheduleCaretUpdate(el, insertIndex + pastedDigits.length);
     },
     [digits, formatter, scheduleCaretUpdate]
   );

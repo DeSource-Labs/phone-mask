@@ -16,9 +16,10 @@ import {
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
-import { extractDigits, setCaret, getSelection } from '../utils';
+import { extractDigits, getSelection } from '../utils';
 import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 import { usePhoneMaskCore } from '../hooks/usePhoneMaskCore';
+import { useTimer } from '../hooks/useTimer';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
 
@@ -95,15 +96,25 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   // Compute digits from value prop (fully controlled)
   const digits = useMemo(() => extractDigits(value || ''), [value]);
 
-  const { country, locale, formatter, displayValue, full, fullFormatted, isComplete, isEmpty, setCountry } =
-    usePhoneMaskCore({
-      country: propCountry,
-      locale: propLocale,
-      detect: false, // PhoneInput handles detection manually
-      value: digits, // Pass computed digits
-      onChange: onPhoneChangeRef.current,
-      onCountryChange: onCountryChangeRef.current
-    });
+  const {
+    country,
+    locale,
+    formatter,
+    displayValue,
+    full,
+    fullFormatted,
+    isComplete,
+    isEmpty,
+    setCountry,
+    scheduleCaretUpdate
+  } = usePhoneMaskCore({
+    country: propCountry,
+    locale: propLocale,
+    detect: false, // PhoneInput handles detection manually
+    value: digits, // Pass computed digits
+    onChange: onPhoneChangeRef.current,
+    onCountryChange: onCountryChangeRef.current
+  });
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -113,10 +124,11 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const [isCopying, setIsCopying] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
   const [showValidationHint, setShowValidationHint] = useState(false);
-  const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
+
+  const validationTimer = useTimer();
+  const closeTimer = useTimer();
+  const copyTimer = useTimer();
 
   const countries = useMemo(() => getCountries(locale), [locale]);
 
@@ -193,6 +205,21 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     onValidationChangeRef.current?.(isComplete);
   }, [isComplete]);
 
+  // Validation hint helpers
+  const clearValidationHint = useCallback(() => {
+    setShowValidationHint(false);
+    validationTimer.clear();
+  }, [validationTimer]);
+
+  const scheduleValidationHint = useCallback(
+    (delay: number) => {
+      validationTimer.set(() => {
+        setShowValidationHint(true);
+      }, delay);
+    },
+    [validationTimer]
+  );
+
   // Input handlers
   const handleBeforeInput = useCallback((e: InputEvent) => {
     const data = e.data;
@@ -211,19 +238,13 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     const maxDigits = formatter.getMaxDigits();
     const newDigits = extractDigits(raw, maxDigits);
     onChangeRef.current?.(newDigits);
-    setTimeout(() => {
-      const pos = formatter.getCaretPosition(newDigits.length);
-      setCaret(el, pos);
-    }, 0);
+    scheduleCaretUpdate(el, newDigits.length);
     // validation hint debounce (500ms)
-    setShowValidationHint(false);
-    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    clearValidationHint();
     if (newDigits.length > 0) {
-      validationTimerRef.current = setTimeout(() => {
-        setShowValidationHint(true);
-      }, 500);
+      scheduleValidationHint(500);
     }
-  }, [formatter, inactive]);
+  }, [formatter, inactive, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]);
 
   const handleKeydown = useCallback(
     (e: KeyboardEvent) => {
@@ -236,14 +257,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       const [selStart, selEnd] = getSelection(el);
 
       // debounce validation hint during typing (300ms)
-      setShowValidationHint(false);
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-      const scheduleHint = () => {
-        if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-        validationTimerRef.current = setTimeout(() => {
-          setShowValidationHint(true);
-        }, 300);
-      };
+      clearValidationHint();
+      const scheduleHint = () => scheduleValidationHint(300);
 
       if (e.key === 'Backspace') {
         e.preventDefault();
@@ -252,7 +267,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           if (range) {
             const [start, end] = range;
             onChangeRef.current?.(digits.slice(0, start) + digits.slice(end));
-            setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
+            scheduleCaretUpdate(el, start);
           }
         } else if (selStart > 0) {
           let prevPos = selStart - 1;
@@ -262,7 +277,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             if (range) {
               const [start] = range;
               onChangeRef.current?.(digits.slice(0, start) + digits.slice(start + 1));
-              setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
+              scheduleCaretUpdate(el, start);
             }
           }
         }
@@ -277,14 +292,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           if (range) {
             const [start, end] = range;
             onChangeRef.current?.(digits.slice(0, start) + digits.slice(end));
-            setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
+            scheduleCaretUpdate(el, start);
           }
         } else if (selStart < el.value.length) {
           const range = formatter.getDigitRange(digits, selStart, selStart + 1);
           if (range) {
             const [start] = range;
             onChangeRef.current?.(digits.slice(0, start) + digits.slice(start + 1));
-            setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
+            scheduleCaretUpdate(el, start);
           }
         }
         scheduleHint();
@@ -300,7 +315,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       if (e.key.length === 1) e.preventDefault();
       scheduleHint();
     },
-    [inactive, formatter, digits]
+    [inactive, formatter, digits, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
   );
 
   const handlePaste = useCallback(
@@ -322,7 +337,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           const [start, end] = range;
           const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
           onChangeRef.current?.(newDigits);
-          setTimeout(() => setCaret(el, formatter.getCaretPosition(start + pastedDigits.length)), 0);
+          scheduleCaretUpdate(el, start + pastedDigits.length);
         }
       } else {
         const range = formatter.getDigitRange(digits, selStart, selStart);
@@ -332,37 +347,33 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           maxDigits
         );
         onChangeRef.current?.(newDigits);
-        setTimeout(() => setCaret(el, formatter.getCaretPosition(insertIndex + pastedDigits.length)), 0);
+        scheduleCaretUpdate(el, insertIndex + pastedDigits.length);
       }
       // show validation hint after paste (300ms)
-      setShowValidationHint(false);
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-      validationTimerRef.current = setTimeout(() => {
-        setShowValidationHint(true);
-      }, 300);
+      clearValidationHint();
+      scheduleValidationHint(300);
     },
-    [inactive, formatter, digits]
+    [inactive, formatter, digits, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
   );
 
   // Close dropdown with animation
   const closeDropdown = useCallback(() => {
     if (!dropdownOpen) return;
     setIsClosing(true);
-    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = setTimeout(() => {
+    closeTimer.set(() => {
       setDropdownOpen(false);
       setIsClosing(false);
     }, 200);
-  }, [dropdownOpen]);
+  }, [dropdownOpen, closeTimer]);
 
-  // Input focus behavior (close dropdown, keep existing hint state)
+  // Input focus behavior (close dropdown, clear validation hint)
   const handleFocusInput = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+      clearValidationHint();
       closeDropdown();
       onFocus?.(e);
     },
-    [onFocus, closeDropdown]
+    [onFocus, closeDropdown, clearValidationHint]
   );
 
   // Attach native event listeners
@@ -436,15 +447,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     };
   }, [dropdownOpen, positionDropdown, closeDropdown]);
 
-  // Cleanup timers
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    };
-  }, []);
-
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
     if (isCopying) return;
@@ -458,26 +460,27 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       onCopy?.(trimmedValue);
       if (liveRef.current) liveRef.current.textContent = 'Phone number copied to clipboard';
 
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      copyTimerRef.current = setTimeout(() => {
+      copyTimer.set(() => {
         setCopied(false);
-        copyTimerRef.current = null;
       }, 1800);
     } catch (err) {
       console.warn('Copy failed', err);
     } finally {
       setIsCopying(false);
     }
-  }, [fullFormatted, onCopy, isCopying]);
+  }, [fullFormatted, onCopy, isCopying, copyTimer]);
+
+  const clear = useCallback(() => {
+    onChangeRef.current?.('');
+    clearValidationHint();
+    onClear?.();
+  }, [onClear, clearValidationHint]);
 
   // Clear functionality
   const handleClearClick = useCallback(() => {
-    onChangeRef.current?.('');
-    setShowValidationHint(false);
-    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    onClear?.();
+    clear();
     setTimeout(() => telRef.current?.focus(), 0);
-  }, [onClear]);
+  }, [clear]);
 
   // Imperative handle
   useImperativeHandle(
@@ -485,12 +488,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     () => ({
       focus: () => telRef.current?.focus(),
       blur: () => telRef.current?.blur(),
-      clear: () => {
-        onChangeRef.current?.('');
-        setShowValidationHint(false);
-        if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-        onClear?.();
-      },
+      clear,
       selectCountry,
       getFullNumber: () => full,
       getFullFormattedNumber: () => fullFormatted,
@@ -498,7 +496,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       isValid: () => isComplete,
       isComplete: () => isComplete
     }),
-    [selectCountry, full, fullFormatted, digits, isComplete, onClear]
+    [selectCountry, full, fullFormatted, digits, isComplete, onClear, clearValidationHint]
   );
 
   const scrollFocusedIntoView = (index: number) => {
@@ -600,7 +598,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
               if (dropdownOpen) {
                 closeDropdown();
               } else {
-                if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+                closeTimer.clear();
                 setIsClosing(false);
                 setDropdownOpen(true);
                 setFocusedIndex(0);

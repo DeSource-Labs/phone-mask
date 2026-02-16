@@ -6,7 +6,7 @@ import {
   detectCountryFromLocale,
   type MaskFull
 } from '@desource/phone-mask';
-import { createPhoneFormatter } from '../utils';
+import { createPhoneFormatter, setCaret } from '../utils';
 
 import type { UsePhoneMaskCoreOptions, UsePhoneMaskCoreReturn, PhoneNumber } from '../types';
 
@@ -92,6 +92,18 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     onPhoneChange?.(phoneData);
   }, [phoneData, onPhoneChange]);
 
+  // Helper: Schedule caret position update
+  const scheduleCaretUpdate = useCallback(
+    (el: HTMLInputElement | null, digitIndex: number) => {
+      setTimeout(() => {
+        if (!el) return;
+        const pos = formatter.getCaretPosition(digitIndex);
+        setCaret(el, pos);
+      }, 0);
+    },
+    [formatter]
+  );
+
   return {
     digits,
     country,
@@ -103,6 +115,7 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setCountry
+    setCountry,
+    scheduleCaretUpdate
   };
 }

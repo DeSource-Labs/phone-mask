@@ -195,6 +195,8 @@ export interface UsePhoneMaskCoreReturn {
   isEmpty: boolean;
   /** Whether to show validation warning */
   shouldShowWarn: boolean;
+  /** Helper function to schedule caret position update */
+  scheduleCaretUpdate: (el: HTMLInputElement | null, digitIndex: number) => void;
 }
 
 /** Configuration options for the phone mask hook */
@@ -203,7 +205,7 @@ export interface UsePhoneMaskOptions extends Omit<UsePhoneMaskCoreOptions, 'valu
 /** Return type for usePhoneMask hook */
 export interface UsePhoneMaskReturn extends Omit<
   UsePhoneMaskCoreReturn,
-  'setDigits' | 'locale' | 'formatter' | 'displayValue'
+  'setDigits' | 'locale' | 'formatter' | 'displayValue' | 'scheduleCaretUpdate'
 > {
   /** Ref to attach to input element */
   ref: RefObject<HTMLInputElement | null>;
