@@ -5,9 +5,9 @@ import {
   detectCountryFromGeoIP,
   detectCountryFromLocale,
   setCaret,
+  createPhoneFormatter,
   type MaskFull
 } from '@desource/phone-mask';
-import { createPhoneFormatter } from '../utils';
 
 import type { UsePhoneMaskCoreOptions, UsePhoneMaskCoreReturn, PhoneNumber } from '../types';
 

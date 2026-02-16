@@ -7,10 +7,9 @@ import {
   processInput,
   processKeydown,
   processPaste,
-  type MaskFull,
+  createPhoneFormatter,
+  type MaskFull
 } from '@desource/phone-mask';
-
-import { createPhoneFormatter } from './usePhoneFormatter';
 
 export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputElement | null>) {
   const digits = ref('');

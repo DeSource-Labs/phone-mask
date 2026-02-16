@@ -1,4 +1,4 @@
-import type { MaskFull, CountryKey } from '@desource/phone-mask';
+import type { MaskFull, CountryKey, FormatterHelpers } from '@desource/phone-mask';
 
 export type Size = 'compact' | 'normal' | 'large';
 export type Theme = 'auto' | 'light' | 'dark';
@@ -132,15 +132,6 @@ export interface PhoneInputExposed {
   isValid: () => boolean;
   /** Check if the current phone number is complete */
   isComplete: () => boolean;
-}
-
-export interface FormatterHelpers {
-  formatDisplay: (digits: string) => string;
-  getMaxDigits: () => number;
-  getPlaceholder: () => string;
-  getCaretPosition: (digitIndex: number) => number;
-  getDigitRange: (digits: string, selStart: number, selEnd: number) => [number, number] | null;
-  isComplete: (digits: string) => boolean;
 }
 
 /** Configuration options for the phone mask directive */

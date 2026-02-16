@@ -1,18 +1,11 @@
 // Framework-agnostic input handling utilities for phone mask inputs
 // These pure functions can be used across any framework (React, Vue, etc.)
 
+import type { FormatterHelpers } from './formatter';
+
 export const DELIMITERS = [' ', '-', '(', ')'];
 export const NAVIGATION_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Tab'];
 export const INVALID_PATTERN = /[^\d\s\-()]/;
-
-/**
- * Formatter interface for digit range and caret calculations
- */
-export interface FormatterHelpers {
-  getMaxDigits: () => number;
-  getDigitRange: (digits: string, selStart: number, selEnd: number) => [number, number] | null;
-  getCaretPosition: (digitIndex: number) => number;
-}
 
 /**
  * Result of processInput

@@ -10,10 +10,10 @@ import {
   processInput,
   processKeydown,
   processPaste,
-  type MaskFull,
+  createPhoneFormatter,
+  type MaskFull
 } from '@desource/phone-mask';
 
-import { createPhoneFormatter } from '../composables/usePhoneFormatter';
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
 
 /**

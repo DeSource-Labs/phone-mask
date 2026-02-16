@@ -21,6 +21,7 @@ export type {
   Size as PhoneInputSize,
   Theme as PhoneInputTheme
 } from './types';
+
 export type { UsePhoneInputHandlersOptions, UsePhoneInputHandlersReturn } from './hooks/usePhoneInputHandlers';
 
 export type {
