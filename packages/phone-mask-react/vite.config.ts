@@ -4,12 +4,15 @@ import { resolve } from 'path';
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        style: resolve(__dirname, 'src/style.scss')
+      },
       name: 'PhoneMaskReact',
       formats: ['es', 'cjs'],
       fileName: (format) => {
         if (format === 'es') return 'esm/index.js';
-        return 'phone-mask-react.cjs.js';
+        return 'phone-mask-react.cjs';
       }
     },
     rollupOptions: {
@@ -19,8 +22,7 @@ export default defineConfig({
           react: 'React',
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': 'jsxRuntime'
-        },
-        assetFileNames: 'style.[ext]'
+        }
       }
     },
     sourcemap: true,

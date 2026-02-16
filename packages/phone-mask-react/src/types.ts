@@ -166,6 +166,35 @@ export interface UsePhoneMaskOptions {
   onCountryChange?: (country: MaskFull) => void;
 }
 
+/** Configuration options for the phone mask core hook */
+export interface UsePhoneMaskCoreOptions {
+  /** Country ISO code (e.g., 'US', 'DE', 'GB') */
+  country?: string;
+  /** Locale for country names (default: navigator.language) */
+  locale?: string;
+  /** Auto-detect country from IP/locale (default: false) */
+  detect?: boolean;
+  /**
+   * Controlled value (digits only, without country code)
+   * The parent is responsible for managing state via onChange callback.
+   */
+  value?: string;
+  /**
+   * Callback when the digits value changes.
+   */
+  onChange?: (digits: string) => void;
+  /**
+   * Callback when the phone number changes.
+   * Provides an object with:
+   * - full: Full phone number with country code (e.g. +1234567890)
+   * - fullFormatted: Full phone number formatted according to country rules (e.g. +1 234-567-890)
+   * - digits: Only the digits of the phone number without country code (e.g. 234567890)
+   */
+  onPhoneChange?: (value: PhoneNumber) => void;
+  /** Callback when country changes */
+  onCountryChange?: (country: MaskFull) => void;
+}
+
 /** Return type for usePhoneMaskCore hook */
 export interface UsePhoneMaskCoreReturn {
   /** Current country data */
@@ -174,8 +203,6 @@ export interface UsePhoneMaskCoreReturn {
   setCountry: (countryCode: string) => void;
   /** Raw digits without formatting */
   digits: string;
-  /** Update digits */
-  setDigits: (value: string) => void;
   /** Computed locale value */
   locale: string;
   /** Phone formatter instance */

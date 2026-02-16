@@ -541,7 +541,7 @@ const form = reactive({
 
 ## 📄 License
 
-[MIT](../../LICENSE) © 2025 DeSource Labs
+[MIT](../../LICENSE) © 2026 DeSource Labs
 
 ## 🤝 Contributing
 

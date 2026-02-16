@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { extractDigits, getSelection, setCaret } from '../utils';
 import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import { usePhoneMaskCore } from './usePhoneMaskCore';
@@ -12,6 +12,9 @@ import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
 export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskReturn {
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Local state for digits (uncontrolled mode at this level)
+  const [localDigits, setDigits] = useState<string>('');
+
   const {
     digits,
     country,
@@ -22,9 +25,16 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setDigits,
     setCountry
-  } = usePhoneMaskCore(options);
+  } = usePhoneMaskCore({
+    locale: options.locale,
+    country: options.country,
+    detect: options.detect,
+    value: localDigits, // Pass local state as controlled value
+    onChange: setDigits,
+    onPhoneChange: options.onChange,
+    onCountryChange: options.onCountryChange
+  });
 
   // Update display when digits or country change
   useEffect(() => {

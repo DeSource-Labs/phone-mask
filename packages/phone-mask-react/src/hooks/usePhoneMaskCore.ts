@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   getNavigatorLang,
   getCountry,
@@ -8,22 +8,50 @@ import {
 } from '@desource/phone-mask';
 import { createPhoneFormatter } from '../utils';
 
-import type { UsePhoneMaskOptions, UsePhoneMaskCoreReturn, PhoneNumber } from '../types';
+import type { UsePhoneMaskCoreOptions, UsePhoneMaskCoreReturn, PhoneNumber } from '../types';
 
 /**
  * Core phone mask hook - pure state management and derived computations.
  * Can be reused by both usePhoneMask and PhoneInput.
+ * Works in controlled mode only - requires value prop.
  */
-export function usePhoneMaskCore(options: UsePhoneMaskOptions = {}): UsePhoneMaskCoreReturn {
+export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhoneMaskCoreReturn {
   // Destructure options for better dependency tracking
-  const { locale: localeOption, country: countryOption, detect, onChange, onCountryChange } = options;
+  const {
+    locale: localeOption,
+    country: countryOption,
+    detect,
+    value = '',
+    onChange,
+    onPhoneChange,
+    onCountryChange
+  } = options;
+
+  // Use controlled value
+  const digits = value;
 
   // Compute locale
   const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);
 
-  // Initialize state
-  const [digits, setDigits] = useState<string>('');
+  // Initialize country state
   const [country, setCountryState] = useState<MaskFull>(() => getCountry(countryOption || 'US', locale));
+
+  // Store callbacks in refs to avoid recreating effects
+  const onChangeRef = useRef(onChange);
+  const onPhoneChangeRef = useRef(onPhoneChange);
+  const onCountryChangeRef = useRef(onCountryChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    onPhoneChangeRef.current = onPhoneChange;
+  }, [onPhoneChange]);
+
+  useEffect(() => {
+    onCountryChangeRef.current = onCountryChange;
+  }, [onCountryChange]);
 
   // State setter: setCountry if it changes from previous
   const setCountry = useCallback(
@@ -37,15 +65,6 @@ export function usePhoneMaskCore(options: UsePhoneMaskOptions = {}): UsePhoneMas
   // Create formatter
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
 
-  // Effect: Clamp digits when formatter changes
-  useEffect(() => {
-    const maxDigits = formatter.getMaxDigits();
-
-    if (digits.length > maxDigits) {
-      setDigits(digits.slice(0, maxDigits));
-    }
-  }, [formatter, digits]);
-
   // Compute derived values
   const displayValue = formatter.formatDisplay(digits);
   const full = `${country.code}${digits}`;
@@ -57,7 +76,7 @@ export function usePhoneMaskCore(options: UsePhoneMaskOptions = {}): UsePhoneMas
   // Memoize phoneData to prevent infinite loops in useEffect
   const phoneData = useMemo<PhoneNumber>(() => ({ full, fullFormatted, digits }), [full, fullFormatted, digits]);
 
-  // Effect: Country detection (GeoIP + locale fallback)
+  // Effect: Country detection (GeoIP + locale fallback) - only on mount
   useEffect(() => {
     if (!detect) return;
 
@@ -75,7 +94,12 @@ export function usePhoneMaskCore(options: UsePhoneMaskOptions = {}): UsePhoneMas
         setCountry(localeCountry);
       }
     })();
-  }, [detect, setCountry]);
+  }, [detect]); // Only run when detect changes, not setCountry
+
+  // Effect: Emit onChange with digits (stable reference via ref)
+  useEffect(() => {
+    onChangeRef.current?.(digits);
+  }, [digits]);
 
   // Effect: Sync country when option changes
   useEffect(() => {
@@ -84,15 +108,15 @@ export function usePhoneMaskCore(options: UsePhoneMaskOptions = {}): UsePhoneMas
     }
   }, [countryOption, setCountry]);
 
-  // Effect: Emit onCountryChange
+  // Effect: Emit onCountryChange (stable reference via ref)
   useEffect(() => {
-    onCountryChange?.(country);
-  }, [country, onCountryChange]);
+    onCountryChangeRef.current?.(country);
+  }, [country]);
 
-  // Effect: Emit onChange
+  // Effect: Emit onPhoneChange (stable reference via ref)
   useEffect(() => {
-    onChange?.(phoneData);
-  }, [phoneData, onChange]);
+    onPhoneChangeRef.current?.(phoneData);
+  }, [phoneData]);
 
   return {
     digits,
@@ -105,7 +129,6 @@ export function usePhoneMaskCore(options: UsePhoneMaskOptions = {}): UsePhoneMas
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setDigits,
     setCountry
   };
 }
