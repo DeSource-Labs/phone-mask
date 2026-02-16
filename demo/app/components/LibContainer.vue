@@ -8,7 +8,6 @@
             :key="item.id"
             class="lib-item"
             :class="{ selected: selected === item.id }"
-            :disabled="item.id === 'react'"
             @click="onSelected(item.id)"
           >
             {{ item.name }}
