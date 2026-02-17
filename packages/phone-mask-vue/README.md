@@ -538,6 +538,7 @@ const form = reactive({
 
 - [@desource/phone-mask](../phone-mask) — Core library
 - [@desource/phone-mask-nuxt](../phone-mask-nuxt) — Nuxt module
+- [@desource/phone-mask-react](../phone-mask-react) — React bindings
 
 ## 📄 License
 
