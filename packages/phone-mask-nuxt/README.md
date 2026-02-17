@@ -382,6 +382,7 @@ No changes needed in your components!
 
 - [@desource/phone-mask](../phone-mask) — Core library
 - [@desource/phone-mask-vue](../phone-mask-vue) — Vue 3 component
+- [@desource/phone-mask-react](../phone-mask-react) — React bindings
 
 ## 📄 License
 
