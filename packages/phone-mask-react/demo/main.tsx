@@ -109,7 +109,7 @@ function Playground() {
               onChange={setDigits}
               onCountryChange={(c) => console.log('Country:', c.name)}
               onValidationChange={(v) => console.log('Valid:', v)}
-              country={country || undefined}
+              country={country}
               detect={detect}
               showCopy={showCopy}
               showClear={showClear}
@@ -135,11 +135,11 @@ function Playground() {
             <label style={labelStyle}>
               <span>Country:</span>
               <select
-                value={country}
+                value={country || ''}
                 onChange={(e) => setCountry(e.target.value as CountryKey | undefined)}
                 style={selectStyle}
               >
-                <option value={undefined}>Not Selected</option>
+                <option value="">Not Selected</option>
                 <option value="US">United States</option>
                 <option value="GB">United Kingdom</option>
                 <option value="DE">Germany</option>

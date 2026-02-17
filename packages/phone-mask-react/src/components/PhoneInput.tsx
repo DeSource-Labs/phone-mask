@@ -73,21 +73,11 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
 
   // Store parent callbacks in refs to avoid creating new functions
   const onChangeRef = useRef(onChange);
-  const onPhoneChangeRef = useRef(onPhoneChange);
-  const onCountryChangeRef = useRef(onCountryChange);
   const onValidationChangeRef = useRef(onValidationChange);
 
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
-
-  useEffect(() => {
-    onPhoneChangeRef.current = onPhoneChange;
-  }, [onPhoneChange]);
-
-  useEffect(() => {
-    onCountryChangeRef.current = onCountryChange;
-  }, [onCountryChange]);
 
   useEffect(() => {
     onValidationChangeRef.current = onValidationChange;
@@ -110,10 +100,10 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   } = usePhoneMaskCore({
     country: propCountry,
     locale: propLocale,
-    detect: false, // PhoneInput handles detection manually
+    detect,
     value: digits, // Pass computed digits
-    onChange: onPhoneChangeRef.current,
-    onCountryChange: onCountryChangeRef.current
+    onChange: onPhoneChange,
+    onCountryChange: onCountryChange
   });
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -172,33 +162,18 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
 
+  // Clamp digits formatter changes
+  useEffect(() => {
+    const maxDigits = formatter.getMaxDigits();
+    if (digits.length > maxDigits) {
+      onChangeRef.current?.(digits.slice(0, maxDigits));
+    }
+  }, [formatter]);
+
   // Country initialization and detection with cache + locale fallback
   useEffect(() => {
     setHasDropdown(!propCountry && countries.length > 1);
-
-    const hasCountry = (code?: string | null) => {
-      if (!code) return false;
-      const id = code.toUpperCase();
-      return countries.some((c) => c.id === id);
-    };
-
-    (async () => {
-      if (propCountry && hasCountry(propCountry)) {
-        setCountry(propCountry);
-        return;
-      }
-      if (!detect) return;
-      const geo = await detectByGeoIp(hasCountry);
-      if (geo) {
-        setCountry(geo);
-        return;
-      }
-      const loc = detectCountryFromLocale();
-      if (loc && hasCountry(loc)) {
-        setCountry(loc);
-      }
-    })();
-  }, [propCountry, detect, countries, setCountry]);
+  }, [propCountry, countries]);
 
   // Notify validation changes
   useEffect(() => {
@@ -366,6 +341,12 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     }, 200);
   }, [dropdownOpen, closeTimer]);
 
+  const closeDropdownRef = useRef(closeDropdown);
+
+  useEffect(() => {
+    closeDropdownRef.current = closeDropdown;
+  }, [closeDropdown]);
+
   // Input focus behavior (close dropdown, clear validation hint)
   const handleFocusInput = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
@@ -432,7 +413,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       if (!target) return;
       if (dropdownEl?.contains(target)) return;
       if (selectorEl?.contains(target)) return;
-      closeDropdown();
+      closeDropdownRef.current();
     };
 
     window.addEventListener('resize', positionDropdown);
@@ -445,7 +426,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       window.removeEventListener('scroll', positionDropdown, true);
       window.removeEventListener('click', onDocClick, true);
     };
-  }, [dropdownOpen, positionDropdown, closeDropdown]);
+  }, [dropdownOpen, positionDropdown]);
 
   // Copy functionality
   const handleCopyClick = useCallback(async () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   getNavigatorLang,
   getCountry,
@@ -26,6 +26,17 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     onCountryChange
   } = options;
 
+  const onPhoneChangeRef = useRef(onPhoneChange);
+  const onCountryChangeRef = useRef(onCountryChange);
+
+  useEffect(() => {
+    onPhoneChangeRef.current = onPhoneChange;
+  }, [onPhoneChange]);
+
+  useEffect(() => {
+    onCountryChangeRef.current = onCountryChange;
+  }, [onCountryChange]);
+
   // Compute locale
   const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);
 
@@ -36,10 +47,22 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
   const setCountry = useCallback(
     (countryCode: string) => {
       const newCountry = getCountry(countryCode, locale);
-      setCountryState((prevCountry) => (prevCountry.id !== newCountry.id ? newCountry : prevCountry));
+      setCountryState((prevCountry) => {
+        if (prevCountry.id === newCountry.id) return prevCountry;
+
+        onCountryChangeRef.current?.(newCountry);
+
+        return newCountry;
+      });
     },
     [locale]
   );
+
+  const setCountryRef = useRef(setCountry);
+
+  useEffect(() => {
+    setCountryRef.current = setCountry;
+  }, [setCountry]);
 
   // Create formatter
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
@@ -55,42 +78,39 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
   // Memoize phoneData to prevent infinite loops in useEffect
   const phoneData = useMemo<PhoneNumber>(() => ({ full, fullFormatted, digits }), [full, fullFormatted, digits]);
 
-  // Effect: Country detection (GeoIP + locale fallback) - only on mount
+  // Effect: Country detection (GeoIP + locale fallback)
   useEffect(() => {
+    if (countryOption) return; // Skip if country is explicitly set
+
     if (!detect) return;
 
     (async () => {
       const geoCountry = await detectCountryFromGeoIP();
 
       if (geoCountry) {
-        setCountry(geoCountry);
+        setCountryRef.current(geoCountry);
         return;
       }
 
       const localeCountry = detectCountryFromLocale();
 
       if (localeCountry) {
-        setCountry(localeCountry);
+        setCountryRef.current(localeCountry);
       }
     })();
-  }, [detect, setCountry]);
+  }, [detect, countryOption]);
 
   // Effect: Sync country when option changes
   useEffect(() => {
     if (countryOption) {
-      setCountry(countryOption);
+      setCountryRef.current(countryOption);
     }
-  }, [countryOption, setCountry]);
-
-  // Effect: Emit onCountryChange
-  useEffect(() => {
-    onCountryChange?.(country);
-  }, [country, onCountryChange]);
+  }, [countryOption]);
 
   // Effect: Emit onPhoneChange
   useEffect(() => {
-    onPhoneChange?.(phoneData);
-  }, [phoneData, onPhoneChange]);
+    onPhoneChangeRef.current?.(phoneData);
+  }, [phoneData]);
 
   // Helper: Schedule caret position update
   const scheduleCaretUpdate = useCallback(

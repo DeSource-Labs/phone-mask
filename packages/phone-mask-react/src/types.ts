@@ -205,7 +205,7 @@ export interface UsePhoneMaskOptions extends Omit<UsePhoneMaskCoreOptions, 'valu
 /** Return type for usePhoneMask hook */
 export interface UsePhoneMaskReturn extends Omit<
   UsePhoneMaskCoreReturn,
-  'setDigits' | 'locale' | 'formatter' | 'displayValue' | 'scheduleCaretUpdate'
+  'locale' | 'formatter' | 'displayValue' | 'scheduleCaretUpdate'
 > {
   /** Ref to attach to input element */
   ref: RefObject<HTMLInputElement | null>;
