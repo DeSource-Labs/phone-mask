@@ -105,7 +105,7 @@ function createInputHandler(el: HTMLInputElement, state: PMaskDirectiveState): (
 function createKeydownHandler(el: HTMLInputElement, state: PMaskDirectiveState): (e: KeyboardEvent) => void {
   return (e: KeyboardEvent) => {
     const result = processKeydown(e, {
-      currentDigits: state.digits,
+      digits: state.digits,
       formatter: state.formatter
     });
 
@@ -128,7 +128,7 @@ function createKeydownHandler(el: HTMLInputElement, state: PMaskDirectiveState):
 function createPasteHandler(el: HTMLInputElement, state: PMaskDirectiveState): (e: ClipboardEvent) => void {
   return (e: ClipboardEvent) => {
     const result = processPaste(e, {
-      currentDigits: state.digits,
+      digits: state.digits,
       formatter: state.formatter
     });
 

@@ -74,7 +74,7 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
 
   const handleKeydownInternal = (e: KeyboardEvent) => {
     const result = processKeydown(e, {
-      currentDigits: digits.value,
+      digits: digits.value,
       formatter: formatter.value
     });
 
@@ -101,7 +101,7 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
 
   const handlePaste = (e: ClipboardEvent) => {
     const result = processPaste(e, {
-      currentDigits: digits.value,
+      digits: digits.value,
       formatter: formatter.value
     });
 

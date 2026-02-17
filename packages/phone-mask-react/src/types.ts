@@ -162,8 +162,8 @@ export interface UsePhoneMaskCoreOptions {
   onCountryChange?: (country: MaskFull) => void;
 }
 
-/** Return type for usePhoneMaskCore hook */
-export interface UsePhoneMaskCoreReturn {
+/** Return type for useMaskCore hook */
+export interface UseMaskCoreReturn {
   /** Current country data */
   country: MaskFull;
   /** Change country programmatically */
@@ -186,8 +186,6 @@ export interface UsePhoneMaskCoreReturn {
   isEmpty: boolean;
   /** Whether to show validation warning */
   shouldShowWarn: boolean;
-  /** Helper function to schedule caret position update */
-  scheduleCaretUpdate: (el: HTMLInputElement | null, digitIndex: number) => void;
 }
 
 /** Configuration options for the phone mask hook */
@@ -195,8 +193,8 @@ export interface UsePhoneMaskOptions extends Omit<UsePhoneMaskCoreOptions, 'valu
 
 /** Return type for usePhoneMask hook */
 export interface UsePhoneMaskReturn extends Omit<
-  UsePhoneMaskCoreReturn,
-  'setDigits' | 'locale' | 'formatter' | 'displayValue' | 'scheduleCaretUpdate'
+  UseMaskCoreReturn,
+  'setDigits' | 'locale' | 'formatter' | 'displayValue'
 > {
   /** Ref to attach to input element */
   ref: RefObject<HTMLInputElement | null>;

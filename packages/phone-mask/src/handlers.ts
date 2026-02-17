@@ -42,7 +42,7 @@ interface ProcessInputParams {
  * Parameters for processKeydown
  */
 interface ProcessKeydownParams {
-  currentDigits: string;
+  digits: string;
   formatter: FormatterHelpers;
 }
 
@@ -50,7 +50,7 @@ interface ProcessKeydownParams {
  * Parameters for processPaste
  */
 interface ProcessPasteParams {
-  currentDigits: string;
+  digits: string;
   formatter: FormatterHelpers;
 }
 
@@ -126,7 +126,7 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
 
   const el = e.target as HTMLInputElement;
 
-  const { currentDigits, formatter } = params;
+  const { digits, formatter } = params;
 
   // Allow meta & navigation keys
   if (e.ctrlKey || e.metaKey || e.altKey || NAVIGATION_KEYS.includes(e.key)) return;
@@ -138,10 +138,10 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
     e.preventDefault();
     // Selection deletion
     if (selectionStart !== selectionEnd) {
-      const range = formatter.getDigitRange(currentDigits, selectionStart, selectionEnd);
+      const range = formatter.getDigitRange(digits, selectionStart, selectionEnd);
       if (range) {
         const [start, end] = range;
-        const newDigits = currentDigits.slice(0, start) + currentDigits.slice(end);
+        const newDigits = digits.slice(0, start) + digits.slice(end);
         return {
           newDigits,
           caretDigitIndex: start
@@ -159,10 +159,10 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
       }
 
       if (prevPos >= 0) {
-        const range = formatter.getDigitRange(currentDigits, prevPos, prevPos + 1);
+        const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
         if (range) {
           const [start] = range;
-          const newDigits = currentDigits.slice(0, start) + currentDigits.slice(start + 1);
+          const newDigits = digits.slice(0, start) + digits.slice(start + 1);
           return {
             newDigits,
             caretDigitIndex: start
@@ -180,10 +180,10 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
 
     // Selection deletion
     if (selectionStart !== selectionEnd) {
-      const range = formatter.getDigitRange(currentDigits, selectionStart, selectionEnd);
+      const range = formatter.getDigitRange(digits, selectionStart, selectionEnd);
       if (range) {
         const [start, end] = range;
-        const newDigits = currentDigits.slice(0, start) + currentDigits.slice(end);
+        const newDigits = digits.slice(0, start) + digits.slice(end);
         return {
           newDigits,
           caretDigitIndex: start
@@ -193,10 +193,10 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
 
     // Single character deletion
     if (selectionStart < el.value.length) {
-      const range = formatter.getDigitRange(currentDigits, selectionStart, selectionStart + 1);
+      const range = formatter.getDigitRange(digits, selectionStart, selectionStart + 1);
       if (range) {
         const [start] = range;
-        const newDigits = currentDigits.slice(0, start) + currentDigits.slice(start + 1);
+        const newDigits = digits.slice(0, start) + digits.slice(start + 1);
         return {
           newDigits,
           caretDigitIndex: start
@@ -209,7 +209,7 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
 
   // Handle digits
   if (/^[0-9]$/.test(e.key)) {
-    if (currentDigits.length >= formatter.getMaxDigits()) {
+    if (digits.length >= formatter.getMaxDigits()) {
       e.preventDefault();
     }
     return;
@@ -233,7 +233,7 @@ export function processPaste(e: ClipboardEvent, params: ProcessPasteParams): Pas
 
   const el = e.target as HTMLInputElement;
 
-  const { currentDigits, formatter } = params;
+  const { digits, formatter } = params;
 
   const text = e.clipboardData?.getData('text') || '';
   const maxDigits = formatter.getMaxDigits();
@@ -241,8 +241,8 @@ export function processPaste(e: ClipboardEvent, params: ProcessPasteParams): Pas
 
   if (pastedDigits.length === 0) {
     return {
-      newDigits: currentDigits,
-      caretDigitIndex: currentDigits.length
+      newDigits: digits,
+      caretDigitIndex: digits.length
     };
   }
 
@@ -250,12 +250,12 @@ export function processPaste(e: ClipboardEvent, params: ProcessPasteParams): Pas
 
   // Replace selection with pasted digits
   if (selectionStart !== selectionEnd) {
-    const range = formatter.getDigitRange(currentDigits, selectionStart, selectionEnd);
+    const range = formatter.getDigitRange(digits, selectionStart, selectionEnd);
 
     if (range) {
       const [start, end] = range;
-      const left = currentDigits.slice(0, start);
-      const right = currentDigits.slice(end);
+      const left = digits.slice(0, start);
+      const right = digits.slice(end);
       const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
 
       return {
@@ -266,11 +266,11 @@ export function processPaste(e: ClipboardEvent, params: ProcessPasteParams): Pas
   }
 
   // Insert at cursor position
-  const range = formatter.getDigitRange(currentDigits, selectionStart, selectionStart);
-  const insertIndex = range ? range[0] : currentDigits.length;
+  const range = formatter.getDigitRange(digits, selectionStart, selectionStart);
+  const insertIndex = range ? range[0] : digits.length;
 
-  const left = currentDigits.slice(0, insertIndex);
-  const right = currentDigits.slice(insertIndex);
+  const left = digits.slice(0, insertIndex);
+  const right = digits.slice(insertIndex);
   const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
 
   return {

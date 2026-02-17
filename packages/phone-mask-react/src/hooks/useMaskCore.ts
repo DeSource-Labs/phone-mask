@@ -4,19 +4,18 @@ import {
   getCountry,
   detectCountryFromGeoIP,
   detectCountryFromLocale,
-  setCaret,
   createPhoneFormatter,
   type MaskFull
 } from '@desource/phone-mask';
 
-import type { UsePhoneMaskCoreOptions, UsePhoneMaskCoreReturn, PhoneNumber } from '../types';
+import type { UsePhoneMaskCoreOptions, UseMaskCoreReturn, PhoneNumber } from '../types';
 
 /**
  * Core phone mask hook - pure state management and derived computations.
  * Can be reused by both usePhoneMask and PhoneInput.
  * Works in controlled mode only - requires value prop.
  */
-export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhoneMaskCoreReturn {
+export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreReturn {
   // Destructure options for better dependency tracking
   const {
     locale: localeOption,
@@ -94,18 +93,6 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     onPhoneChange?.(phoneData);
   }, [phoneData, onPhoneChange]);
 
-  // Helper: Schedule caret position update
-  const scheduleCaretUpdate = useCallback(
-    (el: HTMLInputElement | null, digitIndex: number) => {
-      setTimeout(() => {
-        if (!el) return;
-        const pos = formatter.getCaretPosition(digitIndex);
-        setCaret(el, pos);
-      }, 0);
-    },
-    [formatter]
-  );
-
   return {
     digits,
     country,
@@ -117,7 +104,6 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setCountry,
-    scheduleCaretUpdate
+    setCountry
   };
 }

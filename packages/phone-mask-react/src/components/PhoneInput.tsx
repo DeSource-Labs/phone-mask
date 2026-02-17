@@ -17,9 +17,9 @@ import {
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
-import { usePhoneMaskCore } from '../hooks/usePhoneMaskCore';
+import { useMaskCore } from '../hooks/useMaskCore';
 import { useTimer } from '../hooks/useTimer';
-import { usePhoneInputHandlers } from '../hooks/usePhoneInputHandlers';
+import { useInputHandlers } from '../hooks/useInputHandlers';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
 
@@ -96,25 +96,15 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   // Compute digits from value prop (fully controlled)
   const digits = useMemo(() => extractDigits(value || ''), [value]);
 
-  const {
-    country,
-    locale,
-    formatter,
-    displayValue,
-    full,
-    fullFormatted,
-    isComplete,
-    isEmpty,
-    setCountry,
-    scheduleCaretUpdate
-  } = usePhoneMaskCore({
-    country: propCountry,
-    locale: propLocale,
-    detect: false, // PhoneInput handles detection manually
-    value: digits, // Pass computed digits
-    onChange: onPhoneChangeRef.current,
-    onCountryChange: onCountryChangeRef.current
-  });
+  const { country, locale, formatter, displayValue, full, fullFormatted, isComplete, isEmpty, setCountry } =
+    useMaskCore({
+      country: propCountry,
+      locale: propLocale,
+      detect: false, // PhoneInput handles detection manually
+      value: digits, // Pass computed digits
+      onChange: onPhoneChangeRef.current,
+      onCountryChange: onCountryChangeRef.current
+    });
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -234,12 +224,11 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   }, [clearValidationHint, scheduleValidationHint]);
 
   // Use consolidated input handlers
-  const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = usePhoneInputHandlers({
+  const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter,
     digits,
     inactive,
     onChange: (newDigits) => onChangeRef.current?.(newDigits),
-    onCaretUpdate: (digitIndex) => scheduleCaretUpdate(telRef.current, digitIndex),
     onAfterInput: handleValidationHintAfterInput,
     onAfterKeydown: handleValidationHintAfterKeydown,
     onAfterPaste: handleValidationHintAfterKeydown

@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
-import { usePhoneMaskCore } from './usePhoneMaskCore';
-import { usePhoneInputHandlers } from './usePhoneInputHandlers';
+import { useMaskCore } from './useMaskCore';
+import { useInputHandlers } from './useInputHandlers';
 
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
 
@@ -24,9 +24,8 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setCountry,
-    scheduleCaretUpdate
-  } = usePhoneMaskCore({
+    setCountry
+  } = useMaskCore({
     value: localDigits, // Pass local state as controlled value
     ...options
   });
@@ -41,11 +40,10 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   }, [displayValue, formatter]);
 
   // Use consolidated input handlers
-  const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = usePhoneInputHandlers({
+  const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter,
     digits,
-    onChange: setDigits,
-    onCaretUpdate: (digitIndex) => scheduleCaretUpdate(inputRef.current, digitIndex)
+    onChange: setDigits
   });
 
   // Attach event listeners
