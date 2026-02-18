@@ -240,7 +240,7 @@ const {
 const mask = useMask(selected, telRef);
 const { digits, displayValue, displayPlaceholder, isComplete, isEmpty, shouldShowWarn, full, fullFormatted } = mask;
 
-const { copied, copy, onUnmount: onClipboardUnmount } = useClipboard();
+const { copied, copy } = useClipboard();
 
 const inactive = computed(() => props.disabled || props.readonly);
 const showCopyButton = computed(() => props.showCopy && !isEmpty.value && !props.disabled);
@@ -464,7 +464,6 @@ watch(
 
 onBeforeUnmount(() => {
   removeDropdownListeners();
-  onClipboardUnmount();
 });
 
 defineExpose<PhoneInputExposed>({

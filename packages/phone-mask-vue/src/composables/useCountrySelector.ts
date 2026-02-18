@@ -6,6 +6,7 @@ import {
   MasksFullMapEn,
   detectByGeoIp,
   detectCountryFromLocale,
+  filterCountries,
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
@@ -36,42 +37,7 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
   };
 
   // #region Dropdown
-  const filteredCountries = computed(() => {
-    const q = search.value.trim().toUpperCase();
-    if (!q) return countries.value;
-
-    const qCodeDigits = q.replace(/\D/g, '');
-    const isNumericSearch = qCodeDigits.length > 0;
-
-    return countries.value
-      .map((c) => {
-        const nameUpper = c.name.toUpperCase();
-        const idUpper = c.id.toUpperCase();
-        const codeDigits = c.code.replace(/\D/g, '');
-
-        // Calculate relevance score
-        let score = 0;
-        if (nameUpper.startsWith(q)) score = 1000;
-        else if (nameUpper.includes(q)) score = 500;
-
-        if (c.code.startsWith(q)) score += 100;
-        else if (c.code.includes(q)) score += 50;
-
-        if (idUpper === q) score += 200;
-        else if (idUpper.startsWith(q)) score += 150;
-
-        if (isNumericSearch && codeDigits.startsWith(qCodeDigits)) score += 80;
-        else if (isNumericSearch && codeDigits.includes(qCodeDigits)) score += 40;
-
-        return { country: c, score };
-      })
-      .filter(({ score }) => score > 0)
-      .sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        return a.country.name.localeCompare(b.country.name);
-      })
-      .map(({ country }) => country);
-  });
+  const filteredCountries = computed(() => filterCountries(countries.value, search.value));
 
   const selectCountry = (id: string) => {
     selectedId.value = id as CountryKey;

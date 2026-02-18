@@ -10,11 +10,14 @@ import {
   createPhoneFormatter,
   type MaskFull
 } from '@desource/phone-mask';
+import { useTimer } from './useTimer';
+
+const HINT_DELAY_INPUT = 500;
+const HINT_DELAY_ACTION = 300;
 
 export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputElement | null>) {
   const digits = ref('');
   const displayValue = ref('');
-  const validationTimer = ref<ReturnType<typeof setTimeout> | null>(null);
   const showValidationHint = ref(false);
 
   /** Formatter for the selected country */
@@ -45,27 +48,25 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
     setCaret(telRef.value, pos);
   };
 
+  const validationTimer = useTimer();
+
+  /** Reset hint, cancel previous timer and schedule a new one */
+  const scheduleValidationHint = (delay: number) => {
+    showValidationHint.value = false;
+    validationTimer.set(() => {
+      if (!isComplete.value && !isEmpty.value) showValidationHint.value = true;
+    }, delay);
+  };
+
   const handleBeforeInput = processBeforeInput;
 
   const handleInput = (e: Event) => {
     const result = processInput(e, { formatter: formatter.value });
     if (!result) return;
 
-    // Clear validation hint while typing (will reappear after debounce)
-    showValidationHint.value = false;
-    if (validationTimer.value) {
-      clearTimeout(validationTimer.value);
-    }
-
     digits.value = result.newDigits;
     updateDisplay();
-
-    // Show validation hint after 500ms of no typing (if incomplete)
-    if (result.newDigits.length > 0) {
-      validationTimer.value = setTimeout(() => {
-        showValidationHint.value = true;
-      }, 500);
-    }
+    scheduleValidationHint(HINT_DELAY_INPUT);
 
     nextTick(() => {
       setCaretToDigitPosition(result.caretDigitIndex);
@@ -86,17 +87,8 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
   };
 
   const handleKeydown = (e: KeyboardEvent) => {
-    // Clear validation hint while typing (will reappear after debounce)
-    showValidationHint.value = false;
-    if (validationTimer.value) {
-      clearTimeout(validationTimer.value);
-    }
     handleKeydownInternal(e);
-    // Trigger validation hint shortly after keydown if incomplete
-    if (validationTimer.value) clearTimeout(validationTimer.value);
-    validationTimer.value = setTimeout(() => {
-      if (!isComplete.value && !isEmpty.value) showValidationHint.value = true;
-    }, 300);
+    scheduleValidationHint(HINT_DELAY_ACTION);
   };
 
   const handlePaste = (e: ClipboardEvent) => {
@@ -109,21 +101,14 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
 
     digits.value = result.newDigits;
     updateDisplay();
-
-    // Trigger validation hint shortly after paste if incomplete
-    if (validationTimer.value) clearTimeout(validationTimer.value);
-    validationTimer.value = setTimeout(() => {
-      if (!isComplete.value && !isEmpty.value) showValidationHint.value = true;
-    }, 300);
+    scheduleValidationHint(HINT_DELAY_ACTION);
 
     nextTick(() => setCaretToDigitPosition(result.caretDigitIndex));
   };
 
   const handleFocus = () => {
     // Do not hide the hint on focus; keep it visible if already shown
-    if (validationTimer.value) {
-      clearTimeout(validationTimer.value);
-    }
+    validationTimer.clear();
   };
 
   /** Clear/reset function */
@@ -131,10 +116,7 @@ export function useMask(selected: ComputedRef<MaskFull>, telRef: Ref<HTMLInputEl
     digits.value = '';
     displayValue.value = '';
     showValidationHint.value = false;
-    if (validationTimer.value) {
-      clearTimeout(validationTimer.value);
-      validationTimer.value = null;
-    }
+    validationTimer.clear();
   };
 
   // Watch for country changes and update display

@@ -1,16 +1,10 @@
 import { ref } from 'vue';
+import { useTimer } from './useTimer';
 
 export function useClipboard() {
   const copied = ref(false);
   const isCopying = ref(false);
-  let copyTimer: ReturnType<typeof setTimeout> | null = null;
-
-  const clearTimer = () => {
-    if (copyTimer) {
-      clearTimeout(copyTimer);
-      copyTimer = null;
-    }
-  };
+  const copyTimer = useTimer();
 
   const copy = async (text: string) => {
     if (isCopying.value) return false;
@@ -20,10 +14,8 @@ export function useClipboard() {
     try {
       await navigator.clipboard.writeText(trimmedText);
       copied.value = true;
-      clearTimer();
-      copyTimer = setTimeout(() => {
+      copyTimer.set(() => {
         copied.value = false;
-        copyTimer = null;
       }, 1_800);
       return true;
     } catch (err) {
@@ -34,9 +26,5 @@ export function useClipboard() {
     }
   };
 
-  const onUnmount = () => {
-    clearTimer();
-  };
-
-  return { copied, isCopying, copy, onUnmount };
+  return { copied, isCopying, copy };
 }

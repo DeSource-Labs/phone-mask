@@ -9,9 +9,16 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { getMasksFullMapByLocale, extractDigits, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import {
+  getMasksFullMapByLocale,
+  extractDigits,
+  filterCountries,
+  type CountryKey,
+  type MaskFull
+} from '@desource/phone-mask';
 import { useMaskCore } from '../hooks/useMaskCore';
 import { useTimer } from '../hooks/useTimer';
+import { useClipboard } from '../hooks/useClipboard';
 import { useInputHandlers } from '../hooks/useInputHandlers';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
@@ -81,53 +88,20 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const [isClosing, setIsClosing] = useState(false);
   const [search, setSearch] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const [isCopying, setIsCopying] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
   const [showValidationHint, setShowValidationHint] = useState(false);
   const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
 
+  const { copied, copy } = useClipboard();
   const validationTimer = useTimer();
   const closeTimer = useTimer();
-  const copyTimer = useTimer();
 
   const countries = useMemo(() => getCountries(locale), [locale]);
 
   const displayPlaceholder = formatter.getPlaceholder();
   const shouldShowWarn = showValidationHint && !isEmpty && !isComplete;
 
-  const filteredCountries = useMemo(() => {
-    const raw = search.trim();
-    if (!raw) return countries;
-    const q = raw.toUpperCase();
-    const qDigits = q.replace(/\D/g, '');
-    const isNumeric = qDigits.length > 0;
-
-    return countries
-      .map((c) => {
-        const nameUpper = c.name.toUpperCase();
-        const idUpper = c.id.toUpperCase();
-        const codeUpper = c.code.toUpperCase();
-        const codeDigits = c.code.replace(/\D/g, '');
-        let score = 0;
-        if (nameUpper.startsWith(q)) score = 1000;
-        else if (nameUpper.includes(q)) score = 500;
-
-        if (codeUpper.startsWith(q)) score += 100;
-        else if (codeUpper.includes(q)) score += 50;
-
-        if (idUpper === q) score += 200;
-        else if (idUpper.startsWith(q)) score += 150;
-
-        if (isNumeric && codeDigits.startsWith(qDigits)) score += 80;
-        else if (isNumeric && codeDigits.includes(qDigits)) score += 40;
-
-        return { country: c, score };
-      })
-      .filter((x) => x.score > 0)
-      .sort((a, b) => (b.score !== a.score ? b.score - a.score : a.country.name.localeCompare(b.country.name)))
-      .map((x) => x.country);
-  }, [countries, search]);
+  const filteredCountries = useMemo(() => filterCountries(countries, search), [countries, search]);
 
   const inactive = disabled || readonly;
   const showCopyButton = showCopy && !isEmpty && !disabled;
@@ -263,26 +237,13 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
 
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
-    if (isCopying) return;
     const trimmedValue = fullFormatted.trim();
-    if (!trimmedValue) return;
-
-    setIsCopying(true);
-    try {
-      await navigator.clipboard.writeText(trimmedValue);
-      setCopied(true);
+    const success = await copy(trimmedValue);
+    if (success) {
       onCopy?.(trimmedValue);
       if (liveRef.current) liveRef.current.textContent = 'Phone number copied to clipboard';
-
-      copyTimer.set(() => {
-        setCopied(false);
-      }, 1800);
-    } catch (err) {
-      console.warn('Copy failed', err);
-    } finally {
-      setIsCopying(false);
     }
-  }, [fullFormatted, onCopy, isCopying, copyTimer]);
+  }, [fullFormatted, onCopy, copy]);
 
   const clear = useCallback(() => {
     onChange?.('');

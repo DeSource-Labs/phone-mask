@@ -120,3 +120,39 @@ export function formatDigitsWithMap(maskTemplate: string, digitStr: string): For
 
   return { display: output, map };
 }
+
+/** Filter and rank countries by a search query */
+export function filterCountries(countries: MaskFull[], search: string): MaskFull[] {
+  const q = search.trim().toUpperCase();
+
+  if (!q) return countries;
+
+  const qDigits = q.replace(/\D/g, '');
+  const isNumeric = qDigits.length > 0;
+
+  return countries
+    .map((c) => {
+      const nameUpper = c.name.toUpperCase();
+      const idUpper = c.id.toUpperCase();
+      const codeUpper = c.code.toUpperCase();
+      const codeDigits = c.code.replace(/\D/g, '');
+
+      let score = 0;
+      if (nameUpper.startsWith(q)) score = 1000;
+      else if (nameUpper.includes(q)) score = 500;
+
+      if (codeUpper.startsWith(q)) score += 100;
+      else if (codeUpper.includes(q)) score += 50;
+
+      if (idUpper === q) score += 200;
+      else if (idUpper.startsWith(q)) score += 150;
+
+      if (isNumeric && codeDigits.startsWith(qDigits)) score += 80;
+      else if (isNumeric && codeDigits.includes(qDigits)) score += 40;
+
+      return { country: c, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => (b.score !== a.score ? b.score - a.score : a.country.name.localeCompare(b.country.name)))
+    .map((x) => x.country);
+}
