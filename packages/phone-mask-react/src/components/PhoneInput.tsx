@@ -144,7 +144,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
 
-  // Clamp digits formatter changes
+  // Clamp digits when formatter changes
   useEffect(() => {
     const maxDigits = formatter.getMaxDigits();
     if (digits.length > maxDigits) {
