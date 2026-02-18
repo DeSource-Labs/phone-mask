@@ -30,6 +30,14 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     ...options
   });
 
+  // Clamp digits formatter changes
+  useEffect(() => {
+    const maxDigits = formatter.getMaxDigits();
+    if (localDigits.length > maxDigits) {
+      setDigits(localDigits.slice(0, maxDigits));
+    }
+  }, [formatter, localDigits]);
+
   // Update display when digits or country change
   useEffect(() => {
     const el = inputRef.current;

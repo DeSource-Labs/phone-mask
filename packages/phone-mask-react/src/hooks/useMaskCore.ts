@@ -32,16 +32,21 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
   // Initialize country state
   const [country, setCountryState] = useState<MaskFull>(() => getCountry(countryOption || 'US', locale));
 
+  // Effect: Refresh country when locale changes (keep same country id, update localized fields)
+  useEffect(() => {
+    setCountryState((prevCountry: MaskFull) => getCountry(prevCountry.id, locale));
+  }, [locale]);
+
   // State setter: setCountry if it changes from previous
   const setCountry = useCallback(
     (countryCode: string) => {
       const newCountry = getCountry(countryCode, locale);
-      setCountryState((prevCountry) => {
+      setCountryState((prevCountry: MaskFull) => {
         if (prevCountry.id === newCountry.id) return prevCountry;
 
         onCountryChange?.(newCountry);
 
-        return newCountry; // Update state
+        return newCountry;
       });
     },
     [locale, onCountryChange]
@@ -61,8 +66,10 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
   // Memoize phoneData to prevent infinite loops in useEffect
   const phoneData = useMemo<PhoneNumber>(() => ({ full, fullFormatted, digits }), [full, fullFormatted, digits]);
 
-  // Effect: Country detection (GeoIP + locale fallback) - only on mount
+  // Effect: Country detection (GeoIP + locale fallback)
   useEffect(() => {
+    if (countryOption) return; // Skip if country is explicitly set
+
     if (!detect) return;
 
     (async () => {
@@ -79,7 +86,7 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
         setCountry(localeCountry);
       }
     })();
-  }, [detect, setCountry]);
+  }, [detect, countryOption, setCountry]);
 
   // Effect: Sync country when option changes
   useEffect(() => {

@@ -192,10 +192,7 @@ export interface UseMaskCoreReturn {
 export interface UsePhoneMaskOptions extends Omit<UsePhoneMaskCoreOptions, 'value'> {}
 
 /** Return type for usePhoneMask hook */
-export interface UsePhoneMaskReturn extends Omit<
-  UseMaskCoreReturn,
-  'setDigits' | 'locale' | 'formatter' | 'displayValue'
-> {
+export interface UsePhoneMaskReturn extends Omit<UseMaskCoreReturn, 'locale' | 'formatter' | 'displayValue'> {
   /** Ref to attach to input element */
   ref: RefObject<HTMLInputElement | null>;
   /** Clear the input */

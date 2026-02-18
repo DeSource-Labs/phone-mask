@@ -12,7 +12,7 @@ export interface UseInputHandlersOptions {
   formatter: FormatterHelpers;
   digits: string;
   inactive?: boolean;
-  onChange: (newDigits: string) => void;
+  onChange?: (newDigits: string) => void;
   // Optional callbacks for side effects
   onAfterInput?: () => void;
   onAfterKeydown?: () => void;
@@ -63,7 +63,7 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
 
       if (!result) return;
 
-      onChange(result.newDigits);
+      onChange?.(result.newDigits);
       scheduleCaretUpdate(evt.target as HTMLInputElement | null, result.caretDigitIndex);
 
       onAfterInput?.();
@@ -80,7 +80,7 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
 
       if (!result) return;
 
-      onChange(result.newDigits);
+      onChange?.(result.newDigits);
       scheduleCaretUpdate(evt.target as HTMLInputElement | null, result.caretDigitIndex);
 
       onAfterKeydown?.();
@@ -97,7 +97,7 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
 
       if (!result) return;
 
-      onChange(result.newDigits);
+      onChange?.(result.newDigits);
       scheduleCaretUpdate(evt.target as HTMLInputElement | null, result.caretDigitIndex);
 
       onAfterPaste?.();

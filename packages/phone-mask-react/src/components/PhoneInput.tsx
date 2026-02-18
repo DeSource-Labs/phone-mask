@@ -9,14 +9,7 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  getMasksFullMapByLocale,
-  detectByGeoIp,
-  detectCountryFromLocale,
-  extractDigits,
-  type CountryKey,
-  type MaskFull
-} from '@desource/phone-mask';
+import { getMasksFullMapByLocale, extractDigits, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { useMaskCore } from '../hooks/useMaskCore';
 import { useTimer } from '../hooks/useTimer';
 import { useInputHandlers } from '../hooks/useInputHandlers';
@@ -71,28 +64,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const liveRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  // Store parent callbacks in refs to avoid creating new functions
-  const onChangeRef = useRef(onChange);
-  const onPhoneChangeRef = useRef(onPhoneChange);
-  const onCountryChangeRef = useRef(onCountryChange);
-  const onValidationChangeRef = useRef(onValidationChange);
-
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  useEffect(() => {
-    onPhoneChangeRef.current = onPhoneChange;
-  }, [onPhoneChange]);
-
-  useEffect(() => {
-    onCountryChangeRef.current = onCountryChange;
-  }, [onCountryChange]);
-
-  useEffect(() => {
-    onValidationChangeRef.current = onValidationChange;
-  }, [onValidationChange]);
-
   // Compute digits from value prop (fully controlled)
   const digits = useMemo(() => extractDigits(value || ''), [value]);
 
@@ -100,10 +71,10 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     useMaskCore({
       country: propCountry,
       locale: propLocale,
-      detect: false, // PhoneInput handles detection manually
+      detect,
       value: digits, // Pass computed digits
-      onChange: onPhoneChangeRef.current,
-      onCountryChange: onCountryChangeRef.current
+      onChange: onPhoneChange,
+      onCountryChange: onCountryChange
     });
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -162,38 +133,23 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
 
+  // Clamp digits formatter changes
+  useEffect(() => {
+    const maxDigits = formatter.getMaxDigits();
+    if (digits.length > maxDigits) {
+      onChange?.(digits.slice(0, maxDigits));
+    }
+  }, [formatter, digits, onChange]);
+
   // Country initialization and detection with cache + locale fallback
   useEffect(() => {
     setHasDropdown(!propCountry && countries.length > 1);
-
-    const hasCountry = (code?: string | null) => {
-      if (!code) return false;
-      const id = code.toUpperCase();
-      return countries.some((c) => c.id === id);
-    };
-
-    (async () => {
-      if (propCountry && hasCountry(propCountry)) {
-        setCountry(propCountry);
-        return;
-      }
-      if (!detect) return;
-      const geo = await detectByGeoIp(hasCountry);
-      if (geo) {
-        setCountry(geo);
-        return;
-      }
-      const loc = detectCountryFromLocale();
-      if (loc && hasCountry(loc)) {
-        setCountry(loc);
-      }
-    })();
-  }, [propCountry, detect, countries, setCountry]);
+  }, [propCountry, countries]);
 
   // Notify validation changes
   useEffect(() => {
-    onValidationChangeRef.current?.(isComplete);
-  }, [isComplete]);
+    onValidationChange?.(isComplete);
+  }, [isComplete, onValidationChange]);
 
   // Validation hint helpers
   const clearValidationHint = useCallback(() => {
@@ -228,7 +184,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     formatter,
     digits,
     inactive,
-    onChange: (newDigits) => onChangeRef.current?.(newDigits),
+    onChange,
     onAfterInput: handleValidationHintAfterInput,
     onAfterKeydown: handleValidationHintAfterKeydown,
     onAfterPaste: handleValidationHintAfterKeydown
@@ -329,10 +285,10 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   }, [fullFormatted, onCopy, isCopying, copyTimer]);
 
   const clear = useCallback(() => {
-    onChangeRef.current?.('');
+    onChange?.('');
     clearValidationHint();
     onClear?.();
-  }, [onClear, clearValidationHint]);
+  }, [onChange, onClear, clearValidationHint]);
 
   // Clear functionality
   const handleClearClick = useCallback(() => {
@@ -354,7 +310,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       isValid: () => isComplete,
       isComplete: () => isComplete
     }),
-    [selectCountry, full, fullFormatted, digits, isComplete, onClear, clearValidationHint]
+    [selectCountry, full, fullFormatted, digits, isComplete, clear]
   );
 
   const scrollFocusedIntoView = (index: number) => {
