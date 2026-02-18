@@ -323,7 +323,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     }, 200);
   }, [dropdownOpen, closeTimer]);
 
-  // Input focus behavior (close dropdown, clear validation hint)
+  // Input focus behavior (close dropdown, clear validation hint, and call onFocus callback)
   const handleFocusInput = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       clearValidationHint();
