@@ -168,7 +168,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     if (digits.length > maxDigits) {
       onChangeRef.current?.(digits.slice(0, maxDigits));
     }
-  }, [formatter]);
+  }, [formatter, digits]);
 
   // Country initialization and detection with cache + locale fallback
   useEffect(() => {
@@ -477,7 +477,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       isValid: () => isComplete,
       isComplete: () => isComplete
     }),
-    [selectCountry, full, fullFormatted, digits, isComplete, onClear, clearValidationHint]
+    [selectCountry, full, fullFormatted, digits, isComplete, clear]
   );
 
   const scrollFocusedIntoView = (index: number) => {

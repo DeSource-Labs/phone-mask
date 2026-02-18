@@ -79,6 +79,7 @@ function DemoHook() {
 function Playground() {
   const [digits, setDigits] = useState('');
   const [country, setCountry] = useState<CountryKey | undefined>(undefined);
+  const [locale, setLocale] = useState<string | undefined>(undefined);
   const [detect, setDetect] = useState(true);
   const [showCopy, setShowCopy] = useState(true);
   const [showClear, setShowClear] = useState(true);
@@ -110,6 +111,7 @@ function Playground() {
               onCountryChange={(c) => console.log('Country:', c.name)}
               onValidationChange={(v) => console.log('Valid:', v)}
               country={country}
+              locale={locale}
               detect={detect}
               showCopy={showCopy}
               showClear={showClear}
@@ -148,6 +150,16 @@ function Playground() {
                 <option value="CA">Canada</option>
                 <option value="AU">Australia</option>
                 <option value="JP">Japan</option>
+              </select>
+            </label>
+
+            <label style={labelStyle}>
+              <span>Locale:</span>
+              <select value={locale || ''} onChange={(e) => setLocale(e.target.value)} style={selectStyle}>
+                <option value="">Not Selected</option>
+                <option value="en-US">English (US)</option>
+                <option value="de-DE">German</option>
+                <option value="ru-RU">Russian</option>
               </select>
             </label>
 
@@ -247,8 +259,8 @@ function App() {
 
       <div style={contentStyle}>
         <Playground />
-        <DemoPhoneInput />
-        <DemoHook />
+        {/* <DemoPhoneInput />
+        <DemoHook /> */}
       </div>
 
       <footer style={footerStyle}>

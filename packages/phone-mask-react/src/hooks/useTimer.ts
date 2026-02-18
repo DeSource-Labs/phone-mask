@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useMemo } from 'react';
 
 /**
  * Custom hook for managing timers with automatic cleanup
@@ -24,10 +24,8 @@ export function useTimer() {
 
   // Auto cleanup on unmount
   useEffect(() => {
-    return () => {
-      clear();
-    };
+    return clear;
   }, [clear]);
 
-  return { set, clear };
+  return useMemo(() => ({ set, clear }), [set, clear]);
 }

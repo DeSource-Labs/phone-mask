@@ -43,10 +43,16 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
   // Initialize country state
   const [country, setCountryState] = useState<MaskFull>(() => getCountry(countryOption || 'US', locale));
 
+  // Effect: Refresh country when locale changes (keep same country id, update localized fields)
+  useEffect(() => {
+    setCountryState((prevCountry: MaskFull) => getCountry(prevCountry.id, locale));
+  }, [locale]);
+
   // State setter: setCountry if it changes from previous
   const setCountry = useCallback(
     (countryCode: string) => {
       const newCountry = getCountry(countryCode, locale);
+
       setCountryState((prevCountry) => {
         if (prevCountry.id === newCountry.id) return prevCountry;
 
