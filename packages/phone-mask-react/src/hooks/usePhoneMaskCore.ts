@@ -99,10 +99,9 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
   }, [phoneData, onPhoneChange]);
 
   // Effect: Emit onCountryChange
-  (useEffect(() => {
+  useEffect(() => {
     onCountryChange?.(country);
-  }),
-    [country, onCountryChange]);
+  }, [country, onCountryChange]);
 
   // Helper: Schedule caret position update
   const scheduleCaretUpdate = useCallback(
