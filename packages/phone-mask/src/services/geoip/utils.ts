@@ -67,5 +67,5 @@ export async function detectByGeoIp(hasCountry: (code: string) => boolean): Prom
     return code;
   }
 
-  return code;
+  return null;
 }

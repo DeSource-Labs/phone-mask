@@ -41,15 +41,13 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
   const setCountry = useCallback(
     (countryCode: string) => {
       const newCountry = getCountry(countryCode, locale);
+
       setCountryState((prevCountry: MaskFull) => {
         if (prevCountry.id === newCountry.id) return prevCountry;
-
-        onCountryChange?.(newCountry);
-
         return newCountry;
       });
     },
-    [locale, onCountryChange]
+    [locale]
   );
 
   // Create formatter
@@ -99,6 +97,12 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
   useEffect(() => {
     onPhoneChange?.(phoneData);
   }, [phoneData, onPhoneChange]);
+
+  // Effect: Emit onCountryChange
+  (useEffect(() => {
+    onCountryChange?.(country);
+  }),
+    [country, onCountryChange]);
 
   // Helper: Schedule caret position update
   const scheduleCaretUpdate = useCallback(
