@@ -11,8 +11,6 @@ import React, {
 import { createPortal } from 'react-dom';
 import {
   getMasksFullMapByLocale,
-  detectByGeoIp,
-  detectCountryFromLocale,
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
@@ -71,17 +69,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const liveRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  // Store parent callbacks in refs to avoid creating new functions
-  const onChangeRef = useRef(onChange);
-  const onValidationChangeRef = useRef(onValidationChange);
-
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  useEffect(() => {
-    onValidationChangeRef.current = onValidationChange;
-  }, [onValidationChange]);
 
   // Compute digits from value prop (fully controlled)
   const digits = useMemo(() => extractDigits(value || ''), [value]);
@@ -166,9 +153,9 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   useEffect(() => {
     const maxDigits = formatter.getMaxDigits();
     if (digits.length > maxDigits) {
-      onChangeRef.current?.(digits.slice(0, maxDigits));
+      onChange?.(digits.slice(0, maxDigits));
     }
-  }, [formatter, digits]);
+  }, [formatter, digits, onChange]);
 
   // Country initialization and detection with cache + locale fallback
   useEffect(() => {
@@ -177,8 +164,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
 
   // Notify validation changes
   useEffect(() => {
-    onValidationChangeRef.current?.(isComplete);
-  }, [isComplete]);
+    onValidationChange?.(isComplete);
+  }, [isComplete, onValidationChange]);
 
   // Validation hint helpers
   const clearValidationHint = useCallback(() => {
@@ -212,14 +199,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     const raw = el.value || '';
     const maxDigits = formatter.getMaxDigits();
     const newDigits = extractDigits(raw, maxDigits);
-    onChangeRef.current?.(newDigits);
+    onChange?.(newDigits);
     scheduleCaretUpdate(el, newDigits.length);
     // validation hint debounce (500ms)
     clearValidationHint();
     if (newDigits.length > 0) {
       scheduleValidationHint(500);
     }
-  }, [formatter, inactive, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]);
+  }, [formatter, inactive, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]);
 
   const handleKeydown = useCallback(
     (e: KeyboardEvent) => {
@@ -241,7 +228,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           const range = formatter.getDigitRange(digits, selStart, selEnd);
           if (range) {
             const [start, end] = range;
-            onChangeRef.current?.(digits.slice(0, start) + digits.slice(end));
+            onChange?.(digits.slice(0, start) + digits.slice(end));
             scheduleCaretUpdate(el, start);
           }
         } else if (selStart > 0) {
@@ -251,7 +238,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
             if (range) {
               const [start] = range;
-              onChangeRef.current?.(digits.slice(0, start) + digits.slice(start + 1));
+              onChange?.(digits.slice(0, start) + digits.slice(start + 1));
               scheduleCaretUpdate(el, start);
             }
           }
@@ -266,14 +253,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           const range = formatter.getDigitRange(digits, selStart, selEnd);
           if (range) {
             const [start, end] = range;
-            onChangeRef.current?.(digits.slice(0, start) + digits.slice(end));
+            onChange?.(digits.slice(0, start) + digits.slice(end));
             scheduleCaretUpdate(el, start);
           }
         } else if (selStart < el.value.length) {
           const range = formatter.getDigitRange(digits, selStart, selStart + 1);
           if (range) {
             const [start] = range;
-            onChangeRef.current?.(digits.slice(0, start) + digits.slice(start + 1));
+            onChange?.(digits.slice(0, start) + digits.slice(start + 1));
             scheduleCaretUpdate(el, start);
           }
         }
@@ -290,7 +277,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       if (e.key.length === 1) e.preventDefault();
       scheduleHint();
     },
-    [inactive, formatter, digits, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
+    [inactive, formatter, digits, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
   );
 
   const handlePaste = useCallback(
@@ -311,7 +298,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
         if (range) {
           const [start, end] = range;
           const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
-          onChangeRef.current?.(newDigits);
+          onChange?.(newDigits);
           scheduleCaretUpdate(el, start + pastedDigits.length);
         }
       } else {
@@ -321,14 +308,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           digits.slice(0, insertIndex) + pastedDigits + digits.slice(insertIndex),
           maxDigits
         );
-        onChangeRef.current?.(newDigits);
+        onChange?.(newDigits);
         scheduleCaretUpdate(el, insertIndex + pastedDigits.length);
       }
       // show validation hint after paste (300ms)
       clearValidationHint();
       scheduleValidationHint(300);
     },
-    [inactive, formatter, digits, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
+    [inactive, formatter, digits, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
   );
 
   // Close dropdown with animation
@@ -341,11 +328,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     }, 200);
   }, [dropdownOpen, closeTimer]);
 
-  const closeDropdownRef = useRef(closeDropdown);
-
-  useEffect(() => {
-    closeDropdownRef.current = closeDropdown;
-  }, [closeDropdown]);
 
   // Input focus behavior (close dropdown, clear validation hint)
   const handleFocusInput = useCallback(
@@ -413,7 +395,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       if (!target) return;
       if (dropdownEl?.contains(target)) return;
       if (selectorEl?.contains(target)) return;
-      closeDropdownRef.current();
+      closeDropdown();
     };
 
     window.addEventListener('resize', positionDropdown);
@@ -426,7 +408,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       window.removeEventListener('scroll', positionDropdown, true);
       window.removeEventListener('click', onDocClick, true);
     };
-  }, [dropdownOpen, positionDropdown]);
+  }, [dropdownOpen, positionDropdown, closeDropdown]);
 
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
@@ -452,10 +434,10 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   }, [fullFormatted, onCopy, isCopying, copyTimer]);
 
   const clear = useCallback(() => {
-    onChangeRef.current?.('');
+    onChange?.('');
     clearValidationHint();
     onClear?.();
-  }, [onClear, clearValidationHint]);
+  }, [onChange, onClear, clearValidationHint]);
 
   // Clear functionality
   const handleClearClick = useCallback(() => {

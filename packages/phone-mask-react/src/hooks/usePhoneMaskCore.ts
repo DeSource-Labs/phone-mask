@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getNavigatorLang,
   getCountry,
@@ -26,16 +26,6 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     onCountryChange
   } = options;
 
-  const onPhoneChangeRef = useRef(onPhoneChange);
-  const onCountryChangeRef = useRef(onCountryChange);
-
-  useEffect(() => {
-    onPhoneChangeRef.current = onPhoneChange;
-  }, [onPhoneChange]);
-
-  useEffect(() => {
-    onCountryChangeRef.current = onCountryChange;
-  }, [onCountryChange]);
 
   // Compute locale
   const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);
@@ -52,23 +42,16 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
   const setCountry = useCallback(
     (countryCode: string) => {
       const newCountry = getCountry(countryCode, locale);
-
-      setCountryState((prevCountry) => {
+      setCountryState((prevCountry: MaskFull) => {
         if (prevCountry.id === newCountry.id) return prevCountry;
 
-        onCountryChangeRef.current?.(newCountry);
+        onCountryChange?.(newCountry);
 
         return newCountry;
       });
     },
-    [locale]
+    [locale, onCountryChange]
   );
-
-  const setCountryRef = useRef(setCountry);
-
-  useEffect(() => {
-    setCountryRef.current = setCountry;
-  }, [setCountry]);
 
   // Create formatter
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
@@ -94,29 +77,29 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
       const geoCountry = await detectCountryFromGeoIP();
 
       if (geoCountry) {
-        setCountryRef.current(geoCountry);
+        setCountry(geoCountry);
         return;
       }
 
       const localeCountry = detectCountryFromLocale();
 
       if (localeCountry) {
-        setCountryRef.current(localeCountry);
+        setCountry(localeCountry);
       }
     })();
-  }, [detect, countryOption]);
+  }, [detect, countryOption, setCountry]);
 
   // Effect: Sync country when option changes
   useEffect(() => {
     if (countryOption) {
-      setCountryRef.current(countryOption);
+      setCountry(countryOption);
     }
-  }, [countryOption]);
+  }, [countryOption, setCountry]);
 
   // Effect: Emit onPhoneChange
   useEffect(() => {
-    onPhoneChangeRef.current?.(phoneData);
-  }, [phoneData]);
+    onPhoneChange?.(phoneData);
+  }, [phoneData, onPhoneChange]);
 
   // Helper: Schedule caret position update
   const scheduleCaretUpdate = useCallback(
