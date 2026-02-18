@@ -259,8 +259,8 @@ function App() {
 
       <div style={contentStyle}>
         <Playground />
-        {/* <DemoPhoneInput />
-        <DemoHook /> */}
+        <DemoPhoneInput />
+        <DemoHook />
       </div>
 
       <footer style={footerStyle}>

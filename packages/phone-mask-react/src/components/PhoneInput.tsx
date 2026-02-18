@@ -9,11 +9,7 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  getMasksFullMapByLocale,
-  type CountryKey,
-  type MaskFull
-} from '@desource/phone-mask';
+import { getMasksFullMapByLocale, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { extractDigits, getSelection } from '../utils';
 import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
 import { usePhoneMaskCore } from '../hooks/usePhoneMaskCore';
@@ -68,7 +64,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const searchRef = useRef<HTMLInputElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
-
 
   // Compute digits from value prop (fully controlled)
   const digits = useMemo(() => extractDigits(value || ''), [value]);
@@ -327,7 +322,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       setIsClosing(false);
     }, 200);
   }, [dropdownOpen, closeTimer]);
-
 
   // Input focus behavior (close dropdown, clear validation hint)
   const handleFocusInput = useCallback(

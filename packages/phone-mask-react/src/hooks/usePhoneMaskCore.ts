@@ -26,7 +26,6 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     onCountryChange
   } = options;
 
-
   // Compute locale
   const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);
 
