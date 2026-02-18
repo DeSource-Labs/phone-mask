@@ -32,7 +32,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     ...options
   });
 
-  // Clamp digits formatter changes
+  // Clamp digits when formatter changes
   useEffect(() => {
     const maxDigits = formatter.getMaxDigits();
     if (localDigits.length > maxDigits) {
