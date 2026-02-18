@@ -41,15 +41,13 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
   const setCountry = useCallback(
     (countryCode: string) => {
       const newCountry = getCountry(countryCode, locale);
+
       setCountryState((prevCountry: MaskFull) => {
         if (prevCountry.id === newCountry.id) return prevCountry;
-
-        onCountryChange?.(newCountry);
-
         return newCountry;
       });
     },
-    [locale, onCountryChange]
+    [locale]
   );
 
   // Create formatter
@@ -94,6 +92,11 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
       setCountry(countryOption);
     }
   }, [countryOption, setCountry]);
+
+  // Effect: Emit onCountryChange
+  (useEffect(() => {
+    onCountryChange?.(country);
+  }), [country, onCountryChange]);
 
   // Effect: Emit onPhoneChange
   useEffect(() => {
