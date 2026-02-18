@@ -102,7 +102,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
   const [showValidationHint, setShowValidationHint] = useState(false);
-  const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
 
   const { copied, copy } = useClipboard();
 
@@ -112,16 +111,13 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const countries = useMemo(() => getCountries(locale), [locale]);
   const filteredCountries = useMemo(() => filterCountries(countries, search), [countries, search]);
 
+  const hasDropdown = useMemo(() => !propCountry && countries.length > 1, [propCountry, countries]);
+
   const inactive = disabled || readonly;
   const incomplete = showValidationHint && shouldShowWarn;
 
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
-
-  // Country initialization and detection with cache + locale fallback
-  useEffect(() => {
-    setHasDropdown(!propCountry && countries.length > 1);
-  }, [propCountry, countries]);
 
   // Notify validation changes
   useEffect(() => {

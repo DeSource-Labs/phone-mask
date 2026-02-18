@@ -40,6 +40,14 @@ export function getMasksFullMapByLocale(locale: string): MaskFullMap {
   return map;
 }
 
+/** Check if a country exists in the full mask map */
+export function hasCountry(code: string): boolean {
+  const map = MasksFullMapEn;
+  const id = code.toUpperCase() as CountryKey;
+
+  return id in map;
+}
+
 /** Get country data by ISO code and locale with fallback to US */
 export function getCountry(code: string, locale: string): MaskFull {
   const map = getMasksFullMapByLocale(locale);

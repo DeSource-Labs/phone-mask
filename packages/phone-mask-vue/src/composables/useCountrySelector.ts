@@ -4,6 +4,7 @@ import {
   MasksFullMap,
   MasksFullEn,
   MasksFullMapEn,
+  hasCountry,
   detectByGeoIp,
   detectCountryFromLocale,
   filterCountries,
@@ -30,11 +31,6 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
     const found = countriesMap.value[id];
     return found ? { id, ...found } : countries.value[0] || emptyCountry;
   });
-
-  const hasCountry = (id: string) => {
-    const _id = id.toUpperCase() as CountryKey;
-    return !!countriesMap.value[_id];
-  };
 
   // #region Dropdown
   const filteredCountries = computed(() => filterCountries(countries.value, search.value));
@@ -82,7 +78,6 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
   };
 
   const initCountry = async (predefined?: string, detect?: boolean, emitFn?: () => void) => {
-    hasDropdown.value = !predefined && countries.value.length > 1;
     if (predefined && hasCountry(predefined)) {
       selectInitialCountry(predefined.toUpperCase() as CountryKey, emitFn);
       return;
@@ -105,7 +100,6 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
     countries,
     selectedId,
     selected,
-    hasCountry,
     // Dropdown
     hasDropdown,
     dropdownOpened,

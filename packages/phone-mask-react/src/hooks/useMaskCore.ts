@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getNavigatorLang,
   getCountry,
-  detectCountryFromGeoIP,
+  hasCountry,
+  detectByGeoIp,
   detectCountryFromLocale,
   createPhoneFormatter,
   type MaskFull,
@@ -118,12 +119,15 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
 
   // Effect: Country detection (GeoIP + locale fallback)
   useEffect(() => {
-    if (countryOption) return; // Skip if country is explicitly set
+    if (countryOption && hasCountry(countryOption)) {
+      setCountry(countryOption);
+      return;
+    }
 
     if (!detect) return;
 
     (async () => {
-      const geoCountry = await detectCountryFromGeoIP();
+      const geoCountry = await detectByGeoIp(hasCountry);
 
       if (geoCountry) {
         setCountry(geoCountry);
@@ -132,7 +136,7 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
 
       const localeCountry = detectCountryFromLocale();
 
-      if (localeCountry) {
+      if (localeCountry && hasCountry(localeCountry)) {
         setCountry(localeCountry);
       }
     })();
@@ -145,13 +149,6 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
       onChange?.(digits.slice(0, maxDigits));
     }
   }, [formatter, digits, onChange]);
-
-  // Effect: Sync country when option changes
-  useEffect(() => {
-    if (countryOption) {
-      setCountry(countryOption);
-    }
-  }, [countryOption, setCountry]);
 
   // Effect: Emit onCountryChange
   useEffect(() => {
