@@ -188,7 +188,7 @@ import { getNavigatorLang } from '@desource/phone-mask';
 import { useCountrySelector } from '../composables/useCountrySelector';
 import { useMask } from '../composables/useMask';
 import { useClipboard } from '../composables/useClipboard';
-import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots } from '../types';
+import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots, PhoneNumber } from '../types';
 
 const props = withDefaults(defineProps<PhoneInputProps>(), {
   detect: true,
@@ -242,6 +242,12 @@ const { digits, displayValue, displayPlaceholder, isComplete, isEmpty, shouldSho
 
 const { copied, copy } = useClipboard();
 
+const phoneData = computed<PhoneNumber>(() => ({
+  full: full.value,
+  fullFormatted: fullFormatted.value,
+  digits: digits.value
+}));
+
 const inactive = computed(() => props.disabled || props.readonly);
 const showCopyButton = computed(() => props.showCopy && !isEmpty.value && !props.disabled);
 const showClearButton = computed(() => props.showClear && !isEmpty.value && !inactive.value);
@@ -280,11 +286,7 @@ const rootStyles = computed<CSSProperties>(() => ({
 const emitModelUpdate = () => {
   if (model.value === digits.value) return;
   model.value = digits.value;
-  emit('change', {
-    full: full.value,
-    fullFormatted: fullFormatted.value,
-    digits: digits.value
-  });
+  emit('change', phoneData.value);
 };
 
 // Event handlers
@@ -310,6 +312,10 @@ const onPaste = async (e: ClipboardEvent) => {
   emitModelUpdate();
 };
 
+const focusInput = () => {
+  nextTick(() => telRef.value?.focus());
+};
+
 const onFocus = (e: FocusEvent) => {
   mask.handleFocus();
   dropdownOpened.value = false;
@@ -321,8 +327,7 @@ const onBlur = (e: FocusEvent) => emit('blur', e);
 const onSelectCountry = async (countryId: string) => {
   countrySelector.selectCountry(countryId);
   emit('country-change', selected.value);
-  await nextTick();
-  telRef.value?.focus();
+  focusInput();
 };
 
 const onCopyClick = async () => {
@@ -336,14 +341,9 @@ const onCopyClick = async () => {
 const onClearClick = async () => {
   mask.clear();
   model.value = '';
-  emit('change', {
-    full: '',
-    fullFormatted: '',
-    digits: ''
-  });
+  emit('change', phoneData.value);
   emit('clear');
-  await nextTick();
-  telRef.value?.focus();
+  focusInput();
 };
 
 const positionDropdown = (e?: Event | UIEvent) => {
@@ -467,7 +467,7 @@ onBeforeUnmount(() => {
 });
 
 defineExpose<PhoneInputExposed>({
-  focus: () => telRef.value?.focus(),
+  focus: focusInput,
   blur: () => telRef.value?.blur(),
   clear: mask.clear,
   selectCountry: countrySelector.selectCountry,

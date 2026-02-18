@@ -74,15 +74,27 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   // Compute digits from value prop (fully controlled)
   const digits = useMemo(() => extractDigits(value || ''), [value]);
 
-  const { country, locale, formatter, displayValue, full, fullFormatted, isComplete, isEmpty, setCountry } =
-    useMaskCore({
-      country: propCountry,
-      locale: propLocale,
-      detect,
-      value: digits, // Pass computed digits
-      onChange: onPhoneChange,
-      onCountryChange: onCountryChange
-    });
+  const {
+    country,
+    locale,
+    formatter,
+    displayPlaceholder,
+    displayValue,
+    full,
+    fullFormatted,
+    isComplete,
+    isEmpty,
+    shouldShowWarn,
+    setCountry
+  } = useMaskCore({
+    country: propCountry,
+    locale: propLocale,
+    detect,
+    value: digits, // Pass computed digits
+    onChange,
+    onPhoneChange,
+    onCountryChange
+  });
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -93,27 +105,18 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
 
   const { copied, copy } = useClipboard();
+
   const validationTimer = useTimer();
   const closeTimer = useTimer();
 
   const countries = useMemo(() => getCountries(locale), [locale]);
-
-  const displayPlaceholder = formatter.getPlaceholder();
-  const shouldShowWarn = showValidationHint && !isEmpty && !isComplete;
-
   const filteredCountries = useMemo(() => filterCountries(countries, search), [countries, search]);
 
   const inactive = disabled || readonly;
+  const incomplete = showValidationHint && shouldShowWarn;
+
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
-
-  // Clamp digits formatter changes
-  useEffect(() => {
-    const maxDigits = formatter.getMaxDigits();
-    if (digits.length > maxDigits) {
-      onChange?.(digits.slice(0, maxDigits));
-    }
-  }, [formatter, digits, onChange]);
 
   // Country initialization and detection with cache + locale fallback
   useEffect(() => {
@@ -164,6 +167,10 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     onAfterPaste: handleValidationHintAfterKeydown
   });
 
+  const focusInput = useCallback(() => {
+    setTimeout(() => telRef.current?.focus(), 0);
+  }, []);
+
   // Close dropdown with animation
   const closeDropdown = useCallback(() => {
     if (!dropdownOpen) return;
@@ -191,9 +198,23 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       closeDropdown();
       setSearch('');
       setFocusedIndex(0);
-      setTimeout(() => telRef.current?.focus(), 0);
+      focusInput();
     },
-    [setCountry, closeDropdown]
+    [setCountry, closeDropdown, focusInput]
+  );
+
+  // Close dropdown on outside click
+  const onDocClick = useCallback(
+    (ev: Event) => {
+      const target = ev.target as Node | null;
+      const dropdownEl = dropdownRef.current;
+      const selectorEl = selectorRef.current;
+      if (!target) return;
+      if (dropdownEl?.contains(target)) return;
+      if (selectorEl?.contains(target)) return;
+      closeDropdown();
+    },
+    [closeDropdown]
   );
 
   // Dropdown positioning
@@ -213,16 +234,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     positionDropdown();
     const focusTimer = setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
 
-    const onDocClick = (ev: Event) => {
-      const target = ev.target as Node | null;
-      const dropdownEl = dropdownRef.current;
-      const selectorEl = selectorRef.current;
-      if (!target) return;
-      if (dropdownEl?.contains(target)) return;
-      if (selectorEl?.contains(target)) return;
-      closeDropdown();
-    };
-
     window.addEventListener('resize', positionDropdown);
     window.addEventListener('scroll', positionDropdown, true);
     window.addEventListener('click', onDocClick, true);
@@ -233,7 +244,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       window.removeEventListener('scroll', positionDropdown, true);
       window.removeEventListener('click', onDocClick, true);
     };
-  }, [dropdownOpen, positionDropdown, closeDropdown]);
+  }, [dropdownOpen, positionDropdown, onDocClick]);
 
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
@@ -254,14 +265,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   // Clear functionality
   const handleClearClick = useCallback(() => {
     clear();
-    setTimeout(() => telRef.current?.focus(), 0);
-  }, [clear]);
+    focusInput();
+  }, [clear, focusInput]);
 
   // Imperative handle
   useImperativeHandle(
     ref,
     () => ({
-      focus: () => telRef.current?.focus(),
+      focus: focusInput,
       blur: () => telRef.current?.blur(),
       clear,
       selectCountry,
@@ -271,7 +282,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       isValid: () => isComplete,
       isComplete: () => isComplete
     }),
-    [selectCountry, full, fullFormatted, digits, isComplete, clear]
+    [focusInput, selectCountry, full, fullFormatted, digits, isComplete, clear]
   );
 
   const scrollFocusedIntoView = (index: number) => {
@@ -341,7 +352,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     disabled && 'is-disabled',
     readonly && 'is-readonly',
     disableDefaultStyles && 'is-unstyled',
-    withValidity && shouldShowWarn && 'is-incomplete',
+    withValidity && incomplete && 'is-incomplete',
     withValidity && isComplete && 'is-complete'
   ]
     .filter(Boolean)
@@ -420,7 +431,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             value={displayValue}
             disabled={disabled}
             readOnly={readonly}
-            aria-invalid={shouldShowWarn}
+            aria-invalid={incomplete}
             onInput={handleInput}
             onBeforeInput={handleBeforeInput}
             onKeyDown={handleKeydown}

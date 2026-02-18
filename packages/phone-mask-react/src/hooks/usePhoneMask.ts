@@ -18,6 +18,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     digits,
     country,
     formatter,
+    displayPlaceholder,
     displayValue,
     full,
     fullFormatted,
@@ -27,25 +28,13 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     setCountry
   } = useMaskCore({
     value: localDigits, // Pass local state as controlled value
-    ...options
+    onChange: setDigits, // Update local state on change
+    country: options.country,
+    locale: options.locale,
+    detect: options.detect,
+    onPhoneChange: options.onChange, // Emit phone change with full data
+    onCountryChange: options.onCountryChange
   });
-
-  // Clamp digits formatter changes
-  useEffect(() => {
-    const maxDigits = formatter.getMaxDigits();
-    if (localDigits.length > maxDigits) {
-      setDigits(localDigits.slice(0, maxDigits));
-    }
-  }, [formatter, localDigits]);
-
-  // Update display when digits or country change
-  useEffect(() => {
-    const el = inputRef.current;
-    if (!el) return;
-
-    el.value = displayValue;
-    el.placeholder = formatter.getPlaceholder();
-  }, [displayValue, formatter]);
 
   // Use consolidated input handlers
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
@@ -54,14 +43,28 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     onChange: setDigits
   });
 
-  // Attach event listeners
+  // after mount, set input type to tel for better experience
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.setAttribute('type', 'tel');
+    el.setAttribute('inputmode', 'tel');
+  }, []);
+
+  // Update display when digits or placeholder changes
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
 
-    el.setAttribute('type', 'tel');
-    el.setAttribute('inputmode', 'tel');
-    el.setAttribute('placeholder', formatter.getPlaceholder());
+    el.value = displayValue;
+
+    el.setAttribute('placeholder', displayPlaceholder);
+  }, [displayValue, displayPlaceholder]);
+
+  // Attach event listeners
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
 
     const beforeInputHandler = handleBeforeInput;
     const inputHandler = handleInput;
@@ -79,7 +82,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
       el.removeEventListener('keydown', keydownHandler);
       el.removeEventListener('paste', pasteHandler);
     };
-  }, [handleBeforeInput, handleInput, handleKeydown, handlePaste, formatter]);
+  }, [handleBeforeInput, handleInput, handleKeydown, handlePaste]);
 
   const clear = useCallback(() => {
     setDigits('');

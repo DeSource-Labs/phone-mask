@@ -140,13 +140,8 @@ export interface PhoneInputRef {
   isComplete: () => boolean;
 }
 
-/** Configuration options for the phone mask core hook */
-export interface UsePhoneMaskCoreOptions {
-  /**
-   * Controlled value (digits only, without country code)
-   * The parent is responsible for managing state via onChange callback.
-   */
-  value?: string;
+/** Configuration options for the phone mask hook */
+export interface UsePhoneMaskOptions {
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */
   country?: string;
   /** Locale for country names (default: navigator.language) */
@@ -162,20 +157,14 @@ export interface UsePhoneMaskCoreOptions {
   onCountryChange?: (country: MaskFull) => void;
 }
 
-/** Return type for useMaskCore hook */
-export interface UseMaskCoreReturn {
+/** Return type for usePhoneMask hook */
+export interface UsePhoneMaskReturn {
   /** Current country data */
   country: MaskFull;
   /** Change country programmatically */
   setCountry: (countryCode: string) => void;
   /** Raw digits without formatting */
   digits: string;
-  /** Computed locale value */
-  locale: string;
-  /** Phone formatter instance */
-  formatter: FormatterHelpers;
-  /** Formatted display string */
-  displayValue: string;
   /** Full phone number with country code */
   full: string;
   /** Full phone number formatted */
@@ -186,13 +175,6 @@ export interface UseMaskCoreReturn {
   isEmpty: boolean;
   /** Whether to show validation warning */
   shouldShowWarn: boolean;
-}
-
-/** Configuration options for the phone mask hook */
-export interface UsePhoneMaskOptions extends Omit<UsePhoneMaskCoreOptions, 'value'> {}
-
-/** Return type for usePhoneMask hook */
-export interface UsePhoneMaskReturn extends Omit<UseMaskCoreReturn, 'locale' | 'formatter' | 'displayValue'> {
   /** Ref to attach to input element */
   ref: RefObject<HTMLInputElement | null>;
   /** Clear the input */

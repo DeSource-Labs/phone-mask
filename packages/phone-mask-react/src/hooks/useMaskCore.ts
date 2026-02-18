@@ -5,10 +5,60 @@ import {
   detectCountryFromGeoIP,
   detectCountryFromLocale,
   createPhoneFormatter,
-  type MaskFull
+  type MaskFull,
+  type FormatterHelpers
 } from '@desource/phone-mask';
 
-import type { UsePhoneMaskCoreOptions, UseMaskCoreReturn, PhoneNumber } from '../types';
+import type { PhoneNumber } from '../types';
+
+/** Configuration options for the phone mask core hook */
+export interface UsePhoneMaskCoreOptions {
+  /**
+   * Controlled value (digits only, without country code)
+   * The parent is responsible for managing state via onChange callback.
+   */
+  value?: string;
+  /** Country ISO code (e.g., 'US', 'DE', 'GB') */
+  country?: string;
+  /** Locale for country names (default: navigator.language) */
+  locale?: string;
+  /** Auto-detect country from IP/locale (default: false) */
+  detect?: boolean;
+  /** Callback when the digits value changes. */
+  onChange?: (digits: string) => void;
+  /** Callback when the phone number changes. */
+  onPhoneChange?: (value: PhoneNumber) => void;
+  /** Callback when country changes */
+  onCountryChange?: (country: MaskFull) => void;
+}
+
+/** Return type for useMaskCore hook */
+export interface UseMaskCoreReturn {
+  /** Current country data */
+  country: MaskFull;
+  /** Change country programmatically */
+  setCountry: (countryCode: string) => void;
+  /** Raw digits without formatting */
+  digits: string;
+  /** Computed locale value */
+  locale: string;
+  /** Phone formatter instance */
+  formatter: FormatterHelpers;
+  /** Placeholder from formatter */
+  displayPlaceholder: string;
+  /** Formatted display string */
+  displayValue: string;
+  /** Full phone number with country code */
+  full: string;
+  /** Full phone number formatted */
+  fullFormatted: string;
+  /** Whether the phone number is complete */
+  isComplete: boolean;
+  /** Whether the input is empty */
+  isEmpty: boolean;
+  /** Whether to show validation warning */
+  shouldShowWarn: boolean;
+}
 
 /**
  * Core phone mask hook - pure state management and derived computations.
@@ -22,7 +72,8 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
     country: countryOption,
     detect,
     value: digits = '',
-    onChange: onPhoneChange,
+    onChange,
+    onPhoneChange,
     onCountryChange
   } = options;
 
@@ -52,6 +103,7 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
 
   // Create formatter
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
+  const displayPlaceholder = useMemo(() => formatter.getPlaceholder(), [formatter]);
 
   // Compute derived values
   const displayValue = formatter.formatDisplay(digits);
@@ -86,6 +138,14 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
     })();
   }, [detect, countryOption, setCountry]);
 
+  // Clamp digits formatter changes
+  useEffect(() => {
+    const maxDigits = formatter.getMaxDigits();
+    if (digits.length > maxDigits) {
+      onChange?.(digits.slice(0, maxDigits));
+    }
+  }, [formatter, digits, onChange]);
+
   // Effect: Sync country when option changes
   useEffect(() => {
     if (countryOption) {
@@ -94,9 +154,9 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
   }, [countryOption, setCountry]);
 
   // Effect: Emit onCountryChange
-  (useEffect(() => {
+  useEffect(() => {
     onCountryChange?.(country);
-  }), [country, onCountryChange]);
+  }, [country, onCountryChange]);
 
   // Effect: Emit onPhoneChange
   useEffect(() => {
@@ -108,6 +168,7 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
     country,
     locale,
     formatter,
+    displayPlaceholder,
     displayValue,
     full,
     fullFormatted,
