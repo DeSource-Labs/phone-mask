@@ -9,6 +9,7 @@ import {
 
 export { PhoneInput } from './components/PhoneInput';
 export { usePhoneMask } from './hooks/usePhoneMask';
+
 export type {
   PhoneInputProps,
   PhoneInputRef,

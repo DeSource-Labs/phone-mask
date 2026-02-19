@@ -1,33 +1,15 @@
 import { type Directive, type DirectiveBinding, nextTick } from 'vue';
-import { getNavigatorLang, getCountry, detectCountryFromGeoIP, type MaskFull } from '@desource/phone-mask';
+import {
+  getNavigatorLang,
+  getCountry,
+  detectCountryFromGeoIP,
+  detectCountryFromLocale,
+  type MaskFull
+} from '@desource/phone-mask';
 
 import { createPhoneFormatter, setCaret, extractDigits, getSelection } from '../composables/usePhoneFormatter';
 import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
-
-/**
- * Detect country from browser locale.
- * Parses navigator.language to extract region code
- */
-function detectCountryFromLocale(): string | null {
-  try {
-    const lang = getNavigatorLang();
-
-    try {
-      const loc = new Intl.Locale(lang);
-      if (loc.region) return loc.region.toUpperCase();
-    } catch {
-      // Ignore
-    }
-
-    const parts = lang.split(/[-_]/);
-    if (parts.length > 1) return parts[1]?.toUpperCase() || null;
-  } catch {
-    // Ignore
-  }
-
-  return null;
-}
 
 /**
  * Initialize directive state from binding value.

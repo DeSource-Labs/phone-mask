@@ -4,8 +4,8 @@ import {
   MasksFullMap,
   MasksFullEn,
   MasksFullMapEn,
-  getNavigatorLang,
   detectByGeoIp,
+  detectCountryFromLocale,
   type CountryKey,
   type MaskFull
 } from '@desource/phone-mask';
@@ -109,24 +109,6 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
   };
   // #endregion
 
-  // #region Country Detection
-  const detectFromLocale = () => {
-    try {
-      const lang = getNavigatorLang();
-      try {
-        const loc = new Intl.Locale(lang);
-        if (loc.region && hasCountry(loc.region)) return loc.region.toUpperCase() as CountryKey;
-      } catch {
-        // ignore
-      }
-      const parts = lang.split(/[-_]/);
-      if (parts.length > 1 && hasCountry(parts[1])) return parts[1].toUpperCase() as CountryKey;
-    } catch {
-      // ignore
-    }
-    return null;
-  };
-
   const selectInitialCountry = (id: CountryKey, emitFn?: () => void) => {
     const previousId = selectedId.value;
     selectedId.value = id;
@@ -145,9 +127,9 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
       selectInitialCountry(geo as CountryKey, emitFn);
       return;
     }
-    const loc = detectFromLocale();
-    if (loc) {
-      selectInitialCountry(loc, emitFn);
+    const loc = detectCountryFromLocale();
+    if (loc && hasCountry(loc)) {
+      selectInitialCountry(loc as CountryKey, emitFn);
       return;
     }
   };

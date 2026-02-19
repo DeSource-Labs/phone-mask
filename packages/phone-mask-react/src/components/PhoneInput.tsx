@@ -9,17 +9,13 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  getNavigatorLang,
-  getCountry,
-  getMasksFullMapByLocale,
-  detectByGeoIp,
-  type CountryKey,
-  type MaskFull
-} from '@desource/phone-mask';
-import { createPhoneFormatter, extractDigits, setCaret, getSelection } from '../utils';
+import { getMasksFullMapByLocale, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { extractDigits, getSelection } from '../utils';
 import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
-import type { PhoneInputProps, PhoneInputRef, PhoneNumber } from '../types';
+import { usePhoneMaskCore } from '../hooks/usePhoneMaskCore';
+import { useTimer } from '../hooks/useTimer';
+
+import type { PhoneInputProps, PhoneInputRef } from '../types';
 
 /** Get all countries */
 function getCountries(locale: string): MaskFull[] {
@@ -69,9 +65,29 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const liveRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  const locale = propLocale || getNavigatorLang();
-  const [country, setCountry] = useState<MaskFull>(() => getCountry(propCountry || 'US', locale));
-  const [digits, setDigits] = useState<string>('');
+  // Compute digits from value prop (fully controlled)
+  const digits = useMemo(() => extractDigits(value || ''), [value]);
+
+  const {
+    country,
+    locale,
+    formatter,
+    displayValue,
+    full,
+    fullFormatted,
+    isComplete,
+    isEmpty,
+    setCountry,
+    scheduleCaretUpdate
+  } = usePhoneMaskCore({
+    country: propCountry,
+    locale: propLocale,
+    detect,
+    value: digits, // Pass computed digits
+    onChange: onPhoneChange,
+    onCountryChange: onCountryChange
+  });
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [search, setSearch] = useState('');
@@ -80,22 +96,16 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const [isCopying, setIsCopying] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
   const [showValidationHint, setShowValidationHint] = useState(false);
-  const validationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
 
-  const formatter = useMemo(() => createPhoneFormatter(country), [country]);
+  const validationTimer = useTimer();
+  const closeTimer = useTimer();
+  const copyTimer = useTimer();
+
   const countries = useMemo(() => getCountries(locale), [locale]);
 
-  const displayValue = formatter.formatDisplay(digits);
   const displayPlaceholder = formatter.getPlaceholder();
-  const isComplete = formatter.isComplete(digits);
-  const isEmpty = digits.length === 0;
   const shouldShowWarn = showValidationHint && !isEmpty && !isComplete;
-
-  const full = `${country.code}${digits}`;
-  const fullFormatted = digits ? `${country.code} ${displayValue}` : '';
 
   const filteredCountries = useMemo(() => {
     const raw = search.trim();
@@ -134,96 +144,38 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
 
-  // Country initialization and detection with cache + locale fallback
-  useEffect(() => {
-    setHasDropdown(!propCountry && countries.length > 1);
-
-    const hasCountry = (code?: string | null) => {
-      if (!code) return false;
-      const id = code.toUpperCase();
-      return countries.some((c) => c.id === id);
-    };
-
-    const detectFromLocale = (): string | null => {
-      const lang = typeof navigator !== 'undefined' && navigator.language ? navigator.language : '';
-      // Use Intl.Locale when available
-      try {
-        if (Intl.Locale) {
-          const loc = new Intl.Locale(lang);
-          if (loc?.region && hasCountry(loc.region)) return loc.region.toUpperCase();
-        }
-      } catch {
-        /* ignore */
-      }
-      const parts = lang.split(/[-_]/);
-      if (parts.length > 1 && hasCountry(parts[1])) return parts[1].toUpperCase();
-      return null;
-    };
-
-    (async () => {
-      if (propCountry && hasCountry(propCountry)) {
-        const newCountry = getCountry(propCountry, locale);
-        setCountry((prev) => {
-          if (prev.id === newCountry.id) return prev;
-          onCountryChange?.(newCountry);
-          return newCountry;
-        });
-        return;
-      }
-      if (!detect) return;
-      const geo = await detectByGeoIp(hasCountry);
-      if (geo) {
-        const detected = getCountry(geo, locale);
-        setCountry((prev) => {
-          if (prev.id === detected.id) return prev;
-          onCountryChange?.(detected);
-          return detected;
-        });
-        return;
-      }
-      const loc = detectFromLocale();
-      if (loc) {
-        const detected = getCountry(loc, locale);
-        setCountry((prev) => {
-          if (prev.id === detected.id) return prev;
-          onCountryChange?.(detected);
-          return detected;
-        });
-      }
-    })();
-  }, [propCountry, detect, countries, locale]);
-
-  // Clamp digits when country or formatter changes
+  // Clamp digits when formatter changes
   useEffect(() => {
     const maxDigits = formatter.getMaxDigits();
     if (digits.length > maxDigits) {
-      setDigits((d) => d.slice(0, maxDigits));
+      onChange?.(digits.slice(0, maxDigits));
     }
-  }, [formatter]);
+  }, [formatter, digits, onChange]);
 
-  // Sync value prop
+  // Country initialization and detection with cache + locale fallback
   useEffect(() => {
-    const incomingDigits = extractDigits(value || '');
-    if (incomingDigits !== digits) {
-      setDigits(incomingDigits);
-    }
-  }, [value]);
+    setHasDropdown(!propCountry && countries.length > 1);
+  }, [propCountry, countries]);
 
   // Notify validation changes
   useEffect(() => {
     onValidationChange?.(isComplete);
   }, [isComplete, onValidationChange]);
 
-  // Emit onChange and onPhoneChange
-  const emitChange = useCallback(() => {
-    onChange?.(digits);
-    const phoneData: PhoneNumber = { full, fullFormatted, digits };
-    onPhoneChange?.(phoneData);
-  }, [digits, full, fullFormatted, onChange, onPhoneChange]);
+  // Validation hint helpers
+  const clearValidationHint = useCallback(() => {
+    setShowValidationHint(false);
+    validationTimer.clear();
+  }, [validationTimer]);
 
-  useEffect(() => {
-    emitChange();
-  }, [emitChange]);
+  const scheduleValidationHint = useCallback(
+    (delay: number) => {
+      validationTimer.set(() => {
+        setShowValidationHint(true);
+      }, delay);
+    },
+    [validationTimer]
+  );
 
   // Input handlers
   const handleBeforeInput = useCallback((e: InputEvent) => {
@@ -242,20 +194,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     const raw = el.value || '';
     const maxDigits = formatter.getMaxDigits();
     const newDigits = extractDigits(raw, maxDigits);
-    setDigits(newDigits);
-    setTimeout(() => {
-      const pos = formatter.getCaretPosition(newDigits.length);
-      setCaret(el, pos);
-    }, 0);
+    onChange?.(newDigits);
+    scheduleCaretUpdate(el, newDigits.length);
     // validation hint debounce (500ms)
-    setShowValidationHint(false);
-    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+    clearValidationHint();
     if (newDigits.length > 0) {
-      validationTimerRef.current = setTimeout(() => {
-        setShowValidationHint(true);
-      }, 500);
+      scheduleValidationHint(500);
     }
-  }, [formatter, inactive]);
+  }, [formatter, inactive, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]);
 
   const handleKeydown = useCallback(
     (e: KeyboardEvent) => {
@@ -268,14 +214,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       const [selStart, selEnd] = getSelection(el);
 
       // debounce validation hint during typing (300ms)
-      setShowValidationHint(false);
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-      const scheduleHint = () => {
-        if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-        validationTimerRef.current = setTimeout(() => {
-          setShowValidationHint(true);
-        }, 300);
-      };
+      clearValidationHint();
+      const scheduleHint = () => scheduleValidationHint(300);
 
       if (e.key === 'Backspace') {
         e.preventDefault();
@@ -283,8 +223,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           const range = formatter.getDigitRange(digits, selStart, selEnd);
           if (range) {
             const [start, end] = range;
-            setDigits(digits.slice(0, start) + digits.slice(end));
-            setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
+            onChange?.(digits.slice(0, start) + digits.slice(end));
+            scheduleCaretUpdate(el, start);
           }
         } else if (selStart > 0) {
           let prevPos = selStart - 1;
@@ -293,8 +233,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
             if (range) {
               const [start] = range;
-              setDigits(digits.slice(0, start) + digits.slice(start + 1));
-              setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
+              onChange?.(digits.slice(0, start) + digits.slice(start + 1));
+              scheduleCaretUpdate(el, start);
             }
           }
         }
@@ -308,15 +248,15 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           const range = formatter.getDigitRange(digits, selStart, selEnd);
           if (range) {
             const [start, end] = range;
-            setDigits(digits.slice(0, start) + digits.slice(end));
-            setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
+            onChange?.(digits.slice(0, start) + digits.slice(end));
+            scheduleCaretUpdate(el, start);
           }
         } else if (selStart < el.value.length) {
           const range = formatter.getDigitRange(digits, selStart, selStart + 1);
           if (range) {
             const [start] = range;
-            setDigits(digits.slice(0, start) + digits.slice(start + 1));
-            setTimeout(() => setCaret(el, formatter.getCaretPosition(start)), 0);
+            onChange?.(digits.slice(0, start) + digits.slice(start + 1));
+            scheduleCaretUpdate(el, start);
           }
         }
         scheduleHint();
@@ -332,7 +272,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       if (e.key.length === 1) e.preventDefault();
       scheduleHint();
     },
-    [inactive, formatter, digits]
+    [inactive, formatter, digits, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
   );
 
   const handlePaste = useCallback(
@@ -353,8 +293,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
         if (range) {
           const [start, end] = range;
           const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
-          setDigits(newDigits);
-          setTimeout(() => setCaret(el, formatter.getCaretPosition(start + pastedDigits.length)), 0);
+          onChange?.(newDigits);
+          scheduleCaretUpdate(el, start + pastedDigits.length);
         }
       } else {
         const range = formatter.getDigitRange(digits, selStart, selStart);
@@ -363,38 +303,34 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
           digits.slice(0, insertIndex) + pastedDigits + digits.slice(insertIndex),
           maxDigits
         );
-        setDigits(newDigits);
-        setTimeout(() => setCaret(el, formatter.getCaretPosition(insertIndex + pastedDigits.length)), 0);
+        onChange?.(newDigits);
+        scheduleCaretUpdate(el, insertIndex + pastedDigits.length);
       }
       // show validation hint after paste (300ms)
-      setShowValidationHint(false);
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-      validationTimerRef.current = setTimeout(() => {
-        setShowValidationHint(true);
-      }, 300);
+      clearValidationHint();
+      scheduleValidationHint(300);
     },
-    [inactive, formatter, digits]
+    [inactive, formatter, digits, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
   );
 
   // Close dropdown with animation
   const closeDropdown = useCallback(() => {
     if (!dropdownOpen) return;
     setIsClosing(true);
-    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = setTimeout(() => {
+    closeTimer.set(() => {
       setDropdownOpen(false);
       setIsClosing(false);
     }, 200);
-  }, [dropdownOpen]);
+  }, [dropdownOpen, closeTimer]);
 
-  // Input focus behavior (close dropdown, keep existing hint state)
+  // Input focus behavior (close dropdown, clear validation hint, and call onFocus callback)
   const handleFocusInput = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
+      clearValidationHint();
       closeDropdown();
       onFocus?.(e);
     },
-    [onFocus, closeDropdown]
+    [onFocus, closeDropdown, clearValidationHint]
   );
 
   // Attach native event listeners
@@ -420,15 +356,13 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   // Country selection
   const selectCountry = useCallback(
     (code: CountryKey) => {
-      const newCountry = getCountry(code, locale);
-      setCountry(newCountry);
+      setCountry(code);
       closeDropdown();
       setSearch('');
       setFocusedIndex(0);
-      onCountryChange?.(newCountry);
       setTimeout(() => telRef.current?.focus(), 0);
     },
-    [locale, onCountryChange, closeDropdown]
+    [setCountry, closeDropdown]
   );
 
   // Dropdown positioning
@@ -470,15 +404,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     };
   }, [dropdownOpen, positionDropdown, closeDropdown]);
 
-  // Cleanup timers
-  useEffect(() => {
-    return () => {
-      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    };
-  }, []);
-
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
     if (isCopying) return;
@@ -492,28 +417,27 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       onCopy?.(trimmedValue);
       if (liveRef.current) liveRef.current.textContent = 'Phone number copied to clipboard';
 
-      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
-      copyTimerRef.current = setTimeout(() => {
+      copyTimer.set(() => {
         setCopied(false);
-        copyTimerRef.current = null;
       }, 1800);
     } catch (err) {
       console.warn('Copy failed', err);
     } finally {
       setIsCopying(false);
     }
-  }, [fullFormatted, onCopy, isCopying]);
+  }, [fullFormatted, onCopy, isCopying, copyTimer]);
+
+  const clear = useCallback(() => {
+    onChange?.('');
+    clearValidationHint();
+    onClear?.();
+  }, [onChange, onClear, clearValidationHint]);
 
   // Clear functionality
   const handleClearClick = useCallback(() => {
-    setDigits('');
-    setShowValidationHint(false);
-    if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-    onChange?.('');
-    onPhoneChange?.({ full: '', fullFormatted: '', digits: '' });
-    onClear?.();
+    clear();
     setTimeout(() => telRef.current?.focus(), 0);
-  }, [onChange, onPhoneChange, onClear]);
+  }, [clear]);
 
   // Imperative handle
   useImperativeHandle(
@@ -521,14 +445,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     () => ({
       focus: () => telRef.current?.focus(),
       blur: () => telRef.current?.blur(),
-      clear: () => {
-        setDigits('');
-        setShowValidationHint(false);
-        if (validationTimerRef.current) clearTimeout(validationTimerRef.current);
-        onChange?.('');
-        onPhoneChange?.({ full: '', fullFormatted: '', digits: '' });
-        onClear?.();
-      },
+      clear,
       selectCountry,
       getFullNumber: () => full,
       getFullFormattedNumber: () => fullFormatted,
@@ -536,7 +453,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       isValid: () => isComplete,
       isComplete: () => isComplete
     }),
-    [selectCountry, full, fullFormatted, digits, isComplete, onClear, onChange, onPhoneChange]
+    [selectCountry, full, fullFormatted, digits, isComplete, clear]
   );
 
   const scrollFocusedIntoView = (index: number) => {
@@ -638,7 +555,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
               if (dropdownOpen) {
                 closeDropdown();
               } else {
-                if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+                closeTimer.clear();
                 setIsClosing(false);
                 setDropdownOpen(true);
                 setFocusedIndex(0);

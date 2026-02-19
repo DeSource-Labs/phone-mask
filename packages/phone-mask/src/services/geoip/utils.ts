@@ -42,11 +42,11 @@ export async function detectByGeoIp(hasCountry: (code: string) => boolean): Prom
       const parsed: MaskGeoCache = JSON.parse(cached);
       const expired = Date.now() - parsed.ts > CACHE_EXPIRY_MS;
 
-      if (!expired && parsed.country_code && hasCountry(parsed.country_code)) {
+      if (expired) {
+        localStorage.removeItem(CACHE_KEY);
+      } else if (parsed.country_code && hasCountry(parsed.country_code)) {
         return parsed.country_code.toUpperCase();
       }
-
-      if (expired) localStorage.removeItem(CACHE_KEY);
     }
   } catch {
     /* ignore */
@@ -58,7 +58,8 @@ export async function detectByGeoIp(hasCountry: (code: string) => boolean): Prom
   if (code && hasCountry(code)) {
     // Cache the result
     try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ country_code: code, ts: Date.now() } as MaskGeoCache));
+      const value = JSON.stringify({ country_code: code, ts: Date.now() } as MaskGeoCache);
+      localStorage.setItem(CACHE_KEY, value);
     } catch {
       // Silent fail for localStorage issues
     }
