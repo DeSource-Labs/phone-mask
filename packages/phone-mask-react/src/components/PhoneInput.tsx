@@ -447,7 +447,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             {showCopyButton && (
               <button
                 type="button"
-                className={`pi-btn ${copied ? 'is-copied' : ''}`}
+                className={`pi-btn pi-btn-copy ${copied ? 'is-copied' : ''}`}
                 aria-label={copied ? 'Copied' : `Copy ${country.code} ${displayValue}`}
                 title={copied ? 'Copied' : 'Copy phone number'}
                 onClick={handleCopyClick}
@@ -472,7 +472,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             {showClearButton && (
               <button
                 type="button"
-                className="pi-btn"
+                className="pi-btn pi-btn-clear"
                 aria-label={clearButtonLabel}
                 title={clearButtonLabel}
                 onClick={handleClearClick}

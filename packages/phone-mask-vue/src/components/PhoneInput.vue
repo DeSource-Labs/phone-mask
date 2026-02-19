@@ -78,7 +78,7 @@
           <button
             v-if="showCopyButton"
             type="button"
-            :class="['pi-btn', { 'is-copied': copied }]"
+            :class="['pi-btn', 'pi-btn-copy', { 'is-copied': copied }]"
             :aria-label="copyAriaLabel"
             :title="copyButtonTitle"
             @click="onCopyClick"
@@ -100,7 +100,7 @@
           <button
             v-if="showClearButton"
             type="button"
-            class="pi-btn"
+            class="pi-btn pi-btn-clear"
             :aria-label="clearButtonLabel"
             :title="clearButtonLabel"
             @click="onClearClick"
