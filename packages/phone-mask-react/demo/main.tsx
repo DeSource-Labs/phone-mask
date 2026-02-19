@@ -127,7 +127,7 @@ function Playground() {
   }, []);
 
   return (
-    <section style={playgroundStyle}>
+    <section style={playgroundStyle} data-testid="playground">
       <h2 style={headingStyle}>Component Playground</h2>
 
       <div style={playgroundGridStyle}>
@@ -150,17 +150,18 @@ function Playground() {
               withValidity={withValidity}
               disabled={disabled}
               readonly={readonly}
+              data-testid="phone-input"
             />
             <div style={metaStyle}>
               <div>
-                <strong>Value:</strong> {digits || '—'}
+                <strong data-testid="phone-input-value">Value:</strong> {digits || '—'}
               </div>
             </div>
           </div>
         </div>
 
         {/* Controls Panel */}
-        <div style={controlsPanelStyle}>
+        <div style={controlsPanelStyle} data-testid="phone-input-props">
           <h3 style={subheadingStyle}>Props</h3>
 
           <div style={controlGroupStyle}>
@@ -170,6 +171,7 @@ function Playground() {
                 value={country || ''}
                 onChange={(e) => setCountry((e.target.value as CountryKey) || undefined)}
                 style={selectStyle}
+                data-testid="props-country"
               >
                 <option value="">Not Selected</option>
                 <option value="US">United States</option>
@@ -185,7 +187,12 @@ function Playground() {
 
             <label style={labelStyle}>
               <span>Locale:</span>
-              <select value={locale || ''} onChange={(e) => setLocale(e.target.value || undefined)} style={selectStyle}>
+              <select
+                value={locale || ''}
+                onChange={(e) => setLocale(e.target.value || undefined)}
+                style={selectStyle}
+                data-testid="props-locale"
+              >
                 <option value="">Not Selected</option>
                 <option value="en-US">English (US)</option>
                 <option value="de-DE">German</option>
@@ -195,7 +202,12 @@ function Playground() {
 
             <label style={labelStyle}>
               <span>Size:</span>
-              <select value={size} onChange={(e) => setSize(e.target.value as Size)} style={selectStyle}>
+              <select
+                value={size}
+                onChange={(e) => setSize(e.target.value as Size)}
+                style={selectStyle}
+                data-testid="props-size"
+              >
                 <option value="compact">Compact</option>
                 <option value="normal">Normal</option>
                 <option value="large">Large</option>
@@ -204,7 +216,12 @@ function Playground() {
 
             <label style={labelStyle}>
               <span>Theme:</span>
-              <select value={theme} onChange={(e) => setTheme(e.target.value as Theme)} style={selectStyle}>
+              <select
+                value={theme}
+                onChange={(e) => setTheme(e.target.value as Theme)}
+                style={selectStyle}
+                data-testid="props-theme"
+              >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
                 <option value="auto">Auto</option>
@@ -213,7 +230,7 @@ function Playground() {
           </div>
 
           <div style={controlGroupStyle}>
-            <label style={checkboxLabelStyle}>
+            <label style={checkboxLabelStyle} data-testid="props-detect">
               <input
                 type="checkbox"
                 checked={detect}
@@ -223,7 +240,7 @@ function Playground() {
               <span>Auto-detect country</span>
             </label>
 
-            <label style={checkboxLabelStyle}>
+            <label style={checkboxLabelStyle} data-testid="props-show-copy">
               <input
                 type="checkbox"
                 checked={showCopy}
@@ -233,7 +250,7 @@ function Playground() {
               <span>Show copy button</span>
             </label>
 
-            <label style={checkboxLabelStyle}>
+            <label style={checkboxLabelStyle} data-testid="props-show-clear">
               <input
                 type="checkbox"
                 checked={showClear}
@@ -243,7 +260,7 @@ function Playground() {
               <span>Show clear button</span>
             </label>
 
-            <label style={checkboxLabelStyle}>
+            <label style={checkboxLabelStyle} data-testid="props-with-validity">
               <input
                 type="checkbox"
                 checked={withValidity}
@@ -253,7 +270,7 @@ function Playground() {
               <span>Show validity indicators</span>
             </label>
 
-            <label style={checkboxLabelStyle}>
+            <label style={checkboxLabelStyle} data-testid="props-disabled">
               <input
                 type="checkbox"
                 checked={disabled}
@@ -263,7 +280,7 @@ function Playground() {
               <span>Disabled</span>
             </label>
 
-            <label style={checkboxLabelStyle}>
+            <label style={checkboxLabelStyle} data-testid="props-readonly">
               <input
                 type="checkbox"
                 checked={readonly}
