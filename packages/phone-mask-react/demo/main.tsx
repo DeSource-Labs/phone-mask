@@ -138,7 +138,7 @@ function Playground() {
               <span>Country:</span>
               <select
                 value={country || ''}
-                onChange={(e) => setCountry(e.target.value as CountryKey | undefined)}
+                onChange={(e) => setCountry((e.target.value as CountryKey) || undefined)}
                 style={selectStyle}
               >
                 <option value="">Not Selected</option>
@@ -155,7 +155,7 @@ function Playground() {
 
             <label style={labelStyle}>
               <span>Locale:</span>
-              <select value={locale || ''} onChange={(e) => setLocale(e.target.value)} style={selectStyle}>
+              <select value={locale || ''} onChange={(e) => setLocale(e.target.value || undefined)} style={selectStyle}>
                 <option value="">Not Selected</option>
                 <option value="en-US">English (US)</option>
                 <option value="de-DE">German</option>
