@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { useMaskCore } from './useMaskCore';
 import { useInputHandlers } from './useInputHandlers';
 
@@ -7,12 +7,10 @@ import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
 /**
  * React hook for phone number masking.
  * Provides low-level phone masking functionality for custom input implementations.
+ * Works in controlled mode — caller manages value state via onChange callback.
  */
-export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskReturn {
+export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Local state for digits (uncontrolled mode at this level)
-  const [localDigits, setDigits] = useState<string>('');
 
   const {
     digits,
@@ -26,21 +24,13 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
     isEmpty,
     shouldShowWarn,
     setCountry
-  } = useMaskCore({
-    value: localDigits, // Pass local state as controlled value
-    onChange: setDigits, // Update local state on change
-    country: options.country,
-    locale: options.locale,
-    detect: options.detect,
-    onPhoneChange: options.onChange, // Emit phone change with full data
-    onCountryChange: options.onCountryChange
-  });
+  } = useMaskCore(options);
 
   // Use consolidated input handlers
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter,
     digits,
-    onChange: setDigits
+    onChange: options.onChange
   });
 
   // after mount, set input type to tel for better experience
@@ -85,12 +75,8 @@ export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskRet
   }, [handleBeforeInput, handleInput, handleKeydown, handlePaste]);
 
   const clear = useCallback(() => {
-    setDigits('');
-    const el = inputRef.current;
-    if (el) {
-      el.value = '';
-    }
-  }, []);
+    options.onChange('');
+  }, [options.onChange]);
 
   return {
     ref: inputRef,

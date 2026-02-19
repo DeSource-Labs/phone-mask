@@ -142,6 +142,10 @@ export interface PhoneInputRef {
 
 /** Configuration options for the phone mask hook */
 export interface UsePhoneMaskOptions {
+  /** Controlled value (digits only, without country code) */
+  value: string;
+  /** Callback when the digits value changes (e.g. '234567890') */
+  onChange: (digits: string) => void;
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */
   country?: string;
   /** Locale for country names (default: navigator.language) */
@@ -149,10 +153,10 @@ export interface UsePhoneMaskOptions {
   /** Auto-detect country from IP/locale (default: false) */
   detect?: boolean;
   /**
-   * Callback when formatted value changes.
-   * Provides full number, formatted phone number, and raw digits.
+   * Callback when the phone number changes.
+   * Provides full, fullFormatted, digits.
    */
-  onChange?: (phone: PhoneNumber) => void;
+  onPhoneChange?: (phone: PhoneNumber) => void;
   /** Callback when country changes */
   onCountryChange?: (country: MaskFull) => void;
 }

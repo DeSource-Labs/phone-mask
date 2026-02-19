@@ -99,6 +99,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
 
   const validationTimer = useTimer();
   const closeTimer = useTimer();
+  const liveTimer = useTimer();
 
   const countries = useMemo(() => getCountries(locale), [locale]);
   const filteredCountries = useMemo(() => filterCountries(countries, search), [countries, search]);
@@ -234,15 +235,26 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     };
   }, [dropdownOpen, positionDropdown, onDocClick]);
 
+  const announceToScreenReader = useCallback(
+    (message: string) => {
+      if (!liveRef.current) return;
+      liveRef.current.textContent = message;
+      liveTimer.set(() => {
+        if (liveRef.current) liveRef.current.textContent = '';
+      }, 2000);
+    },
+    [liveTimer]
+  );
+
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
     const trimmedValue = fullFormatted.trim();
     const success = await copy(trimmedValue);
     if (success) {
       onCopy?.(trimmedValue);
-      if (liveRef.current) liveRef.current.textContent = 'Phone number copied to clipboard';
+      announceToScreenReader('Phone number copied to clipboard');
     }
-  }, [fullFormatted, onCopy, copy]);
+  }, [fullFormatted, onCopy, copy, announceToScreenReader]);
 
   const clear = useCallback(() => {
     onChange?.('');
