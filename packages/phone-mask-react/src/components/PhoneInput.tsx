@@ -9,13 +9,7 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  getMasksFullMapByLocale,
-  extractDigits,
-  filterCountries,
-  type CountryKey,
-  type MaskFull
-} from '@desource/phone-mask';
+import { getMasksFullMapByLocale, filterCountries, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import { useMaskCore } from '../hooks/useMaskCore';
 import { useTimer } from '../hooks/useTimer';
 import { useClipboard } from '../hooks/useClipboard';
@@ -64,17 +58,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     renderClearSvg
   } = props;
 
-  const telRef = useRef<HTMLInputElement>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const liveRef = useRef<HTMLDivElement>(null);
-  const selectorRef = useRef<HTMLDivElement>(null);
-
-  // Compute digits from value prop (fully controlled)
-  const digits = useMemo(() => extractDigits(value || ''), [value]);
-
   const {
+    digits,
     country,
     locale,
     formatter,
@@ -90,11 +75,18 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     country: propCountry,
     locale: propLocale,
     detect,
-    value: digits, // Pass computed digits
+    value,
     onChange,
     onPhoneChange,
     onCountryChange
   });
+
+  const telRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const liveRef = useRef<HTMLDivElement>(null);
+  const selectorRef = useRef<HTMLDivElement>(null);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);

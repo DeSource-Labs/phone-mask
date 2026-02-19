@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 
 // Library imports
@@ -7,10 +7,24 @@ import '../src/style.scss';
 // Import components and hooks
 import { PhoneInput, usePhoneMask } from '../src';
 // Import types
-import type { PCountryKey as CountryKey, PhoneInputSize as Size, PhoneInputTheme as Theme } from '../src';
+import type {
+  PCountryKey as CountryKey,
+  PMaskFull as MaskFull,
+  PhoneInputSize as Size,
+  PhoneInputTheme as Theme,
+  PhoneNumber
+} from '../src';
 
 function DemoPhoneInput() {
   const [digits, setDigits] = useState('');
+
+  const onCountryChange = useCallback((c: MaskFull) => {
+    console.log('Country:', c.name);
+  }, []);
+
+  const onValidationChange = useCallback((v: boolean) => {
+    console.log('Valid:', v);
+  }, []);
 
   return (
     <section style={sectionStyle}>
@@ -18,8 +32,8 @@ function DemoPhoneInput() {
       <PhoneInput
         value={digits}
         onChange={setDigits}
-        onCountryChange={(c) => console.log('Country:', c.name)}
-        onValidationChange={(v) => console.log('Valid:', v)}
+        onCountryChange={onCountryChange}
+        onValidationChange={onValidationChange}
         country="US"
         detect={true}
         showCopy
@@ -37,10 +51,14 @@ function DemoPhoneInput() {
 }
 
 function DemoHook() {
+  const onPhoneChange = useCallback((p: PhoneNumber) => {
+    console.log('Hook change:', p);
+  }, []);
+
   const { ref, digits, full, fullFormatted, isComplete, setCountry, clear } = usePhoneMask({
     country: 'GB',
     detect: false,
-    onChange: (p) => console.log('Hook change:', p)
+    onChange: onPhoneChange
   });
 
   return (
@@ -89,12 +107,20 @@ function Playground() {
   const [disabled, setDisabled] = useState(false);
   const [readonly, setReadonly] = useState(false);
 
-  const onDetectChange = (checked: boolean) => {
+  const onDetectChange = useCallback((checked: boolean) => {
     setDetect(checked);
     if (checked) {
       setCountry(undefined);
     }
-  };
+  }, []);
+
+  const onCountryChange = useCallback((c: MaskFull) => {
+    console.log('Country:', c.name);
+  }, []);
+
+  const onValidationChange = useCallback((v: boolean) => {
+    console.log('Valid:', v);
+  }, []);
 
   return (
     <section style={playgroundStyle}>
@@ -108,8 +134,8 @@ function Playground() {
             <PhoneInput
               value={digits}
               onChange={setDigits}
-              onCountryChange={(c) => console.log('Country:', c.name)}
-              onValidationChange={(v) => console.log('Valid:', v)}
+              onCountryChange={onCountryChange}
+              onValidationChange={onValidationChange}
               country={country}
               locale={locale}
               detect={detect}

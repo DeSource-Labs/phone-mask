@@ -12,7 +12,7 @@ export interface PhoneNumber {
 
 export interface PhoneInputProps {
   /** Controlled value (digits only, without country code) */
-  value?: string;
+  value: string;
   /** Whether to preselect a country by its ISO 3166-1 alpha-2 code */
   country?: CountryKey;
   /**
@@ -86,7 +86,7 @@ export interface PhoneInputProps {
    * Callback when the digits value changes.
    * Returns only the digits without country code (e.g. '234567890')
    */
-  onChange?: (digits: string) => void;
+  onChange: (digits: string) => void;
   /**
    * Callback when the phone number changes.
    * Provides an object with:

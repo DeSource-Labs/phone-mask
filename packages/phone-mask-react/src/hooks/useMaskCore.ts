@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
+  extractDigits,
   getNavigatorLang,
   getCountry,
   hasCountry,
@@ -13,20 +14,20 @@ import {
 import type { PhoneNumber } from '../types';
 
 /** Configuration options for the phone mask core hook */
-export interface UsePhoneMaskCoreOptions {
+export interface UseMaskCoreOptions {
   /**
    * Controlled value (digits only, without country code)
    * The parent is responsible for managing state via onChange callback.
    */
-  value?: string;
+  value: string;
+  /** Callback when the digits value changes. */
+  onChange: (digits: string) => void;
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */
   country?: string;
   /** Locale for country names (default: navigator.language) */
   locale?: string;
   /** Auto-detect country from IP/locale (default: false) */
   detect?: boolean;
-  /** Callback when the digits value changes. */
-  onChange?: (digits: string) => void;
   /** Callback when the phone number changes. */
   onPhoneChange?: (value: PhoneNumber) => void;
   /** Callback when country changes */
@@ -66,19 +67,18 @@ export interface UseMaskCoreReturn {
  * Can be reused by both usePhoneMask and PhoneInput.
  * Works in controlled mode only - requires value prop.
  */
-export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreReturn {
+export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
   // Destructure options for better dependency tracking
   const {
     locale: localeOption,
     country: countryOption,
     detect,
-    value: digits = '',
+    value,
     onChange,
     onPhoneChange,
     onCountryChange
   } = options;
 
-  // Compute locale
   const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);
 
   // Initialize country state
@@ -102,11 +102,12 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
     [locale]
   );
 
-  // Create formatter
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
-  const displayPlaceholder = useMemo(() => formatter.getPlaceholder(), [formatter]);
+  const maxDigits = formatter.getMaxDigits();
+  const digits = useMemo(() => extractDigits(value, maxDigits), [value, maxDigits]);
 
   // Compute derived values
+  const displayPlaceholder = formatter.getPlaceholder();
   const displayValue = formatter.formatDisplay(digits);
   const full = `${country.code}${digits}`;
   const fullFormatted = digits ? `${country.code} ${displayValue}` : '';
@@ -144,11 +145,10 @@ export function useMaskCore(options: UsePhoneMaskCoreOptions = {}): UseMaskCoreR
 
   // Clamp digits formatter changes
   useEffect(() => {
-    const maxDigits = formatter.getMaxDigits();
-    if (digits.length > maxDigits) {
-      onChange?.(digits.slice(0, maxDigits));
+    if (value !== digits) {
+      onChange?.(digits);
     }
-  }, [formatter, digits, onChange]);
+  }, [value, digits, onChange]);
 
   // Effect: Emit onCountryChange
   useEffect(() => {
