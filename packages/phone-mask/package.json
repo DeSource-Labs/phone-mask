@@ -32,9 +32,13 @@
   "publishConfig": {
     "access": "public"
   },
+  "type": "module",
   "main": "dist/phone-mask.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
+  "unpkg": "dist/phone-mask.umd.min.js",
+  "jsdelivr": "dist/phone-mask.umd.min.js",
+  "browser": "dist/phone-mask.umd.min.js",
   "files": [
     "dist",
     "CHANGELOG.md",
