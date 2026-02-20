@@ -21,6 +21,16 @@ type MaskMap = Record<CountryKey, Omit<Mask, 'id'>>;
 type MaskWithFlagMap = Record<CountryKey, Omit<MaskWithFlag, 'id'>>;
 type MaskFullMap = Record<CountryKey, Omit<MaskFull, 'id'>>;
 
+const dnCache = new Map<string, Intl.DisplayNames>();
+const getDisplayNames = (lang: string): Intl.DisplayNames => {
+  const key = lang.toLowerCase();
+  const cached = dnCache.get(key);
+  if (cached) return cached;
+  const dn = new Intl.DisplayNames([lang], { type: 'region' });
+  dnCache.set(key, dn);
+  return dn;
+};
+
 const dataEntries = Object.entries(data) as Array<[CountryKey, string | string[]]>;
 const divideMask = (maskEntity: string) => maskEntity.split(/ (.*)/s);
 function getCodeAndMask(maskEntity: string | Array<string>) {
@@ -96,7 +106,7 @@ export const MasksWithFlag = dataEntries.map<MaskWithFlag>(([id, maskEntity]) =>
  * MasksFullMap.US // { code: "+1", mask: "###-###-####", name: "United States", flag: "🇺🇸" }
  */
 export const MasksFullMap = (lang: string) => {
-  const dn = new Intl.DisplayNames([lang], { type: 'region' });
+  const dn = getDisplayNames(lang);
   return dataEntries.reduce<MaskFullMap>((acc, [id, maskEntity]) => {
     const [code, mask] = getCodeAndMask(maskEntity);
     const name = dn.of(id) ?? '';
@@ -110,7 +120,7 @@ export const MasksFullMap = (lang: string) => {
  * MasksFull[0] // { id: 'US', code: "+1", mask: "###-###-####", name: "United States", flag: "🇺🇸" }
  */
 export const MasksFull = (lang: string) => {
-  const dn = new Intl.DisplayNames([lang], { type: 'region' });
+  const dn = getDisplayNames(lang);
   return dataEntries.map<MaskFull>(([id, maskEntity]) => {
     const [code, mask] = getCodeAndMask(maskEntity);
     return {
@@ -129,7 +139,7 @@ export const MasksFull = (lang: string) => {
  */
 export const MasksFullMapEn = dataEntries.reduce<MaskFullMap>((acc, [id, maskEntity]) => {
   const [code, mask] = getCodeAndMask(maskEntity);
-  const dn = new Intl.DisplayNames(['en'], { type: 'region' });
+  const dn = getDisplayNames('en');
   acc[id] = { code, mask, name: dn.of(id) ?? '', flag: countryCodeEmoji(id) };
   return acc;
 }, {} as MaskFullMap);
@@ -140,7 +150,7 @@ export const MasksFullMapEn = dataEntries.reduce<MaskFullMap>((acc, [id, maskEnt
  */
 export const MasksFullEn = dataEntries.map<MaskFull>(([id, maskEntity]) => {
   const [code, mask] = getCodeAndMask(maskEntity);
-  const dn = new Intl.DisplayNames(['en'], { type: 'region' });
+  const dn = getDisplayNames('en');
   return {
     id,
     code,
