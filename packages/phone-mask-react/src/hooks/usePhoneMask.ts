@@ -1,243 +1,82 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
-import { extractDigits, getSelection } from '../utils';
-import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
-import { usePhoneMaskCore } from './usePhoneMaskCore';
+import { useRef, useEffect, useCallback } from 'react';
+import { useMaskCore } from './useMaskCore';
+import { useInputHandlers } from './useInputHandlers';
 
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
 
 /**
  * React hook for phone number masking.
  * Provides low-level phone masking functionality for custom input implementations.
+ * Works in controlled mode — caller manages value state via onChange callback.
  */
-export function usePhoneMask(options: UsePhoneMaskOptions = {}): UsePhoneMaskReturn {
+export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Local state for digits (uncontrolled mode at this level)
-  const [localDigits, setDigits] = useState<string>('');
 
   const {
     digits,
     country,
     formatter,
+    displayPlaceholder,
     displayValue,
     full,
     fullFormatted,
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setCountry,
-    scheduleCaretUpdate
-  } = usePhoneMaskCore({
-    value: localDigits, // Pass local state as controlled value
-    ...options
+    setCountry
+  } = useMaskCore(options);
+
+  // Use consolidated input handlers
+  const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
+    formatter,
+    digits,
+    onChange: options.onChange
   });
 
-  // Clamp digits when formatter changes
+  // after mount, set input type to tel for better experience
   useEffect(() => {
-    const maxDigits = formatter.getMaxDigits();
-    if (localDigits.length > maxDigits) {
-      setDigits(localDigits.slice(0, maxDigits));
-    }
-  }, [formatter, localDigits]);
+    const el = inputRef.current;
+    if (!el) return;
+    el.setAttribute('type', 'tel');
+    el.setAttribute('inputmode', 'tel');
+  }, []);
 
-  // Update display when digits or country change
+  // Update display when digits or placeholder changes
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
 
     el.value = displayValue;
-    el.placeholder = formatter.getPlaceholder();
-  }, [displayValue, formatter]);
 
-  // Event handler: beforeinput
-  const handleBeforeInput = useCallback((e: InputEvent) => {
-    const data = e.data;
-    if (e.inputType !== 'insertText' || !data) return;
-
-    const el = inputRef.current;
-    if (!el) return;
-
-    // Block invalid characters & multiple spaces
-    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-      e.preventDefault();
-    }
-  }, []);
-
-  // Event handler: input
-  const handleInput = useCallback(() => {
-    const el = inputRef.current;
-    if (!el) return;
-
-    const raw = el.value || '';
-    const maxDigits = formatter.getMaxDigits();
-    const newDigits = extractDigits(raw, maxDigits);
-
-    setDigits(newDigits);
-    scheduleCaretUpdate(el, newDigits.length);
-  }, [formatter, scheduleCaretUpdate]);
-
-  // Event handler: keydown
-  const handleKeydown = useCallback(
-    (e: KeyboardEvent) => {
-      const el = inputRef.current;
-      if (!el) return;
-
-      // Allow meta & navigation keys
-      if (e.ctrlKey || e.metaKey || e.altKey || NavigationKeys.includes(e.key)) return;
-
-      const [selStart, selEnd] = getSelection(el);
-
-      if (e.key === 'Backspace') {
-        e.preventDefault();
-
-        if (selStart !== selEnd) {
-          const range = formatter.getDigitRange(digits, selStart, selEnd);
-          if (range) {
-            const [start, end] = range;
-            const newDigits = digits.slice(0, start) + digits.slice(end);
-            setDigits(newDigits);
-            scheduleCaretUpdate(el, start);
-          }
-          return;
-        }
-
-        if (selStart > 0) {
-          const displayStr = el.value;
-          let prevPos = selStart - 1;
-          while (prevPos >= 0 && Delimiters.includes(displayStr[prevPos]!)) {
-            prevPos--;
-          }
-
-          if (prevPos >= 0) {
-            const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
-            if (range) {
-              const [start] = range;
-              const newDigits = digits.slice(0, start) + digits.slice(start + 1);
-              setDigits(newDigits);
-              scheduleCaretUpdate(el, start);
-            }
-          }
-        }
-        return;
-      }
-
-      if (e.key === 'Delete') {
-        e.preventDefault();
-
-        if (selStart !== selEnd) {
-          const range = formatter.getDigitRange(digits, selStart, selEnd);
-          if (range) {
-            const [start, end] = range;
-            const newDigits = digits.slice(0, start) + digits.slice(end);
-            setDigits(newDigits);
-            scheduleCaretUpdate(el, start);
-          }
-          return;
-        }
-
-        if (selStart < el.value.length) {
-          const range = formatter.getDigitRange(digits, selStart, selStart + 1);
-          if (range) {
-            const [start] = range;
-            const newDigits = digits.slice(0, start) + digits.slice(start + 1);
-            setDigits(newDigits);
-            scheduleCaretUpdate(el, start);
-          }
-        }
-        return;
-      }
-
-      // Block max digits
-      if (/^[0-9]$/.test(e.key)) {
-        if (digits.length >= formatter.getMaxDigits()) {
-          e.preventDefault();
-        }
-        return;
-      }
-
-      // Block non-numeric
-      if (e.key.length === 1) {
-        e.preventDefault();
-      }
-    },
-    [digits, formatter, scheduleCaretUpdate]
-  );
-
-  // Event handler: paste
-  const handlePaste = useCallback(
-    (e: ClipboardEvent) => {
-      e.preventDefault();
-
-      const el = inputRef.current;
-      if (!el) return;
-
-      const text = e.clipboardData?.getData('text') || '';
-      const maxDigits = formatter.getMaxDigits();
-      const pastedDigits = extractDigits(text, maxDigits);
-
-      if (pastedDigits.length === 0) return;
-
-      const [selStart, selEnd] = getSelection(el);
-
-      if (selStart !== selEnd) {
-        const range = formatter.getDigitRange(digits, selStart, selEnd);
-
-        if (range) {
-          const [start, end] = range;
-          const left = digits.slice(0, start);
-          const right = digits.slice(end);
-          const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
-          setDigits(newDigits);
-          scheduleCaretUpdate(el, start + pastedDigits.length);
-          return;
-        }
-      }
-
-      const range = formatter.getDigitRange(digits, selStart, selStart);
-      const insertIndex = range ? range[0] : digits.length;
-
-      const left = digits.slice(0, insertIndex);
-      const right = digits.slice(insertIndex);
-      const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
-      setDigits(newDigits);
-      scheduleCaretUpdate(el, insertIndex + pastedDigits.length);
-    },
-    [digits, formatter, scheduleCaretUpdate]
-  );
+    el.setAttribute('placeholder', displayPlaceholder);
+  }, [displayValue, displayPlaceholder]);
 
   // Attach event listeners
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
 
-    el.setAttribute('type', 'tel');
-    el.setAttribute('inputmode', 'tel');
-    el.setAttribute('placeholder', formatter.getPlaceholder());
-
-    const beforeInputHandler = handleBeforeInput as unknown as (evt: Event) => void;
-    const keydownHandler = handleKeydown as unknown as (evt: Event) => void;
-    const pasteHandler = handlePaste as unknown as (evt: Event) => void;
+    const beforeInputHandler = handleBeforeInput;
+    const inputHandler = handleInput;
+    const keydownHandler = handleKeydown;
+    const pasteHandler = handlePaste;
 
     el.addEventListener('beforeinput', beforeInputHandler);
-    el.addEventListener('input', handleInput);
+    el.addEventListener('input', inputHandler);
     el.addEventListener('keydown', keydownHandler);
     el.addEventListener('paste', pasteHandler);
 
     return () => {
       el.removeEventListener('beforeinput', beforeInputHandler);
-      el.removeEventListener('input', handleInput);
+      el.removeEventListener('input', inputHandler);
       el.removeEventListener('keydown', keydownHandler);
       el.removeEventListener('paste', pasteHandler);
     };
-  }, [handleBeforeInput, handleInput, handleKeydown, handlePaste, formatter]);
+  }, [handleBeforeInput, handleInput, handleKeydown, handlePaste]);
 
   const clear = useCallback(() => {
-    setDigits('');
-    const el = inputRef.current;
-    if (el) {
-      el.value = '';
-    }
-  }, []);
+    options.onChange('');
+  }, [options.onChange]);
 
   return {
     ref: inputRef,

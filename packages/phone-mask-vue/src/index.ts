@@ -9,7 +9,7 @@ import {
 import type { App } from 'vue';
 import PhoneInput from './components/PhoneInput.vue';
 import { vPhoneMask, setCountry as vPhoneMaskSetCountry } from './directives/vPhoneMask';
-import type { PhoneNumber as PMaskPhoneNumber } from './types';
+import type { PhoneNumber as PMaskPhoneNumber, Size as PhoneInputSize, Theme as PhoneInputTheme } from './types';
 
 type TPhoneInputComponent = typeof PhoneInput;
 type TPhoneMaskDirective = typeof vPhoneMask;
@@ -28,7 +28,9 @@ export {
   type TPhoneInputComponent,
   type TPhoneMaskDirective,
   type TPhoneMaskSetCountryType,
-  type PMaskPhoneNumber
+  type PMaskPhoneNumber,
+  type PhoneInputSize,
+  type PhoneInputTheme
 };
 
 export default {

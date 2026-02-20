@@ -38,14 +38,16 @@ export async function detectCountryFromGeoIP(
 export async function detectByGeoIp(hasCountry: (code: string) => boolean): Promise<string | null> {
   try {
     const cached = localStorage.getItem(CACHE_KEY);
+
     if (cached) {
       const parsed: MaskGeoCache = JSON.parse(cached);
       const expired = Date.now() - parsed.ts > CACHE_EXPIRY_MS;
+      const code = parsed.country_code;
 
-      if (expired) {
+      if (code && hasCountry(code) && !expired) {
+        return code.toUpperCase();
+      } else {
         localStorage.removeItem(CACHE_KEY);
-      } else if (parsed.country_code && hasCountry(parsed.country_code)) {
-        return parsed.country_code.toUpperCase();
       }
     }
   } catch {

@@ -54,10 +54,12 @@
   ],
   "scripts": {
     "clean": "rimraf dist tsconfig.tsbuildinfo",
+    "dev": "vite demo",
     "build": "pnpm build-lib && pnpm build-types",
     "build-lib": "vite build",
     "build-types": "vue-tsc --emitDeclarationOnly --declaration -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:e2e": "playwright test"
   },
   "peerDependencies": {
     "vue": "^3.4.33"

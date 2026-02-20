@@ -9,11 +9,11 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { getMasksFullMapByLocale, type CountryKey, type MaskFull } from '@desource/phone-mask';
-import { extractDigits, getSelection } from '../utils';
-import { Delimiters, NavigationKeys, InvalidPattern } from '../consts';
-import { usePhoneMaskCore } from '../hooks/usePhoneMaskCore';
+import { getMasksFullMapByLocale, filterCountries, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { useMaskCore } from '../hooks/useMaskCore';
 import { useTimer } from '../hooks/useTimer';
+import { useClipboard } from '../hooks/useClipboard';
+import { useInputHandlers } from '../hooks/useInputHandlers';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
 
@@ -58,6 +58,29 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     renderClearSvg
   } = props;
 
+  const {
+    digits,
+    country,
+    locale,
+    formatter,
+    displayPlaceholder,
+    displayValue,
+    full,
+    fullFormatted,
+    isComplete,
+    isEmpty,
+    shouldShowWarn,
+    setCountry
+  } = useMaskCore({
+    country: propCountry,
+    locale: propLocale,
+    detect,
+    value,
+    onChange,
+    onPhoneChange,
+    onCountryChange
+  });
+
   const telRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -65,97 +88,29 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const liveRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  // Compute digits from value prop (fully controlled)
-  const digits = useMemo(() => extractDigits(value || ''), [value]);
-
-  const {
-    country,
-    locale,
-    formatter,
-    displayValue,
-    full,
-    fullFormatted,
-    isComplete,
-    isEmpty,
-    setCountry,
-    scheduleCaretUpdate
-  } = usePhoneMaskCore({
-    country: propCountry,
-    locale: propLocale,
-    detect,
-    value: digits, // Pass computed digits
-    onChange: onPhoneChange,
-    onCountryChange: onCountryChange
-  });
-
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [search, setSearch] = useState('');
   const [focusedIndex, setFocusedIndex] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const [isCopying, setIsCopying] = useState(false);
   const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
   const [showValidationHint, setShowValidationHint] = useState(false);
-  const [hasDropdown, setHasDropdown] = useState<boolean>(!propCountry);
+
+  const { copied, copy } = useClipboard();
 
   const validationTimer = useTimer();
   const closeTimer = useTimer();
-  const copyTimer = useTimer();
+  const liveTimer = useTimer();
 
   const countries = useMemo(() => getCountries(locale), [locale]);
+  const filteredCountries = useMemo(() => filterCountries(countries, search), [countries, search]);
 
-  const displayPlaceholder = formatter.getPlaceholder();
-  const shouldShowWarn = showValidationHint && !isEmpty && !isComplete;
-
-  const filteredCountries = useMemo(() => {
-    const raw = search.trim();
-    if (!raw) return countries;
-    const q = raw.toUpperCase();
-    const qDigits = q.replace(/\D/g, '');
-    const isNumeric = qDigits.length > 0;
-
-    return countries
-      .map((c) => {
-        const nameUpper = c.name.toUpperCase();
-        const idUpper = c.id.toUpperCase();
-        const codeUpper = c.code.toUpperCase();
-        const codeDigits = c.code.replace(/\D/g, '');
-        let score = 0;
-        if (nameUpper.startsWith(q)) score = 1000;
-        else if (nameUpper.includes(q)) score = 500;
-
-        if (codeUpper.startsWith(q)) score += 100;
-        else if (codeUpper.includes(q)) score += 50;
-
-        if (idUpper === q) score += 200;
-        else if (idUpper.startsWith(q)) score += 150;
-
-        if (isNumeric && codeDigits.startsWith(qDigits)) score += 80;
-        else if (isNumeric && codeDigits.includes(qDigits)) score += 40;
-
-        return { country: c, score };
-      })
-      .filter((x) => x.score > 0)
-      .sort((a, b) => (b.score !== a.score ? b.score - a.score : a.country.name.localeCompare(b.country.name)))
-      .map((x) => x.country);
-  }, [countries, search]);
+  const hasDropdown = useMemo(() => !propCountry && countries.length > 1, [propCountry, countries]);
 
   const inactive = disabled || readonly;
+  const incomplete = showValidationHint && shouldShowWarn;
+
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
-
-  // Clamp digits when formatter changes
-  useEffect(() => {
-    const maxDigits = formatter.getMaxDigits();
-    if (digits.length > maxDigits) {
-      onChange?.(digits.slice(0, maxDigits));
-    }
-  }, [formatter, digits, onChange]);
-
-  // Country initialization and detection with cache + locale fallback
-  useEffect(() => {
-    setHasDropdown(!propCountry && countries.length > 1);
-  }, [propCountry, countries]);
 
   // Notify validation changes
   useEffect(() => {
@@ -177,141 +132,33 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     [validationTimer]
   );
 
-  // Input handlers
-  const handleBeforeInput = useCallback((e: InputEvent) => {
-    const data = e.data;
-    if (e.inputType !== 'insertText' || !data) return;
-    const el = telRef.current;
-    if (!el) return;
-    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-      e.preventDefault();
-    }
-  }, []);
-
-  const handleInput = useCallback(() => {
-    const el = telRef.current;
-    if (!el || inactive) return;
-    const raw = el.value || '';
-    const maxDigits = formatter.getMaxDigits();
-    const newDigits = extractDigits(raw, maxDigits);
-    onChange?.(newDigits);
-    scheduleCaretUpdate(el, newDigits.length);
-    // validation hint debounce (500ms)
+  // Validation hint callbacks
+  const handleValidationHintAfterInput = useCallback(() => {
     clearValidationHint();
-    if (newDigits.length > 0) {
+    if (digits.length > 0) {
       scheduleValidationHint(500);
     }
-  }, [formatter, inactive, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]);
+  }, [clearValidationHint, scheduleValidationHint, digits]);
 
-  const handleKeydown = useCallback(
-    (e: KeyboardEvent) => {
-      if (inactive) return;
-      const el = telRef.current;
-      if (!el) return;
+  const handleValidationHintAfterKeydown = useCallback(() => {
+    clearValidationHint();
+    scheduleValidationHint(300);
+  }, [clearValidationHint, scheduleValidationHint]);
 
-      if (e.ctrlKey || e.metaKey || e.altKey || NavigationKeys.includes(e.key)) return;
+  // Use consolidated input handlers
+  const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
+    formatter,
+    digits,
+    inactive,
+    onChange,
+    onAfterInput: handleValidationHintAfterInput,
+    onAfterKeydown: handleValidationHintAfterKeydown,
+    onAfterPaste: handleValidationHintAfterKeydown
+  });
 
-      const [selStart, selEnd] = getSelection(el);
-
-      // debounce validation hint during typing (300ms)
-      clearValidationHint();
-      const scheduleHint = () => scheduleValidationHint(300);
-
-      if (e.key === 'Backspace') {
-        e.preventDefault();
-        if (selStart !== selEnd) {
-          const range = formatter.getDigitRange(digits, selStart, selEnd);
-          if (range) {
-            const [start, end] = range;
-            onChange?.(digits.slice(0, start) + digits.slice(end));
-            scheduleCaretUpdate(el, start);
-          }
-        } else if (selStart > 0) {
-          let prevPos = selStart - 1;
-          while (prevPos >= 0 && Delimiters.includes(el.value[prevPos]!)) prevPos--;
-          if (prevPos >= 0) {
-            const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
-            if (range) {
-              const [start] = range;
-              onChange?.(digits.slice(0, start) + digits.slice(start + 1));
-              scheduleCaretUpdate(el, start);
-            }
-          }
-        }
-        scheduleHint();
-        return;
-      }
-
-      if (e.key === 'Delete') {
-        e.preventDefault();
-        if (selStart !== selEnd) {
-          const range = formatter.getDigitRange(digits, selStart, selEnd);
-          if (range) {
-            const [start, end] = range;
-            onChange?.(digits.slice(0, start) + digits.slice(end));
-            scheduleCaretUpdate(el, start);
-          }
-        } else if (selStart < el.value.length) {
-          const range = formatter.getDigitRange(digits, selStart, selStart + 1);
-          if (range) {
-            const [start] = range;
-            onChange?.(digits.slice(0, start) + digits.slice(start + 1));
-            scheduleCaretUpdate(el, start);
-          }
-        }
-        scheduleHint();
-        return;
-      }
-
-      if (/^[0-9]$/.test(e.key)) {
-        if (digits.length >= formatter.getMaxDigits()) e.preventDefault();
-        scheduleHint();
-        return;
-      }
-
-      if (e.key.length === 1) e.preventDefault();
-      scheduleHint();
-    },
-    [inactive, formatter, digits, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
-  );
-
-  const handlePaste = useCallback(
-    (e: ClipboardEvent) => {
-      if (inactive) return;
-      e.preventDefault();
-      const el = telRef.current;
-      if (!el) return;
-
-      const text = e.clipboardData?.getData('text') || '';
-      const maxDigits = formatter.getMaxDigits();
-      const pastedDigits = extractDigits(text, maxDigits);
-      if (!pastedDigits) return;
-
-      const [selStart, selEnd] = getSelection(el);
-      if (selStart !== selEnd) {
-        const range = formatter.getDigitRange(digits, selStart, selEnd);
-        if (range) {
-          const [start, end] = range;
-          const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
-          onChange?.(newDigits);
-          scheduleCaretUpdate(el, start + pastedDigits.length);
-        }
-      } else {
-        const range = formatter.getDigitRange(digits, selStart, selStart);
-        const insertIndex = range ? range[0] : digits.length;
-        const newDigits = extractDigits(
-          digits.slice(0, insertIndex) + pastedDigits + digits.slice(insertIndex),
-          maxDigits
-        );
-        onChange?.(newDigits);
-        scheduleCaretUpdate(el, insertIndex + pastedDigits.length);
-      }
-      // show validation hint after paste (300ms)
-      clearValidationHint();
-      scheduleValidationHint(300);
-    },
-    [inactive, formatter, digits, onChange, clearValidationHint, scheduleValidationHint, scheduleCaretUpdate]
-  );
+  const focusInput = useCallback(() => {
+    setTimeout(() => telRef.current?.focus(), 0);
+  }, []);
 
   // Close dropdown with animation
   const closeDropdown = useCallback(() => {
@@ -333,26 +180,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     [onFocus, closeDropdown, clearValidationHint]
   );
 
-  // Attach native event listeners
-  useEffect(() => {
-    const el = telRef.current;
-    if (!el) return;
-
-    const beforeInputHandler = handleBeforeInput as unknown as (evt: Event) => void;
-    const keydownHandler = handleKeydown as unknown as (evt: Event) => void;
-    const pasteHandler = handlePaste as unknown as (evt: Event) => void;
-
-    el.addEventListener('beforeinput', beforeInputHandler);
-    el.addEventListener('keydown', keydownHandler);
-    el.addEventListener('paste', pasteHandler);
-
-    return () => {
-      el.removeEventListener('beforeinput', beforeInputHandler);
-      el.removeEventListener('keydown', keydownHandler);
-      el.removeEventListener('paste', pasteHandler);
-    };
-  }, [handleBeforeInput, handleKeydown, handlePaste]);
-
   // Country selection
   const selectCountry = useCallback(
     (code: CountryKey) => {
@@ -360,9 +187,23 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       closeDropdown();
       setSearch('');
       setFocusedIndex(0);
-      setTimeout(() => telRef.current?.focus(), 0);
+      focusInput();
     },
-    [setCountry, closeDropdown]
+    [setCountry, closeDropdown, focusInput]
+  );
+
+  // Close dropdown on outside click
+  const onDocClick = useCallback(
+    (ev: Event) => {
+      const target = ev.target as Node | null;
+      const dropdownEl = dropdownRef.current;
+      const selectorEl = selectorRef.current;
+      if (!target) return;
+      if (dropdownEl?.contains(target)) return;
+      if (selectorEl?.contains(target)) return;
+      closeDropdown();
+    },
+    [closeDropdown]
   );
 
   // Dropdown positioning
@@ -382,16 +223,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     positionDropdown();
     const focusTimer = setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
 
-    const onDocClick = (ev: Event) => {
-      const target = ev.target as Node | null;
-      const dropdownEl = dropdownRef.current;
-      const selectorEl = selectorRef.current;
-      if (!target) return;
-      if (dropdownEl?.contains(target)) return;
-      if (selectorEl?.contains(target)) return;
-      closeDropdown();
-    };
-
     window.addEventListener('resize', positionDropdown);
     window.addEventListener('scroll', positionDropdown, true);
     window.addEventListener('click', onDocClick, true);
@@ -402,30 +233,28 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       window.removeEventListener('scroll', positionDropdown, true);
       window.removeEventListener('click', onDocClick, true);
     };
-  }, [dropdownOpen, positionDropdown, closeDropdown]);
+  }, [dropdownOpen, positionDropdown, onDocClick]);
+
+  const announceToScreenReader = useCallback(
+    (message: string) => {
+      if (!liveRef.current) return;
+      liveRef.current.textContent = message;
+      liveTimer.set(() => {
+        if (liveRef.current) liveRef.current.textContent = '';
+      }, 2000);
+    },
+    [liveTimer]
+  );
 
   // Copy functionality
   const handleCopyClick = useCallback(async () => {
-    if (isCopying) return;
     const trimmedValue = fullFormatted.trim();
-    if (!trimmedValue) return;
-
-    setIsCopying(true);
-    try {
-      await navigator.clipboard.writeText(trimmedValue);
-      setCopied(true);
+    const success = await copy(trimmedValue);
+    if (success) {
       onCopy?.(trimmedValue);
-      if (liveRef.current) liveRef.current.textContent = 'Phone number copied to clipboard';
-
-      copyTimer.set(() => {
-        setCopied(false);
-      }, 1800);
-    } catch (err) {
-      console.warn('Copy failed', err);
-    } finally {
-      setIsCopying(false);
+      announceToScreenReader('Phone number copied to clipboard');
     }
-  }, [fullFormatted, onCopy, isCopying, copyTimer]);
+  }, [fullFormatted, onCopy, copy, announceToScreenReader]);
 
   const clear = useCallback(() => {
     onChange?.('');
@@ -436,14 +265,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   // Clear functionality
   const handleClearClick = useCallback(() => {
     clear();
-    setTimeout(() => telRef.current?.focus(), 0);
-  }, [clear]);
+    focusInput();
+  }, [clear, focusInput]);
 
   // Imperative handle
   useImperativeHandle(
     ref,
     () => ({
-      focus: () => telRef.current?.focus(),
+      focus: focusInput,
       blur: () => telRef.current?.blur(),
       clear,
       selectCountry,
@@ -453,7 +282,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       isValid: () => isComplete,
       isComplete: () => isComplete
     }),
-    [selectCountry, full, fullFormatted, digits, isComplete, clear]
+    [focusInput, selectCountry, full, fullFormatted, digits, isComplete, clear]
   );
 
   const scrollFocusedIntoView = (index: number) => {
@@ -523,7 +352,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     disabled && 'is-disabled',
     readonly && 'is-readonly',
     disableDefaultStyles && 'is-unstyled',
-    withValidity && shouldShowWarn && 'is-incomplete',
+    withValidity && incomplete && 'is-incomplete',
     withValidity && isComplete && 'is-complete'
   ]
     .filter(Boolean)
@@ -602,8 +431,11 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             value={displayValue}
             disabled={disabled}
             readOnly={readonly}
-            aria-invalid={shouldShowWarn}
+            aria-invalid={incomplete}
             onInput={handleInput}
+            onBeforeInput={handleBeforeInput}
+            onKeyDown={handleKeydown}
+            onPaste={handlePaste}
             onFocus={handleFocusInput}
             onBlur={onBlur}
           />
@@ -615,7 +447,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             {showCopyButton && (
               <button
                 type="button"
-                className={`pi-btn ${copied ? 'is-copied' : ''}`}
+                className={`pi-btn pi-btn-copy ${copied ? 'is-copied' : ''}`}
                 aria-label={copied ? 'Copied' : `Copy ${country.code} ${displayValue}`}
                 title={copied ? 'Copied' : 'Copy phone number'}
                 onClick={handleCopyClick}
@@ -640,7 +472,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             {showClearButton && (
               <button
                 type="button"
-                className="pi-btn"
+                className="pi-btn pi-btn-clear"
                 aria-label={clearButtonLabel}
                 title={clearButtonLabel}
                 onClick={handleClearClick}
