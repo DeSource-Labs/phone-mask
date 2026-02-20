@@ -4,7 +4,9 @@
   "pnpm": {
     "overrides": {
       "sharp": "^0.34.4",
-      "tar": "^7.5.9"
+      "tar": "^7.5.9",
+      "citty": "^0.1.6",
+      "glob": "^13.0.6"
     }
   },
   "scripts": {
