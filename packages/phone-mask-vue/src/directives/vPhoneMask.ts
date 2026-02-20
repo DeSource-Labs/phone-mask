@@ -4,11 +4,16 @@ import {
   getCountry,
   detectCountryFromGeoIP,
   detectCountryFromLocale,
+  setCaret,
+  extractDigits,
+  processBeforeInput,
+  processInput,
+  processKeydown,
+  processPaste,
+  createPhoneFormatter,
   type MaskFull
 } from '@desource/phone-mask';
 
-import { createPhoneFormatter, setCaret, extractDigits, getSelection } from '../composables/usePhoneFormatter';
-import { Delimiters, InvalidPattern, NavigationKeys } from '../consts';
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
 
 /**
@@ -74,38 +79,19 @@ function updateDisplay(el: HTMLInputElement, state: PMaskDirectiveState): void {
 }
 
 /**
- * Create beforeinput event handler.
- * Blocks invalid characters -> dirty hack for autocorrect issues
- */
-function createBeforeInputHandler(el: HTMLInputElement): (e: InputEvent) => void {
-  return (e: InputEvent) => {
-    const data = e.data;
-    if (e.inputType !== 'insertText' || !data) return;
-
-    // Block invalid characters & multiple spaces
-    if (InvalidPattern.test(data) || (data === ' ' && el.value.endsWith(' '))) {
-      e.preventDefault();
-    }
-  };
-}
-
-/**
  * Create input event handler.
  * Extracts digits from typed input, formats display, and positions cursor
  */
 function createInputHandler(el: HTMLInputElement, state: PMaskDirectiveState): (e: Event) => void {
   return (e: Event) => {
-    const target = e.target as HTMLInputElement;
-    if (!target) return;
+    const result = processInput(e, { formatter: state.formatter });
+    if (!result) return;
 
-    const raw = target.value || '';
-    const maxDigits = state.formatter.getMaxDigits();
-    state.digits = extractDigits(raw, maxDigits);
-
+    state.digits = result.newDigits;
     updateDisplay(el, state);
 
     nextTick(() => {
-      const pos = state.formatter.getCaretPosition(state.digits.length);
+      const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
       setCaret(el, pos);
     });
   };
@@ -118,99 +104,20 @@ function createInputHandler(el: HTMLInputElement, state: PMaskDirectiveState): (
  */
 function createKeydownHandler(el: HTMLInputElement, state: PMaskDirectiveState): (e: KeyboardEvent) => void {
   return (e: KeyboardEvent) => {
-    // Allow meta & navigation keys
-    if (e.ctrlKey || e.metaKey || e.altKey || NavigationKeys.includes(e.key)) return;
+    const result = processKeydown(e, {
+      digits: state.digits,
+      formatter: state.formatter
+    });
 
-    const [selStart, selEnd] = getSelection(el);
+    if (!result) return;
 
-    if (e.key === 'Backspace') {
-      e.preventDefault();
+    state.digits = result.newDigits;
+    updateDisplay(el, state);
 
-      if (selStart !== selEnd) {
-        // Handle selection deletion
-        const range = state.formatter.getDigitRange(state.digits, selStart, selEnd);
-        if (range) {
-          const [start, end] = range;
-          state.digits = state.digits.slice(0, start) + state.digits.slice(end);
-          updateDisplay(el, state);
-          nextTick(() => {
-            const pos = state.formatter.getCaretPosition(start);
-            setCaret(el, pos);
-          });
-        }
-        return;
-      }
-
-      // Delete single character before caret, skipping delimiters
-      if (selStart > 0) {
-        const displayStr = el.value;
-        // Find previous digit position by skipping delimiters
-        let prevPos = selStart - 1;
-        while (prevPos >= 0 && Delimiters.includes(displayStr[prevPos]!)) {
-          prevPos--;
-        }
-
-        if (prevPos >= 0) {
-          const range = state.formatter.getDigitRange(state.digits, prevPos, prevPos + 1);
-          if (range) {
-            const [start] = range;
-            state.digits = state.digits.slice(0, start) + state.digits.slice(start + 1);
-            updateDisplay(el, state);
-            nextTick(() => {
-              const pos = state.formatter.getCaretPosition(start);
-              setCaret(el, pos);
-            });
-          }
-        }
-      }
-      return;
-    }
-
-    if (e.key === 'Delete') {
-      e.preventDefault();
-
-      if (selStart !== selEnd) {
-        const range = state.formatter.getDigitRange(state.digits, selStart, selEnd);
-        if (range) {
-          const [start, end] = range;
-          state.digits = state.digits.slice(0, start) + state.digits.slice(end);
-          updateDisplay(el, state);
-          nextTick(() => {
-            const pos = state.formatter.getCaretPosition(start);
-            setCaret(el, pos);
-          });
-        }
-        return;
-      }
-
-      // Delete character at caret
-      if (selStart < el.value.length) {
-        const range = state.formatter.getDigitRange(state.digits, selStart, selStart + 1);
-        if (range) {
-          const [start] = range;
-          state.digits = state.digits.slice(0, start) + state.digits.slice(start + 1);
-          updateDisplay(el, state);
-          nextTick(() => {
-            const pos = state.formatter.getCaretPosition(start);
-            setCaret(el, pos);
-          });
-        }
-      }
-      return;
-    }
-
-    // Block max digits
-    if (/^[0-9]$/.test(e.key)) {
-      if (state.digits.length >= state.formatter.getMaxDigits()) {
-        e.preventDefault();
-      }
-      return;
-    }
-
-    // Block non-numeric
-    if (e.key.length === 1) {
-      e.preventDefault();
-    }
+    nextTick(() => {
+      const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
+      setCaret(el, pos);
+    });
   };
 }
 
@@ -220,45 +127,18 @@ function createKeydownHandler(el: HTMLInputElement, state: PMaskDirectiveState):
  */
 function createPasteHandler(el: HTMLInputElement, state: PMaskDirectiveState): (e: ClipboardEvent) => void {
   return (e: ClipboardEvent) => {
-    e.preventDefault();
+    const result = processPaste(e, {
+      digits: state.digits,
+      formatter: state.formatter
+    });
 
-    const text = e.clipboardData?.getData('text') || '';
-    const maxDigits = state.formatter.getMaxDigits();
-    const pastedDigits = extractDigits(text, maxDigits);
+    if (!result) return;
 
-    if (pastedDigits.length === 0) return;
-
-    const [selStart, selEnd] = getSelection(el);
-
-    if (selStart !== selEnd) {
-      // Replace selection with pasted content
-      const range = state.formatter.getDigitRange(state.digits, selStart, selEnd);
-
-      if (range) {
-        const [start, end] = range;
-        const left = state.digits.slice(0, start);
-        const right = state.digits.slice(end);
-        state.digits = extractDigits(left + pastedDigits + right, maxDigits);
-        updateDisplay(el, state);
-        nextTick(() => {
-          const pos = state.formatter.getCaretPosition(start + pastedDigits.length);
-          setCaret(el, pos);
-        });
-        return;
-      }
-    }
-
-    // Insert at current position
-    const range = state.formatter.getDigitRange(state.digits, selStart, selStart);
-    const insertIndex = range ? range[0] : state.digits.length;
-
-    const left = state.digits.slice(0, insertIndex);
-    const right = state.digits.slice(insertIndex);
-    state.digits = extractDigits(left + pastedDigits + right, maxDigits);
+    state.digits = result.newDigits;
     updateDisplay(el, state);
 
     nextTick(() => {
-      const pos = state.formatter.getCaretPosition(insertIndex + pastedDigits.length);
+      const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
       setCaret(el, pos);
     });
   };
@@ -308,7 +188,7 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
     state.inputHandler = createInputHandler(el, state);
     state.keydownHandler = createKeydownHandler(el, state);
     state.pasteHandler = createPasteHandler(el, state);
-    state.beforeInputHandler = createBeforeInputHandler(el);
+    state.beforeInputHandler = processBeforeInput;
 
     el.addEventListener('beforeinput', state.beforeInputHandler);
     el.addEventListener('input', state.inputHandler);

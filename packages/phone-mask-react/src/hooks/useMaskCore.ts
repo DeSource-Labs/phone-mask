@@ -1,32 +1,84 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
+  extractDigits,
   getNavigatorLang,
   getCountry,
-  detectCountryFromGeoIP,
+  hasCountry,
+  detectByGeoIp,
   detectCountryFromLocale,
-  type MaskFull
+  createPhoneFormatter,
+  type MaskFull,
+  type FormatterHelpers
 } from '@desource/phone-mask';
-import { createPhoneFormatter, setCaret } from '../utils';
 
-import type { UsePhoneMaskCoreOptions, UsePhoneMaskCoreReturn, PhoneNumber } from '../types';
+import type { PhoneNumber } from '../types';
+
+/** Configuration options for the phone mask core hook */
+export interface UseMaskCoreOptions {
+  /**
+   * Controlled value (digits only, without country code)
+   * The parent is responsible for managing state via onChange callback.
+   */
+  value: string;
+  /** Callback when the digits value changes. */
+  onChange: (digits: string) => void;
+  /** Country ISO code (e.g., 'US', 'DE', 'GB') */
+  country?: string;
+  /** Locale for country names (default: navigator.language) */
+  locale?: string;
+  /** Auto-detect country from IP/locale (default: false) */
+  detect?: boolean;
+  /** Callback when the phone number changes. */
+  onPhoneChange?: (value: PhoneNumber) => void;
+  /** Callback when country changes */
+  onCountryChange?: (country: MaskFull) => void;
+}
+
+/** Return type for useMaskCore hook */
+export interface UseMaskCoreReturn {
+  /** Current country data */
+  country: MaskFull;
+  /** Change country programmatically */
+  setCountry: (countryCode: string) => void;
+  /** Raw digits without formatting */
+  digits: string;
+  /** Computed locale value */
+  locale: string;
+  /** Phone formatter instance */
+  formatter: FormatterHelpers;
+  /** Placeholder from formatter */
+  displayPlaceholder: string;
+  /** Formatted display string */
+  displayValue: string;
+  /** Full phone number with country code */
+  full: string;
+  /** Full phone number formatted */
+  fullFormatted: string;
+  /** Whether the phone number is complete */
+  isComplete: boolean;
+  /** Whether the input is empty */
+  isEmpty: boolean;
+  /** Whether to show validation warning */
+  shouldShowWarn: boolean;
+}
 
 /**
  * Core phone mask hook - pure state management and derived computations.
  * Can be reused by both usePhoneMask and PhoneInput.
  * Works in controlled mode only - requires value prop.
  */
-export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhoneMaskCoreReturn {
+export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
   // Destructure options for better dependency tracking
   const {
     locale: localeOption,
     country: countryOption,
     detect,
-    value: digits = '',
-    onChange: onPhoneChange,
+    value,
+    onChange,
+    onPhoneChange,
     onCountryChange
   } = options;
 
-  // Compute locale
   const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);
 
   // Initialize country state
@@ -50,10 +102,12 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
     [locale]
   );
 
-  // Create formatter
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
+  const maxDigits = formatter.getMaxDigits();
+  const digits = useMemo(() => extractDigits(value, maxDigits), [value, maxDigits]);
 
   // Compute derived values
+  const displayPlaceholder = formatter.getPlaceholder();
   const displayValue = formatter.formatDisplay(digits);
   const full = `${country.code}${digits}`;
   const fullFormatted = digits ? `${country.code} ${displayValue}` : '';
@@ -66,12 +120,15 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
 
   // Effect: Country detection (GeoIP + locale fallback)
   useEffect(() => {
-    if (countryOption) return; // Skip if country is explicitly set
+    if (countryOption && hasCountry(countryOption)) {
+      setCountry(countryOption);
+      return;
+    }
 
     if (!detect) return;
 
     (async () => {
-      const geoCountry = await detectCountryFromGeoIP();
+      const geoCountry = await detectByGeoIp(hasCountry);
 
       if (geoCountry) {
         setCountry(geoCountry);
@@ -80,53 +137,41 @@ export function usePhoneMaskCore(options: UsePhoneMaskCoreOptions = {}): UsePhon
 
       const localeCountry = detectCountryFromLocale();
 
-      if (localeCountry) {
+      if (localeCountry && hasCountry(localeCountry)) {
         setCountry(localeCountry);
       }
     })();
   }, [detect, countryOption, setCountry]);
 
-  // Effect: Sync country when option changes
+  // Clamp digits formatter changes
   useEffect(() => {
-    if (countryOption) {
-      setCountry(countryOption);
+    if (value !== digits) {
+      onChange(digits);
     }
-  }, [countryOption, setCountry]);
-
-  // Effect: Emit onPhoneChange
-  useEffect(() => {
-    onPhoneChange?.(phoneData);
-  }, [phoneData, onPhoneChange]);
+  }, [value, digits, onChange]);
 
   // Effect: Emit onCountryChange
   useEffect(() => {
     onCountryChange?.(country);
   }, [country, onCountryChange]);
 
-  // Helper: Schedule caret position update
-  const scheduleCaretUpdate = useCallback(
-    (el: HTMLInputElement | null, digitIndex: number) => {
-      setTimeout(() => {
-        if (!el) return;
-        const pos = formatter.getCaretPosition(digitIndex);
-        setCaret(el, pos);
-      }, 0);
-    },
-    [formatter]
-  );
+  // Effect: Emit onPhoneChange
+  useEffect(() => {
+    onPhoneChange?.(phoneData);
+  }, [phoneData, onPhoneChange]);
 
   return {
     digits,
     country,
     locale,
     formatter,
+    displayPlaceholder,
     displayValue,
     full,
     fullFormatted,
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setCountry,
-    scheduleCaretUpdate
+    setCountry
   };
 }

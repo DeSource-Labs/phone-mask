@@ -75,15 +75,17 @@ function App() {
 For custom input implementations:
 
 ```tsx
+import { useState } from 'react';
 import { usePhoneMask } from '@desource/phone-mask-react';
 
 function CustomPhoneInput() {
+  const [value, setValue] = useState('');
+
   const { ref, digits, full, fullFormatted, isComplete, country, setCountry } = usePhoneMask({
+    value,
+    onChange: setValue,
     country: 'US',
-    detect: true,
-    onChange: (phone) => {
-      console.log(phone.full, phone.digits);
-    }
+    detect: true
   });
 
   return (
@@ -102,10 +104,12 @@ function CustomPhoneInput() {
 
 ### Props
 
+> **Note:** The component requires controlled behavior. Both `value` and `onChange` props are required.
+
 ```ts
 interface PhoneInputProps {
-  // Controlled value (digits only, without country code)
-  value?: string;
+  // Controlled value (digits only, without country code) - REQUIRED
+  value: string;
 
   // Preselected country (ISO 3166-1 alpha-2)
   country?: CountryKey;
@@ -152,9 +156,9 @@ interface PhoneInputProps {
   // Disable default styles
   disableDefaultStyles?: boolean; // Default: false
 
-  // Callback when the digits value changes.
+  // Callback when the digits value changes - REQUIRED
   // Returns only the digits without country code (e.g. '234567890')
-  onChange?: (digits: string) => void;
+  onChange: (digits: string) => void;
 
   // Callback when the phone number changes.
   // Provides an object with:
@@ -215,8 +219,16 @@ phoneInputRef.current?.isComplete(); // Checks if the current phone number is co
 
 ### Options
 
+> **Note:** The hook requires controlled behavior. Both `value` and `onChange` options are required.
+
 ```ts
 interface UsePhoneMaskOptions {
+  // Controlled value (digits only, without country code) - REQUIRED
+  value: string;
+
+  // Callback when the digits value changes - REQUIRED
+  onChange: (digits: string) => void;
+
   // Predefined country ISO code (e.g., 'US', 'DE', 'GB')
   country?: string;
 
@@ -226,8 +238,8 @@ interface UsePhoneMaskOptions {
   // Auto-detect country from IP/locale (default: false)
   detect?: boolean;
 
-  // Value change callback
-  onChange?: (phone: PhoneNumber) => void;
+  // Callback when the phone changes (full, fullFormatted, digits)
+  onPhoneChange?: (phone: PhoneNumber) => void;
 
   // Country change callback
   onCountryChange?: (country: MaskFull) => void;

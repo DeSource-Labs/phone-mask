@@ -12,7 +12,7 @@ export interface PhoneNumber {
 
 export interface PhoneInputProps {
   /** Controlled value (digits only, without country code) */
-  value?: string;
+  value: string;
   /** Whether to preselect a country by its ISO 3166-1 alpha-2 code */
   country?: CountryKey;
   /**
@@ -86,7 +86,7 @@ export interface PhoneInputProps {
    * Callback when the digits value changes.
    * Returns only the digits without country code (e.g. '234567890')
    */
-  onChange?: (digits: string) => void;
+  onChange: (digits: string) => void;
   /**
    * Callback when the phone number changes.
    * Provides an object with:
@@ -140,22 +140,12 @@ export interface PhoneInputRef {
   isComplete: () => boolean;
 }
 
-export interface FormatterHelpers {
-  formatDisplay: (digits: string) => string;
-  getMaxDigits: () => number;
-  getPlaceholder: () => string;
-  getCaretPosition: (digitIndex: number) => number;
-  getDigitRange: (digits: string, selStart: number, selEnd: number) => [number, number] | null;
-  isComplete: (digits: string) => boolean;
-}
-
-/** Configuration options for the phone mask core hook */
-export interface UsePhoneMaskCoreOptions {
-  /**
-   * Controlled value (digits only, without country code)
-   * The parent is responsible for managing state via onChange callback.
-   */
-  value?: string;
+/** Configuration options for the phone mask hook */
+export interface UsePhoneMaskOptions {
+  /** Controlled value (digits only, without country code) */
+  value: string;
+  /** Callback when the digits value changes (e.g. '234567890') */
+  onChange: (digits: string) => void;
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */
   country?: string;
   /** Locale for country names (default: navigator.language) */
@@ -163,28 +153,22 @@ export interface UsePhoneMaskCoreOptions {
   /** Auto-detect country from IP/locale (default: false) */
   detect?: boolean;
   /**
-   * Callback when formatted value changes.
-   * Provides full number, formatted phone number, and raw digits.
+   * Callback when the phone number changes.
+   * Provides full, fullFormatted, digits.
    */
-  onChange?: (phone: PhoneNumber) => void;
+  onPhoneChange?: (phone: PhoneNumber) => void;
   /** Callback when country changes */
   onCountryChange?: (country: MaskFull) => void;
 }
 
-/** Return type for usePhoneMaskCore hook */
-export interface UsePhoneMaskCoreReturn {
+/** Return type for usePhoneMask hook */
+export interface UsePhoneMaskReturn {
   /** Current country data */
   country: MaskFull;
   /** Change country programmatically */
   setCountry: (countryCode: string) => void;
   /** Raw digits without formatting */
   digits: string;
-  /** Computed locale value */
-  locale: string;
-  /** Phone formatter instance */
-  formatter: FormatterHelpers;
-  /** Formatted display string */
-  displayValue: string;
   /** Full phone number with country code */
   full: string;
   /** Full phone number formatted */
@@ -195,18 +179,6 @@ export interface UsePhoneMaskCoreReturn {
   isEmpty: boolean;
   /** Whether to show validation warning */
   shouldShowWarn: boolean;
-  /** Helper function to schedule caret position update */
-  scheduleCaretUpdate: (el: HTMLInputElement | null, digitIndex: number) => void;
-}
-
-/** Configuration options for the phone mask hook */
-export interface UsePhoneMaskOptions extends Omit<UsePhoneMaskCoreOptions, 'value'> {}
-
-/** Return type for usePhoneMask hook */
-export interface UsePhoneMaskReturn extends Omit<
-  UsePhoneMaskCoreReturn,
-  'locale' | 'formatter' | 'displayValue' | 'scheduleCaretUpdate'
-> {
   /** Ref to attach to input element */
   ref: RefObject<HTMLInputElement | null>;
   /** Clear the input */

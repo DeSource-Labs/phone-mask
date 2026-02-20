@@ -1,14 +1,46 @@
-// Shared phone formatting utilities. Used by both PhoneInput component and vPhoneMask directive
-import {
-  toArray,
-  countPlaceholders,
-  removeCountryCodePrefix,
-  pickMaskVariant,
-  formatDigitsWithMap,
-  type MaskFull
-} from '@desource/phone-mask';
-import type { FormatterHelpers } from '../types';
+// Phone number formatter utilities
+import { toArray, countPlaceholders, removeCountryCodePrefix, pickMaskVariant, formatDigitsWithMap } from './utils';
+import type { MaskFull } from './entries';
 
+/**
+ * Formatter interface for digit range and caret calculations
+ */
+export interface FormatterHelpers {
+  /**
+   * Format digits into display string with mask delimiters
+   */
+  formatDisplay: (digits: string) => string;
+
+  /**
+   * Get maximum number of digits for the current country
+   */
+  getMaxDigits: () => number;
+
+  /**
+   * Get placeholder string for the input
+   */
+  getPlaceholder: () => string;
+
+  /**
+   * Get caret position in display string for given digit index
+   */
+  getCaretPosition: (digitIndex: number) => number;
+
+  /**
+   * Get digit range [start, end) for selection range in display string
+   * Returns null if no digits are selected
+   */
+  getDigitRange: (digits: string, selStart: number, selEnd: number) => [number, number] | null;
+
+  /**
+   * Check if the current number of digits is a valid complete phone number
+   */
+  isComplete: (digits: string) => boolean;
+}
+
+/**
+ * Create a phone formatter for a given country
+ */
 export function createPhoneFormatter(country: MaskFull): FormatterHelpers {
   const variants = toArray(country.mask);
   const variantsDigits = variants.map((m) => countPlaceholders(removeCountryCodePrefix(m)));
@@ -70,32 +102,4 @@ export function createPhoneFormatter(country: MaskFull): FormatterHelpers {
       return variantsDigits.includes(digits.length);
     }
   };
-}
-
-/**
- * Caret manipulation helper
- */
-export function setCaret(el: HTMLInputElement | null, position: number): void {
-  if (!el) return;
-  try {
-    el.setSelectionRange(position, position);
-  } catch {
-    // Silently fail if element doesn't support selection
-  }
-}
-
-/**
- * Extract digits from any string
- */
-export function extractDigits(value: string, maxLength?: number): string {
-  const digits = value.replace(/\D/g, '');
-  return maxLength ? digits.slice(0, maxLength) : digits;
-}
-
-/**
- * Parse selection range for digit operations
- */
-export function getSelection(el: HTMLInputElement | null): [number, number] {
-  if (!el) return [0, 0];
-  return [el.selectionStart ?? 0, el.selectionEnd ?? 0];
 }
