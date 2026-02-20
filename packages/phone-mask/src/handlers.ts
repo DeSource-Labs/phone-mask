@@ -240,10 +240,7 @@ export function processPaste(e: ClipboardEvent, params: ProcessPasteParams): Pas
   const pastedDigits = extractDigits(text, maxDigits);
 
   if (pastedDigits.length === 0) {
-    return {
-      newDigits: digits,
-      caretDigitIndex: digits.length
-    };
+    return;
   }
 
   const [selectionStart, selectionEnd] = getSelection(el);

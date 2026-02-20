@@ -30,7 +30,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
 
       phoneInput = component.locator(INPUT_SELECTOR);
       dropdownBtn = component.locator(COUNTRY_DROPDOWN_BTN_SELECTOR);
-      dropdownMenu = component.locator(COUNTRY_DROPDOWN_MENU_SELECTOR);
+      dropdownMenu = page.locator(COUNTRY_DROPDOWN_MENU_SELECTOR);
     });
 
     test.describe('readonly prop', () => {

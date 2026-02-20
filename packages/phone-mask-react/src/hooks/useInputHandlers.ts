@@ -50,9 +50,9 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
     [formatter]
   );
 
-  const handleBeforeInput = (e: React.SyntheticEvent<HTMLInputElement> | InputEvent) => {
+  const handleBeforeInput = useCallback((e: React.SyntheticEvent<HTMLInputElement> | InputEvent) => {
     processBeforeInput(getNativeEvent(e) as InputEvent);
-  };
+  }, []);
 
   const handleInput = useCallback(
     (e: React.SyntheticEvent<HTMLInputElement> | Event) => {

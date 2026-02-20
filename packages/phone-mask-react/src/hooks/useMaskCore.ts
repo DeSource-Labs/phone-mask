@@ -146,7 +146,7 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
   // Clamp digits formatter changes
   useEffect(() => {
     if (value !== digits) {
-      onChange?.(digits);
+      onChange(digits);
     }
   }, [value, digits, onChange]);
 
