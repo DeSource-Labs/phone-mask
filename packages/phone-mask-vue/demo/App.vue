@@ -20,6 +20,11 @@ const theme = ref<Theme>('dark');
 const withValidity = ref(true);
 const disabled = ref(false);
 const readonly = ref(false);
+const searchPlaceholder = ref('');
+const noResultsText = ref('');
+const clearButtonLabel = ref('');
+const dropdownClass = ref('');
+const disableDefaultStyles = ref(false);
 
 function onDetectChange(checked: boolean) {
   detect.value = checked;
@@ -67,6 +72,11 @@ function onChange(e: PMaskPhoneNumber) {
                 :with-validity="withValidity"
                 :disabled="disabled"
                 :readonly="readonly"
+                :search-placeholder="searchPlaceholder || undefined"
+                :no-results-text="noResultsText || undefined"
+                :clear-button-label="clearButtonLabel || undefined"
+                :dropdown-class="dropdownClass || undefined"
+                :disable-default-styles="disableDefaultStyles"
                 data-testid="phone-input"
                 @change="onChange"
                 @country-change="onCountryChange"
@@ -141,6 +151,52 @@ function onChange(e: PMaskPhoneNumber) {
             </div>
 
             <div class="control-group">
+              <label class="label">
+                <span>Search placeholder:</span>
+                <input
+                  v-model="searchPlaceholder"
+                  type="text"
+                  class="input"
+                  data-testid="props-search-placeholder"
+                  placeholder="Search country or code..."
+                />
+              </label>
+
+              <label class="label">
+                <span>No results text:</span>
+                <input
+                  v-model="noResultsText"
+                  type="text"
+                  class="input"
+                  data-testid="props-no-results-text"
+                  placeholder="No countries found"
+                />
+              </label>
+
+              <label class="label">
+                <span>Clear button label:</span>
+                <input
+                  v-model="clearButtonLabel"
+                  type="text"
+                  class="input"
+                  data-testid="props-clear-button-label"
+                  placeholder="Clear phone number"
+                />
+              </label>
+
+              <label class="label">
+                <span>Dropdown class:</span>
+                <input
+                  v-model="dropdownClass"
+                  type="text"
+                  class="input"
+                  data-testid="props-dropdown-class"
+                  placeholder="my-custom-class"
+                />
+              </label>
+            </div>
+
+            <div class="control-group">
               <label class="checkbox-label" data-testid="props-detect">
                 <input
                   type="checkbox"
@@ -174,6 +230,11 @@ function onChange(e: PMaskPhoneNumber) {
               <label class="checkbox-label" data-testid="props-readonly">
                 <input v-model="readonly" type="checkbox" class="checkbox" />
                 <span>Readonly</span>
+              </label>
+
+              <label class="checkbox-label" data-testid="props-disable-default-styles">
+                <input v-model="disableDefaultStyles" type="checkbox" class="checkbox" />
+                <span>Disable default styles</span>
               </label>
             </div>
           </div>
@@ -305,7 +366,8 @@ function onChange(e: PMaskPhoneNumber) {
   color: rgba(255, 255, 255, 0.9);
 }
 
-.select {
+.select,
+.input {
   padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -314,7 +376,14 @@ function onChange(e: PMaskPhoneNumber) {
   font-size: 14px;
   font-family: 'Nunito', sans-serif;
   outline: none;
+}
+
+.select {
   cursor: pointer;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .checkbox-label {
