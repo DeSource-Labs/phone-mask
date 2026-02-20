@@ -3,7 +3,8 @@
   "type": "module",
   "pnpm": {
     "overrides": {
-      "sharp": "^0.34.4"
+      "sharp": "^0.34.4",
+      "tar": "^7.5.9"
     }
   },
   "scripts": {
