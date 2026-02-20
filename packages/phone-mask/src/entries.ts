@@ -21,12 +21,23 @@ type MaskMap = Record<CountryKey, Omit<Mask, 'id'>>;
 type MaskWithFlagMap = Record<CountryKey, Omit<MaskWithFlag, 'id'>>;
 type MaskFullMap = Record<CountryKey, Omit<MaskFull, 'id'>>;
 
+const DEFAULT_LANG = 'en';
+const MAX_DN_CACHE_SIZE = 10;
 const dnCache = new Map<string, Intl.DisplayNames>();
 const getDisplayNames = (lang: string): Intl.DisplayNames => {
   const key = lang.toLowerCase();
   const cached = dnCache.get(key);
   if (cached) return cached;
   const dn = new Intl.DisplayNames([lang], { type: 'region' });
+  // Find and delete the first non-'en' key if cache size exceeds limit
+  if (dnCache.size >= MAX_DN_CACHE_SIZE) {
+    for (const cacheKey of dnCache.keys()) {
+      if (cacheKey !== DEFAULT_LANG) {
+        dnCache.delete(cacheKey);
+        break;
+      }
+    }
+  }
   dnCache.set(key, dn);
   return dn;
 };
@@ -138,13 +149,13 @@ export const MasksFull = (lang: string) => {
  * @example
  * MasksFullMapEn.US // { code: "+1", mask: "###-###-####", name: "United States", flag: "🇺🇸" }
  */
-export const MasksFullMapEn = MasksFullMap('en');
+export const MasksFullMapEn = MasksFullMap(DEFAULT_LANG);
 /**
  * Full masks array with name and flag emoji in English
  * @example
  * MasksFullEn[0] // { id: 'US', code: "+1", mask: "###-###-####", name: "United States", flag: "🇺🇸" }
  */
-export const MasksFullEn = MasksFull('en');
+export const MasksFullEn = MasksFull(DEFAULT_LANG);
 /** Get flag emoji by country ISO code */
 export const getFlagEmoji = countryCodeEmoji;
 
