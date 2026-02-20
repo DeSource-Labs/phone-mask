@@ -22,7 +22,8 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
     "format:check": "prettier --check \"**/*.{vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
-    "test:e2e:react": "playwright test --config packages/phone-mask-react/playwright.config.ts"
+    "test:e2e:react": "playwright test --config packages/phone-mask-react/playwright.config.ts",
+    "test:e2e:vue": "playwright test --config packages/phone-mask-vue/playwright.config.ts"
   },
   "packageManager": "pnpm@10.28.0",
   "devDependencies": {

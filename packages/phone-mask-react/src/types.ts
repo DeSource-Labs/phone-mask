@@ -1,4 +1,4 @@
-import type { MaskFull, CountryKey, FormatterHelpers } from '@desource/phone-mask';
+import type { MaskFull, CountryKey } from '@desource/phone-mask';
 import type { ReactNode, FocusEvent, RefObject } from 'react';
 
 export type Size = 'compact' | 'normal' | 'large';

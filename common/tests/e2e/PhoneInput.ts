@@ -3,7 +3,7 @@ import { test, expect, type Locator } from '@playwright/test';
 type PlaygroundControls = {
   readonly: string;
   disabled: string;
-}
+};
 
 export function testPhoneInput(containerSelector: string, playgroundControls: PlaygroundControls) {
   // PhoneInput component selectors
@@ -64,7 +64,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
         await expect(phoneInput).toHaveValue(valueBefore);
       });
 
-      test('readonly country selector does not open dropdown', async ({ page }) => {
+      test('readonly country selector does not open dropdown', async () => {
         await dropdownBtn.click();
         await expect(dropdownMenu).not.toBeAttached();
       });
@@ -154,5 +154,3 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
     });
   });
 }
-
-
