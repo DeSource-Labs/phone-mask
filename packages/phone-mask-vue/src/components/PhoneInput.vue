@@ -182,7 +182,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, nextTick, watch, useTemplateRef, shallowRef, type CSSProperties } from 'vue';
+import {
+  computed,
+  onBeforeUnmount,
+  nextTick,
+  watch,
+  watchPostEffect,
+  useTemplateRef,
+  shallowRef,
+  type CSSProperties
+} from 'vue';
 import { getNavigatorLang } from '@desource/phone-mask';
 
 import { useCountrySelector } from '../composables/useCountrySelector';
@@ -240,8 +249,10 @@ const {
 const mask = useMask({
   value: model,
   country: selected,
-  onChange: (newValue: string) => { model.value = newValue },
-  onPhoneDataChange: (data: PhoneNumber) => emit('change', data),
+  onChange: (newValue: string) => {
+    model.value = newValue;
+  },
+  onPhoneDataChange: (data: PhoneNumber) => emit('change', data)
 });
 const { digits, displayValue, displayPlaceholder, isComplete, isEmpty, shouldShowWarn, full, fullFormatted } = mask;
 
@@ -407,23 +418,15 @@ watch(
   { immediate: true }
 );
 
-watch(
-  copyMessage,
-  (val) => {
-    if (liveRef.value && val) {
-      liveRef.value.textContent = val;
-    }
-  },
-  { flush: 'post' }
-);
+watchPostEffect(() => {
+  if (liveRef.value && copyMessage.value) {
+    liveRef.value.textContent = copyMessage.value;
+  }
+});
 
-watch(
-  isComplete,
-  (valid) => {
-    emit('validation-change', valid);
-  },
-  { flush: 'post' }
-);
+watchPostEffect(() => {
+  emit('validation-change', isComplete.value);
+});
 
 onBeforeUnmount(() => {
   removeDropdownListeners();

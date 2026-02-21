@@ -1,6 +1,6 @@
 // Mask/digits formatting and input handling
 import { ref, computed, nextTick, toValue, watchEffect } from 'vue';
-import type { ComputedRef, MaybeRefOrGetter } from 'vue';
+import type { MaybeRefOrGetter } from 'vue';
 import {
   extractDigits,
   setCaret,
@@ -20,21 +20,16 @@ const HINT_DELAY_ACTION = 300;
 
 interface UseMaskOptions {
   value: MaybeRefOrGetter<string>;
-  country: ComputedRef<MaskFull>;
+  country: MaybeRefOrGetter<MaskFull>;
   onChange: (newDigits: string) => void;
   onPhoneDataChange?: (data: PhoneNumber) => void;
 }
 
-export function useMask({
-  value,
-  country,
-  onChange,
-  onPhoneDataChange,
-}: UseMaskOptions) {
+export function useMask({ value, country, onChange, onPhoneDataChange }: UseMaskOptions) {
   const showValidationHint = ref(false);
 
   /** Formatter for the country country */
-  const formatter = computed(() => createPhoneFormatter(country.value));
+  const formatter = computed(() => createPhoneFormatter(toValue(country)));
   const maxDigits = computed(() => formatter.value.getMaxDigits());
   const digits = computed(() => extractDigits(toValue(value), maxDigits.value));
 
@@ -53,12 +48,12 @@ export function useMask({
 
   const fullFormatted = computed(() => {
     if (!displayValue.value) return '';
-    return `${country.value.code} ${displayValue.value}`;
+    return `${toValue(country).code} ${displayValue.value}`;
   });
 
   const full = computed(() => {
     if (!digits.value) return '';
-    return `${country.value.code}${digits.value}`;
+    return `${toValue(country).code}${digits.value}`;
   });
 
   const phoneData = computed<PhoneNumber>(() => ({

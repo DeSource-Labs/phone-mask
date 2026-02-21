@@ -32,14 +32,6 @@ export function detectCountryFromLocale(): string | null {
   return null;
 }
 
-/** Get full mask map for a given locale */
-export function getMasksFullMapByLocale(locale: string): MaskFullMap {
-  const isEn = locale.toLowerCase().startsWith('en');
-  const map = isEn ? MasksFullMapEn : MasksFullMap(locale);
-
-  return map;
-}
-
 /** Check if a country exists in the full mask map */
 export function hasCountry(code: string): boolean {
   const map = MasksFullMapEn;
@@ -50,7 +42,7 @@ export function hasCountry(code: string): boolean {
 
 /** Get country data by ISO code and locale with fallback to US */
 export function getCountry(code: string, locale: string): MaskFull {
-  const map = getMasksFullMapByLocale(locale);
+  const map = MasksFullMap(locale);
   const id = code.toUpperCase() as CountryKey;
 
   if (id in map) {

@@ -9,20 +9,13 @@ import React, {
   type Ref
 } from 'react';
 import { createPortal } from 'react-dom';
-import { getMasksFullMapByLocale, filterCountries, type CountryKey, type MaskFull } from '@desource/phone-mask';
+import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
 import { useMaskCore } from '../hooks/useMaskCore';
 import { useTimer } from '../hooks/useTimer';
 import { useClipboard } from '../hooks/useClipboard';
 import { useInputHandlers } from '../hooks/useInputHandlers';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
-
-/** Get all countries */
-function getCountries(locale: string): MaskFull[] {
-  const map = getMasksFullMapByLocale(locale);
-
-  return Object.entries(map).map(([id, data]) => ({ id: id as CountryKey, ...data }));
-}
 
 type PhoneInputComponent = PhoneInputProps & { ref?: Ref<PhoneInputRef> };
 
@@ -101,7 +94,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const closeTimer = useTimer();
   const liveTimer = useTimer();
 
-  const countries = useMemo(() => getCountries(locale), [locale]);
+  const countries = useMemo(() => MasksFull(locale), [locale]);
   const filteredCountries = useMemo(() => filterCountries(countries, search), [countries, search]);
 
   const hasDropdown = useMemo(() => !propCountry && countries.length > 1, [propCountry, countries]);

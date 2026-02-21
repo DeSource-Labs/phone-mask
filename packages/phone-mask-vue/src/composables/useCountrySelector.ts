@@ -2,8 +2,6 @@ import { ref, computed, nextTick } from 'vue';
 import {
   MasksFull,
   MasksFullMap,
-  MasksFullEn,
-  MasksFullMapEn,
   hasCountry,
   detectByGeoIp,
   detectCountryFromLocale,
@@ -16,9 +14,8 @@ import type { ShallowRef, ComputedRef } from 'vue';
 const emptyCountry: MaskFull = { id: '' as CountryKey, code: '', mask: '', flag: '', name: '' };
 
 export function useCountrySelector(usedLocale: ComputedRef<string>) {
-  const isEnLocale = computed(() => usedLocale.value.toLowerCase().startsWith('en'));
-  const countries = computed(() => (isEnLocale.value ? MasksFullEn : MasksFull(usedLocale.value)));
-  const countriesMap = computed(() => (isEnLocale.value ? MasksFullMapEn : MasksFullMap(usedLocale.value)));
+  const countries = computed(() => MasksFull(usedLocale.value));
+  const countriesMap = computed(() => MasksFullMap(usedLocale.value));
 
   const selectedId = ref(countries.value[0]?.id || '');
   const dropdownOpened = ref(false);
