@@ -25,12 +25,7 @@ export default defineConfig({
 
     rollupOptions: {
       external: [],
-
-      // You may keep json also here if you want it applied at rollup bundling time,
-      // but the top-level pre-enforced plugin ensures Vite's dev / transform phase sees JSON first.
-      plugins: [
-        // json(...) // optional duplicate if you prefer rollup-time handling; top-level plugin covers Vite transform time
-      ],
+      plugins: [],
 
       output: [
         // ESM per-module output (safe for bundlers). Conservative terser per-module if desired.

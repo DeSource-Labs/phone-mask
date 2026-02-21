@@ -1,54 +1,41 @@
 // Framework-agnostic input handling utilities for phone mask inputs
 // These pure functions can be used across any framework (React, Vue, etc.)
-
 import type { FormatterHelpers } from './formatter';
 
 export const DELIMITERS = [' ', '-', '(', ')'];
 export const NAVIGATION_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Tab'];
 export const INVALID_PATTERN = /[^\d\s\-()]/;
 
-/**
- * Result of processInput
- */
+/** Result of processInput */
 interface InputResult {
   newDigits: string;
   caretDigitIndex: number;
 }
 
-/**
- * Result of processKeydown
- */
+/** Result of processKeydown */
 interface KeydownResult {
   newDigits: string;
   caretDigitIndex: number;
 }
 
-/**
- * Result of processPaste
- */
+/** Result of processPaste */
 interface PasteResult {
   newDigits: string;
   caretDigitIndex: number;
 }
 
-/**
- * Parameters for processInput
- */
+/** Parameters for processInput */
 interface ProcessInputParams {
   formatter: FormatterHelpers;
 }
 
-/**
- * Parameters for processKeydown
- */
+/** Parameters for processKeydown */
 interface ProcessKeydownParams {
   digits: string;
   formatter: FormatterHelpers;
 }
 
-/**
- * Parameters for processPaste
- */
+/** Parameters for processPaste */
 interface ProcessPasteParams {
   digits: string;
   formatter: FormatterHelpers;
