@@ -25,7 +25,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
     "format:check": "prettier --check \"**/*.{vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
-    "test:e2e": "pnpm -w -r --filter \"./packages/**\" --stream run test:e2e"
+    "test:e2e": "pnpm -w -r --filter \"./packages/**\" --stream --workspace-concurrency=1 run test:e2e"
   },
   "packageManager": "pnpm@10.28.0",
   "devDependencies": {

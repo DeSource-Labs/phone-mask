@@ -110,6 +110,11 @@ function Playground() {
   const [withValidity, setWithValidity] = useState(true);
   const [disabled, setDisabled] = useState(false);
   const [readonly, setReadonly] = useState(false);
+  const [searchPlaceholder, setSearchPlaceholder] = useState('');
+  const [noResultsText, setNoResultsText] = useState('');
+  const [clearButtonLabel, setClearButtonLabel] = useState('');
+  const [dropdownClass, setDropdownClass] = useState('');
+  const [disableDefaultStyles, setDisableDefaultStyles] = useState(false);
 
   const onDetectChange = useCallback((checked: boolean) => {
     setDetect(checked);
@@ -150,6 +155,11 @@ function Playground() {
               withValidity={withValidity}
               disabled={disabled}
               readonly={readonly}
+              searchPlaceholder={searchPlaceholder || undefined}
+              noResultsText={noResultsText || undefined}
+              clearButtonLabel={clearButtonLabel || undefined}
+              dropdownClass={dropdownClass || undefined}
+              disableDefaultStyles={disableDefaultStyles}
               data-testid="phone-input"
             />
             <div style={metaStyle}>
@@ -230,6 +240,56 @@ function Playground() {
           </div>
 
           <div style={controlGroupStyle}>
+            <label style={labelStyle}>
+              <span>Search placeholder:</span>
+              <input
+                type="text"
+                value={searchPlaceholder}
+                onChange={(e) => setSearchPlaceholder(e.target.value)}
+                style={textInputStyle}
+                placeholder="Search country or code..."
+                data-testid="props-search-placeholder"
+              />
+            </label>
+
+            <label style={labelStyle}>
+              <span>No results text:</span>
+              <input
+                type="text"
+                value={noResultsText}
+                onChange={(e) => setNoResultsText(e.target.value)}
+                style={textInputStyle}
+                placeholder="No countries found"
+                data-testid="props-no-results-text"
+              />
+            </label>
+
+            <label style={labelStyle}>
+              <span>Clear button label:</span>
+              <input
+                type="text"
+                value={clearButtonLabel}
+                onChange={(e) => setClearButtonLabel(e.target.value)}
+                style={textInputStyle}
+                placeholder="Clear phone number"
+                data-testid="props-clear-button-label"
+              />
+            </label>
+
+            <label style={labelStyle}>
+              <span>Dropdown class:</span>
+              <input
+                type="text"
+                value={dropdownClass}
+                onChange={(e) => setDropdownClass(e.target.value)}
+                style={textInputStyle}
+                placeholder="my-custom-class"
+                data-testid="props-dropdown-class"
+              />
+            </label>
+          </div>
+
+          <div style={controlGroupStyle}>
             <label style={checkboxLabelStyle} data-testid="props-detect">
               <input
                 type="checkbox"
@@ -288,6 +348,16 @@ function Playground() {
                 style={checkboxStyle}
               />
               <span>Readonly</span>
+            </label>
+
+            <label style={checkboxLabelStyle} data-testid="props-disable-default-styles">
+              <input
+                type="checkbox"
+                checked={disableDefaultStyles}
+                onChange={(e) => setDisableDefaultStyles(e.target.checked)}
+                style={checkboxStyle}
+              />
+              <span>Disable default styles</span>
             </label>
           </div>
         </div>
@@ -467,6 +537,17 @@ const checkboxStyle: React.CSSProperties = {
   height: 18,
   cursor: 'pointer',
   accentColor: '#a0a0ff'
+};
+
+const textInputStyle: React.CSSProperties = {
+  padding: '8px 12px',
+  borderRadius: 8,
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  background: 'rgba(255, 255, 255, 0.05)',
+  color: '#fff',
+  fontSize: 14,
+  fontFamily: "'Nunito', sans-serif",
+  outline: 'none'
 };
 
 const inputStyle: React.CSSProperties = {
