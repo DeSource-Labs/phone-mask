@@ -207,7 +207,7 @@ const props = withDefaults(defineProps<PhoneInputProps>(), {
 
 const slots = defineSlots<PhoneInputSlots>();
 
-const model = defineModel<string>();
+const model = defineModel<string>({ default: '' });
 
 const emit = defineEmits<PhoneInputEmits>();
 
@@ -237,16 +237,15 @@ const {
   closeDropdown
 } = countrySelector;
 
-const mask = useMask(selected, telRef);
+const mask = useMask({
+  value: model,
+  country: selected,
+  onChange: (newValue: string) => { model.value = newValue },
+  onPhoneDataChange: (data: PhoneNumber) => emit('change', data),
+});
 const { digits, displayValue, displayPlaceholder, isComplete, isEmpty, shouldShowWarn, full, fullFormatted } = mask;
 
 const { copied, copy } = useClipboard();
-
-const phoneData = computed<PhoneNumber>(() => ({
-  full: full.value,
-  fullFormatted: fullFormatted.value,
-  digits: digits.value
-}));
 
 const inactive = computed(() => props.disabled || props.readonly);
 const showCopyButton = computed(() => props.showCopy && !isEmpty.value && !props.disabled);
@@ -283,33 +282,20 @@ const rootStyles = computed<CSSProperties>(() => ({
   '--pi-actions-count': +showCopyButton.value + +showClearButton.value + (slots['actions-before'] ? 1 : 0)
 }));
 
-const emitModelUpdate = () => {
-  if (model.value === digits.value) return;
-  model.value = digits.value;
-  emit('change', phoneData.value);
-};
-
 // Event handlers
-const onInput = async (e: Event) => {
+const onInput = (e: Event) => {
   if (inactive.value) return;
   mask.handleInput(e);
-  await nextTick();
-  emitModelUpdate();
 };
 
-const onKeydown = async (e: KeyboardEvent) => {
+const onKeydown = (e: KeyboardEvent) => {
   if (inactive.value) return;
   mask.handleKeydown(e);
-  await nextTick();
-  emitModelUpdate();
 };
 
-const onPaste = async (e: ClipboardEvent) => {
+const onPaste = (e: ClipboardEvent) => {
   if (inactive.value) return;
   mask.handlePaste(e);
-  // Emit after paste is processed
-  await nextTick();
-  emitModelUpdate();
 };
 
 const focusInput = () => {
@@ -338,10 +324,8 @@ const onCopyClick = async () => {
   }
 };
 
-const onClearClick = async () => {
+const onClearClick = () => {
   mask.clear();
-  model.value = '';
-  emit('change', phoneData.value);
   emit('clear');
   focusInput();
 };
@@ -414,27 +398,6 @@ const onDocClick = (ev: MouseEvent) => {
 };
 
 // Watchers
-watch(
-  model,
-  (newValue) => {
-    if (!newValue) {
-      if (!isEmpty.value) mask.clear();
-      return;
-    }
-    // Only update if different from current value
-    const currentDigits = digits.value;
-    if (newValue !== currentDigits) {
-      // Extract digits from the incoming value
-      const incomingDigits = newValue.replace(/\D/g, '');
-      if (incomingDigits !== currentDigits) {
-        digits.value = incomingDigits;
-        mask.updateDisplayFromDigits();
-      }
-    }
-  },
-  { immediate: true }
-);
-
 watch(
   [() => props.country, () => props.detect],
   async ([country, detect]) => {
