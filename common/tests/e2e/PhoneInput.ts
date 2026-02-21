@@ -29,6 +29,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
   const CHEVRON_SELECTOR = '.pi-chevron';
   const DROPDOWN_SEARCH_SELECTOR = 'input.pi-search[type="search"]';
   const DROPDOWN_NO_RESULTS_SELECTOR = '.pi-empty';
+  const DROPDOWN_OPTION_SELECTOR = '.pi-option';
 
   const DIGITS = '12345';
 
@@ -90,6 +91,46 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
     });
 
     test.describe('props', () => {
+      test.describe('country', () => {
+        async function dropdownIsPresent() {
+          await expect(chevron).toBeAttached();
+          await expect(dropdownBtn).not.toHaveClass(/no-dropdown/);
+          await dropdownBtn.click();
+          await expect(dropdownMenu).toBeAttached();
+        }
+
+        async function dropdownIsAbsent() {
+          await expect(chevron).not.toBeAttached();
+          await expect(dropdownBtn).toHaveClass(/no-dropdown/);
+          await dropdownBtn.click();
+          await expect(dropdownMenu).not.toBeAttached();
+        }
+
+        test('country is not set', async () => {
+          await dropdownIsPresent();
+        });
+
+        test('country is set', async () => {
+          await countrySelect.selectOption('US');
+
+          await dropdownIsAbsent();
+        });
+
+        test('country prop overrides user dropdown selection and locks the dropdown', async () => {
+          // 1. No country prop — open dropdown and pick GB (+44) manually
+          await dropdownBtn.click();
+          await dropdownMenu.locator(DROPDOWN_SEARCH_SELECTOR).fill('United Kingdom');
+          await dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('United Kingdom', { exact: false }).click();
+
+          await dropdownIsPresent();
+
+          // 2. Set the country prop to US (+1)
+          await countrySelect.selectOption('US');
+
+          await dropdownIsAbsent();
+        });
+      });
+
       test.describe('readonly', () => {
         test.beforeEach(async () => {
           await phoneInput.click();
@@ -452,8 +493,6 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
       });
 
       test.describe('locale', () => {
-        const DROPDOWN_OPTION_SELECTOR = '.pi-option';
-
         test('locale=en-US shows country names in English', async () => {
           await localeSelect.selectOption('en-US');
           await dropdownBtn.click();
