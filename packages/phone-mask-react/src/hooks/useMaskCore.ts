@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   extractDigits,
   getNavigatorLang,
@@ -81,26 +81,9 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
 
   const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);
 
-  // Initialize country state
-  const [country, setCountryState] = useState<MaskFull>(() => getCountry(countryOption || 'US', locale));
-
-  // Effect: Refresh country when locale changes (keep same country id, update localized fields)
-  useEffect(() => {
-    setCountryState((prevCountry: MaskFull) => getCountry(prevCountry.id, locale));
-  }, [locale]);
-
-  // State setter: setCountry if it changes from previous
-  const setCountry = useCallback(
-    (countryCode: string) => {
-      const newCountry = getCountry(countryCode, locale);
-
-      setCountryState((prevCountry: MaskFull) => {
-        if (prevCountry.id === newCountry.id) return prevCountry;
-        return newCountry;
-      });
-    },
-    [locale]
-  );
+  const [countryCode, setCountryCode] = useState<string>(countryOption || 'US');
+  // Derived: full country object — auto-updates when countryCode or locale changes
+  const country = useMemo(() => getCountry(countryCode, locale), [countryCode, locale]);
 
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
   const maxDigits = formatter.getMaxDigits();
@@ -121,7 +104,7 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
   // Effect: Country detection (GeoIP + locale fallback)
   useEffect(() => {
     if (countryOption && hasCountry(countryOption)) {
-      setCountry(countryOption);
+      setCountryCode(countryOption);
       return;
     }
 
@@ -131,17 +114,17 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
       const geoCountry = await detectByGeoIp(hasCountry);
 
       if (geoCountry) {
-        setCountry(geoCountry);
+        setCountryCode(geoCountry);
         return;
       }
 
       const localeCountry = detectCountryFromLocale();
 
       if (localeCountry && hasCountry(localeCountry)) {
-        setCountry(localeCountry);
+        setCountryCode(localeCountry);
       }
     })();
-  }, [detect, countryOption, setCountry]);
+  }, [detect, countryOption]);
 
   // Clamp digits formatter changes
   useEffect(() => {
@@ -172,6 +155,6 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setCountry
+    setCountry: setCountryCode
   };
 }
