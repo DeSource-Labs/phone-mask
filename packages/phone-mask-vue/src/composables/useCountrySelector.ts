@@ -82,8 +82,8 @@ export function useCountrySelector(usedLocale: ComputedRef<string>) {
     }
     hasDropdown.value = countries.value.length > 1;
     if (!detect) return;
-    const geo = await detectByGeoIp(hasCountry);
-    if (geo) {
+    const geo = await detectByGeoIp();
+    if (geo && hasCountry(geo)) {
       selectInitialCountry(geo as CountryKey, emitFn);
       return;
     }

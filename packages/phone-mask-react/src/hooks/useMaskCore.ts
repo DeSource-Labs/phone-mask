@@ -1,17 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
-import {
-  extractDigits,
-  getNavigatorLang,
-  getCountry,
-  hasCountry,
-  detectByGeoIp,
-  detectCountryFromLocale,
-  createPhoneFormatter,
-  type MaskFull,
-  type FormatterHelpers
-} from '@desource/phone-mask';
+import { useEffect, useMemo } from 'react';
+import { extractDigits, createPhoneFormatter, type MaskFull, type FormatterHelpers } from '@desource/phone-mask';
 
 import type { PhoneNumber } from '../types';
+import { useCountry } from './useCountry';
 
 /** Configuration options for the phone mask core hook */
 export interface UseMaskCoreOptions {
@@ -68,22 +59,9 @@ export interface UseMaskCoreReturn {
  * Works in controlled mode only - requires value prop.
  */
 export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
-  // Destructure options for better dependency tracking
-  const {
-    locale: localeOption,
-    country: countryOption,
-    detect,
-    value,
-    onChange,
-    onPhoneChange,
-    onCountryChange
-  } = options;
+  const { value, onChange, onPhoneChange, ...countryOptions } = options;
 
-  const locale = useMemo(() => localeOption || getNavigatorLang(), [localeOption]);
-
-  const [countryCode, setCountryCode] = useState<string>(countryOption || 'US');
-  // Derived: full country object — auto-updates when countryCode or locale changes
-  const country = useMemo(() => getCountry(countryCode, locale), [countryCode, locale]);
+  const { country, setCountry, locale } = useCountry(countryOptions);
 
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
   const maxDigits = formatter.getMaxDigits();
@@ -92,8 +70,10 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
   // Compute derived values
   const displayPlaceholder = formatter.getPlaceholder();
   const displayValue = formatter.formatDisplay(digits);
-  const full = `${country.code}${digits}`;
-  const fullFormatted = digits ? `${country.code} ${displayValue}` : '';
+
+  const full = digits ? `${country.code}${digits}` : '';
+  const fullFormatted = displayValue ? `${country.code} ${displayValue}` : '';
+
   const isComplete = formatter.isComplete(digits);
   const isEmpty = digits.length === 0;
   const shouldShowWarn = !isEmpty && !isComplete;
@@ -101,42 +81,12 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
   // Memoize phoneData to prevent infinite loops in useEffect
   const phoneData = useMemo<PhoneNumber>(() => ({ full, fullFormatted, digits }), [full, fullFormatted, digits]);
 
-  // Effect: Country detection (GeoIP + locale fallback)
-  useEffect(() => {
-    if (countryOption && hasCountry(countryOption)) {
-      setCountryCode(countryOption);
-      return;
-    }
-
-    if (!detect) return;
-
-    (async () => {
-      const geoCountry = await detectByGeoIp(hasCountry);
-
-      if (geoCountry) {
-        setCountryCode(geoCountry);
-        return;
-      }
-
-      const localeCountry = detectCountryFromLocale();
-
-      if (localeCountry && hasCountry(localeCountry)) {
-        setCountryCode(localeCountry);
-      }
-    })();
-  }, [detect, countryOption]);
-
-  // Clamp digits formatter changes
+  // Clamp digits on formatter changes
   useEffect(() => {
     if (value !== digits) {
       onChange(digits);
     }
   }, [value, digits, onChange]);
-
-  // Effect: Emit onCountryChange
-  useEffect(() => {
-    onCountryChange?.(country);
-  }, [country, onCountryChange]);
 
   // Effect: Emit onPhoneChange
   useEffect(() => {
@@ -155,6 +105,6 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
     isComplete,
     isEmpty,
     shouldShowWarn,
-    setCountry: setCountryCode
+    setCountry
   };
 }

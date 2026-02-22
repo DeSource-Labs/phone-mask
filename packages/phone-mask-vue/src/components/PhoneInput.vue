@@ -252,7 +252,7 @@ const mask = useMask({
   onChange: (newValue: string) => {
     model.value = newValue;
   },
-  onPhoneDataChange: (data: PhoneNumber) => emit('change', data)
+  onPhoneChange: (data: PhoneNumber) => emit('change', data)
 });
 const { digits, displayValue, displayPlaceholder, isComplete, isEmpty, shouldShowWarn, full, fullFormatted } = mask;
 

@@ -52,6 +52,10 @@ export function getCountry(code: string, locale: string): MaskFull {
   }
 }
 
+export function parseCountryCode(code?: string | null, fallback?: string): string {
+  return !!code && hasCountry(code) ? code.toUpperCase() : fallback || '';
+}
+
 /** Ensure mask is an array of strings */
 export function toArray<T>(mask: T | T[]): T[] {
   return Array.isArray(mask) ? mask : [mask];

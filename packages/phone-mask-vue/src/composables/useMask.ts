@@ -22,10 +22,10 @@ interface UseMaskOptions {
   value: MaybeRefOrGetter<string>;
   country: MaybeRefOrGetter<MaskFull>;
   onChange: (newDigits: string) => void;
-  onPhoneDataChange?: (data: PhoneNumber) => void;
+  onPhoneChange?: (data: PhoneNumber) => void;
 }
 
-export function useMask({ value, country, onChange, onPhoneDataChange }: UseMaskOptions) {
+export function useMask({ value, country, onChange, onPhoneChange }: UseMaskOptions) {
   const showValidationHint = ref(false);
 
   /** Formatter for the country country */
@@ -63,7 +63,7 @@ export function useMask({ value, country, onChange, onPhoneDataChange }: UseMask
   }));
 
   watchEffect(() => {
-    onPhoneDataChange?.(phoneData.value);
+    onPhoneChange?.(phoneData.value);
   });
 
   /** Set caret to specific digit position */
