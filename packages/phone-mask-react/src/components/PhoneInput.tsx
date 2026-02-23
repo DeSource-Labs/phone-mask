@@ -10,7 +10,8 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
-import { useMaskCore } from '../hooks/useMaskCore';
+import { useFormatter } from '../hooks/useFormatter';
+import { useCountry } from '../hooks/useCountry';
 import { useTimer } from '../hooks/useTimer';
 import { useClipboard } from '../hooks/useClipboard';
 import { useInputHandlers } from '../hooks/useInputHandlers';
@@ -51,10 +52,15 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     renderClearSvg
   } = props;
 
+  const { country, setCountry, locale } = useCountry({
+    country: propCountry,
+    locale: propLocale,
+    detect,
+    onCountryChange
+  });
+
   const {
     digits,
-    country,
-    locale,
     formatter,
     displayPlaceholder,
     displayValue,
@@ -62,16 +68,13 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     fullFormatted,
     isComplete,
     isEmpty,
-    shouldShowWarn,
-    setCountry
-  } = useMaskCore({
-    country: propCountry,
-    locale: propLocale,
-    detect,
+    shouldShowWarn
+  } = useFormatter({
+    country,
     value,
     onChange,
     onPhoneChange,
-    onCountryChange
+    onValidationChange
   });
 
   const telRef = useRef<HTMLInputElement>(null);
@@ -105,11 +108,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
 
-  // Notify validation changes
-  useEffect(() => {
-    onValidationChange?.(isComplete);
-  }, [isComplete, onValidationChange]);
-
   // Validation hint helpers
   const clearValidationHint = useCallback(() => {
     setShowValidationHint(false);
@@ -118,6 +116,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
 
   const scheduleValidationHint = useCallback(
     (delay: number) => {
+      setShowValidationHint(false);
       validationTimer.set(() => {
         setShowValidationHint(true);
       }, delay);
@@ -125,28 +124,13 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     [validationTimer]
   );
 
-  // Validation hint callbacks
-  const handleValidationHintAfterInput = useCallback(() => {
-    clearValidationHint();
-    if (digits.length > 0) {
-      scheduleValidationHint(500);
-    }
-  }, [clearValidationHint, scheduleValidationHint, digits]);
-
-  const handleValidationHintAfterKeydown = useCallback(() => {
-    clearValidationHint();
-    scheduleValidationHint(300);
-  }, [clearValidationHint, scheduleValidationHint]);
-
   // Use consolidated input handlers
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter,
     digits,
     inactive,
     onChange,
-    onAfterInput: handleValidationHintAfterInput,
-    onAfterKeydown: handleValidationHintAfterKeydown,
-    onAfterPaste: handleValidationHintAfterKeydown
+    scheduleValidationHint
   });
 
   const focusInput = useCallback(() => {
@@ -163,14 +147,14 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     }, 200);
   }, [dropdownOpen, closeTimer]);
 
-  // Input focus behavior (close dropdown, clear validation hint, and call onFocus callback)
+  // Input focus behavior (close dropdown, clear validation timer, and call onFocus callback)
   const handleFocusInput = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      clearValidationHint();
+      validationTimer.clear();
       closeDropdown();
       onFocus?.(e);
     },
-    [onFocus, closeDropdown, clearValidationHint]
+    [onFocus, closeDropdown, validationTimer]
   );
 
   // Country selection

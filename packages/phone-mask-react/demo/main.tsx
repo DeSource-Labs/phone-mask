@@ -52,17 +52,23 @@ function DemoPhoneInput() {
 
 function DemoHook() {
   const [value, setValue] = useState('');
+  const [countryOption, setCountryOption] = useState('GB');
 
   const onPhoneChange = useCallback((p: PhoneNumber) => {
     console.log('Hook change:', p);
   }, []);
 
+  const onCountryChange = useCallback((country: MaskFull) => {
+    setCountryOption(country.code);
+  }, []);
+
   const { ref, digits, full, fullFormatted, isComplete, setCountry, clear } = usePhoneMask({
     value,
-    country: 'GB',
+    country: countryOption,
     detect: false,
     onChange: setValue,
-    onPhoneChange
+    onPhoneChange,
+    onCountryChange
   });
 
   return (

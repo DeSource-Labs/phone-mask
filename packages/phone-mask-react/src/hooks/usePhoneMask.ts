@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { useMaskCore } from './useMaskCore';
+import { useFormatter } from './useFormatter';
+import { useCountry } from './useCountry';
 import { useInputHandlers } from './useInputHandlers';
 
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
@@ -12,9 +13,15 @@ import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
 export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const { country, setCountry } = useCountry({
+    country: options.country,
+    locale: options.locale,
+    detect: options.detect,
+    onCountryChange: options.onCountryChange
+  });
+
   const {
     digits,
-    country,
     formatter,
     displayPlaceholder,
     displayValue,
@@ -22,9 +29,13 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
     fullFormatted,
     isComplete,
     isEmpty,
-    shouldShowWarn,
-    setCountry
-  } = useMaskCore(options);
+    shouldShowWarn
+  } = useFormatter({
+    country,
+    value: options.value,
+    onChange: options.onChange,
+    onPhoneChange: options.onPhoneChange
+  });
 
   // Use consolidated input handlers
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({

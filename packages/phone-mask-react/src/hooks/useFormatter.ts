@@ -2,10 +2,11 @@ import { useEffect, useMemo } from 'react';
 import { extractDigits, createPhoneFormatter, type MaskFull, type FormatterHelpers } from '@desource/phone-mask';
 
 import type { PhoneNumber } from '../types';
-import { useCountry } from './useCountry';
 
-/** Configuration options for the phone mask core hook */
-export interface UseMaskCoreOptions {
+/** Configuration options for the useFormatter hook */
+export interface UseFormatterOptions {
+  /** Pre-resolved country data */
+  country: MaskFull;
   /**
    * Controlled value (digits only, without country code)
    * The parent is responsible for managing state via onChange callback.
@@ -13,28 +14,16 @@ export interface UseMaskCoreOptions {
   value: string;
   /** Callback when the digits value changes. */
   onChange: (digits: string) => void;
-  /** Country ISO code (e.g., 'US', 'DE', 'GB') */
-  country?: string;
-  /** Locale for country names (default: navigator.language) */
-  locale?: string;
-  /** Auto-detect country from IP/locale (default: false) */
-  detect?: boolean;
   /** Callback when the phone number changes. */
   onPhoneChange?: (value: PhoneNumber) => void;
-  /** Callback when country changes */
-  onCountryChange?: (country: MaskFull) => void;
+  /** Callback when validation state (isComplete) changes */
+  onValidationChange?: (isComplete: boolean) => void;
 }
 
-/** Return type for useMaskCore hook */
-export interface UseMaskCoreReturn {
-  /** Current country data */
-  country: MaskFull;
-  /** Change country programmatically */
-  setCountry: (countryCode: string) => void;
+/** Return type for useFormatter hook */
+export interface UseFormatterReturn {
   /** Raw digits without formatting */
   digits: string;
-  /** Computed locale value */
-  locale: string;
   /** Phone formatter instance */
   formatter: FormatterHelpers;
   /** Placeholder from formatter */
@@ -54,20 +43,20 @@ export interface UseMaskCoreReturn {
 }
 
 /**
- * Core phone mask hook - pure state management and derived computations.
- * Can be reused by both usePhoneMask and PhoneInput.
- * Works in controlled mode only - requires value prop.
+ * Hook for phone number formatting and derived computations.
+ * Receives pre-resolved country data; country management is handled by the caller.
  */
-export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
-  const { value, onChange, onPhoneChange, ...countryOptions } = options;
-
-  const { country, setCountry, locale } = useCountry(countryOptions);
-
+export function useFormatter({
+  country,
+  value,
+  onChange,
+  onPhoneChange,
+  onValidationChange
+}: UseFormatterOptions): UseFormatterReturn {
   const formatter = useMemo(() => createPhoneFormatter(country), [country]);
   const maxDigits = formatter.getMaxDigits();
   const digits = useMemo(() => extractDigits(value, maxDigits), [value, maxDigits]);
 
-  // Compute derived values
   const displayPlaceholder = formatter.getPlaceholder();
   const displayValue = formatter.formatDisplay(digits);
 
@@ -93,10 +82,13 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
     onPhoneChange?.(phoneData);
   }, [phoneData, onPhoneChange]);
 
+  // Effect: Emit onValidationChange
+  useEffect(() => {
+    onValidationChange?.(isComplete);
+  }, [isComplete, onValidationChange]);
+
   return {
     digits,
-    country,
-    locale,
     formatter,
     displayPlaceholder,
     displayValue,
@@ -104,7 +96,6 @@ export function useMaskCore(options: UseMaskCoreOptions): UseMaskCoreReturn {
     fullFormatted,
     isComplete,
     isEmpty,
-    shouldShowWarn,
-    setCountry
+    shouldShowWarn
   };
 }
