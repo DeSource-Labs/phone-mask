@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { useFormatter } from './useFormatter';
-import { useCountry } from './useCountry';
-import { useInputHandlers } from './useInputHandlers';
+import { useFormatter } from './internal/useFormatter';
+import { useCountry } from './internal/useCountry';
+import { useInputHandlers } from './internal/useInputHandlers';
 
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
 

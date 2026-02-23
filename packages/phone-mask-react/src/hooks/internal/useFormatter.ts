@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { extractDigits, createPhoneFormatter, type MaskFull, type FormatterHelpers } from '@desource/phone-mask';
 
-import type { PhoneNumber } from '../types';
+import type { PhoneNumber } from '../../types';
 
 /** Configuration options for the useFormatter hook */
 export interface UseFormatterOptions {

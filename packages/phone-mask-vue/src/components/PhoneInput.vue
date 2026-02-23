@@ -7,25 +7,25 @@
     :style="rootStyles"
   >
     <!-- Country Selector -->
-    <div class="pi-selector">
+    <div class="pi-selector" ref="selectorRef">
       <button
         type="button"
         class="pi-selector-btn"
         :class="{ 'no-dropdown': !hasDropdown || readonly }"
         :disabled="disabled"
         :tabindex="inactive || !hasDropdown ? -1 : undefined"
-        :aria-label="`Selected country: ${selected.name}`"
-        :aria-expanded="dropdownOpened"
+        :aria-label="`Selected country: ${country.name}`"
+        :aria-expanded="dropdownOpen"
         :aria-haspopup="hasDropdown ? 'listbox' : undefined"
         @click="toggleDropdown"
       >
-        <span class="pi-flag" role="img" :aria-label="`${selected.name} flag`">
-          <slot name="flag" :country="selected">{{ selected.flag }}</slot>
+        <span class="pi-flag" role="img" :aria-label="`${country.name} flag`">
+          <slot name="flag" :country="country">{{ country.flag }}</slot>
         </span>
-        <span class="pi-code">{{ selected.code }}</span>
+        <span class="pi-code">{{ country.code }}</span>
         <svg
           v-if="!inactive && hasDropdown"
-          :class="['pi-chevron', { 'is-open': dropdownOpened }]"
+          :class="['pi-chevron', { 'is-open': dropdownOpen }]"
           width="12"
           height="12"
           viewBox="0 0 12 12"
@@ -59,13 +59,13 @@
         :value="displayValue"
         :disabled="disabled"
         :readonly="readonly"
-        :aria-invalid="shouldShowWarn"
-        @beforeinput="mask.handleBeforeInput"
-        @input="onInput"
-        @keydown="onKeydown"
-        @paste="onPaste"
-        @focus="onFocus"
-        @blur="onBlur"
+        :aria-invalid="incomplete"
+        @beforeinput="handleBeforeInput"
+        @input="handleInput"
+        @keydown="handleKeydown"
+        @paste="handlePaste"
+        @focus="handleFocus"
+        @blur="handleBlur"
       />
 
       <!-- Action Buttons -->
@@ -121,7 +121,7 @@
     <Teleport to="body">
       <Transition name="dropdown">
         <div
-          v-if="dropdownOpened"
+          v-if="dropdownOpen"
           ref="dropdownRef"
           class="phone-dropdown"
           :class="[dropdownClass, themeClass]"
@@ -138,10 +138,7 @@
               class="pi-search"
               aria-label="Search countries"
               :placeholder="searchPlaceholder"
-              @keydown.down.prevent="focusNextOption(scrollFocusedIntoView)"
-              @keydown.up.prevent="focusPrevOption(scrollFocusedIntoView)"
-              @keydown.enter.prevent="chooseFocusedOption"
-              @keydown.escape="closeDropdown"
+              @keydown="handleSearchKeydown"
             />
           </div>
           <ul class="pi-options" role="listbox" :aria-activedescendant="`option-${focusedIndex}`" tabindex="-1">
@@ -154,13 +151,13 @@
                 'pi-option',
                 {
                   'is-focused': idx === focusedIndex,
-                  'is-selected': c.id === selected.id
+                  'is-selected': c.id === country.id
                 }
               ]"
-              :aria-selected="c.id === selected.id"
+              :aria-selected="c.id === country.id"
               :title="c.name"
-              @click="onSelectCountry(c.id)"
-              @mouseenter="focusedIndex = idx"
+              @click="selectCountry(c.id)"
+              @mouseenter="setFocusedIndex(idx)"
             >
               <span class="pi-flag" role="img" :aria-label="`${c.name} flag`">
                 <slot name="flag" :country="c">{{ c.flag }}</slot>
@@ -182,21 +179,14 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  onBeforeUnmount,
-  nextTick,
-  watch,
-  watchPostEffect,
-  useTemplateRef,
-  shallowRef,
-  type CSSProperties
-} from 'vue';
-import { getNavigatorLang } from '@desource/phone-mask';
+import { computed, nextTick, useTemplateRef, type CSSProperties } from 'vue';
 
-import { useCountrySelector } from '../composables/useCountrySelector';
-import { useMask } from '../composables/useMask';
-import { useClipboard } from '../composables/useClipboard';
+import { useCountry } from '../composables/internal/useCountry';
+import { useFormatter } from '../composables/internal/useFormatter';
+import { useValidationHint } from '../composables/internal/useValidationHint';
+import { useInputHandlers } from '../composables/internal/useInputHandlers';
+import { useCountrySelector } from '../composables/internal/useCountrySelector';
+import { useCopyAction } from '../composables/internal/useCopyAction';
 import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots, PhoneNumber } from '../types';
 
 const props = withDefaults(defineProps<PhoneInputProps>(), {
@@ -216,60 +206,118 @@ const props = withDefaults(defineProps<PhoneInputProps>(), {
 
 const slots = defineSlots<PhoneInputSlots>();
 
+const emit = defineEmits<PhoneInputEmits>();
+
 const model = defineModel<string>({ default: '' });
 
-const emit = defineEmits<PhoneInputEmits>();
+const onChange = (v: string) => {
+  model.value = v;
+};
+
+const { country, setCountry, locale } = useCountry({
+  country: () => props.country,
+  locale: () => props.locale,
+  detect: () => props.detect,
+  onCountryChange: (c) => emit('country-change', c)
+});
+
+const {
+  digits,
+  formatter,
+  displayPlaceholder,
+  displayValue,
+  full,
+  fullFormatted,
+  isComplete,
+  isEmpty,
+  shouldShowWarn
+} = useFormatter({
+  country,
+  value: model,
+  onChange,
+  onPhoneChange: (data: PhoneNumber) => emit('change', data),
+  onValidationChange: (complete: boolean) => emit('validation-change', complete)
+});
+
+const { showValidationHint, clearValidationHint, scheduleValidationHint } = useValidationHint();
 
 const rootRef = useTemplateRef('rootRef');
 const telRef = useTemplateRef('telRef');
-const searchRef = useTemplateRef('searchRef');
 const liveRef = useTemplateRef('liveRef');
-const dropdownRef = useTemplateRef('dropdownRef');
-
-const usedLocale = computed(() => {
-  return props.locale || getNavigatorLang();
-});
-
-const dropdownStyle = shallowRef<CSSProperties>({});
-
-const countrySelector = useCountrySelector(usedLocale);
-const {
-  search,
-  filteredCountries,
-  focusedIndex,
-  selected,
-  dropdownOpened,
-  hasDropdown,
-  focusNextOption,
-  focusPrevOption,
-  chooseFocusedOption,
-  closeDropdown
-} = countrySelector;
-
-const mask = useMask({
-  value: model,
-  country: selected,
-  onChange: (newValue: string) => {
-    model.value = newValue;
-  },
-  onPhoneChange: (data: PhoneNumber) => emit('change', data),
-  onValidationChange: (isComplete: boolean) => emit('validation-change', isComplete)
-});
-const { digits, displayValue, displayPlaceholder, isComplete, isEmpty, shouldShowWarn, full, fullFormatted } = mask;
-
-const { copied, copy } = useClipboard();
 
 const inactive = computed(() => props.disabled || props.readonly);
+const incomplete = computed(() => showValidationHint.value && shouldShowWarn.value);
 const showCopyButton = computed(() => props.showCopy && !isEmpty.value && !props.disabled);
 const showClearButton = computed(() => props.showClear && !isEmpty.value && !inactive.value);
 
-const copyAriaLabel = computed(() => (copied.value ? 'Copied' : `Copy ${selected.value.code} ${displayValue.value}`));
+const { copied, copyAriaLabel, copyButtonTitle, onCopyClick } = useCopyAction({
+  liveRef,
+  fullFormatted,
+  onCopy: (v) => emit('copy', v)
+});
 
-const copyButtonTitle = computed(() => (copied.value ? 'Copied' : 'Copy phone number'));
+const focusInput = () => nextTick(() => telRef.value?.focus());
 
-const copyMessage = computed(() => (copied.value ? 'Phone number copied to clipboard' : ''));
+const {
+  dropdownOpen,
+  search,
+  focusedIndex,
+  dropdownStyle,
+  filteredCountries,
+  hasDropdown,
+  closeDropdown,
+  toggleDropdown,
+  selectCountry,
+  setFocusedIndex,
+  handleSearchKeydown
+} = useCountrySelector({
+  rootRef,
+  locale,
+  countryOption: () => props.country,
+  inactive,
+  onSelectCountry: setCountry,
+  onAfterSelect: focusInput
+});
 
-const sizeClass = computed(() => `size-${props.size}`);
+const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
+  formatter,
+  digits,
+  inactive,
+  onChange,
+  scheduleValidationHint
+});
+
+const handleFocus = (e: FocusEvent) => {
+  clearValidationHint(false);
+  closeDropdown();
+  emit('focus', e);
+};
+
+const handleBlur = (e: FocusEvent) => emit('blur', e);
+
+const clear = () => {
+  onChange('');
+  clearValidationHint();
+  emit('clear');
+};
+
+const onClearClick = () => {
+  clear();
+  focusInput();
+};
+
+defineExpose<PhoneInputExposed>({
+  focus: focusInput,
+  blur: () => telRef.value?.blur(),
+  clear,
+  selectCountry,
+  getFullNumber: () => full.value,
+  getFullFormattedNumber: () => fullFormatted.value,
+  getDigits: () => digits.value,
+  isValid: () => isComplete.value,
+  isComplete: () => isComplete.value
+});
+
 const themeClass = computed(() => {
   if (props.theme !== 'auto') return `theme-${props.theme}`;
   if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
@@ -280,166 +328,20 @@ const themeClass = computed(() => {
 
 const rootClasses = computed(() => [
   'phone-input',
-  sizeClass.value,
+  `size-${props.size}`,
   themeClass.value,
   {
     'is-disabled': props.disabled,
     'is-readonly': props.readonly,
     'is-unstyled': props.disableDefaultStyles,
-    'is-incomplete': props.withValidity && shouldShowWarn.value,
+    'is-incomplete': props.withValidity && incomplete.value,
     'is-complete': props.withValidity && isComplete.value
   }
 ]);
+
 const rootStyles = computed<CSSProperties>(() => ({
   '--pi-actions-count': +showCopyButton.value + +showClearButton.value + (slots['actions-before'] ? 1 : 0)
 }));
-
-// Event handlers
-const onInput = (e: Event) => {
-  if (inactive.value) return;
-  mask.handleInput(e);
-};
-
-const onKeydown = (e: KeyboardEvent) => {
-  if (inactive.value) return;
-  mask.handleKeydown(e);
-};
-
-const onPaste = (e: ClipboardEvent) => {
-  if (inactive.value) return;
-  mask.handlePaste(e);
-};
-
-const focusInput = () => {
-  nextTick(() => telRef.value?.focus());
-};
-
-const onFocus = (e: FocusEvent) => {
-  mask.handleFocus();
-  dropdownOpened.value = false;
-  emit('focus', e);
-};
-
-const onBlur = (e: FocusEvent) => emit('blur', e);
-
-const onSelectCountry = async (countryId: string) => {
-  countrySelector.selectCountry(countryId);
-  emit('country-change', selected.value);
-  focusInput();
-};
-
-const onCopyClick = async () => {
-  const valueToCopy = fullFormatted.value;
-  const success = await copy(valueToCopy);
-  if (success) {
-    emit('copy', valueToCopy);
-  }
-};
-
-const onClearClick = () => {
-  mask.clear();
-  emit('clear');
-  focusInput();
-};
-
-const positionDropdown = (e?: Event | UIEvent) => {
-  if (e?.type === 'scroll' && e.target && dropdownRef.value?.contains(e.target as Node)) return;
-
-  const root = rootRef.value;
-  if (!root) return;
-
-  const rect = root.getBoundingClientRect();
-  dropdownStyle.value = {
-    top: `${rect.bottom + window.scrollY + 8}px`,
-    left: `${rect.left + window.scrollX}px`,
-    width: `${rect.width}px`
-  };
-};
-
-const removeDropdownListeners = () => {
-  window.removeEventListener('scroll', positionDropdown, true);
-  window.removeEventListener('click', onDocClick, true);
-  window.removeEventListener('resize', positionDropdown);
-};
-
-const toggleDropdown = async () => {
-  if (inactive.value || !hasDropdown.value) return;
-  await countrySelector.toggleDropdown(searchRef);
-  if (dropdownOpened.value) {
-    positionDropdown();
-    window.addEventListener('scroll', positionDropdown, true);
-    window.addEventListener('click', onDocClick, true);
-    window.addEventListener('resize', positionDropdown);
-  } else {
-    removeDropdownListeners();
-  }
-};
-
-const scrollFocusedIntoView = async () => {
-  await nextTick();
-  const list = dropdownRef.value?.lastElementChild;
-  if (!list) return;
-
-  const option = list.children[focusedIndex.value];
-  if (!option) return;
-
-  // Scroll only the list container with smooth behavior
-  const listRect = list.getBoundingClientRect();
-  const optionRect = option.getBoundingClientRect();
-
-  let scrollAmount = 0;
-
-  if (optionRect.top < listRect.top) {
-    scrollAmount = list.scrollTop - (listRect.top - optionRect.top); // Option is above visible area
-  } else if (optionRect.bottom > listRect.bottom) {
-    scrollAmount = list.scrollTop + (optionRect.bottom - listRect.bottom); // Option is below visible area
-  } else {
-    return; // Already visible, no need to scroll
-  }
-
-  list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
-};
-
-const onDocClick = (ev: MouseEvent) => {
-  const dropdown = dropdownRef.value;
-  const selector = rootRef.value?.firstChild;
-  if (!(dropdown || selector)) return;
-  const target = ev.target as Node | null;
-  if (!target || dropdown?.contains(target) || selector?.contains(target)) return;
-  dropdownOpened.value = false;
-};
-
-// Watchers
-watch(
-  [() => props.country, () => props.detect],
-  async ([country, detect]) => {
-    await nextTick();
-    await countrySelector.initCountry(country, detect, () => emit('country-change', selected.value));
-  },
-  { immediate: true }
-);
-
-watchPostEffect(() => {
-  if (liveRef.value && copyMessage.value) {
-    liveRef.value.textContent = copyMessage.value;
-  }
-});
-
-onBeforeUnmount(() => {
-  removeDropdownListeners();
-});
-
-defineExpose<PhoneInputExposed>({
-  focus: focusInput,
-  blur: () => telRef.value?.blur(),
-  clear: mask.clear,
-  selectCountry: countrySelector.selectCountry,
-  getFullNumber: () => full.value,
-  getFullFormattedNumber: () => fullFormatted.value,
-  getDigits: () => digits.value,
-  isValid: () => isComplete.value,
-  isComplete: () => isComplete.value
-});
 </script>
 
 <style lang="scss">

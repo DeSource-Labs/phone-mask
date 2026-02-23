@@ -1,20 +1,11 @@
-import React, {
-  useImperativeHandle,
-  useRef,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  type CSSProperties,
-  type Ref
-} from 'react';
+import React, { useImperativeHandle, useRef, useCallback, useMemo, type CSSProperties, type Ref } from 'react';
 import { createPortal } from 'react-dom';
-import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
-import { useFormatter } from '../hooks/useFormatter';
-import { useCountry } from '../hooks/useCountry';
-import { useTimer } from '../hooks/useTimer';
-import { useClipboard } from '../hooks/useClipboard';
-import { useInputHandlers } from '../hooks/useInputHandlers';
+import { useFormatter } from '../hooks/internal/useFormatter';
+import { useCountry } from '../hooks/internal/useCountry';
+import { useValidationHint } from '../hooks/internal/useValidationHint';
+import { useInputHandlers } from '../hooks/internal/useInputHandlers';
+import { useCountrySelector } from '../hooks/internal/useCountrySelector';
+import { useCopyAction } from '../hooks/internal/useCopyAction';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
 
@@ -77,30 +68,11 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     onValidationChange
   });
 
+  const { showValidationHint, clearValidationHint, scheduleValidationHint } = useValidationHint();
+
   const telRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
-  const selectorRef = useRef<HTMLDivElement>(null);
-
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isClosing, setIsClosing] = useState(false);
-  const [search, setSearch] = useState('');
-  const [focusedIndex, setFocusedIndex] = useState(0);
-  const [dropdownStyle, setDropdownStyle] = useState<CSSProperties>({});
-  const [showValidationHint, setShowValidationHint] = useState(false);
-
-  const { copied, copy } = useClipboard();
-
-  const validationTimer = useTimer();
-  const closeTimer = useTimer();
-  const liveTimer = useTimer();
-
-  const countries = useMemo(() => MasksFull(locale), [locale]);
-  const filteredCountries = useMemo(() => filterCountries(countries, search), [countries, search]);
-
-  const hasDropdown = useMemo(() => !propCountry && countries.length > 1, [propCountry, countries]);
 
   const inactive = disabled || readonly;
   const incomplete = showValidationHint && shouldShowWarn;
@@ -108,23 +80,21 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const showCopyButton = showCopy && !isEmpty && !disabled;
   const showClearButton = showClear && !isEmpty && !inactive;
 
-  // Validation hint helpers
-  const clearValidationHint = useCallback(() => {
-    setShowValidationHint(false);
-    validationTimer.clear();
-  }, [validationTimer]);
+  const {
+    copied,
+    copyAriaLabel,
+    copyButtonTitle,
+    onCopyClick: handleCopyClick
+  } = useCopyAction({
+    liveRef,
+    fullFormatted,
+    onCopy
+  });
 
-  const scheduleValidationHint = useCallback(
-    (delay: number) => {
-      setShowValidationHint(false);
-      validationTimer.set(() => {
-        setShowValidationHint(true);
-      }, delay);
-    },
-    [validationTimer]
-  );
+  const focusInput = useCallback(() => {
+    setTimeout(() => telRef.current?.focus(), 0);
+  }, []);
 
-  // Use consolidated input handlers
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter,
     digits,
@@ -133,105 +103,41 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     scheduleValidationHint
   });
 
-  const focusInput = useCallback(() => {
-    setTimeout(() => telRef.current?.focus(), 0);
-  }, []);
-
-  // Close dropdown with animation
-  const closeDropdown = useCallback(() => {
-    if (!dropdownOpen) return;
-    setIsClosing(true);
-    closeTimer.set(() => {
-      setDropdownOpen(false);
-      setIsClosing(false);
-    }, 200);
-  }, [dropdownOpen, closeTimer]);
+  const {
+    dropdownRef,
+    searchRef,
+    selectorRef,
+    dropdownOpen,
+    isClosing,
+    search,
+    focusedIndex,
+    dropdownStyle,
+    filteredCountries,
+    hasDropdown,
+    closeDropdown,
+    toggleDropdown,
+    selectCountry,
+    setFocusedIndex,
+    handleSearchChange,
+    handleSearchKeydown
+  } = useCountrySelector({
+    rootRef,
+    locale,
+    inactive,
+    countryOption: propCountry,
+    onSelectCountry: setCountry,
+    onAfterSelect: focusInput
+  });
 
   // Input focus behavior (close dropdown, clear validation timer, and call onFocus callback)
-  const handleFocusInput = useCallback(
+  const handleFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      validationTimer.clear();
+      clearValidationHint(false);
       closeDropdown();
       onFocus?.(e);
     },
-    [onFocus, closeDropdown, validationTimer]
+    [onFocus, closeDropdown, clearValidationHint]
   );
-
-  // Country selection
-  const selectCountry = useCallback(
-    (code: CountryKey) => {
-      setCountry(code);
-      closeDropdown();
-      setSearch('');
-      setFocusedIndex(0);
-      focusInput();
-    },
-    [setCountry, closeDropdown, focusInput]
-  );
-
-  // Close dropdown on outside click
-  const onDocClick = useCallback(
-    (ev: Event) => {
-      const target = ev.target as Node | null;
-      const dropdownEl = dropdownRef.current;
-      const selectorEl = selectorRef.current;
-      if (!target) return;
-      if (dropdownEl?.contains(target)) return;
-      if (selectorEl?.contains(target)) return;
-      closeDropdown();
-    },
-    [closeDropdown]
-  );
-
-  // Dropdown positioning
-  const positionDropdown = useCallback(() => {
-    if (!rootRef.current) return;
-    const rect = rootRef.current.getBoundingClientRect();
-    setDropdownStyle({
-      top: `${rect.bottom + window.scrollY + 8}px`,
-      left: `${rect.left + window.scrollX}px`,
-      width: `${rect.width}px`
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!dropdownOpen) return;
-
-    positionDropdown();
-    const focusTimer = setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
-
-    window.addEventListener('resize', positionDropdown);
-    window.addEventListener('scroll', positionDropdown, true);
-    window.addEventListener('click', onDocClick, true);
-
-    return () => {
-      clearTimeout(focusTimer);
-      window.removeEventListener('resize', positionDropdown);
-      window.removeEventListener('scroll', positionDropdown, true);
-      window.removeEventListener('click', onDocClick, true);
-    };
-  }, [dropdownOpen, positionDropdown, onDocClick]);
-
-  const announceToScreenReader = useCallback(
-    (message: string) => {
-      if (!liveRef.current) return;
-      liveRef.current.textContent = message;
-      liveTimer.set(() => {
-        if (liveRef.current) liveRef.current.textContent = '';
-      }, 2000);
-    },
-    [liveTimer]
-  );
-
-  // Copy functionality
-  const handleCopyClick = useCallback(async () => {
-    const trimmedValue = fullFormatted.trim();
-    const success = await copy(trimmedValue);
-    if (success) {
-      onCopy?.(trimmedValue);
-      announceToScreenReader('Phone number copied to clipboard');
-    }
-  }, [fullFormatted, onCopy, copy, announceToScreenReader]);
 
   const clear = useCallback(() => {
     onChange?.('');
@@ -260,57 +166,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
       isComplete: () => isComplete
     }),
     [focusInput, selectCountry, full, fullFormatted, digits, isComplete, clear]
-  );
-
-  const scrollFocusedIntoView = (index: number) => {
-    setTimeout(() => {
-      const list = dropdownRef.current?.lastElementChild;
-      const option = list?.children[index];
-      if (!list || !option) return;
-
-      // Scroll only the list container with smooth behavior
-      const listRect = list.getBoundingClientRect();
-      const optionRect = option.getBoundingClientRect();
-
-      let scrollAmount = 0;
-
-      if (optionRect.top < listRect.top) {
-        scrollAmount = list.scrollTop - (listRect.top - optionRect.top); // Option is above visible area
-      } else if (optionRect.bottom > listRect.bottom) {
-        scrollAmount = list.scrollTop + (optionRect.bottom - listRect.bottom); // Option is below visible area
-      } else {
-        return; // Already visible, no need to scroll
-      }
-
-      list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
-    }, 0);
-  };
-
-  // Keyboard navigation for dropdown
-  const handleSearchKeydown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setFocusedIndex((i) => {
-          const next = Math.min(i + 1, filteredCountries.length - 1);
-          scrollFocusedIntoView(next);
-          return next;
-        });
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setFocusedIndex((i) => {
-          const prev = Math.max(i - 1, 0);
-          scrollFocusedIntoView(prev);
-          return prev;
-        });
-      } else if (e.key === 'Enter' && filteredCountries[focusedIndex]) {
-        e.preventDefault();
-        selectCountry(filteredCountries[focusedIndex]!.id);
-      } else if (e.key === 'Escape') {
-        closeDropdown();
-      }
-    },
-    [filteredCountries, focusedIndex, selectCountry, closeDropdown]
   );
 
   // Theme class
@@ -356,17 +211,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             aria-label={`Selected country: ${country.name}`}
             aria-expanded={dropdownOpen}
             aria-haspopup={hasDropdown ? 'listbox' : undefined}
-            onClick={() => {
-              if (inactive || !hasDropdown) return;
-              if (dropdownOpen) {
-                closeDropdown();
-              } else {
-                closeTimer.clear();
-                setIsClosing(false);
-                setDropdownOpen(true);
-                setFocusedIndex(0);
-              }
-            }}
+            onClick={toggleDropdown}
           >
             <span className="pi-flag" role="img" aria-label={`${country.name} flag`}>
               {renderFlag ? renderFlag(country) : country.flag}
@@ -413,7 +258,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             onBeforeInput={handleBeforeInput}
             onKeyDown={handleKeydown}
             onPaste={handlePaste}
-            onFocus={handleFocusInput}
+            onFocus={handleFocus}
             onBlur={onBlur}
           />
 
@@ -425,8 +270,8 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
               <button
                 type="button"
                 className={`pi-btn pi-btn-copy ${copied ? 'is-copied' : ''}`}
-                aria-label={copied ? 'Copied' : `Copy ${country.code} ${displayValue}`}
-                title={copied ? 'Copied' : 'Copy phone number'}
+                aria-label={copyAriaLabel}
+                title={copyButtonTitle}
                 onClick={handleCopyClick}
               >
                 {renderCopySvg ? (
@@ -490,10 +335,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
                 aria-label="Search countries"
                 placeholder={searchPlaceholder}
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setFocusedIndex(0);
-                }}
+                onChange={handleSearchChange}
                 onKeyDown={handleSearchKeydown}
               />
             </div>

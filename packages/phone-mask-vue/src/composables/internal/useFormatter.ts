@@ -2,7 +2,7 @@ import { computed, watchEffect, toValue } from 'vue';
 import type { MaybeRefOrGetter, ComputedRef } from 'vue';
 import { extractDigits, createPhoneFormatter, type MaskFull, type FormatterHelpers } from '@desource/phone-mask';
 
-import type { PhoneNumber } from '../types';
+import type { PhoneNumber } from '../../types';
 
 /** Configuration options for the useFormatter composable */
 export interface UseFormatterOptions {

@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { useTimer } from './useTimer';
 
-export function useClipboard() {
+export function useClipboard(delay = 1_800) {
   const copied = ref(false);
   const isCopying = ref(false);
   const copyTimer = useTimer();
@@ -16,7 +16,7 @@ export function useClipboard() {
       copied.value = true;
       copyTimer.set(() => {
         copied.value = false;
-      }, 1_800);
+      }, delay);
       return true;
     } catch (err) {
       console.warn('Copy failed', err);
