@@ -73,6 +73,9 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   const telRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const liveRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const selectorRef = useRef<HTMLDivElement>(null);
 
   const inactive = disabled || readonly;
   const incomplete = showValidationHint && shouldShowWarn;
@@ -104,9 +107,6 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
   });
 
   const {
-    dropdownRef,
-    searchRef,
-    selectorRef,
     dropdownOpen,
     isClosing,
     search,
@@ -119,9 +119,13 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
-    handleSearchKeydown
+    handleSearchKeydown,
+    handleDropdownAnimationEnd
   } = useCountrySelector({
     rootRef,
+    dropdownRef,
+    searchRef,
+    selectorRef,
     locale,
     inactive,
     countryOption: propCountry,
@@ -326,6 +330,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
             role="dialog"
             aria-modal="false"
             aria-label="Select country"
+            onAnimationEnd={handleDropdownAnimationEnd}
           >
             <div className="pi-search-wrap">
               <input

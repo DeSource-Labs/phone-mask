@@ -1,11 +1,12 @@
-import React, { useState, useCallback, useRef, useMemo, useEffect, type RefObject, type CSSProperties } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, type RefObject, type CSSProperties } from 'react';
 
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
 
-import { useTimer } from '../utility/useTimer';
-
 interface UseCountrySelectOptions {
   rootRef: RefObject<HTMLDivElement | null>;
+  dropdownRef: RefObject<HTMLDivElement | null>;
+  searchRef: RefObject<HTMLInputElement | null>;
+  selectorRef: RefObject<HTMLDivElement | null>;
   locale: string;
   onSelectCountry: (code: CountryKey) => void;
   countryOption?: string;
@@ -15,6 +16,9 @@ interface UseCountrySelectOptions {
 
 export function useCountrySelector({
   rootRef,
+  dropdownRef,
+  searchRef,
+  selectorRef,
   locale,
   countryOption,
   inactive,
@@ -27,12 +31,6 @@ export function useCountrySelector({
   const [isClosing, setIsClosing] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(0);
 
-  const closeTimer = useTimer();
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const selectorRef = useRef<HTMLDivElement>(null);
-
   const countries = useMemo(() => MasksFull(locale), [locale]);
   const filteredCountries = useMemo(() => filterCountries(countries, search), [countries, search]);
   const hasDropdown = useMemo(() => !countryOption && countries.length > 1, [countryOption, countries]);
@@ -41,24 +39,25 @@ export function useCountrySelector({
     setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
   }, []);
 
-  // Close dropdown with animation
+  // Close dropdown with animation — actual DOM removal happens in handleDropdownAnimationEnd
   const closeDropdown = useCallback(() => {
     if (!dropdownOpen) return;
-
     setIsClosing(true);
-    closeTimer.set(() => {
-      setDropdownOpen(false);
-      setIsClosing(false);
-    }, 200);
-  }, [closeTimer, dropdownOpen]);
+  }, [dropdownOpen]);
 
   const openDropdown = useCallback(() => {
-    closeTimer.clear();
     setIsClosing(false);
     setDropdownOpen(true);
     setFocusedIndex(0);
     focusSearch();
-  }, [closeTimer, focusSearch]);
+  }, [focusSearch]);
+
+  // Called via onAnimationEnd on the dropdown element
+  const handleDropdownAnimationEnd = useCallback(() => {
+    if (!isClosing) return;
+    setDropdownOpen(false);
+    setIsClosing(false);
+  }, [isClosing]);
 
   const toggleDropdown = useCallback(() => {
     if (inactive || !hasDropdown) return;
@@ -180,10 +179,6 @@ export function useCountrySelector({
   }, [dropdownOpen, positionDropdown, onDocClick]);
 
   return {
-    // Refs
-    dropdownRef,
-    searchRef,
-    selectorRef,
     // State
     dropdownOpen,
     isClosing,
@@ -200,6 +195,7 @@ export function useCountrySelector({
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
-    handleSearchKeydown
+    handleSearchKeydown,
+    handleDropdownAnimationEnd
   };
 }

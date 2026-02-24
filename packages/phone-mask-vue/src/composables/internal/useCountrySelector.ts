@@ -1,4 +1,4 @@
-import { ref, computed, watch, onBeforeUnmount, shallowRef, useTemplateRef, toValue, nextTick } from 'vue';
+import { ref, computed, watch, onBeforeUnmount, shallowRef, toValue, nextTick } from 'vue';
 import type { MaybeRefOrGetter, ShallowRef, CSSProperties } from 'vue';
 
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
@@ -7,6 +7,9 @@ import { useTimer } from '../utility/useTimer';
 
 interface UseCountrySelectorOptions {
   rootRef: ShallowRef<HTMLDivElement | null>;
+  dropdownRef: ShallowRef<HTMLDivElement | null>;
+  searchRef: ShallowRef<HTMLInputElement | null>;
+  selectorRef: ShallowRef<HTMLDivElement | null>;
   locale: MaybeRefOrGetter<string>;
   onSelectCountry: (code: CountryKey) => void;
   countryOption?: MaybeRefOrGetter<string | undefined>;
@@ -16,6 +19,9 @@ interface UseCountrySelectorOptions {
 
 export function useCountrySelector({
   rootRef,
+  dropdownRef,
+  searchRef,
+  selectorRef,
   locale,
   countryOption,
   inactive,
@@ -25,14 +31,7 @@ export function useCountrySelector({
   const search = ref('');
   const dropdownOpen = ref(false);
   const dropdownStyle = shallowRef<CSSProperties>({});
-  const isClosing = ref(false);
   const focusedIndex = ref(0);
-
-  const closeTimer = useTimer();
-
-  const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
-  const searchRef = useTemplateRef<HTMLInputElement>('searchRef');
-  const selectorRef = useTemplateRef<HTMLDivElement>('selectorRef');
 
   const countries = computed(() => MasksFull(toValue(locale)));
   const filteredCountries = computed(() => filterCountries(countries.value, search.value));
@@ -47,18 +46,10 @@ export function useCountrySelector({
   };
 
   const closeDropdown = () => {
-    if (!dropdownOpen.value) return;
-
-    isClosing.value = true;
-    closeTimer.set(() => {
-      dropdownOpen.value = false;
-      isClosing.value = false;
-    }, 200);
+    dropdownOpen.value = false;
   };
 
   const openDropdown = () => {
-    closeTimer.clear();
-    isClosing.value = false;
     dropdownOpen.value = true;
     setFocusedIndex(0);
     focusSearch();
@@ -165,13 +156,8 @@ export function useCountrySelector({
   onBeforeUnmount(removeListeners);
 
   return {
-    // Refs
-    dropdownRef,
-    searchRef,
-    selectorRef,
     // State
     dropdownOpen,
-    isClosing,
     search,
     focusedIndex,
     dropdownStyle,

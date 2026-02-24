@@ -244,6 +244,9 @@ const { showValidationHint, clearValidationHint, scheduleValidationHint } = useV
 const rootRef = useTemplateRef('rootRef');
 const telRef = useTemplateRef('telRef');
 const liveRef = useTemplateRef('liveRef');
+const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
+const searchRef = useTemplateRef<HTMLInputElement>('searchRef');
+const selectorRef = useTemplateRef<HTMLDivElement>('selectorRef');
 
 const inactive = computed(() => props.disabled || props.readonly);
 const incomplete = computed(() => showValidationHint.value && shouldShowWarn.value);
@@ -272,6 +275,9 @@ const {
   handleSearchKeydown
 } = useCountrySelector({
   rootRef,
+  dropdownRef,
+  searchRef,
+  selectorRef,
   locale,
   countryOption: () => props.country,
   inactive,
