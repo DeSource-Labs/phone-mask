@@ -5,7 +5,7 @@ import { useTimer } from '../utility/useTimer';
 interface UseCopyActionOptions {
   liveRef: Ref<HTMLElement | null>;
   fullFormatted: Ref<string>;
-  onCopy: (value: string) => void;
+  onCopy?: (value: string) => void;
 }
 
 const DELAY = 1_800;
@@ -29,7 +29,7 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
     const valueToCopy = fullFormatted.value.trim();
     const success = await copy(valueToCopy);
     if (success) {
-      onCopy(valueToCopy);
+      onCopy?.(valueToCopy);
       announceToScreenReader('Phone number copied to clipboard');
     }
   };
