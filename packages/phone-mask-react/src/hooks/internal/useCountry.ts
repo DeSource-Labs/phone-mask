@@ -23,7 +23,7 @@ export interface UseCountryReturn {
   /** Current country data */
   country: MaskFull;
   /** Change country programmatically */
-  setCountry: (countryCode: string) => void;
+  setCountry: (countryCode?: string | null) => boolean;
   /** Computed locale value */
   locale: string;
 }

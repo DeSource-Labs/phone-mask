@@ -66,7 +66,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it.each([
         { countryOption: undefined, expected: true },
         { countryOption: 'US', expected: false },
-        { countryOption: 'DE', expected: false },
+        { countryOption: 'DE', expected: false }
       ])('hasDropdown is $expected when countryOption is $countryOption', ({ countryOption, expected }) => {
         const { result, unmount } = setup({ countryOption });
         expect(toValue(result.hasDropdown)).toBe(expected);
