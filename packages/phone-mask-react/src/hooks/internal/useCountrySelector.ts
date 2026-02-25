@@ -163,6 +163,12 @@ export function useCountrySelector({
   );
 
   useEffect(() => {
+    if (!hasDropdown && dropdownOpen) {
+      closeDropdown();
+    }
+  }, [hasDropdown, dropdownOpen, closeDropdown]);
+
+  useEffect(() => {
     if (!dropdownOpen) return;
 
     positionDropdown();
