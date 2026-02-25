@@ -60,6 +60,7 @@
     "dev": "cd demo && vite",
     "build": "vite build && tsc --project tsconfig.build.json",
     "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },
   "peerDependencies": {
