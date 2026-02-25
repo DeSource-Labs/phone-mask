@@ -3,7 +3,6 @@ import type { Mock } from 'vitest';
 
 import type { TestTools } from './setup/tools';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MaybeRef<T> = T | { value: T };
 
 export interface SetupOptions {

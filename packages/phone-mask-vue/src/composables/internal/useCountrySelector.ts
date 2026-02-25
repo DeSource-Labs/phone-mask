@@ -3,8 +3,6 @@ import type { MaybeRefOrGetter, ShallowRef, CSSProperties } from 'vue';
 
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
 
-import { useTimer } from '../utility/useTimer';
-
 interface UseCountrySelectorOptions {
   rootRef: ShallowRef<HTMLDivElement | null>;
   dropdownRef: ShallowRef<HTMLDivElement | null>;
@@ -70,6 +68,11 @@ export function useCountrySelector({
     search.value = '';
     setFocusedIndex(0);
     onAfterSelect?.();
+  };
+
+  const handleSearchChange = (e: Event) => {
+    search.value = (e.target as HTMLInputElement).value;
+    setFocusedIndex(0);
   };
 
   const onDocClick = (ev: Event) => {
@@ -170,6 +173,7 @@ export function useCountrySelector({
     toggleDropdown,
     selectCountry,
     setFocusedIndex,
+    handleSearchChange,
     handleSearchKeydown
   };
 }

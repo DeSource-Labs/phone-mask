@@ -21,7 +21,12 @@ export interface CopyActionSetupResult {
   onCopy: Mock;
 }
 
-export type SetupFn = (formattedPhoneNumber: string) => CopyActionSetupResult;
+export interface SetupOptions {
+  fullFormatted: string;
+  disableLiveRef?: boolean;
+}
+
+export type SetupFn = (options: SetupOptions) => CopyActionSetupResult;
 
 export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): void {
   const mockWriteText = vi.fn();
@@ -47,19 +52,19 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
   describe('useCopyAction', () => {
     describe('initial state', () => {
       it('copied is false', () => {
-        const { result, unmount } = setup(PHONE);
+        const { result, unmount } = setup({ fullFormatted: PHONE });
         expect(toValue(result.copied)).toBe(false);
         unmount();
       });
 
       it('copyAriaLabel contains the phone number', () => {
-        const { result, unmount } = setup(PHONE);
+        const { result, unmount } = setup({ fullFormatted: PHONE });
         expect(toValue(result.copyAriaLabel)).toBe(`Copy ${PHONE}`);
         unmount();
       });
 
       it('copyButtonTitle is "Copy phone number"', () => {
-        const { result, unmount } = setup(PHONE);
+        const { result, unmount } = setup({ fullFormatted: PHONE });
         expect(toValue(result.copyButtonTitle)).toBe('Copy phone number');
         unmount();
       });
@@ -67,7 +72,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
 
     describe('onCopyClick — success', () => {
       it('calls clipboard.writeText with trimmed value', async () => {
-        const { result, unmount } = setup(`  ${PHONE}  `);
+        const { result, unmount } = setup({ fullFormatted: `  ${PHONE}  ` });
 
         await act(async () => {
           await result.onCopyClick();
@@ -78,7 +83,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
 
       it('sets copied to true', async () => {
-        const { result, unmount } = setup(PHONE);
+        const { result, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -89,7 +94,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
 
       it('switches labels to "Copied"', async () => {
-        const { result, unmount } = setup(PHONE);
+        const { result, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -101,7 +106,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
 
       it('calls onCopy callback with trimmed value', async () => {
-        const { result, onCopy, unmount } = setup(PHONE);
+        const { result, onCopy, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -113,7 +118,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
 
       it('sets liveRef textContent to screen reader announcement', async () => {
-        const { result, el, unmount } = setup(PHONE);
+        const { result, el, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -124,7 +129,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
 
       it('clears liveRef textContent after DELAY', async () => {
-        const { result, el, unmount } = setup(PHONE);
+        const { result, el, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -139,7 +144,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
 
       it('resets copied to false after DELAY', async () => {
-        const { result, unmount } = setup(PHONE);
+        const { result, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -156,7 +161,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
 
       it('restores original labels after DELAY', async () => {
-        const { result, unmount } = setup(PHONE);
+        const { result, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -176,7 +181,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       it('does not call onCopy when clipboard throws', async () => {
         mockWriteText.mockRejectedValue(new Error('Permission denied'));
 
-        const { result, onCopy, unmount } = setup(PHONE);
+        const { result, onCopy, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -189,7 +194,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       it('keeps copied as false when clipboard throws', async () => {
         mockWriteText.mockRejectedValue(new Error('Permission denied'));
 
-        const { result, unmount } = setup(PHONE);
+        const { result, unmount } = setup({ fullFormatted: PHONE });
 
         await act(async () => {
           await result.onCopyClick();
@@ -200,7 +205,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
 
       it('does not write to clipboard when fullFormatted is blank', async () => {
-        const { result, onCopy, unmount } = setup('   ');
+        const { result, onCopy, unmount } = setup({ fullFormatted: '   ' });
 
         await act(async () => {
           await result.onCopyClick();
@@ -212,9 +217,44 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
       });
     });
 
+    describe('isCopying guard', () => {
+      it('does not call clipboard.writeText a second time while first copy is in progress', async () => {
+        let resolveFirst!: () => void;
+        mockWriteText.mockImplementation(
+          () =>
+            new Promise<void>((r) => {
+              resolveFirst = r;
+            })
+        );
+
+        const { result, unmount } = setup({ fullFormatted: PHONE });
+
+        // Start first copy — writeText hangs
+        const firstCopy = result.onCopyClick();
+
+        // Flush isCopying = true state update
+        await act(async () => {});
+
+        // Second click — should be blocked by the guard
+        await act(async () => {
+          await result.onCopyClick();
+        });
+
+        expect(mockWriteText).toHaveBeenCalledOnce();
+
+        // Resolve the first copy and clean up
+        resolveFirst();
+        await act(async () => {
+          await firstCopy;
+        });
+
+        unmount();
+      });
+    });
+
     describe('label reactivity', () => {
       it('copyAriaLabel updates when fullFormatted changes', async () => {
-        const { result, rerender, unmount } = setup(PHONE);
+        const { result, rerender, unmount } = setup({ fullFormatted: PHONE });
 
         expect(toValue(result.copyAriaLabel)).toBe(`Copy ${PHONE}`);
 
@@ -223,6 +263,19 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
         });
 
         expect(toValue(result.copyAriaLabel)).toBe('Copy +44 20 7946 0958');
+        unmount();
+      });
+    });
+
+    describe('liveRef = null', () => {
+      it('does not throw and still calls onCopy when liveRef is null', async () => {
+        const { result, unmount, onCopy } = setup({ fullFormatted: PHONE, disableLiveRef: true });
+
+        await act(async () => {
+          await result.onCopyClick();
+        });
+
+        expect(onCopy).toHaveBeenCalledOnce();
         unmount();
       });
     });

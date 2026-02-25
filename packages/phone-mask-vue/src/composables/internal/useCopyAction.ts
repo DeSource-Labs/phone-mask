@@ -1,10 +1,10 @@
-import { computed, type Ref, type TemplateRef } from 'vue';
+import { computed, type Ref } from 'vue';
 import { useClipboard } from '../utility/useClipboard';
 import { useTimer } from '../utility/useTimer';
 
 interface UseCopyActionOptions {
-  liveRef: Ref<HTMLElement | null>;
   fullFormatted: Ref<string>;
+  liveRef?: Ref<HTMLElement | null>;
   onCopy?: (value: string) => void;
 }
 
@@ -18,7 +18,7 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
   const copyButtonTitle = computed(() => (copied.value ? 'Copied' : 'Copy phone number'));
 
   const announceToScreenReader = (message: string) => {
-    if (!liveRef.value) return;
+    if (!liveRef?.value) return;
     liveRef.value.textContent = message;
     liveTimer.set(() => {
       if (liveRef.value) liveRef.value.textContent = '';

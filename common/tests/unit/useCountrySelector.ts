@@ -3,7 +3,6 @@ import type { Mock } from 'vitest';
 
 import type { TestTools } from './setup/tools';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MaybeRef<T> = T | { value: T };
 
 export interface SetupOptions {
@@ -21,9 +20,11 @@ export interface CountrySelectorSetupResult {
     openDropdown: () => void;
     closeDropdown: () => void;
     toggleDropdown: () => void;
-    // eslint-disable-next-line @typescript-eslint/method-signature-style
+
     selectCountry(code: string): void;
     setFocusedIndex: (index: number) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleSearchChange: (e: any) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleSearchKeydown: (e: any) => void;
   };
@@ -264,6 +265,91 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         });
 
         expect(onAfterSelect).toHaveBeenCalledOnce();
+        unmount();
+      });
+    });
+
+    describe('filteredCountries', () => {
+      it('returns all countries when search is empty', () => {
+        const { result, unmount } = setup();
+        const total = toValue(result.filteredCountries).length;
+        expect(total).toBeGreaterThan(1);
+        unmount();
+      });
+
+      it('filters countries matching the search string', async () => {
+        const { result, unmount } = setup();
+        const total = toValue(result.filteredCountries).length;
+
+        await act(async () => {
+          result.handleSearchChange({ target: { value: 'united' } });
+        });
+
+        const filtered = toValue(result.filteredCountries).length;
+        expect(filtered).toBeGreaterThan(0);
+        expect(filtered).toBeLessThan(total);
+        unmount();
+      });
+
+      it('returns an empty list when search matches nothing', async () => {
+        const { result, unmount } = setup();
+
+        await act(async () => {
+          result.handleSearchChange({ target: { value: 'zzzznomatch' } });
+        });
+
+        expect(toValue(result.filteredCountries).length).toBe(0);
+        unmount();
+      });
+    });
+
+    describe('click outside', () => {
+      it('closes the dropdown when clicking outside', async () => {
+        const { result, simulateCloseComplete, unmount } = setup();
+
+        await act(async () => {
+          result.openDropdown();
+        });
+
+        expect(toValue(result.dropdownOpen)).toBe(true);
+
+        await act(async () => {
+          window.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        });
+
+        await act(async () => {
+          simulateCloseComplete();
+        });
+
+        expect(toValue(result.dropdownOpen)).toBe(false);
+        unmount();
+      });
+    });
+
+    describe('handleSearchChange', () => {
+      it('updates search when called', async () => {
+        const { result, unmount } = setup();
+
+        await act(async () => {
+          result.handleSearchChange({ target: { value: 'ger' } });
+        });
+
+        expect(toValue(result.search)).toBe('ger');
+        unmount();
+      });
+
+      it('resets focusedIndex to 0 when search changes', async () => {
+        const { result, unmount } = setup();
+
+        await act(async () => {
+          result.setFocusedIndex(5);
+        });
+
+        await act(async () => {
+          result.handleSearchChange({ target: { value: 'fr' } });
+        });
+
+        expect(toValue(result.focusedIndex)).toBe(0);
         unmount();
       });
     });

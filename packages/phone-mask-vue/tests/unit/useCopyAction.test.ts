@@ -2,14 +2,15 @@
 import { ref } from 'vue';
 import { useCopyAction } from '../../src/composables/internal/useCopyAction';
 import { testUseCopyAction } from '@common/tests/unit/useCopyAction';
+import type { SetupOptions } from '@common/tests/unit/useCopyAction';
 import { tools, withSetup } from './setup/tools';
 
-function setup(formattedPhoneNumber: string) {
+function setup(options: SetupOptions) {
   const el = document.createElement('div');
-  const liveRef = ref<HTMLElement | null>(el);
+  const liveRef = ref<HTMLElement | null>(options.disableLiveRef ? null : el);
   const onCopy = vi.fn();
 
-  const fullFormatted = ref(formattedPhoneNumber);
+  const fullFormatted = ref(options.fullFormatted);
 
   const { result, unmount } = withSetup(() => useCopyAction({ liveRef, fullFormatted, onCopy }));
 

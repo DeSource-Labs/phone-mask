@@ -3,8 +3,8 @@ import { useClipboard } from '../utility/useClipboard';
 import { useTimer } from '../utility/useTimer';
 
 interface UseCopyActionOptions {
-  liveRef: RefObject<HTMLElement | null>;
   fullFormatted: string;
+  liveRef?: RefObject<HTMLElement | null>;
   onCopy?: (value: string) => void;
 }
 
@@ -19,7 +19,7 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
 
   const announceToScreenReader = useCallback(
     (message: string) => {
-      if (!liveRef.current) return;
+      if (!liveRef?.current) return;
       liveRef.current.textContent = message;
       liveTimer.set(() => {
         if (liveRef.current) liveRef.current.textContent = '';

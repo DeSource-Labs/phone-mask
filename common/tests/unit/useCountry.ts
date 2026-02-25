@@ -3,7 +3,6 @@ import type { Mock } from 'vitest';
 
 import type { TestTools } from './setup/tools';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MaybeRef<T> = T | { value: T };
 
 interface CountryData {
@@ -235,6 +234,27 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
         await act(async () => {});
 
         expect(mocks.detectCountryFromLocale).not.toHaveBeenCalled();
+        unmount();
+      });
+
+      it('falls back to detectCountryFromLocale when GeoIP returns an invalid country code', async () => {
+        mocks.detectByGeoIp.mockResolvedValue('INVALID');
+        mocks.detectCountryFromLocale.mockReturnValue('KR');
+
+        const { result, unmount } = setup({ detect: true, locale: 'en' });
+
+        await act(async () => {});
+
+        expect(mocks.detectCountryFromLocale).toHaveBeenCalled();
+        expect(toValue(result.country).id).toBe('KR');
+        unmount();
+      });
+    });
+
+    describe('locale', () => {
+      it('uses navigator.language when no locale option is provided', () => {
+        const { result, unmount } = setup({});
+        expect(toValue(result.locale)).toBe(navigator.language);
         unmount();
       });
     });

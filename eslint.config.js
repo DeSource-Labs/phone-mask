@@ -153,6 +153,19 @@ export default [
     }
   },
 
+  // Test files (Vitest)
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx', '**/tests/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.vitest
+      }
+    },
+    rules: {
+      'no-undef': 'off'
+    }
+  },
+
   // Prettier config (must be last)
   prettier
 ];

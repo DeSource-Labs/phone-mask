@@ -7,7 +7,7 @@
     :style="rootStyles"
   >
     <!-- Country Selector -->
-    <div class="pi-selector" ref="selectorRef">
+    <div ref="selectorRef" class="pi-selector">
       <button
         type="button"
         class="pi-selector-btn"
@@ -133,12 +133,13 @@
           <div class="pi-search-wrap">
             <input
               ref="searchRef"
-              v-model="search"
+              :value="search"
               type="search"
               class="pi-search"
               aria-label="Search countries"
               :placeholder="searchPlaceholder"
               @keydown="handleSearchKeydown"
+              @input="handleSearchChange"
             />
           </div>
           <ul class="pi-options" role="listbox" :aria-activedescendant="`option-${focusedIndex}`" tabindex="-1">
@@ -272,6 +273,7 @@ const {
   toggleDropdown,
   selectCountry,
   setFocusedIndex,
+  handleSearchChange,
   handleSearchKeydown
 } = useCountrySelector({
   rootRef,

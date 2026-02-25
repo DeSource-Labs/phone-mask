@@ -15,7 +15,7 @@ vi.mock('@desource/phone-mask', async (importOriginal) => {
 });
 
 function setup(options: CountrySetupOptions = {}) {
-  const { countryOption: initialCountryOption, locale = 'en', detect = false } = options;
+  const { countryOption: initialCountryOption, locale, detect = false } = options;
 
   const onCountryChange = vi.fn();
 
