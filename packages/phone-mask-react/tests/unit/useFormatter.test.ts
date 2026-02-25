@@ -1,9 +1,8 @@
 /// <reference types="vitest/globals" />
-import { renderHook } from '@testing-library/react';
 import { getCountry } from '@desource/phone-mask';
 import { useFormatter } from '../../src/hooks/internal/useFormatter';
 import { testUseFormatter, type SetupOptions } from '@common/tests/unit/useFormatter';
-import { tools } from './setup/tools';
+import { tools, renderHookWithProxy } from './setup/tools';
 
 function setup(options: SetupOptions = {}) {
   const { countryCode = 'US', value: initialValue = '' } = options;
@@ -12,7 +11,7 @@ function setup(options: SetupOptions = {}) {
   const onPhoneChange = vi.fn();
   const onValidationChange = vi.fn();
 
-  const { result, unmount, rerender } = renderHook(
+  const { result, unmount, rerender } = renderHookWithProxy(
     ({ value, code }: { value: string; code: string }) =>
       useFormatter({
         country: getCountry(code, 'en'),
@@ -24,19 +23,12 @@ function setup(options: SetupOptions = {}) {
     { initialProps: { value: initialValue, code: countryCode } }
   );
 
-  // Proxy ensures we always read the latest result.current after re-renders
-  const resultProxy = new Proxy({} as ReturnType<typeof useFormatter>, {
-    get(_target, key) {
-      return result.current[key as keyof typeof result.current];
-    }
-  });
-
   return {
-    result: resultProxy,
+    result,
     unmount,
     rerender: ({ value, countryCode: code }: { value?: string; countryCode?: string }) => {
       rerender({
-        value: value ?? result.current.digits,
+        value: value ?? result.digits,
         code: code ?? countryCode
       });
     },

@@ -6,6 +6,13 @@ import type { TestTools } from './setup/tools';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MaybeRef<T> = T | { value: T };
 
+export interface SetupOptions {
+  /** Country code string, e.g. 'US', 'GB'. Defaults to 'US'. */
+  countryCode?: string;
+  /** Initial digits value. Defaults to ''. */
+  value?: string;
+}
+
 export interface FormatterSetupResult {
   result: {
     digits: MaybeRef<string>;
@@ -18,17 +25,10 @@ export interface FormatterSetupResult {
     shouldShowWarn: MaybeRef<boolean>;
   };
   unmount: () => void;
-  rerender: (props: { value?: string; countryCode?: string }) => void;
+  rerender: (props: SetupOptions) => void;
   onChange: Mock;
   onPhoneChange: Mock;
   onValidationChange: Mock;
-}
-
-export interface SetupOptions {
-  /** Country code string, e.g. 'US', 'GB'. Defaults to 'US'. */
-  countryCode?: string;
-  /** Initial digits value. Defaults to ''. */
-  value?: string;
 }
 
 export type SetupFn = (options?: SetupOptions) => FormatterSetupResult;

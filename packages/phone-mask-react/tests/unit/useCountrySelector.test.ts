@@ -1,8 +1,7 @@
 /// <reference types="vitest/globals" />
-import { renderHook } from '@testing-library/react';
 import { useCountrySelector } from '../../src/hooks/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
-import { tools } from './setup/tools';
+import { tools, renderHookWithProxy } from './setup/tools';
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
@@ -18,7 +17,7 @@ function setup(options: SetupOptions = {}) {
   const onSelectCountry = vi.fn();
   const onAfterSelect = vi.fn();
 
-  const { result, unmount } = renderHook(() =>
+  const { result, unmount } = renderHookWithProxy(() =>
     useCountrySelector({
       rootRef,
       dropdownRef,
@@ -32,23 +31,9 @@ function setup(options: SetupOptions = {}) {
     })
   );
 
-  // Proxy ensures we always read the latest result.current after re-renders
-  const resultProxy = new Proxy({} as ReturnType<typeof useCountrySelector>, {
-    get(_target, key) {
-      return result.current[key as keyof typeof result.current];
-    }
-  });
+  const simulateCloseComplete = () => result.handleDropdownAnimationEnd();
 
-  const simulateCloseComplete = () => result.current.handleDropdownAnimationEnd();
-
-  return {
-    result: resultProxy,
-    simulateCloseComplete,
-    unmount,
-    onSelectCountry,
-    onAfterSelect,
-    searchEl
-  };
+  return { result, simulateCloseComplete, unmount, onSelectCountry, onAfterSelect, searchEl };
 }
 
 testUseCountrySelector(setup, tools);

@@ -6,6 +6,11 @@ import type { TestTools } from './setup/tools';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MaybeRef<T> = T | { value: T };
 
+export interface SetupOptions {
+  countryOption?: string;
+  inactive?: boolean;
+}
+
 export interface CountrySelectorSetupResult {
   result: {
     dropdownOpen: MaybeRef<boolean>;
@@ -33,11 +38,6 @@ export interface CountrySelectorSetupResult {
   onAfterSelect: Mock;
   /** HTMLInputElement with a spied focus method, connected to the composable's searchRef. */
   searchEl: HTMLInputElement;
-}
-
-export interface SetupOptions {
-  countryOption?: string;
-  inactive?: boolean;
 }
 
 export type SetupFn = (options?: SetupOptions) => CountrySelectorSetupResult;

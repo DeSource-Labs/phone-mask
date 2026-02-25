@@ -15,6 +15,7 @@ export const tools: TestTools = {
  */
 export function withSetup<T>(composable: () => T) {
   let result!: T;
+
   const app = createApp({
     setup() {
       result = composable();
