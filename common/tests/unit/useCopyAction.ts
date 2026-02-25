@@ -1,15 +1,14 @@
 /// <reference types="vitest/globals" />
 import type { Mock } from 'vitest';
 
-export const DELAY = 2_000;
+import type { TestTools } from './setup/tools';
+
+export const DELAY = 1_800;
 export const PHONE = '+1 234-567-8901';
 
 type MaybeRef<T> = T | { value: T };
 
 export interface CopyActionSetupResult {
-  act: (fn: () => void | Promise<void>) => Promise<void>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  toValue: (val: any) => any;
   result: {
     copied: MaybeRef<boolean>;
     copyAriaLabel: MaybeRef<string>;
@@ -24,7 +23,7 @@ export interface CopyActionSetupResult {
 
 export type SetupFn = (formattedPhoneNumber: string) => CopyActionSetupResult;
 
-export function testUseCopyAction(setup: SetupFn): void {
+export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): void {
   const mockWriteText = vi.fn();
 
   beforeAll(() => {
@@ -48,19 +47,19 @@ export function testUseCopyAction(setup: SetupFn): void {
   describe('useCopyAction', () => {
     describe('initial state', () => {
       it('copied is false', () => {
-        const { result, unmount, toValue } = setup(PHONE);
+        const { result, unmount } = setup(PHONE);
         expect(toValue(result.copied)).toBe(false);
         unmount();
       });
 
       it('copyAriaLabel contains the phone number', () => {
-        const { result, unmount, toValue } = setup(PHONE);
+        const { result, unmount } = setup(PHONE);
         expect(toValue(result.copyAriaLabel)).toBe(`Copy ${PHONE}`);
         unmount();
       });
 
       it('copyButtonTitle is "Copy phone number"', () => {
-        const { result, unmount, toValue } = setup(PHONE);
+        const { result, unmount } = setup(PHONE);
         expect(toValue(result.copyButtonTitle)).toBe('Copy phone number');
         unmount();
       });
@@ -68,7 +67,7 @@ export function testUseCopyAction(setup: SetupFn): void {
 
     describe('onCopyClick — success', () => {
       it('calls clipboard.writeText with trimmed value', async () => {
-        const { result, act, unmount } = setup(`  ${PHONE}  `);
+        const { result, unmount } = setup(`  ${PHONE}  `);
 
         await act(async () => {
           await result.onCopyClick();
@@ -79,7 +78,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       });
 
       it('sets copied to true', async () => {
-        const { result, act, unmount, toValue } = setup(PHONE);
+        const { result, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -90,7 +89,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       });
 
       it('switches labels to "Copied"', async () => {
-        const { result, act, unmount, toValue } = setup(PHONE);
+        const { result, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -102,7 +101,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       });
 
       it('calls onCopy callback with trimmed value', async () => {
-        const { result, onCopy, act, unmount } = setup(PHONE);
+        const { result, onCopy, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -114,7 +113,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       });
 
       it('sets liveRef textContent to screen reader announcement', async () => {
-        const { result, el, act, unmount } = setup(PHONE);
+        const { result, el, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -125,7 +124,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       });
 
       it('clears liveRef textContent after DELAY', async () => {
-        const { result, el, act, unmount } = setup(PHONE);
+        const { result, el, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -140,7 +139,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       });
 
       it('resets copied to false after DELAY', async () => {
-        const { result, act, unmount, toValue } = setup(PHONE);
+        const { result, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -157,7 +156,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       });
 
       it('restores original labels after DELAY', async () => {
-        const { result, act, unmount, toValue } = setup(PHONE);
+        const { result, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -177,7 +176,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       it('does not call onCopy when clipboard throws', async () => {
         mockWriteText.mockRejectedValue(new Error('Permission denied'));
 
-        const { result, onCopy, act, unmount } = setup(PHONE);
+        const { result, onCopy, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -190,7 +189,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       it('keeps copied as false when clipboard throws', async () => {
         mockWriteText.mockRejectedValue(new Error('Permission denied'));
 
-        const { result, act, unmount, toValue } = setup(PHONE);
+        const { result, unmount } = setup(PHONE);
 
         await act(async () => {
           await result.onCopyClick();
@@ -201,7 +200,7 @@ export function testUseCopyAction(setup: SetupFn): void {
       });
 
       it('does not write to clipboard when fullFormatted is blank', async () => {
-        const { result, onCopy, act, unmount } = setup('   ');
+        const { result, onCopy, unmount } = setup('   ');
 
         await act(async () => {
           await result.onCopyClick();
@@ -215,7 +214,7 @@ export function testUseCopyAction(setup: SetupFn): void {
 
     describe('label reactivity', () => {
       it('copyAriaLabel updates when fullFormatted changes', async () => {
-        const { result, rerender, act, unmount, toValue } = setup(PHONE);
+        const { result, rerender, unmount } = setup(PHONE);
 
         expect(toValue(result.copyAriaLabel)).toBe(`Copy ${PHONE}`);
 

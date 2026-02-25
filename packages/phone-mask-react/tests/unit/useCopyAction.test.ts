@@ -1,7 +1,8 @@
 /// <reference types="vitest/globals" />
-import { renderHook, act } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import { useCopyAction } from '../../src/hooks/internal/useCopyAction';
 import { testUseCopyAction } from '@common/tests/unit/useCopyAction';
+import { tools } from './setup/tools';
 
 function setup(formattedPhoneNumber: string) {
   const el = document.createElement('div');
@@ -21,8 +22,6 @@ function setup(formattedPhoneNumber: string) {
   });
 
   return {
-    act,
-    toValue: (val: unknown) => val,
     result: resultProxy,
     unmount,
     rerender,
@@ -31,4 +30,4 @@ function setup(formattedPhoneNumber: string) {
   };
 }
 
-testUseCopyAction(setup);
+testUseCopyAction(setup, tools);
