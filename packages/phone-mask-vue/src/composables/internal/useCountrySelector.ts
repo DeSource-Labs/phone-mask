@@ -1,4 +1,4 @@
-import { ref, computed, watch, watchEffect, onBeforeUnmount, shallowRef, toValue, nextTick } from 'vue';
+import { ref, computed, watch, onBeforeUnmount, shallowRef, toValue, nextTick } from 'vue';
 import type { MaybeRefOrGetter, ShallowRef, CSSProperties } from 'vue';
 
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
@@ -144,8 +144,8 @@ export function useCountrySelector({
     window.removeEventListener('click', onDocClick, true);
   };
 
-  watchEffect(() => {
-    if (!hasDropdown.value && dropdownOpen.value) {
+  watch(hasDropdown, (dropdownExists) => {
+    if (!dropdownExists && dropdownOpen.value) {
       closeDropdown();
     }
   });
