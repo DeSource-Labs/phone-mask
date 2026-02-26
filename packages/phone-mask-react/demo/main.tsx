@@ -37,31 +37,31 @@ function DemoHook() {
   });
 
   return (
-    <section style={sectionStyle}>
+    <section style={sectionStyle} data-testid="hook">
       <h2 style={headingStyle}>usePhoneMask Hook</h2>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <input ref={ref} type="tel" placeholder="Phone number" style={inputStyle} />
-        <button onClick={() => setCountry('US')} style={btnStyle}>
+        <input ref={ref} type="tel" placeholder="Phone number" style={inputStyle} data-testid="phone-input" />
+        <button onClick={() => setCountry('US')} style={btnStyle} data-testid="control-country-us">
           US
         </button>
-        <button onClick={() => setCountry('DE')} style={btnStyle}>
+        <button onClick={() => setCountry('DE')} style={btnStyle} data-testid="control-country-de">
           DE
         </button>
-        <button onClick={() => clear()} style={btnStyle}>
+        <button onClick={() => clear()} style={btnStyle} data-testid="control-clear">
           Clear
         </button>
       </div>
       <div style={metaStyle}>
-        <div>
+        <div data-testid="meta-digits">
           <strong>Digits:</strong> {digits || '—'}
         </div>
-        <div>
+        <div data-testid="meta-full">
           <strong>Full:</strong> {full || '—'}
         </div>
-        <div>
+        <div data-testid="meta-formatted">
           <strong>Formatted:</strong> {fullFormatted || '—'}
         </div>
-        <div>
+        <div data-testid="meta-valid">
           <strong>Valid:</strong> {isComplete ? 'Yes' : 'No'}
         </div>
       </div>

@@ -32,19 +32,19 @@ function setInputRef(el: Element | ComponentPublicInstance | null) {
 </script>
 
 <template>
-  <section class="hook-demo">
+  <section class="hook-demo" data-testid="hook">
     <h2 class="heading">usePhoneMask Composable</h2>
     <div class="controls">
-      <input :ref="setInputRef" type="tel" placeholder="Phone number" class="hook-input" />
-      <button class="btn" @click="setCountry('US')">US</button>
-      <button class="btn" @click="setCountry('DE')">DE</button>
-      <button class="btn" @click="clear()">Clear</button>
+      <input :ref="setInputRef" type="tel" placeholder="Phone number" data-testid="phone-input" />
+      <button class="btn" data-testid="control-country-us" @click="setCountry('US')">US</button>
+      <button class="btn" data-testid="control-country-de" @click="setCountry('DE')">DE</button>
+      <button class="btn" data-testid="control-clear" @click="clear()">Clear</button>
     </div>
     <div class="meta">
-      <div><strong>Digits:</strong> {{ digits || '—' }}</div>
-      <div><strong>Full:</strong> {{ full || '—' }}</div>
-      <div><strong>Formatted:</strong> {{ fullFormatted || '—' }}</div>
-      <div><strong>Valid:</strong> {{ isComplete ? 'Yes' : 'No' }}</div>
+      <div data-testid="meta-digits"><strong>Digits:</strong> {{ digits || '—' }}</div>
+      <div data-testid="meta-full"><strong>Full:</strong> {{ full || '—' }}</div>
+      <div data-testid="meta-formatted"><strong>Formatted:</strong> {{ fullFormatted || '—' }}</div>
+      <div data-testid="meta-valid"><strong>Valid:</strong> {{ isComplete ? 'Yes' : 'No' }}</div>
     </div>
   </section>
 </template>
