@@ -154,15 +154,33 @@ function Playground() {
                 style={selectStyle}
                 data-testid="props-country"
               >
-                <option value="">Not Selected</option>
-                <option value="US">United States</option>
-                <option value="GB">United Kingdom</option>
-                <option value="DE">Germany</option>
-                <option value="FR">France</option>
-                <option value="UA">Ukraine</option>
-                <option value="CA">Canada</option>
-                <option value="AU">Australia</option>
-                <option value="JP">Japan</option>
+                <option value="" style={optionStyle}>
+                  Not Selected
+                </option>
+                <option value="US" style={optionStyle}>
+                  United States
+                </option>
+                <option value="GB" style={optionStyle}>
+                  United Kingdom
+                </option>
+                <option value="DE" style={optionStyle}>
+                  Germany
+                </option>
+                <option value="FR" style={optionStyle}>
+                  France
+                </option>
+                <option value="UA" style={optionStyle}>
+                  Ukraine
+                </option>
+                <option value="CA" style={optionStyle}>
+                  Canada
+                </option>
+                <option value="AU" style={optionStyle}>
+                  Australia
+                </option>
+                <option value="JP" style={optionStyle}>
+                  Japan
+                </option>
               </select>
             </label>
 
@@ -174,10 +192,18 @@ function Playground() {
                 style={selectStyle}
                 data-testid="props-locale"
               >
-                <option value="">Not Selected</option>
-                <option value="en-US">English (US)</option>
-                <option value="de-DE">German</option>
-                <option value="ru-RU">Russian</option>
+                <option value="" style={optionStyle}>
+                  Not Selected
+                </option>
+                <option value="en-US" style={optionStyle}>
+                  English (US)
+                </option>
+                <option value="de-DE" style={optionStyle}>
+                  German
+                </option>
+                <option value="ru-RU" style={optionStyle}>
+                  Russian
+                </option>
               </select>
             </label>
 
@@ -189,9 +215,15 @@ function Playground() {
                 style={selectStyle}
                 data-testid="props-size"
               >
-                <option value="compact">Compact</option>
-                <option value="normal">Normal</option>
-                <option value="large">Large</option>
+                <option value="compact" style={optionStyle}>
+                  Compact
+                </option>
+                <option value="normal" style={optionStyle}>
+                  Normal
+                </option>
+                <option value="large" style={optionStyle}>
+                  Large
+                </option>
               </select>
             </label>
 
@@ -203,9 +235,15 @@ function Playground() {
                 style={selectStyle}
                 data-testid="props-theme"
               >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="auto">Auto</option>
+                <option value="light" style={optionStyle}>
+                  Light
+                </option>
+                <option value="dark" style={optionStyle}>
+                  Dark
+                </option>
+                <option value="auto" style={optionStyle}>
+                  Auto
+                </option>
               </select>
             </label>
           </div>
@@ -490,6 +528,10 @@ const selectStyle: React.CSSProperties = {
   fontFamily: "'Nunito', sans-serif",
   outline: 'none',
   cursor: 'pointer'
+};
+
+const optionStyle: React.CSSProperties = {
+  color: '#000'
 };
 
 const checkboxLabelStyle: React.CSSProperties = {

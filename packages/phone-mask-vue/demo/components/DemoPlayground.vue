@@ -324,6 +324,10 @@ function onChange(e: PMaskPhoneNumber) {
   cursor: pointer;
 }
 
+.select option {
+  color: #000;
+}
+
 .input::placeholder {
   color: rgba(255, 255, 255, 0.3);
 }
