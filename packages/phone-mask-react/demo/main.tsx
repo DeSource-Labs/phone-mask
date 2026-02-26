@@ -15,41 +15,6 @@ import type {
   PhoneNumber
 } from '../src';
 
-function DemoPhoneInput() {
-  const [digits, setDigits] = useState('');
-
-  const onCountryChange = useCallback((c: MaskFull) => {
-    console.log('Country:', c.name);
-  }, []);
-
-  const onValidationChange = useCallback((v: boolean) => {
-    console.log('Valid:', v);
-  }, []);
-
-  return (
-    <section style={sectionStyle}>
-      <h2 style={headingStyle}>PhoneInput Component</h2>
-      <PhoneInput
-        value={digits}
-        onChange={setDigits}
-        onCountryChange={onCountryChange}
-        onValidationChange={onValidationChange}
-        country="US"
-        detect={true}
-        showCopy
-        showClear
-        size="normal"
-        theme="dark"
-      />
-      <div style={metaStyle}>
-        <div>
-          <strong>Digits:</strong> {digits || '—'}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function DemoHook() {
   const [value, setValue] = useState('');
   const [countryOption, setCountryOption] = useState('GB');
@@ -382,7 +347,6 @@ function App() {
 
       <div style={contentStyle}>
         <Playground />
-        <DemoPhoneInput />
         <DemoHook />
       </div>
 

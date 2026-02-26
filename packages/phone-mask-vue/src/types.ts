@@ -1,3 +1,4 @@
+import type { MaybeRefOrGetter, ShallowRef, ComputedRef } from 'vue';
 import type { MaskFull, CountryKey, FormatterHelpers } from '@desource/phone-mask';
 
 export type Size = 'compact' | 'normal' | 'large';
@@ -8,6 +9,37 @@ export type PhoneNumber = {
   fullFormatted: string;
   digits: string;
 };
+
+export interface UsePhoneMaskOptions {
+  /** Controlled value — digits only, without country code */
+  value: MaybeRefOrGetter<string>;
+  /** Called when digits change */
+  onChange: (digits: string) => void;
+  /** Country ISO 3166-1 alpha-2 code */
+  country?: MaybeRefOrGetter<string | undefined>;
+  /** Locale for country names (defaults to browser language) */
+  locale?: MaybeRefOrGetter<string | undefined>;
+  /** Auto-detect country via GeoIP */
+  detect?: MaybeRefOrGetter<boolean | undefined>;
+  /** Called on every phone number update */
+  onPhoneChange?: (data: PhoneNumber) => void;
+  /** Called when country changes */
+  onCountryChange?: (country: MaskFull) => void;
+}
+
+export interface UsePhoneMaskReturn {
+  /** Bind this ref to your &lt;input&gt; element */
+  inputRef: ShallowRef<HTMLInputElement | null>;
+  digits: ComputedRef<string>;
+  full: ComputedRef<string>;
+  fullFormatted: ComputedRef<string>;
+  isComplete: ComputedRef<boolean>;
+  isEmpty: ComputedRef<boolean>;
+  shouldShowWarn: ComputedRef<boolean>;
+  country: ComputedRef<MaskFull>;
+  setCountry: (countryCode?: string | null) => boolean;
+  clear: () => void;
+}
 
 export interface PhoneInputProps {
   /** Whether to preselect a country by its ISO 3166-1 alpha-2 code */
