@@ -1,22 +1,19 @@
 {
-  "name": "@desource/phone-mask-vue",
+  "name": "@desource/phone-mask-svelte",
   "version": "0.3.0",
-  "description": "🔌 Vue 3 component & directive for international phone number masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
+  "description": "Svelte component for international phone number masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
   "keywords": [
-    "vue",
-    "vue3",
+    "svelte",
     "phone",
     "mask",
     "input",
     "component",
-    "directive",
     "international",
     "libphonenumber",
     "country-code",
     "phone-number",
     "formatting",
     "validation",
-    "composition-api",
     "typescript"
   ],
   "author": "Stefan Popov <stefan@desource-labs.org>",
@@ -24,12 +21,12 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
-    "directory": "packages/phone-mask-vue"
+    "directory": "packages/phone-mask-svelte"
   },
   "bugs": {
     "url": "https://github.com/DeSource-Labs/phone-mask/issues"
   },
-  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-vue#readme",
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-svelte#readme",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -44,8 +41,7 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
-    },
-    "./assets/lib.css": "./dist/phone-mask-vue.css"
+    }
   },
   "files": [
     "dist",
@@ -57,20 +53,19 @@
     "dev": "vite demo",
     "build": "pnpm build-lib && pnpm build-types",
     "build-lib": "vite build",
-    "build-types": "vue-tsc --emitDeclarationOnly --declaration -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test:unit": "vitest run",
+    "build-types": "tsc --project tsconfig.build.json",
+    "typecheck": "svelte-check --tsconfig tsconfig.json",
     "test:e2e": "playwright test"
   },
   "peerDependencies": {
-    "vue": "^3.4.33"
+    "svelte": "^5.0.0"
   },
   "dependencies": {
     "@desource/phone-mask": "workspace:*"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.4",
-    "vue-tsc": "^3.2.4",
-    "vue": "^3.5.28"
+    "@sveltejs/vite-plugin-svelte": "^6.0.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^4.0.0"
   }
 }

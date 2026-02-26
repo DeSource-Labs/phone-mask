@@ -18,7 +18,8 @@
     { "path": "./packages/phone-mask" },
     { "path": "./packages/phone-mask-vue" },
     { "path": "./packages/phone-mask-nuxt" },
-    { "path": "./packages/phone-mask-react" }
+    { "path": "./packages/phone-mask-react" },
+    { "path": "./packages/phone-mask-svelte" }
   ],
   "include": [],
   "exclude": ["node_modules", "dist"]

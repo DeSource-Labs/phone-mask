@@ -56,7 +56,7 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist tsconfig.tsbuildinfo test-results",
     "dev": "cd demo && vite",
     "build": "vite build && tsc --project tsconfig.build.json",
     "typecheck": "tsc --noEmit",
