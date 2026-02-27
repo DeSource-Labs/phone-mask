@@ -15,82 +15,53 @@ import type {
   PhoneNumber
 } from '../src';
 
-function DemoPhoneInput() {
-  const [digits, setDigits] = useState('');
-
-  const onCountryChange = useCallback((c: MaskFull) => {
-    console.log('Country:', c.name);
-  }, []);
-
-  const onValidationChange = useCallback((v: boolean) => {
-    console.log('Valid:', v);
-  }, []);
-
-  return (
-    <section style={sectionStyle}>
-      <h2 style={headingStyle}>PhoneInput Component</h2>
-      <PhoneInput
-        value={digits}
-        onChange={setDigits}
-        onCountryChange={onCountryChange}
-        onValidationChange={onValidationChange}
-        country="US"
-        detect={true}
-        showCopy
-        showClear
-        size="normal"
-        theme="dark"
-      />
-      <div style={metaStyle}>
-        <div>
-          <strong>Digits:</strong> {digits || '—'}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function DemoHook() {
   const [value, setValue] = useState('');
+  const [countryOption, setCountryOption] = useState('GB');
 
   const onPhoneChange = useCallback((p: PhoneNumber) => {
     console.log('Hook change:', p);
   }, []);
 
+  const onCountryChange = useCallback((country: MaskFull) => {
+    setCountryOption(country.code);
+  }, []);
+
   const { ref, digits, full, fullFormatted, isComplete, setCountry, clear } = usePhoneMask({
     value,
-    country: 'GB',
+    country: countryOption,
     detect: false,
     onChange: setValue,
-    onPhoneChange
+    onPhoneChange,
+    onCountryChange
   });
 
   return (
-    <section style={sectionStyle}>
+    <section style={sectionStyle} data-testid="hook">
       <h2 style={headingStyle}>usePhoneMask Hook</h2>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <input ref={ref} type="tel" placeholder="Phone number" style={inputStyle} />
-        <button onClick={() => setCountry('US')} style={btnStyle}>
+        <input ref={ref} type="tel" placeholder="Phone number" style={inputStyle} data-testid="phone-input" />
+        <button onClick={() => setCountry('US')} style={btnStyle} data-testid="control-country-us">
           US
         </button>
-        <button onClick={() => setCountry('DE')} style={btnStyle}>
+        <button onClick={() => setCountry('DE')} style={btnStyle} data-testid="control-country-de">
           DE
         </button>
-        <button onClick={() => clear()} style={btnStyle}>
+        <button onClick={() => clear()} style={btnStyle} data-testid="control-clear">
           Clear
         </button>
       </div>
       <div style={metaStyle}>
-        <div>
+        <div data-testid="meta-digits">
           <strong>Digits:</strong> {digits || '—'}
         </div>
-        <div>
+        <div data-testid="meta-full">
           <strong>Full:</strong> {full || '—'}
         </div>
-        <div>
+        <div data-testid="meta-formatted">
           <strong>Formatted:</strong> {fullFormatted || '—'}
         </div>
-        <div>
+        <div data-testid="meta-valid">
           <strong>Valid:</strong> {isComplete ? 'Yes' : 'No'}
         </div>
       </div>
@@ -183,15 +154,33 @@ function Playground() {
                 style={selectStyle}
                 data-testid="props-country"
               >
-                <option value="">Not Selected</option>
-                <option value="US">United States</option>
-                <option value="GB">United Kingdom</option>
-                <option value="DE">Germany</option>
-                <option value="FR">France</option>
-                <option value="UA">Ukraine</option>
-                <option value="CA">Canada</option>
-                <option value="AU">Australia</option>
-                <option value="JP">Japan</option>
+                <option value="" style={optionStyle}>
+                  Not Selected
+                </option>
+                <option value="US" style={optionStyle}>
+                  United States
+                </option>
+                <option value="GB" style={optionStyle}>
+                  United Kingdom
+                </option>
+                <option value="DE" style={optionStyle}>
+                  Germany
+                </option>
+                <option value="FR" style={optionStyle}>
+                  France
+                </option>
+                <option value="UA" style={optionStyle}>
+                  Ukraine
+                </option>
+                <option value="CA" style={optionStyle}>
+                  Canada
+                </option>
+                <option value="AU" style={optionStyle}>
+                  Australia
+                </option>
+                <option value="JP" style={optionStyle}>
+                  Japan
+                </option>
               </select>
             </label>
 
@@ -203,10 +192,18 @@ function Playground() {
                 style={selectStyle}
                 data-testid="props-locale"
               >
-                <option value="">Not Selected</option>
-                <option value="en-US">English (US)</option>
-                <option value="de-DE">German</option>
-                <option value="ru-RU">Russian</option>
+                <option value="" style={optionStyle}>
+                  Not Selected
+                </option>
+                <option value="en-US" style={optionStyle}>
+                  English (US)
+                </option>
+                <option value="de-DE" style={optionStyle}>
+                  German
+                </option>
+                <option value="ru-RU" style={optionStyle}>
+                  Russian
+                </option>
               </select>
             </label>
 
@@ -218,9 +215,15 @@ function Playground() {
                 style={selectStyle}
                 data-testid="props-size"
               >
-                <option value="compact">Compact</option>
-                <option value="normal">Normal</option>
-                <option value="large">Large</option>
+                <option value="compact" style={optionStyle}>
+                  Compact
+                </option>
+                <option value="normal" style={optionStyle}>
+                  Normal
+                </option>
+                <option value="large" style={optionStyle}>
+                  Large
+                </option>
               </select>
             </label>
 
@@ -232,9 +235,15 @@ function Playground() {
                 style={selectStyle}
                 data-testid="props-theme"
               >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="auto">Auto</option>
+                <option value="light" style={optionStyle}>
+                  Light
+                </option>
+                <option value="dark" style={optionStyle}>
+                  Dark
+                </option>
+                <option value="auto" style={optionStyle}>
+                  Auto
+                </option>
               </select>
             </label>
           </div>
@@ -376,7 +385,6 @@ function App() {
 
       <div style={contentStyle}>
         <Playground />
-        <DemoPhoneInput />
         <DemoHook />
       </div>
 
@@ -520,6 +528,10 @@ const selectStyle: React.CSSProperties = {
   fontFamily: "'Nunito', sans-serif",
   outline: 'none',
   cursor: 'pointer'
+};
+
+const optionStyle: React.CSSProperties = {
+  color: '#000'
 };
 
 const checkboxLabelStyle: React.CSSProperties = {

@@ -59,6 +59,7 @@
     "build-lib": "vite build",
     "build-types": "vue-tsc --emitDeclarationOnly --declaration -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },
   "peerDependencies": {

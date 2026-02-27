@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTimer } from './useTimer';
 
-export function useClipboard() {
+export function useClipboard(delay = 1_800) {
   const [copied, setCopied] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const copyTimer = useTimer();
@@ -17,7 +17,7 @@ export function useClipboard() {
         setCopied(true);
         copyTimer.set(() => {
           setCopied(false);
-        }, 1_800);
+        }, delay);
         return true;
       } catch (err) {
         console.warn('Copy failed', err);

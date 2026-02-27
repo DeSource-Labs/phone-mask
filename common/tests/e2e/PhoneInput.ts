@@ -417,7 +417,9 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
             await expect(component).toHaveClass(/is-incomplete/);
           });
 
-          test('is-incomplete class disappears and is-complete appears when number becomes complete', async ({ page }) => {
+          test('is-incomplete class disappears and is-complete appears when number becomes complete', async ({
+            page
+          }) => {
             await phoneInput.click();
             await phoneInput.pressSequentially(US_PARTIAL_DIGITS);
             await page.waitForTimeout(600);
@@ -497,31 +499,43 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
           await localeSelect.selectOption('en-US');
           await dropdownBtn.click();
           await expect(dropdownMenu).toBeAttached();
-          await expect(dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Germany', { exact: false })).toBeAttached();
+          await expect(
+            dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Germany', { exact: false })
+          ).toBeAttached();
         });
 
         test('locale=de-DE shows country names in German', async () => {
           await localeSelect.selectOption('de-DE');
           await dropdownBtn.click();
-          await expect(dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Deutschland', { exact: false })).toBeAttached();
+          await expect(
+            dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Deutschland', { exact: false })
+          ).toBeAttached();
         });
 
         test('locale=ru-RU shows country names in Russian', async () => {
           await localeSelect.selectOption('ru-RU');
           await dropdownBtn.click();
-          await expect(dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Германия', { exact: false })).toBeAttached();
+          await expect(
+            dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Германия', { exact: false })
+          ).toBeAttached();
         });
 
         test('switching locale updates country names in open dropdown', async ({ page }) => {
           await localeSelect.selectOption('de-DE');
           await dropdownBtn.click();
-          await expect(dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Deutschland', { exact: false })).toBeAttached();
+          await expect(
+            dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Deutschland', { exact: false })
+          ).toBeAttached();
 
           await page.keyboard.press('Escape');
           await localeSelect.selectOption('en-US');
           await dropdownBtn.click();
-          await expect(dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Germany', { exact: false })).toBeAttached();
-          await expect(dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Deutschland', { exact: false })).not.toBeAttached();
+          await expect(
+            dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Germany', { exact: false })
+          ).toBeAttached();
+          await expect(
+            dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Deutschland', { exact: false })
+          ).not.toBeAttached();
         });
       });
 
@@ -592,7 +606,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
         test('theme=auto resolves to theme-light or theme-dark based on system preference', async () => {
           // auto is resolved at render time — never leaves theme-auto on the element
           await themeSelect.selectOption('auto');
-          const classes = await component.getAttribute('class') ?? '';
+          const classes = (await component.getAttribute('class')) ?? '';
           const hasLight = classes.includes('theme-light');
           const hasDark = classes.includes('theme-dark');
           expect(hasLight || hasDark).toBeTruthy();
@@ -635,10 +649,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
         test('custom placeholder is shown in dropdown search input', async () => {
           await searchPlaceholderInput.fill('Find a country');
           await dropdownBtn.click();
-          await expect(dropdownMenu.locator(DROPDOWN_SEARCH_SELECTOR)).toHaveAttribute(
-            'placeholder',
-            'Find a country'
-          );
+          await expect(dropdownMenu.locator(DROPDOWN_SEARCH_SELECTOR)).toHaveAttribute('placeholder', 'Find a country');
         });
 
         test('clearing custom placeholder reverts to default', async () => {

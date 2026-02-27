@@ -1,3 +1,5 @@
+import { parseCountryCode } from '../../utils';
+
 import { GEO_IP_API_URL, GEO_IP_TIMEOUT_MS, CACHE_KEY, CACHE_EXPIRY_MS } from './consts';
 
 import type { MaskGeoCache } from './types';
@@ -35,17 +37,17 @@ export async function detectCountryFromGeoIP(
   }
 }
 
-export async function detectByGeoIp(hasCountry: (code: string) => boolean): Promise<string | null> {
+export async function detectByGeoIp(): Promise<string | null> {
   try {
     const cached = localStorage.getItem(CACHE_KEY);
 
     if (cached) {
       const parsed: MaskGeoCache = JSON.parse(cached);
       const expired = Date.now() - parsed.ts > CACHE_EXPIRY_MS;
-      const code = parsed.country_code;
+      const code = parseCountryCode(parsed.country_code);
 
-      if (code && hasCountry(code) && !expired) {
-        return code.toUpperCase();
+      if (code && !expired) {
+        return code;
       } else {
         localStorage.removeItem(CACHE_KEY);
       }
@@ -55,9 +57,10 @@ export async function detectByGeoIp(hasCountry: (code: string) => boolean): Prom
   }
 
   // Fetch from GeoIP API
-  const code = await detectCountryFromGeoIP();
+  const geoCode = await detectCountryFromGeoIP();
+  const code = parseCountryCode(geoCode);
 
-  if (code && hasCountry(code)) {
+  if (code) {
     // Cache the result
     try {
       const value = JSON.stringify({ country_code: code, ts: Date.now() } as MaskGeoCache);

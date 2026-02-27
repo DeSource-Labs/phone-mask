@@ -1,17 +1,17 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { shallowRef, watchEffect, onMounted, onUnmounted } from 'vue';
+import type { ShallowRef } from 'vue';
 import { useFormatter } from './internal/useFormatter';
 import { useCountry } from './internal/useCountry';
 import { useInputHandlers } from './internal/useInputHandlers';
-
 import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
 
 /**
- * React hook for phone number masking.
+ * Vue composable for phone number masking.
  * Provides low-level phone masking functionality for custom input implementations.
  * Works in controlled mode — caller manages value state via onChange callback.
  */
 export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef: ShallowRef<HTMLInputElement | null> = shallowRef(null);
 
   const { country, setCountry } = useCountry({
     country: options.country,
@@ -37,60 +37,56 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
     onPhoneChange: options.onPhoneChange
   });
 
-  // Use consolidated input handlers
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter,
     digits,
     onChange: options.onChange
   });
 
-  // after mount, set input type to tel for better experience
-  useEffect(() => {
-    const el = inputRef.current;
+  // Set input type on mount for better mobile UX
+  onMounted(() => {
+    const el = inputRef.value;
     if (!el) return;
     el.setAttribute('type', 'tel');
     el.setAttribute('inputmode', 'tel');
-  }, []);
+  });
 
-  // Update display when digits or placeholder changes
-  useEffect(() => {
-    const el = inputRef.current;
+  // Update display value and placeholder reactively after DOM is ready
+  watchEffect(
+    () => {
+      const el = inputRef.value;
+      if (!el) return;
+      el.value = displayValue.value;
+      el.setAttribute('placeholder', displayPlaceholder.value);
+    },
+    { flush: 'post' }
+  );
+
+  // Attach native event listeners on mount, clean up on unmount
+  onMounted(() => {
+    const el = inputRef.value;
     if (!el) return;
+    el.addEventListener('beforeinput', handleBeforeInput);
+    el.addEventListener('input', handleInput);
+    el.addEventListener('keydown', handleKeydown);
+    el.addEventListener('paste', handlePaste);
+  });
 
-    el.value = displayValue;
-
-    el.setAttribute('placeholder', displayPlaceholder);
-  }, [displayValue, displayPlaceholder]);
-
-  // Attach event listeners
-  useEffect(() => {
-    const el = inputRef.current;
+  onUnmounted(() => {
+    const el = inputRef.value;
     if (!el) return;
+    el.removeEventListener('beforeinput', handleBeforeInput);
+    el.removeEventListener('input', handleInput);
+    el.removeEventListener('keydown', handleKeydown);
+    el.removeEventListener('paste', handlePaste);
+  });
 
-    const beforeInputHandler = handleBeforeInput;
-    const inputHandler = handleInput;
-    const keydownHandler = handleKeydown;
-    const pasteHandler = handlePaste;
-
-    el.addEventListener('beforeinput', beforeInputHandler);
-    el.addEventListener('input', inputHandler);
-    el.addEventListener('keydown', keydownHandler);
-    el.addEventListener('paste', pasteHandler);
-
-    return () => {
-      el.removeEventListener('beforeinput', beforeInputHandler);
-      el.removeEventListener('input', inputHandler);
-      el.removeEventListener('keydown', keydownHandler);
-      el.removeEventListener('paste', pasteHandler);
-    };
-  }, [handleBeforeInput, handleInput, handleKeydown, handlePaste]);
-
-  const clear = useCallback(() => {
+  const clear = () => {
     options.onChange('');
-  }, [options.onChange]);
+  };
 
   return {
-    ref: inputRef,
+    inputRef,
     digits,
     full,
     fullFormatted,
