@@ -1,4 +1,5 @@
 <script lang="ts">
+  import DemoPlayground from './components/DemoPlayground.svelte';
 </script>
 
 <main class="app-main">
@@ -8,6 +9,7 @@
   </header>
 
   <div class="app-content">
+    <DemoPlayground />
   </div>
 
   <footer class="app-footer">
