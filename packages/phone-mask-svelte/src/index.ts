@@ -8,7 +8,10 @@ import {
 } from '@desource/phone-mask';
 
 export { default as PhoneInput } from './components/PhoneInput.svelte';
+export { usePhoneMask } from './composables/usePhoneMask.svelte';
+
 import type { PhoneNumber as PMaskPhoneNumber, Size as PhoneInputSize, Theme as PhoneInputTheme } from './types';
+export type { UsePhoneMaskOptions, UsePhoneMaskReturn } from './types';
 
 export { type PMaskPhoneNumber, type PhoneInputSize, type PhoneInputTheme };
 
