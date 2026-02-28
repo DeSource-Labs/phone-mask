@@ -1,6 +1,5 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import { fly, scale } from 'svelte/transition';
   import { useCountry } from '../composables/internal/useCountry.svelte';
   import { useFormatter } from '../composables/internal/useFormatter.svelte';
   import { useValidationHint } from '../composables/internal/useValidationHint.svelte';
@@ -36,7 +35,9 @@
     flag,
     copysvg,
     clearsvg,
-    actionsbefore
+    actionsbefore,
+    class: extraClass,
+    ...restProps
   }: PhoneInputProps = $props();
 
   // --- Refs ---
@@ -123,12 +124,20 @@
   const handleClearClick = () => { clear(); focusInput(); };
 
   // --- Theme & classes ---
-  const themeClass = $derived.by(() => {
-    if (theme !== 'auto') return `theme-${theme}`;
-    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches)
-      return 'theme-dark';
-    return 'theme-light';
+  // Track system color scheme reactively so theme:'auto' responds to OS changes at runtime
+  let systemDark = $state(false);
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    systemDark = mq.matches;
+    const handler = (e: MediaQueryListEvent) => { systemDark = e.matches; };
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
   });
+
+  const themeClass = $derived(
+    theme !== 'auto' ? `theme-${theme}` : systemDark ? 'theme-dark' : 'theme-light'
+  );
 
   const rootClasses = $derived(
     ['phone-input', `size-${size}`, themeClass,
@@ -136,7 +145,8 @@
       readonly && 'is-readonly',
       disableDefaultStyles && 'is-unstyled',
       withValidity && incomplete && 'is-incomplete',
-      withValidity && formatterData.isComplete && 'is-complete'
+      withValidity && formatterData.isComplete && 'is-complete',
+      extraClass
     ].filter(Boolean).join(' ')
   );
 
@@ -149,7 +159,7 @@
   }
 </script>
 
-<div bind:this={rootEl} class={rootClasses}
+<div bind:this={rootEl} class={rootClasses} {...restProps}
   style:--pi-actions-count={actionsCount}
   role="group" aria-label="Phone input with country selector">
 
@@ -202,7 +212,7 @@
       {/if}
 
       {#if showCopyButton}
-        <button type="button" transition:scale={{ duration: 200 }}
+        <button type="button"
           class="pi-btn pi-btn-copy" class:is-copied={copyData.copied}
           aria-label={copyData.copyAriaLabel} title={copyData.copyButtonTitle}
           onclick={copyData.onCopyClick}>
@@ -221,7 +231,7 @@
       {/if}
 
       {#if showClearButton}
-        <button type="button" transition:scale={{ duration: 200 }}
+        <button type="button"
           class="pi-btn pi-btn-clear"
           aria-label={clearButtonLabel} title={clearButtonLabel}
           onclick={handleClearClick}>
@@ -242,12 +252,13 @@
 {#if selectorData.dropdownOpen}
   <div use:portal bind:this={dropdownEl}
     class="phone-dropdown {dropdownClass} {themeClass}"
+    class:is-closing={selectorData.isClosing}
     style:position="absolute"
     style:top={selectorData.dropdownStyle.top}
     style:left={selectorData.dropdownStyle.left}
     style:width={selectorData.dropdownStyle.width}
     role="dialog" aria-modal="false" aria-label="Select country"
-    transition:fly={{ y: -8, duration: 200 }}>
+    onanimationend={selectorData.handleDropdownAnimationEnd}>
     <div class="pi-search-wrap">
       <input bind:this={searchEl} type="search" class="pi-search"
         aria-label="Search countries" placeholder={searchPlaceholder}

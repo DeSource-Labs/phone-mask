@@ -3,6 +3,7 @@
   import '../src/style.scss';
 
   import DemoPlayground from './components/DemoPlayground.svelte';
+  import DemoHook from './components/DemoHook.svelte';
 </script>
 
 <main class="app-main">
@@ -13,6 +14,7 @@
 
   <div class="app-content">
     <DemoPlayground />
+    <DemoHook />
   </div>
 
   <footer class="app-footer">

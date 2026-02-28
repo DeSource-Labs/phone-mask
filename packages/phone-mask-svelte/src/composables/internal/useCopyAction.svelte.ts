@@ -11,10 +11,10 @@ const DELAY = 1_800;
 
 export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionOptions) {
   const liveTimer = useTimer();
-  const { copied, copy } = useClipboard(DELAY);
+  const clipboard = useClipboard(DELAY);
 
-  const copyAriaLabel = $derived(copied ? 'Copied' : `Copy ${fullFormatted()}`);
-  const copyButtonTitle = $derived(copied ? 'Copied' : 'Copy phone number');
+  const copyAriaLabel = $derived(clipboard.copied ? 'Copied' : `Copy ${fullFormatted()}`);
+  const copyButtonTitle = $derived(clipboard.copied ? 'Copied' : 'Copy phone number');
 
   const announceToScreenReader = (message: string) => {
     const el = liveRef?.();
@@ -28,7 +28,7 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
 
   const onCopyClick = async () => {
     const valueToCopy = fullFormatted().trim();
-    const success = await copy(valueToCopy);
+    const success = await clipboard.copy(valueToCopy);
     if (success) {
       onCopy?.(valueToCopy);
       announceToScreenReader('Phone number copied to clipboard');
@@ -37,7 +37,7 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
 
   return {
     get copied() {
-      return copied;
+      return clipboard.copied;
     },
     get copyAriaLabel() {
       return copyAriaLabel;

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 export default defineConfig({
   plugins: [svelte()],
   resolve: {
+    conditions: ['browser'],
     alias: {
       '@common': fileURLToPath(new URL('../../common', import.meta.url))
     }

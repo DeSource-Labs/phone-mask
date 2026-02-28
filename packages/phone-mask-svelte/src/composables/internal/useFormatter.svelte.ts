@@ -34,10 +34,12 @@ export function useFormatter({ country, value, onChange, onPhoneChange, onValida
 
   const phoneData = $derived<PhoneNumber>({ full, fullFormatted, digits });
 
-  // Clamp digits on formatter changes
-  $effect(() => {
-    if (value() !== digits) {
-      onChange(digits);
+  // Clamp digits before DOM update when formatter changes (e.g. country switch truncates digits)
+  $effect.pre(() => {
+    const raw = value();
+    const clamped = digits;
+    if (raw !== clamped) {
+      onChange(clamped);
     }
   });
 

@@ -31,16 +31,18 @@
   "publishConfig": {
     "access": "public"
   },
-  "sideEffects": false,
+  "sideEffects": ["**/*.css", "**/*.scss"],
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
+  "svelte": "dist/index.mjs",
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
+      "svelte": "./dist/index.mjs",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
+      "default": "./dist/index.mjs"
     },
     "./style.css": "./dist/style.css"
   },
@@ -56,6 +58,7 @@
     "build-lib": "vite build",
     "build-types": "tsc --project tsconfig.build.json",
     "typecheck": "svelte-check --tsconfig tsconfig.json",
+    "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },
   "peerDependencies": {

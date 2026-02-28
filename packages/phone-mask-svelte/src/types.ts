@@ -1,4 +1,4 @@
-import type { MaskFull, CountryKey, FormatterHelpers } from '@desource/phone-mask';
+import type { MaskFull, CountryKey } from '@desource/phone-mask';
 import type { Snippet } from 'svelte';
 
 export type Size = 'compact' | 'normal' | 'large';
@@ -10,26 +10,9 @@ export type PhoneNumber = {
   digits: string;
 };
 
-export interface UsePhoneMaskOptions {
-  /** Controlled value getter — digits only, without country code */
-  value: () => string;
-  /** Called when digits change */
-  onChange: (digits: string) => void;
-  /** Country ISO 3166-1 alpha-2 code getter */
-  country?: () => string | undefined;
-  /** Locale for country names getter (defaults to browser language) */
-  locale?: () => string | undefined;
-  /** Auto-detect country via GeoIP getter */
-  detect?: () => boolean | undefined;
-  /** Called on every phone number update */
-  onPhoneChange?: (data: PhoneNumber) => void;
-  /** Called when country changes */
-  onCountryChange?: (country: MaskFull) => void;
-}
-
 export interface PhoneInputProps {
   value?: string;
-  country?: string;
+  country?: CountryKey;
   detect?: boolean;
   locale?: string;
   size?: Size;
@@ -55,6 +38,10 @@ export interface PhoneInputProps {
   copysvg?: Snippet<[boolean]>;
   clearsvg?: Snippet<[]>;
   actionsbefore?: Snippet<[]>;
+  /** Extra CSS class(es) merged onto the root element */
+  class?: string;
+  /** Any additional HTML attributes are forwarded to the root element */
+  [key: string]: unknown;
 }
 
 export interface PhoneInputExposed {
@@ -67,6 +54,23 @@ export interface PhoneInputExposed {
   getDigits: () => string;
   isValid: () => boolean;
   isComplete: () => boolean;
+}
+
+export interface UsePhoneMaskOptions {
+  /** Controlled value getter — digits only, without country code */
+  value: () => string;
+  /** Called when digits change */
+  onChange: (digits: string) => void;
+  /** Country ISO 3166-1 alpha-2 code getter */
+  country?: () => string | undefined;
+  /** Locale for country names getter (defaults to browser language) */
+  locale?: () => string | undefined;
+  /** Auto-detect country via GeoIP getter */
+  detect?: () => boolean | undefined;
+  /** Called on every phone number update */
+  onPhoneChange?: (data: PhoneNumber) => void;
+  /** Called when country changes */
+  onCountryChange?: (country: MaskFull) => void;
 }
 
 export interface UsePhoneMaskReturn {

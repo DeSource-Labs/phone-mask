@@ -26,6 +26,7 @@ export function useCountrySelector({
 }: UseCountrySelectorOptions) {
   let search = $state('');
   let dropdownOpen = $state(false);
+  let isClosing = $state(false);
   let dropdownStyle = $state<Record<string, string>>({});
   let focusedIndex = $state(0);
 
@@ -42,13 +43,21 @@ export function useCountrySelector({
   };
 
   const closeDropdown = () => {
-    dropdownOpen = false;
+    if (!dropdownOpen) return;
+    isClosing = true;
   };
 
   const openDropdown = () => {
+    isClosing = false;
     dropdownOpen = true;
     setFocusedIndex(0);
     focusSearch();
+  };
+
+  const handleDropdownAnimationEnd = () => {
+    if (!isClosing) return;
+    dropdownOpen = false;
+    isClosing = false;
   };
 
   const toggleDropdown = () => {
@@ -167,6 +176,9 @@ export function useCountrySelector({
     get dropdownOpen() {
       return dropdownOpen;
     },
+    get isClosing() {
+      return isClosing;
+    },
     get search() {
       return search;
     },
@@ -188,6 +200,7 @@ export function useCountrySelector({
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
-    handleSearchKeydown
+    handleSearchKeydown,
+    handleDropdownAnimationEnd
   };
 }
