@@ -7,9 +7,13 @@ export default defineConfig({
   build: {
     lib: {
       name: 'lib',
-      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+      entry: {
+        index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+        style: fileURLToPath(new URL('./src/style.scss', import.meta.url))
+      },
       formats: ['es', 'cjs'],
-      fileName: (format) => {
+      fileName: (format, entryName) => {
+        if (entryName === 'style') return `style.js`;
         switch (format) {
           case 'es':
             return 'index.mjs';

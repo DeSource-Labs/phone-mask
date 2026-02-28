@@ -1,4 +1,7 @@
 <script lang="ts">
+  // Import styles
+  import '../src/style.scss';
+
   import DemoPlayground from './components/DemoPlayground.svelte';
 </script>
 
