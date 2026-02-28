@@ -1,0 +1,34 @@
+import { useEffect, useState, useMemo } from 'react';
+
+import type { Theme } from '../../types';
+
+interface UseThemeOptions {
+  theme: Theme;
+}
+
+export function useTheme({ theme }: UseThemeOptions) {
+  const [systemDark, setSystemDark] = useState(false);
+
+  const themeClass = useMemo(() => {
+    return theme !== 'auto' ? `theme-${theme}` : systemDark ? 'theme-dark' : 'theme-light';
+  }, [theme, systemDark]);
+
+  // Track system color scheme reactively so theme:'auto' responds to OS changes at runtime
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    setSystemDark(mq.matches);
+
+    const handler = (e: MediaQueryListEvent) => {
+      setSystemDark(e.matches);
+    };
+
+    mq.addEventListener('change', handler);
+
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return {
+    themeClass
+  };
+}

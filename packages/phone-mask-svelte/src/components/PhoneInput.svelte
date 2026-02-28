@@ -6,6 +6,8 @@
   import { useInputHandlers } from '../composables/internal/useInputHandlers.svelte';
   import { useCountrySelector } from '../composables/internal/useCountrySelector.svelte';
   import { useCopyAction } from '../composables/internal/useCopyAction.svelte';
+  import { useTheme } from '../composables/internal/useTheme.svelte';
+
   import type { PhoneInputProps } from '../types';
 
   let {
@@ -123,24 +125,12 @@
 
   const handleClearClick = () => { clear(); focusInput(); };
 
-  // --- Theme & classes ---
-  // Track system color scheme reactively so theme:'auto' responds to OS changes at runtime
-  let systemDark = $state(false);
-  $effect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    systemDark = mq.matches;
-    const handler = (e: MediaQueryListEvent) => { systemDark = e.matches; };
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
+  const themeData = useTheme({
+    theme: () => theme,
   });
 
-  const themeClass = $derived(
-    theme !== 'auto' ? `theme-${theme}` : systemDark ? 'theme-dark' : 'theme-light'
-  );
-
   const rootClasses = $derived(
-    ['phone-input', `size-${size}`, themeClass,
+    ['phone-input', `size-${size}`, themeData.themeClass,
       disabled && 'is-disabled',
       readonly && 'is-readonly',
       disableDefaultStyles && 'is-unstyled',
@@ -251,7 +241,7 @@
 <!-- Dropdown — portaled to body -->
 {#if selectorData.dropdownOpen}
   <div use:portal bind:this={dropdownEl}
-    class="phone-dropdown {dropdownClass} {themeClass}"
+    class="phone-dropdown {dropdownClass} {themeData.themeClass}"
     class:is-closing={selectorData.isClosing}
     style:position="absolute"
     style:top={selectorData.dropdownStyle.top}

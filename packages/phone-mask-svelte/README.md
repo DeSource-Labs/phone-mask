@@ -40,7 +40,7 @@ Component mode:
 
 ```ts
 import { PhoneInput } from '@desource/phone-mask-svelte';
-import '@desource/phone-mask-svelte/style.css'; // Import styles
+import '@desource/phone-mask-svelte/assets/lib.css'; // Import styles
 ```
 
 Composable mode:
@@ -54,7 +54,7 @@ import { usePhoneMask } from '@desource/phone-mask-svelte';
 ```svelte
 <script lang="ts">
   import { PhoneInput } from '@desource/phone-mask-svelte';
-  import '@desource/phone-mask-svelte/style.css';
+  import '@desource/phone-mask-svelte/assets/lib.css';
 
   let phone = $state('');
   let isValid = $state(false);
@@ -198,15 +198,15 @@ Access component methods via `bind:this`:
 
 ```ts
 interface PhoneInputExposed {
-  focus: () => void;             // Focus the input
-  blur: () => void;              // Blur the input
-  clear: () => void;             // Clear the input value
+  focus: () => void; // Focus the input
+  blur: () => void; // Blur the input
+  clear: () => void; // Clear the input value
   selectCountry: (code: string) => void; // Programmatically select a country by ISO code
-  getFullNumber: () => string;           // Returns full phone number with country code (e.g. +1234567890)
-  getFullFormattedNumber: () => string;  // Returns formatted number with country code (e.g. +1 234-567-890)
-  getDigits: () => string;               // Returns only digits without country code (e.g. 234567890)
-  isValid: () => boolean;                // Checks if the current phone number is valid
-  isComplete: () => boolean;             // Alias for isValid()
+  getFullNumber: () => string; // Returns full phone number with country code (e.g. +1234567890)
+  getFullFormattedNumber: () => string; // Returns formatted number with country code (e.g. +1 234-567-890)
+  getDigits: () => string; // Returns only digits without country code (e.g. 234567890)
+  isValid: () => boolean; // Checks if the current phone number is valid
+  isComplete: () => boolean; // Alias for isValid()
 }
 ```
 
@@ -232,12 +232,12 @@ interface PhoneInputExposed {
 </PhoneInput>
 ```
 
-| Snippet | Props | Description |
-|---------|-------|-------------|
-| `flag` | `MaskFull` | Custom flag icon in the country list and selector |
-| `copysvg` | `boolean` (copied state) | Custom copy button icon |
-| `clearsvg` | — | Custom clear button icon |
-| `actionsbefore` | — | Content rendered before default action buttons |
+| Snippet         | Props                    | Description                                       |
+| --------------- | ------------------------ | ------------------------------------------------- |
+| `flag`          | `MaskFull`               | Custom flag icon in the country list and selector |
+| `copysvg`       | `boolean` (copied state) | Custom copy button icon                           |
+| `clearsvg`      | —                        | Custom clear button icon                          |
+| `actionsbefore` | —                        | Content rendered before default action buttons    |
 
 ## 🧩 Composable API
 
@@ -501,7 +501,7 @@ Or with CSS:
 ├── dist/
 │   ├── index.js              # ESM bundle
 │   ├── index.cjs             # CommonJS bundle
-│   └── style.css             # Component styles
+│   └── assets/lib.css             # Component styles
 ├── README.md                 # This file
 └── package.json              # Package manifest
 ```

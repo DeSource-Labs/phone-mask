@@ -188,6 +188,7 @@ import { useValidationHint } from '../composables/internal/useValidationHint';
 import { useInputHandlers } from '../composables/internal/useInputHandlers';
 import { useCountrySelector } from '../composables/internal/useCountrySelector';
 import { useCopyAction } from '../composables/internal/useCopyAction';
+import { useTheme } from '../composables/internal/useTheme';
 import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots, PhoneNumber } from '../types';
 
 const props = withDefaults(defineProps<PhoneInputProps>(), {
@@ -326,12 +327,8 @@ defineExpose<PhoneInputExposed>({
   isComplete: () => isComplete.value
 });
 
-const themeClass = computed(() => {
-  if (props.theme !== 'auto') return `theme-${props.theme}`;
-  if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-    return 'theme-dark';
-  }
-  return 'theme-light';
+const { themeClass } = useTheme({
+  theme: () => props.theme
 });
 
 const rootClasses = computed(() => [

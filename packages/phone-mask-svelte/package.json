@@ -31,7 +31,10 @@
   "publishConfig": {
     "access": "public"
   },
-  "sideEffects": ["**/*.css", "**/*.scss"],
+  "sideEffects": [
+    "**/*.css",
+    "**/*.scss"
+  ],
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -44,7 +47,7 @@
       "import": "./dist/index.mjs",
       "default": "./dist/index.mjs"
     },
-    "./style.css": "./dist/style.css"
+    "./assets/lib.css": "./dist/phone-mask-svelte.css"
   },
   "files": [
     "dist",

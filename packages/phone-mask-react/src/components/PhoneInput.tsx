@@ -1,4 +1,4 @@
-import React, { useImperativeHandle, useRef, useCallback, useMemo, type CSSProperties, type Ref } from 'react';
+import React, { useImperativeHandle, useRef, useCallback, type CSSProperties, type Ref } from 'react';
 import { createPortal } from 'react-dom';
 import { useFormatter } from '../hooks/internal/useFormatter';
 import { useCountry } from '../hooks/internal/useCountry';
@@ -6,6 +6,7 @@ import { useValidationHint } from '../hooks/internal/useValidationHint';
 import { useInputHandlers } from '../hooks/internal/useInputHandlers';
 import { useCountrySelector } from '../hooks/internal/useCountrySelector';
 import { useCopyAction } from '../hooks/internal/useCopyAction';
+import { useTheme } from '../hooks/internal/useTheme';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
 
@@ -172,14 +173,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     [focusInput, selectCountry, full, fullFormatted, digits, isComplete, clear]
   );
 
-  // Theme class
-  const themeClass = useMemo(() => {
-    if (theme !== 'auto') return `theme-${theme}`;
-    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) {
-      return 'theme-dark';
-    }
-    return 'theme-light';
-  }, [theme]);
+  const { themeClass } = useTheme({ theme });
 
   const rootClasses = [
     'phone-input',
