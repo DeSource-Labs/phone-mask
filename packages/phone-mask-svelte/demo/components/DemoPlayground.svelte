@@ -4,8 +4,7 @@ import type {
   PCountryKey as CountryKey,
   PMaskFull as MaskFull,
   PhoneInputSize as Size,
-  PhoneInputTheme as Theme,
-  PMaskPhoneNumber
+  PhoneInputTheme as Theme
 } from '../../src';
 
 let digits = $state('');
