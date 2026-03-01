@@ -37,10 +37,6 @@ function onCountryChange(c: MaskFull) {
 function onValidationChange(v: boolean) {
   console.log('Valid:', v);
 }
-
-function onChange(e: PMaskPhoneNumber) {
-  digits = e.digits;
-}
 </script>
 
 <section class="playground" data-testid="playground">
@@ -52,24 +48,23 @@ function onChange(e: PMaskPhoneNumber) {
       <h3 class="subheading">Preview</h3>
       <div class="preview-area">
         <PhoneInput
-          value={digits}
+          bind:value={digits}
           {country}
           {locale}
           {detect}
-          showCopy={showCopy}
-          showClear={showClear}
+          {showCopy}
+          {showClear}
           {size}
           {theme}
-          withValidity={withValidity}
+          {withValidity}
           {disabled}
           {readonly}
           searchPlaceholder={searchPlaceholder || undefined}
           noResultsText={noResultsText || undefined}
           clearButtonLabel={clearButtonLabel || undefined}
           dropdownClass={dropdownClass || undefined}
-          disableDefaultStyles={disableDefaultStyles}
+          {disableDefaultStyles}
           data-testid="phone-input"
-          onchange={onChange}
           oncountrychange={onCountryChange}
           onvalidationchange={onValidationChange}
         />

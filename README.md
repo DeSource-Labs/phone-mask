@@ -44,18 +44,20 @@ Ready-made plugins for your stack:
 - ✅ **Vue 3** — Composition API component + directive
 - ✅ **Nuxt** — Auto-imported, SSR-compatible
 - ✅ **React** — Component & hook with modern React patterns
+- ✅ **Svelte** — Component & rune for Svelte 5
 - ✅ **TypeScript/Vanilla JS** — Framework-agnostic core
 
 ---
 
 ## 📦 Packages
 
-| Package                                                   | Version                                                                    | Description                  |
-| --------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------- |
-| [@desource/phone-mask](./packages/phone-mask)             | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue)       | Core library — TypeScript/JS |
-| [@desource/phone-mask-react](./packages/phone-mask-react) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue) | React component + hook       |
-| [@desource/phone-mask-vue](./packages/phone-mask-vue)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue)   | Vue 3 component + directive  |
-| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue)  | Nuxt module                  |
+| Package                                                     | Version                                                                     | Description                  |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------- |
+| [@desource/phone-mask](./packages/phone-mask)               | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue)        | Core library — TypeScript/JS |
+| [@desource/phone-mask-react](./packages/phone-mask-react)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue)  | React component + hook       |
+| [@desource/phone-mask-vue](./packages/phone-mask-vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue)    | Vue 3 component + directive  |
+| [@desource/phone-mask-svelte](./packages/phone-mask-svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue) | Svelte 5 component + rune    |
+| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue)   | Nuxt module                  |
 
 ---
 
@@ -94,6 +96,25 @@ const phone = ref('');
 
 <template>
   <PhoneInput v-model="phone" country="US" />
+</template>
+```
+
+### Svelte 5
+
+```bash
+npm install @desource/phone-mask-svelte
+```
+
+```svelte
+<script lang="ts">
+import { PhoneInput } from '@desource/phone-mask-svelte';
+import '@desource/phone-mask-svelte/assets/lib.css';
+
+let phone = $state('');
+</script>
+
+<template>
+  <PhoneInput bind:value={phone} country="US" />
 </template>
 ```
 
@@ -168,6 +189,7 @@ Try the interactive playground with:
 - [React](./packages/phone-mask-react/README.md)
 - [Vue](./packages/phone-mask-vue/README.md)
 - [Nuxt](./packages/phone-mask-nuxt/README.md)
+- [Svelte](./packages/phone-mask-svelte/README.md)
 
 ---
 

@@ -17,10 +17,8 @@ export default defineConfig({
         switch (format) {
           case 'es':
             return 'index.mjs';
-          case 'cjs':
-            return 'index.cjs';
           default:
-            return 'index.js';
+            return 'index.cjs';
         }
       }
     },
