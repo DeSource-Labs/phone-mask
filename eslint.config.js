@@ -153,7 +153,6 @@ export default [
       '@typescript-eslint': typescript
     },
     rules: {
-      'svelte/multi-word-component-names': 'off',
       'no-unused-vars': 'off',
       'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]

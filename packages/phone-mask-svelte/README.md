@@ -6,7 +6,7 @@
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-svelte?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-svelte)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
-Beautiful, accessible, extreme small & tree-shackable Svelte 5 phone input with auto-formatting, country selector, and validation.
+Beautiful, accessible, extreme small & tree-shakeable Svelte 5 phone input with auto-formatting, country selector, and validation.
 
 ## ✨ Features
 

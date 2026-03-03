@@ -4,7 +4,6 @@
     "outDir": "./dist/types",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "noEmitOnError": false,
     "allowArbitraryExtensions": true
   },
   "include": ["src/**/*.ts"],

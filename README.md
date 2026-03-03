@@ -113,9 +113,7 @@ import '@desource/phone-mask-svelte/assets/lib.css';
 let phone = $state('');
 </script>
 
-<template>
-  <PhoneInput bind:value={phone} country="US" />
-</template>
+<PhoneInput bind:value={phone} country="US" />
 ```
 
 ### Nuxt

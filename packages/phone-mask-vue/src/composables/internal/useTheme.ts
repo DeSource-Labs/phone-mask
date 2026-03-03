@@ -22,7 +22,8 @@ export function useTheme({ theme }: UseThemeOptions) {
 
   onBeforeMount(() => {
     if (typeof window === 'undefined') return;
-    mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq = window.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    if (!mq) return;
     systemDark.value = mq.matches;
     mq.addEventListener('change', handler);
   });
