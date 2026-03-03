@@ -499,11 +499,12 @@ Or with CSS:
 ```
 @desource/phone-mask-svelte/
 ├── dist/
-│   ├── index.js              # ESM bundle
-│   ├── index.cjs             # CommonJS bundle
-│   └── assets/lib.css             # Component styles
-├── README.md                 # This file
-└── package.json              # Package manifest
+│   ├── types/                 # TypeScript declaration files
+│   ├── index.mjs              # ES module bundle
+│   ├── index.cjs              # CommonJS bundle
+│   └── phone-mask-svelte.css  # Component styles
+├── README.md                  # This file
+└── package.json               # Package manifest
 ```
 
 ## 🔗 Related
