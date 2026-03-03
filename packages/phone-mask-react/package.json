@@ -48,10 +48,7 @@
     "./assets/lib.css": "./dist/phone-mask-react.css"
   },
   "files": [
-    "dist/esm",
-    "dist/phone-mask-react.cjs",
-    "dist/phone-mask-react.cjs.map",
-    "dist/phone-mask-react.css",
+    "dist",
     "CHANGELOG.md",
     "README.md"
   ],
