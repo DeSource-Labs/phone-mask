@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/esm",
+    "tsBuildInfoFile": "./tsconfig.build.tsbuildinfo",
     "declaration": true,
     "emitDeclarationOnly": true
   },

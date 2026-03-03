@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/types",
+    "tsBuildInfoFile": "./tsconfig.build.tsbuildinfo",
     "declaration": true,
     "emitDeclarationOnly": true,
     "allowArbitraryExtensions": true
