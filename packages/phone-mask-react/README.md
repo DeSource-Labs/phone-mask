@@ -444,6 +444,7 @@ function Example() {
 - [@desource/phone-mask](../phone-mask) — Core library
 - [@desource/phone-mask-nuxt](../phone-mask-nuxt) — Nuxt module
 - [@desource/phone-mask-vue](../phone-mask-vue) — Vue 3 bindings
+- [@desource/phone-mask-svelte](../phone-mask-svelte) — Svelte bindings
 
 ## 📄 License
 
