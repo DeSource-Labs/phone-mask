@@ -36,19 +36,36 @@ pnpm add @desource/phone-mask-vue
 
 ### Importing
 
+Component mode:
+
 ```ts
 import { createApp } from 'vue';
-import { PhoneInput, vPhoneMask } from '@desource/phone-mask-vue';
-import '@desource/phone-mask-vue/assets/lib.css'; // Import styles (for component mode only)
+import { PhoneInput } from '@desource/phone-mask-vue';
+import '@desource/phone-mask-vue/assets/lib.css'; // Import styles
 
 const app = createApp(App);
-
-app.component('PhoneInput', PhoneInput); // Register component if you need component mode
-app.directive('phone-mask', vPhoneMask); // Register directive if you need directive mode
+app.component('PhoneInput', PhoneInput);
 app.mount('#app');
 ```
 
-If you need both modes:
+Directive mode (for custom input implementations):
+
+```ts
+import { createApp } from 'vue';
+import { vPhoneMask } from '@desource/phone-mask-vue';
+
+const app = createApp(App);
+app.directive('phone-mask', vPhoneMask);
+app.mount('#app');
+```
+
+Composable mode (for custom input implementations in case even directive doesn't fit your needs):
+
+```ts
+import { usePhoneMask } from '@desource/phone-mask-vue';
+```
+
+Register all at once (component + directive):
 
 ```ts
 import { createApp } from 'vue';
@@ -56,8 +73,7 @@ import phoneMask from '@desource/phone-mask-vue';
 import '@desource/phone-mask-vue/assets/lib.css'; // Import styles for component mode
 
 const app = createApp(App);
-
-app.use(phoneMask); // Registers both component and directive
+app.use(phoneMask); // Registers component and directive
 app.mount('#app');
 ```
 
@@ -116,6 +132,35 @@ const handleChange = (phone: PMaskPhoneNumber) => {
   </div>
 
   <p>{{ digits }} digits entered</p>
+</template>
+```
+
+### Composable Mode
+
+For custom input implementations (in case even directive doesn't fit your needs):
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { usePhoneMask } from '@desource/phone-mask-vue';
+
+const value = ref('');
+
+const { inputRef, digits, full, fullFormatted, isComplete, setCountry } = usePhoneMask({
+  value,
+  onChange: (newValue) => (value.value = newValue),
+  country: 'US',
+  detect: true
+});
+</script>
+
+<template>
+  <div>
+    <input ref="inputRef" type="tel" placeholder="Phone number" />
+    <p>Formatted: {{ fullFormatted }}</p>
+    <p>Valid: {{ isComplete ? 'Yes' : 'No' }}</p>
+    <button @click="setCountry('GB')">Use UK</button>
+  </div>
 </template>
 ```
 
@@ -403,6 +448,103 @@ const handleChange = (phone: PMaskPhoneNumber) => {
     }"
   />
 </template>
+```
+
+## 🪝 Composable API
+
+### `usePhoneMask`
+
+For custom input implementations:
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { usePhoneMask } from '@desource/phone-mask-vue';
+
+const value = ref('');
+
+const { inputRef, digits, full, fullFormatted, isComplete, setCountry, clear } = usePhoneMask({
+  value,
+  onChange: (newValue) => (value.value = newValue),
+  country: 'US',
+  detect: false
+});
+</script>
+
+<template>
+  <div>
+    <input ref="inputRef" type="tel" />
+    <button @click="setCountry('GB')">Switch to UK</button>
+    <button @click="clear">Clear</button>
+    <p>Full: {{ fullFormatted || '—' }}</p>
+    <p>Valid: {{ isComplete ? 'Yes' : 'No' }}</p>
+  </div>
+</template>
+```
+
+### Options
+
+> **Note:** The composable requires controlled behavior. Both `value` and `onChange` options are required.
+
+```ts
+interface UsePhoneMaskOptions {
+  // Controlled value (digits only, without country code) - REQUIRED
+  value: MaybeRefOrGetter<string>;
+
+  // Callback when the digits value changes - REQUIRED
+  onChange: (digits: string) => void;
+
+  // Predefined country ISO code (e.g., 'US', 'DE', 'GB')
+  country?: MaybeRefOrGetter<string | undefined>;
+
+  // Locale for country names (default: navigator.language)
+  locale?: MaybeRefOrGetter<string | undefined>;
+
+  // Auto-detect country from IP/locale (default: false)
+  detect?: MaybeRefOrGetter<boolean | undefined>;
+
+  // Callback when the phone changes (full, fullFormatted, digits)
+  onPhoneChange?: (phone: PhoneNumber) => void;
+
+  // Country change callback
+  onCountryChange?: (country: MaskFull) => void;
+}
+```
+
+### Return Value
+
+```ts
+interface UsePhoneMaskReturn {
+  // Ref to attach to your input element - REQUIRED
+  inputRef: ShallowRef<HTMLInputElement | null>;
+
+  // Raw digits without formatting (e.g., "1234567890")
+  digits: ComputedRef<string>;
+
+  // Full phone number with country code (e.g., "+11234567890")
+  full: ComputedRef<string>;
+
+  // Full phone number formatted (e.g., "+1 123-456-7890")
+  fullFormatted: ComputedRef<string>;
+
+  // Whether the phone number is complete
+  isComplete: ComputedRef<boolean>;
+
+  // Whether the input is empty
+  isEmpty: ComputedRef<boolean>;
+
+  // Whether to show validation warning
+  shouldShowWarn: ComputedRef<boolean>;
+
+  // Current country data
+  country: ComputedRef<MaskFull>;
+
+  // Change country programmatically
+  setCountry: (countryCode?: string | null) => boolean;
+
+  // Clear the input
+  clear: () => void;
+}
 ```
 
 ## 📚 Examples
