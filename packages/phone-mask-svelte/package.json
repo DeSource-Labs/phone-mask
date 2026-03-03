@@ -4,7 +4,7 @@
   "description": "🌍 Svelte 5 component and composable for international phone number masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
   "keywords": [
     "svelte",
-    "svetle5",
+    "svelte5",
     "phone",
     "mask",
     "input",
