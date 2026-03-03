@@ -7,7 +7,7 @@ export type SocialMediaItem = {
 
 export type SocialMedia = Record<SocialMediaKey, string>;
 
-export type Library = 'vue' | 'nuxt' | 'react' | 'typescript';
+export type Library = 'vue' | 'nuxt' | 'react' | 'svelte' | 'typescript';
 
 export type LibItem = {
   id: Library;
