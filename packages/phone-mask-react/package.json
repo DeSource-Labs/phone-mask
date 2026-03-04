@@ -27,9 +27,9 @@
     "directory": "packages/phone-mask-react"
   },
   "bugs": {
-    "url": "https://github.com/stefanpopov/phone-mask/issues"
+    "url": "https://github.com/DeSource-Labs/phone-mask/issues"
   },
-  "homepage": "https://github.com/stefanpopov/phone-mask/tree/main/packages/phone-mask-react#readme",
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-react#readme",
   "private": false,
   "publishConfig": {
     "access": "public"
