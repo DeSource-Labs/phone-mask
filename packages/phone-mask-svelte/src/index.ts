@@ -6,12 +6,21 @@ import {
   removeCountryCodePrefix,
   toArray
 } from '@desource/phone-mask';
+import type { Component } from 'svelte';
+import PhoneInputComponent from './components/PhoneInput.svelte';
 
-export { default as PhoneInput } from './components/PhoneInput.svelte';
 export { usePhoneMask } from './composables/usePhoneMask.svelte';
 
-import type { PhoneNumber as PMaskPhoneNumber, Size as PhoneInputSize, Theme as PhoneInputTheme } from './types';
-export type { UsePhoneMaskOptions, UsePhoneMaskReturn } from './types';
+import type {
+  PhoneNumber as PMaskPhoneNumber,
+  Size as PhoneInputSize,
+  Theme as PhoneInputTheme,
+  PhoneInputProps,
+  PhoneInputExposed
+} from './types';
+export type { UsePhoneMaskOptions, UsePhoneMaskReturn, PhoneInputProps, PhoneInputExposed } from './types';
+
+export const PhoneInput = PhoneInputComponent as unknown as Component<PhoneInputProps, PhoneInputExposed>;
 
 export { type PMaskPhoneNumber, type PhoneInputSize, type PhoneInputTheme };
 
