@@ -365,7 +365,7 @@ Or with CSS:
   let phone = $state('');
   let isValid = $state(false);
 
-  $derived: errorMessage = !phone ? '' : isValid ? '' : 'Please enter a valid phone number';
+  const errorMessage = $derived(!phone ? '' : isValid ? '' : 'Please enter a valid phone number');
 </script>
 
 <div>
