@@ -71,7 +71,7 @@ export { makeSlot, placeNow };
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<CardSwapProps>(), {
-  width: 500,
+  width: 486,
   height: 400,
   cardDistance: 60,
   verticalDistance: 70,

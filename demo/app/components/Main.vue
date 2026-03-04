@@ -1,7 +1,7 @@
 <template>
   <main class="main">
     <LibContainer />
-    <CardSwap :card-distance="60" :vertical-distance="70" :delay="5000" :skew-amount="6">
+    <CardSwap>
       <template #card-0>
         <div class="card">
           <div class="card-header">
@@ -87,17 +87,28 @@
             <a class="animated-link card-link" :href="Links.packages" target="_blank" rel="noopener noreferrer">
               Ready-made plugins
             </a>
-            for Vue, Nuxt, React and vanilla JS. Flexible masks, flags and locale helpers — plug & play.
+            for Vue, Nuxt, React, Svelte and vanilla JS. Flexible masks, flags and locale helpers — plug & play.
           </div>
           <div class="card-images">
             <NuxtImg
               class="img-nuxt"
-              src="/img/cards/nuxtjs.svg"
+              src="/img/cards/nuxtjs.png"
               alt="Nuxt.js Logo"
               quality="75"
               width="200px"
+              height="58px"
               format="webp"
               loading="lazy"
+            />
+            <NuxtImg
+              class="img-svelte"
+              src="/img/cards/svelte.png"
+              alt="Vue.js Logo"
+              quality="75"
+              format="webp"
+              loading="lazy"
+              width="60px"
+              height="75px"
             />
             <NuxtImg
               class="img-react"
@@ -106,7 +117,8 @@
               quality="75"
               format="webp"
               loading="lazy"
-              width="120px"
+              width="75px"
+              height="75px"
             />
             <NuxtImg
               class="img-vue"
@@ -115,7 +127,8 @@
               quality="75"
               format="webp"
               loading="lazy"
-              width="180px"
+              width="120px"
+              height="50px"
             />
           </div>
         </div>
@@ -173,30 +186,24 @@
 }
 
 .card-image {
-  transform: rotate(-5deg) translateY(-3rem);
+  transform: translate3d(-5%, -3rem, 0);
   align-self: center;
 }
 
 .card-image.img-google {
   opacity: 1;
-  transform: rotate(0deg) translateY(-1rem);
+  transform: translate3d(-5%, -1rem, 0);
 }
 
 .card-images {
   display: flex;
-  align-items: start;
-}
-
-.card-images .img-nuxt {
-  transform: translateY(-4rem);
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .card-images .img-react {
   transform: rotate(-12deg);
-}
-
-.card-images .img-vue {
-  transform: rotate(-15deg);
 }
 
 .card-link {
@@ -209,6 +216,13 @@
   }
   .card-body {
     margin-right: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-images {
+    transform: scale(0.9);
+    gap: 2rem;
   }
 }
 </style>
