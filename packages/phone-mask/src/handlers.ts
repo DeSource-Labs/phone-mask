@@ -249,9 +249,11 @@ export function processPaste(e: ClipboardEvent, params: ProcessPasteParams): Pas
     }
   }
 
-  // Insert at cursor position
-  const range = formatter.getDigitRange(digits, selectionStart, selectionStart);
-  const insertIndex = range ? range[0] : digits.length;
+  // Insert at cursor position.
+  // `getDigitRange(selStart, selStart)` is always empty for collapsed carets,
+  // so derive insertion index from the digit range before the caret.
+  const beforeCaretRange = formatter.getDigitRange(digits, 0, selectionStart);
+  const insertIndex = beforeCaretRange ? beforeCaretRange[1] : 0;
 
   const left = digits.slice(0, insertIndex);
   const right = digits.slice(insertIndex);

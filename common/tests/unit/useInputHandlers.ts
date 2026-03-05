@@ -291,6 +291,20 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
         unmount();
       });
 
+      it('inserts pasted digits at collapsed caret position instead of appending to end', async () => {
+        const { inputEl, onChange, unmount } = setup({ digits: '234567' });
+
+        await act(async () => {
+          inputEl.value = '234-567';
+          inputEl.selectionStart = 4;
+          inputEl.selectionEnd = 4;
+          inputEl.dispatchEvent(makePasteEvent('99'));
+        });
+
+        expect(onChange).toHaveBeenCalledWith('23499567');
+        unmount();
+      });
+
       it('calls scheduleValidationHint with HINT_DELAY_ACTION', async () => {
         const { inputEl, scheduleValidationHint, unmount } = setup();
 
