@@ -232,6 +232,21 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
         unmount();
       });
 
+      it('calls onChange with next digit removed on Delete when caret is on a delimiter', async () => {
+        const { inputEl, onChange, unmount } = setup({ digits: DIGITS_COMPLETE });
+
+        await act(async () => {
+          inputEl.value = DISPLAY_COMPLETE;
+          // "234-567-8901": index 3 is '-'
+          inputEl.selectionStart = 3;
+          inputEl.selectionEnd = 3;
+          inputEl.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true }));
+        });
+
+        expect(onChange).toHaveBeenCalledWith('234678901');
+        unmount();
+      });
+
       it('calls scheduleValidationHint with HINT_DELAY_ACTION when a digit is deleted', async () => {
         const { inputEl, scheduleValidationHint, unmount } = setup({ digits: DIGITS_COMPLETE });
 
