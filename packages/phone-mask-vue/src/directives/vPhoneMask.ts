@@ -233,7 +233,8 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
     }
 
     // Check if element value changed externally
-    const newDigits = extractDigits(el.value);
+    const maxDigits = state.formatter.getMaxDigits();
+    const newDigits = extractDigits(el.value, maxDigits);
     if (newDigits !== state.digits) {
       state.digits = newDigits;
       updateDisplay(el, state);
