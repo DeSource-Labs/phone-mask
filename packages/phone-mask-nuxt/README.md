@@ -92,12 +92,19 @@ const onCountryChange = (country) => {
   </div>
 </template>
 
-<script setup>
-const selectedCountry = ref('US');
-const phone = ref('');
+<script setup lang="ts">
+import { ref } from 'vue';
+import type { PMaskPhoneNumber } from '#imports';
 
-const handleChange = (fullNumber, digits) => {
-  phone.value = fullNumber;
+const selectedCountry = ref('US');
+const phone = ref<PMaskPhoneNumber>({
+  full: '',
+  fullFormatted: '',
+  digits: ''
+});
+
+const handleChange = (nextPhone: PMaskPhoneNumber) => {
+  phone.value = nextPhone;
 };
 </script>
 ```
@@ -170,10 +177,9 @@ Then import manually where needed:
 
 ## 🔧 TypeScript
 
-The module provides automatic TypeScript support. Types are available globally:
+The module provides automatic TypeScript support. You can import Nuxt-registered types from `#imports`:
 
 ```ts
-// Auto-imported types
 import type {
   PCountryKey,
   PMaskBase,
@@ -185,7 +191,7 @@ import type {
   PMaskFull,
   PMaskFullMap,
   PMaskPhoneNumber
-} from '#phone-mask';
+} from '#imports';
 ```
 
 ## 📚 Examples
@@ -307,7 +313,7 @@ const submit = async () => {
 
 ```vue
 <template>
-  <PhoneInput v-model="phone" :locale="$i18n.locale" :placeholder="$t('phone.placeholder')" />
+  <PhoneInput v-model="phone" :locale="$i18n.locale" :search-placeholder="$t('phone.searchPlaceholder')" />
 </template>
 
 <script setup>
@@ -354,7 +360,7 @@ If you're migrating from the Vue plugin:
 ```ts
 // main.ts
 import PhoneMaskPlugin from '@desource/phone-mask-vue';
-import '@desource/phone-mask-vue/style.css';
+import '@desource/phone-mask-vue/assets/lib.css';
 
 app.use(PhoneMaskPlugin);
 ```
