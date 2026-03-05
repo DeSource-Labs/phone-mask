@@ -243,7 +243,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
           inputEl.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true }));
         });
 
-        expect(onChange).toHaveBeenCalledWith('234678901');
+        expect(onChange).toHaveBeenCalledWith(DIGITS_COMPLETE.slice(0, 3) + DIGITS_COMPLETE.slice(4));
         unmount();
       });
 
