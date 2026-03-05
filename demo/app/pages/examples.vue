@@ -429,7 +429,14 @@
             <h3>GitHub Repository</h3>
             <p>View source code and contribute</p>
           </a>
-          <a v-for="item in LibItems" :key="item.id" class="resource-card" target="_blank" rel="noopener noreferrer" :href="DocLinks[item.id]">
+          <a
+            v-for="item in LibItems"
+            :key="item.id"
+            class="resource-card"
+            target="_blank"
+            rel="noopener noreferrer"
+            :href="DocLinks[item.id]"
+          >
             <h3>{{ item.name }} Documentation</h3>
             <p>Learn more about the {{ item.name }} package</p>
           </a>
