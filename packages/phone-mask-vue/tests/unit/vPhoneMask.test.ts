@@ -1,76 +1,92 @@
 /// <reference types="vitest/globals" />
+import { defineComponent, nextTick, ref } from 'vue';
+import { mount, flushPromises } from '@vue/test-utils';
 import { vPhoneMask } from '../../src/directives/vPhoneMask';
 import type { DirectiveHTMLInputElement } from '../../src/types';
+
+function mountDirectiveHost(onChange: (phone: { digits: string }) => void) {
+  const options = ref({
+    country: 'US',
+    onChange
+  });
+  const externalValue = ref('');
+
+  const Host = defineComponent({
+    setup() {
+      return {
+        options,
+        externalValue
+      };
+    },
+    template: '<input data-test="phone" v-phone-mask="options" :value="externalValue" />'
+  });
+
+  const wrapper = mount(Host, {
+    global: {
+      directives: {
+        phoneMask: vPhoneMask
+      }
+    }
+  });
+
+  const getInput = () => wrapper.get('[data-test="phone"]').element as DirectiveHTMLInputElement;
+  const setExternalValue = async (value: string) => {
+    externalValue.value = value;
+    await nextTick();
+    await flushPromises();
+  };
+
+  return { wrapper, getInput, setExternalValue };
+}
 
 describe('vPhoneMask directive', () => {
   it('clamps external value updates to formatter max digits in updated()', async () => {
     const onChange = vi.fn();
-    const el = document.createElement('input') as DirectiveHTMLInputElement;
-    document.body.appendChild(el);
+    const { wrapper, getInput, setExternalValue } = mountDirectiveHost(onChange);
+    await flushPromises();
+    await nextTick();
 
-    const binding = {
-      value: {
-        country: 'US',
-        onChange
-      }
-    } as any;
+    const initialState = getInput().__phoneMaskState;
+    expect(initialState).toBeDefined();
 
-    await vPhoneMask.mounted?.(el, binding);
-
-    const state = el.__phoneMaskState;
-    expect(state).toBeDefined();
-
-    const maxDigits = state!.formatter.getMaxDigits();
+    const maxDigits = initialState!.formatter.getMaxDigits();
     expect(maxDigits).toBeGreaterThan(0);
 
-    // Simulate external model/DOM write with an overlong raw value.
-    el.value = '12345678901234567890';
-    await vPhoneMask.updated?.(el, binding);
+    await setExternalValue('12345678901234567890');
 
-    const updatedState = el.__phoneMaskState!;
+    const updatedInput = getInput();
+    const updatedState = updatedInput.__phoneMaskState!;
     expect(updatedState.digits.length).toBe(maxDigits);
 
-    const lastCall = onChange.mock.calls.at(-1)?.[0];
+    const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]?.[0];
     expect(lastCall).toBeDefined();
     expect(lastCall.digits).toBe(updatedState.digits);
     expect(lastCall.digits.length).toBe(maxDigits);
 
-    vPhoneMask.unmounted?.(el);
-    document.body.removeChild(el);
+    wrapper.unmount();
   });
 
   it('normalizes an overlong external write even when clamped digits are unchanged', async () => {
     const onChange = vi.fn();
-    const el = document.createElement('input') as DirectiveHTMLInputElement;
-    document.body.appendChild(el);
+    const { wrapper, getInput, setExternalValue } = mountDirectiveHost(onChange);
+    await flushPromises();
+    await nextTick();
 
-    const binding = {
-      value: {
-        country: 'US',
-        onChange
-      }
-    } as any;
+    await setExternalValue('1234567890');
 
-    await vPhoneMask.mounted?.(el, binding);
-
-    // First external update sets max-length digits.
-    el.value = '1234567890';
-    await vPhoneMask.updated?.(el, binding);
-
-    const stateAfterFirstUpdate = el.__phoneMaskState!;
+    const inputAfterFirstUpdate = getInput();
+    const stateAfterFirstUpdate = inputAfterFirstUpdate.__phoneMaskState!;
     const expectedDisplay = stateAfterFirstUpdate.formatter.formatDisplay(stateAfterFirstUpdate.digits);
     expect(stateAfterFirstUpdate.digits).toBe('1234567890');
-    expect(el.value).toBe(expectedDisplay);
+    expect(inputAfterFirstUpdate.value).toBe(expectedDisplay);
 
-    // Second external update writes a longer value with the same max-length prefix.
-    el.value = '1234567890123';
-    await vPhoneMask.updated?.(el, binding);
+    await setExternalValue('1234567890123');
 
-    const stateAfterSecondUpdate = el.__phoneMaskState!;
+    const inputAfterSecondUpdate = getInput();
+    const stateAfterSecondUpdate = inputAfterSecondUpdate.__phoneMaskState!;
     expect(stateAfterSecondUpdate.digits).toBe('1234567890');
-    expect(el.value).toBe(expectedDisplay);
+    expect(inputAfterSecondUpdate.value).toBe(expectedDisplay);
 
-    vPhoneMask.unmounted?.(el);
-    document.body.removeChild(el);
+    wrapper.unmount();
   });
 });
