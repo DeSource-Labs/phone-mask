@@ -39,6 +39,7 @@ export const LibItems: LibItem[] = [
   { id: 'vue', name: 'Vue' },
   { id: 'nuxt', name: 'Nuxt' },
   { id: 'react', name: 'React' },
+  { id: 'svelte', name: 'Svelte' },
   { id: 'typescript', name: 'TS/JS' }
 ];
 
@@ -46,6 +47,7 @@ export const NpmLinks: Record<Library, string> = {
   vue: 'https://www.npmjs.com/package/@desource/phone-mask-vue',
   nuxt: 'https://www.npmjs.com/package/@desource/phone-mask-nuxt',
   react: 'https://www.npmjs.com/package/@desource/phone-mask-react',
+  svelte: 'https://www.npmjs.com/package/@desource/phone-mask-svelte',
   typescript: 'https://www.npmjs.com/package/@desource/phone-mask'
 };
 
@@ -53,6 +55,7 @@ export const NpmCommands: Record<Library, string> = {
   vue: 'npm install @desource/phone-mask-vue',
   nuxt: 'npm install @desource/phone-mask-nuxt',
   react: 'npm install @desource/phone-mask-react',
+  svelte: 'npm install @desource/phone-mask-svelte',
   typescript: 'npm install @desource/phone-mask'
 };
 
@@ -60,6 +63,7 @@ export const DocLinks: Record<Library, string> = {
   vue: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-vue',
   nuxt: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-nuxt',
   react: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-react',
+  svelte: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-svelte',
   typescript: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask'
 };
 

@@ -429,13 +429,16 @@
             <h3>GitHub Repository</h3>
             <p>View source code and contribute</p>
           </a>
-          <a class="resource-card" target="_blank" rel="noopener noreferrer" :href="DocLinks.vue">
-            <h3>Vue Documentation</h3>
-            <p>Learn more about the Vue package</p>
-          </a>
-          <a class="resource-card" target="_blank" rel="noopener noreferrer" :href="DocLinks.nuxt">
-            <h3>Nuxt Documentation</h3>
-            <p>Learn more about the Nuxt package</p>
+          <a
+            v-for="item in LibItems"
+            :key="item.id"
+            class="resource-card"
+            target="_blank"
+            rel="noopener noreferrer"
+            :href="DocLinks[item.id]"
+          >
+            <h3>{{ item.name }} Documentation</h3>
+            <p>Learn more about the {{ item.name }} package</p>
           </a>
           <a class="resource-card" target="_blank" rel="noopener noreferrer" :href="Links.contributing">
             <h3>Contributing Guide</h3>
@@ -661,7 +664,7 @@ import { ref } from 'vue'
 const country = ref('GB')
 const phoneData = ref<PMaskPhoneNumber>({
   full: '',
-  formatted: '',
+  fullFormatted: '',
   digits: ''
 })
 
@@ -678,7 +681,7 @@ function onChange(data: PMaskPhoneNumber) {
     }"
   />
   <p>Full: {{ phoneData.full }}</p>
-  <p>Formatted: {{ phoneData.formatted }}</p>
+  <p>Formatted: {{ phoneData.fullFormatted }}</p>
   <p>Digits: {{ phoneData.digits }}</p>
 </template>`,
 

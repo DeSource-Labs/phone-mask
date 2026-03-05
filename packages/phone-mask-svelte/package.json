@@ -1,0 +1,76 @@
+{
+  "name": "@desource/phone-mask-svelte",
+  "version": "0.3.0",
+  "description": "🌍 Svelte 5 component and composable for international phone number masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
+  "keywords": [
+    "svelte",
+    "svelte5",
+    "phone",
+    "mask",
+    "input",
+    "component",
+    "international",
+    "libphonenumber",
+    "country-code",
+    "phone-number",
+    "formatting",
+    "validation",
+    "typescript"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
+    "directory": "packages/phone-mask-svelte"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/phone-mask/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-svelte#readme",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "svelte": "dist/index.mjs",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "svelte": "./dist/index.mjs",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./assets/lib.css": "./dist/phone-mask-svelte.css"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "rimraf dist tsconfig.build.tsbuildinfo test-results",
+    "dev": "vite demo",
+    "build": "pnpm clean && pnpm build:internal",
+    "build:internal": "pnpm build:lib && pnpm build:types",
+    "build:lib": "vite build",
+    "build:types": "tsc --project tsconfig.build.json",
+    "typecheck": "svelte-check --tsconfig tsconfig.json",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "peerDependencies": {
+    "svelte": "^5.0.0"
+  },
+  "dependencies": {
+    "@desource/phone-mask": "workspace:*"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "svelte": "^5.53.7",
+    "svelte-check": "^4.4.4"
+  }
+}

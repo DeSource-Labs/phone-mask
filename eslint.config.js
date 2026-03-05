@@ -3,6 +3,8 @@ import typescript from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import vue from 'eslint-plugin-vue';
 import vueParser from 'vue-eslint-parser';
+import svelte from 'eslint-plugin-svelte';
+import svelteParser from 'svelte-eslint-parser';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
@@ -128,6 +130,32 @@ export default [
       // Use the TS rule in Vue SFCs and disable core rule to avoid false positives in types
       'no-unused-vars': 'off',
       'no-undef': 'off'
+    }
+  },
+
+  // Svelte files
+  ...svelte.configs['flat/recommended'],
+  {
+    files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
+    languageOptions: {
+      parser: svelteParser,
+      parserOptions: {
+        parser: tsParser,
+        ecmaVersion: 'latest',
+        sourceType: 'module'
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.es2021
+      }
+    },
+    plugins: {
+      '@typescript-eslint': typescript
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
     }
   },
 

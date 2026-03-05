@@ -6,7 +6,7 @@
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-react?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-react)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
-Beautiful, accessible, extreme small & tree-shackable React phone input with auto-formatting, country selector, and validation.
+Beautiful, accessible, extreme small & tree-shakeable React phone input with auto-formatting, country selector, and validation.
 
 ## ✨ Features
 
@@ -444,6 +444,7 @@ function Example() {
 - [@desource/phone-mask](../phone-mask) — Core library
 - [@desource/phone-mask-nuxt](../phone-mask-nuxt) — Nuxt module
 - [@desource/phone-mask-vue](../phone-mask-vue) — Vue 3 bindings
+- [@desource/phone-mask-svelte](../phone-mask-svelte) — Svelte bindings
 
 ## 📄 License
 

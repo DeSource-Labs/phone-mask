@@ -6,7 +6,7 @@
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-vue?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-vue)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
-Beautiful, accessible, extreme small & tree-shackable Vue 3 phone input with auto-formatting, country selector, and validation.
+Beautiful, accessible, extreme small & tree-shakeable Vue 3 phone input with auto-formatting, country selector, and validation.
 
 ## ✨ Features
 
@@ -581,12 +581,12 @@ const errorMessage = computed(() => {
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { PhoneInput, type MaskFull } from '@desource/phone-mask-vue';
+import { PhoneInput, type PMaskFull } from '@desource/phone-mask-vue';
 
 const phone = ref('');
 const detectedCountry = ref('');
 
-const handleCountryChange = (country: MaskFull) => {
+const handleCountryChange = (country: PMaskFull) => {
   detectedCountry.value = country.name;
 };
 </script>

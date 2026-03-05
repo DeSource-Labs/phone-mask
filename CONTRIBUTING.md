@@ -108,14 +108,11 @@ Open [http://localhost:3000](http://localhost:3000) to see the demo.
 ### Running Tests
 
 ```bash
+# Run unit tests
+pnpm test:unit
+
 # Run E2E tests
 pnpm test:e2e
-
-# Run tests in UI mode
-pnpm test:e2e:ui
-
-# View test report
-pnpm test:e2e:report
 ```
 
 ### Linting and Formatting
@@ -140,7 +137,7 @@ pnpm format:check
 
 - Install ESLint and Prettier extensions for VS Code
 - Enable "Format on Save" in your editor
-- The project includes `.editorconfig` for consistent formatting
+- The project includes `.prettierrc` and `.prettierignore` for consistent formatting
 
 ## 📁 Project Structure
 
@@ -218,11 +215,13 @@ pnpm dev:demo
 
 # Run linting
 pnpm lint
+pnpm lint:fix
 
 # Format code
 pnpm format
 
 # Run tests
+pnpm test:unit
 pnpm test:e2e
 ```
 
@@ -444,19 +443,22 @@ We use [Semantic Versioning](https://semver.org/):
 ### Publishing
 
 ```bash
-# Bump version in package.json files
-pnpm version:bump <major|minor|patch>
+# Create a changeset for your package updates
+pnpm changeset
+
+# Apply versions and changelog updates from pending changesets
+pnpm changeset:version
 
 # Build all packages
 pnpm build
 
-# Publish to npm
-pnpm publish -r
+# Publish updated packages
+pnpm changeset:publish
 ```
 
 ## 🎯 Areas We Need Help
 
-- 📱 **React wrapper** — Create React component
+- 🧱 **Core package tests** — Expand direct tests for `@desource/phone-mask`
 - 🧪 **More tests** — Increase coverage
 - 🌍 **Localization** — Add more locale support
 - 📖 **Documentation** — Improve guides and examples
