@@ -13,7 +13,7 @@ pnpm changeset
 # 3. When you're ready to release, on main:
 pnpm changeset:version
 
-# 4. Commit version/changelog updates with the exact trigger message:
+# 4. Commit version/changelog updates with a message that contains the trigger text:
 git add .
 git commit -m "chore: Release packages"
 
