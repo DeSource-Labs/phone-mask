@@ -79,7 +79,7 @@ We actively welcome your pull requests:
 
 ### Prerequisites
 
-- **Node.js** >= 18.0.0
+- **Node.js** >= 20.19.0
 - **pnpm** >= 10.0.0
 
 ### Installation
