@@ -215,11 +215,13 @@ pnpm dev:demo
 
 # Run linting
 pnpm lint
+pnpm lint:fix
 
 # Format code
 pnpm format
 
 # Run tests
+pnpm test:unit
 pnpm test:e2e
 ```
 
