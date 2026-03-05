@@ -443,18 +443,19 @@ We use [Semantic Versioning](https://semver.org/):
 ### Publishing
 
 ```bash
-# Create a changeset for your package updates
+# Contributors: create a changeset in your feature PR
 pnpm changeset
 
-# Apply versions and changelog updates from pending changesets
+# Maintainers: when ready to release from main, consume pending changesets
 pnpm changeset:version
 
-# Build all packages
-pnpm build
-
-# Publish updated packages
-pnpm changeset:publish
+# Commit with the exact release trigger message used by CI
+git add .
+git commit -m "chore: Release packages"
+git push origin main
 ```
+
+Release workflow also supports manual dispatch from GitHub Actions if needed.
 
 ## 🎯 Areas We Need Help
 
