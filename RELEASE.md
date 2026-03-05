@@ -5,15 +5,20 @@ This monorepo uses [Changesets](https://github.com/changesets/changesets) for ve
 ## Quick Start
 
 ```bash
-# 1. Make your changes to packages
-# 2. Add a changeset describing your changes
+# 1. Contributors add changesets in feature PRs
 pnpm changeset
 
-# 3. Commit the changeset file
-git add .changeset
-git commit -m "docs: add changeset"
+# 2. Merge contributor PRs to main (changesets accumulate)
 
-# 4. Push to main (release happens automatically via GitHub Actions)
+# 3. When you're ready to release, on main:
+pnpm changeset:version
+
+# 4. Commit version/changelog updates with the exact trigger message:
+git add .
+git commit -m "chore: Release packages"
+
+# 5. Push to main (release workflow publishes)
+git push origin main
 ```
 
 ## Detailed Workflow
@@ -47,36 +52,32 @@ Example changeset file (`.changeset/happy-pandas-dance.md`):
 Add support for dynamic country list updates and improve performance
 ```
 
-### 2. Automated Release (via GitHub Actions)
+### 2. Maintainer Release Trigger (via GitHub Actions)
 
-When changesets are merged to `main`:
+This repository uses an explicit release trigger.
 
-1. **GitHub Action automatically**:
-   - Creates a "Version Packages" PR with:
-     - Updated package versions
-     - Generated CHANGELOGs
-     - Updated workspace dependencies
-   - Or publishes packages to npm (if Version PR is merged)
-
-2. **To release**: Simply merge the "Version Packages" PR
-
-### 3. Manual Release (Local)
-
-For manual releases or testing:
+1. Merge contributor PRs that contain `.changeset/*.md` files.
+2. When ready to publish, run:
 
 ```bash
-# Update versions and generate CHANGELOGs
 pnpm changeset:version
-
-# Review changes, then commit
 git add .
-git commit -m "chore: version packages"
+git commit -m "chore: Release packages"
+git push origin main
+```
 
-# Build and publish to npm
-pnpm changeset:publish
+3. The release workflow runs on `main` and publishes when either:
+   - commit message contains `chore: Release packages`
+   - workflow is started manually (`workflow_dispatch`)
 
-# Push tags
-git push --follow-tags
+### 3. Manual Release (Workflow Dispatch)
+
+If you already have version/changelog changes on `main` and want to force publishing without the commit-message trigger:
+
+```bash
+# from GitHub UI: Actions -> Release -> Run workflow
+# or via GitHub CLI:
+gh workflow run Release
 ```
 
 ## Package Publishing Configuration
@@ -206,6 +207,7 @@ pnpm release
 
 - Verify NPM_TOKEN secret is set
 - Check GITHUB_TOKEN has write permissions
+- Ensure release commit message is exactly `chore: Release packages` (unless using manual dispatch)
 - Review workflow logs for specific errors
 
 ## Example Workflow
@@ -225,16 +227,20 @@ pnpm release
 
 2. **Create PR** → merge to main
 
-3. **GitHub Action**:
-   - Creates "Version Packages" PR
-   - Updates @desource/phone-mask to 0.1.0
-   - Generates CHANGELOG.md
-   - Updates dependent packages (@desource/phone-mask-vue, @desource/phone-mask-nuxt)
+3. **Maintainer decides to release**:
 
-4. **Merge "Version Packages" PR**:
-   - Packages automatically published to npm
-   - Git tags created
-   - GitHub Release created
+   ```bash
+   git checkout main
+   git pull
+   pnpm changeset:version
+   git add .
+   git commit -m "chore: Release packages"
+   git push origin main
+   ```
+
+4. **GitHub Action publishes packages**:
+   - Publishes updated versions to npm
+   - Pushes tags created by Changesets
 
 ## Resources
 
