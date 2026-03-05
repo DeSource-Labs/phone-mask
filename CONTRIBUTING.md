@@ -449,7 +449,7 @@ pnpm changeset
 # Maintainers: when ready to release from main, consume pending changesets
 pnpm changeset:version
 
-# Commit with the exact release trigger message used by CI
+# Commit with the release trigger message used by CI
 git add .
 git commit -m "chore: Release packages"
 git push origin main
