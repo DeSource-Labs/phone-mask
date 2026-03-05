@@ -53,7 +53,8 @@
   "scripts": {
     "dev:prepare": "nuxt prepare",
     "clean": "rimraf dist .nuxt",
-    "build": "pnpm dev:prepare && nuxt-module-build build"
+    "build:internal": "pnpm dev:prepare && nuxt-module-build build",
+    "build": "pnpm clean && pnpm build:internal"
   },
   "peerDependencies": {
     "vue": "^3.4.33"

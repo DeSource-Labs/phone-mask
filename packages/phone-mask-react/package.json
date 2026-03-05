@@ -55,7 +55,8 @@
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo test-results",
     "dev": "cd demo && vite",
-    "build": "vite build && tsc --project tsconfig.build.json",
+    "build:internal": "vite build && tsc --project tsconfig.build.json",
+    "build": "pnpm clean && pnpm build:internal",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"

@@ -54,9 +54,10 @@
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo test-results",
     "dev": "vite demo",
-    "build": "pnpm build-lib && pnpm build-types",
-    "build-lib": "vite build",
-    "build-types": "tsc --project tsconfig.build.json",
+    "build": "pnpm clean && pnpm build:internal",
+    "build:internal": "pnpm build:lib && pnpm build:types",
+    "build:lib": "vite build",
+    "build:types": "tsc --project tsconfig.build.json",
     "typecheck": "svelte-check --tsconfig tsconfig.json",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"

@@ -17,9 +17,11 @@
  *   numbers, but converting example numbers to masks may not capture all valid local formats.
  */
 
-const fs = require('fs');
-const path = require('path');
-const { PhoneNumberUtil, PhoneNumberFormat, PhoneNumberType } = require('google-libphonenumber');
+import fs from 'node:fs';
+import path from 'node:path';
+import libphonenumber from 'google-libphonenumber';
+
+const { PhoneNumberUtil, PhoneNumberFormat, PhoneNumberType } = libphonenumber;
 
 const phoneUtil = PhoneNumberUtil.getInstance();
 

@@ -51,7 +51,7 @@ export default defineConfig({
         {
           format: 'cjs',
           dir: path.resolve(__dirname, 'dist'),
-          entryFileNames: `${safeName}.cjs.js`,
+          entryFileNames: `${safeName}.cjs`,
           exports: 'named',
           compact: true,
           plugins: [
