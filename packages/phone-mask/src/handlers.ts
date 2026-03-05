@@ -180,7 +180,9 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
 
     // Single character deletion
     if (selectionStart < el.value.length) {
-      const range = formatter.getDigitRange(digits, selectionStart, selectionStart + 1);
+      // Skip delimiters and delete the next actual digit by finding
+      // the first digit index at/after the caret in a single range lookup.
+      const range = formatter.getDigitRange(digits, selectionStart, el.value.length);
       if (range) {
         const [start] = range;
         const newDigits = digits.slice(0, start) + digits.slice(start + 1);
