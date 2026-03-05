@@ -70,6 +70,7 @@ npm install @desource/phone-mask-react
 ```
 
 ```tsx
+import { useState } from 'react';
 import { PhoneInput } from '@desource/phone-mask-react';
 import '@desource/phone-mask-react/assets/lib.css';
 
@@ -88,6 +89,7 @@ npm install @desource/phone-mask-vue
 
 ```vue
 <script setup>
+import { ref } from 'vue';
 import { PhoneInput } from '@desource/phone-mask-vue';
 import '@desource/phone-mask-vue/assets/lib.css';
 
@@ -130,6 +132,12 @@ export default defineNuxtConfig({
 ```
 
 ```vue
+<script setup>
+import { ref } from 'vue';
+
+const phone = ref('');
+</script>
+
 <template>
   <PhoneInput v-model="phone" country="US" />
 </template>
