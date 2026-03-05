@@ -16,7 +16,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     # Only publish when explicitly signaled by commit message or manual dispatch
-    if: "${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore: release packages') }}"
+    if: "${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore: Release packages') || contains(github.event.head_commit.message, 'chore: release packages') }}"
     permissions:
       contents: write
       pull-requests: write
