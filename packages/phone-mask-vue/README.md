@@ -581,12 +581,12 @@ const errorMessage = computed(() => {
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { PhoneInput, type MaskFull } from '@desource/phone-mask-vue';
+import { PhoneInput, type PMaskFull } from '@desource/phone-mask-vue';
 
 const phone = ref('');
 const detectedCountry = ref('');
 
-const handleCountryChange = (country: MaskFull) => {
+const handleCountryChange = (country: PMaskFull) => {
   detectedCountry.value = country.name;
 };
 </script>
