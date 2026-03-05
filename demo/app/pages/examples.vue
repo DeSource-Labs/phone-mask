@@ -657,7 +657,7 @@ import { ref } from 'vue'
 const country = ref('GB')
 const phoneData = ref<PMaskPhoneNumber>({
   full: '',
-  formatted: '',
+  fullFormatted: '',
   digits: ''
 })
 
@@ -674,7 +674,7 @@ function onChange(data: PMaskPhoneNumber) {
     }"
   />
   <p>Full: {{ phoneData.full }}</p>
-  <p>Formatted: {{ phoneData.formatted }}</p>
+  <p>Formatted: {{ phoneData.fullFormatted }}</p>
   <p>Digits: {{ phoneData.digits }}</p>
 </template>`,
 
