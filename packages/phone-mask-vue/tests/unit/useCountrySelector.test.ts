@@ -3,6 +3,7 @@ import { nextTick, ref, shallowRef, toValue } from 'vue';
 import { useCountrySelector } from '../../src/composables/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
 import { tools, withSetup } from './setup/tools';
+import { createRect } from '@common/tests/unit/setup/domRect';
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
@@ -43,20 +44,6 @@ function setup(options: SetupOptions = {}) {
 }
 
 testUseCountrySelector(setup, tools);
-
-function createRect(top: number, bottom: number, left = 0, width = 100): DOMRect {
-  return {
-    x: left,
-    y: top,
-    top,
-    bottom,
-    left,
-    right: left + width,
-    width,
-    height: bottom - top,
-    toJSON: () => ({})
-  } as DOMRect;
-}
 
 function setupWithDom(initialCountryOption?: string) {
   const countryOption = ref<string | undefined>(initialCountryOption);

@@ -2,6 +2,7 @@
 import { useCountrySelector } from '../../src/hooks/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
 import { tools, renderHookWithProxy } from './setup/tools';
+import { createRect } from '@common/tests/unit/setup/domRect';
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
@@ -75,20 +76,6 @@ describe('isClosing (React)', () => {
     unmount();
   });
 });
-
-function createRect(top: number, bottom: number, left = 0, width = 100): DOMRect {
-  return {
-    x: left,
-    y: top,
-    top,
-    bottom,
-    left,
-    right: left + width,
-    width,
-    height: bottom - top,
-    toJSON: () => ({})
-  } as DOMRect;
-}
 
 function setupWithDom(initialCountryOption?: string) {
   const rootEl = document.createElement('div');

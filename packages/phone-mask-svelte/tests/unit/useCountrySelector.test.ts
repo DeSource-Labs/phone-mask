@@ -2,6 +2,7 @@
 import { useCountrySelector } from '../../src/composables/internal/useCountrySelector.svelte';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
 import { createState, tools, withSetup } from './setup/tools.svelte';
+import { createRect } from '@common/tests/unit/setup/domRect';
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
@@ -79,20 +80,6 @@ describe('isClosing (Svelte)', () => {
     unmount();
   });
 });
-
-function createRect(top: number, bottom: number, left = 0, width = 100): DOMRect {
-  return {
-    x: left,
-    y: top,
-    top,
-    bottom,
-    left,
-    right: left + width,
-    width,
-    height: bottom - top,
-    toJSON: () => ({})
-  } as DOMRect;
-}
 
 function setupWithDom(initialCountryOption?: string) {
   const countryOptionState = createState<string | undefined>(initialCountryOption);
