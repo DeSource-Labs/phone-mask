@@ -1,4 +1,11 @@
-import React, { useImperativeHandle, useRef, useCallback, type CSSProperties, type Ref } from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useCallback,
+  type CSSProperties,
+  type ForwardedRef
+} from 'react';
 import { createPortal } from 'react-dom';
 import { useFormatter } from '../hooks/internal/useFormatter';
 import { useCountry } from '../hooks/internal/useCountry';
@@ -10,9 +17,7 @@ import { useTheme } from '../hooks/internal/useTheme';
 
 import type { PhoneInputProps, PhoneInputRef } from '../types';
 
-type PhoneInputComponent = PhoneInputProps & { ref?: Ref<PhoneInputRef> };
-
-export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
+const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef>) => {
   const {
     value = '',
     country: propCountry,
@@ -373,5 +378,7 @@ export const PhoneInput = ({ ref, ...props }: PhoneInputComponent) => {
     </>
   );
 };
+
+export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>(PhoneInputInner);
 
 PhoneInput.displayName = 'PhoneInput';
