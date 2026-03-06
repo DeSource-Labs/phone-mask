@@ -17,21 +17,16 @@ function setup(options: SetupOptions) {
 
 testUseTheme(setup, tools);
 
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 describe('useTheme fallback (Svelte)', () => {
   it('returns auto theme without matchMedia support', () => {
-    const originalMatchMedia = window.matchMedia;
-    Object.defineProperty(window, 'matchMedia', {
-      value: undefined,
-      configurable: true
-    });
+    vi.stubGlobal('matchMedia', undefined as any);
 
     const { result, unmount } = setup({ theme: 'auto' });
     expect(result.themeClass).toBe('theme-light');
     unmount();
-
-    Object.defineProperty(window, 'matchMedia', {
-      value: originalMatchMedia,
-      configurable: true
-    });
   });
 });
