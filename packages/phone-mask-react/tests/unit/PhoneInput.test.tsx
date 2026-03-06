@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { createRef } from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { PhoneInput } from '../../src/components/PhoneInput';
 import type { PhoneInputRef } from '../../src/types';
 
@@ -51,5 +51,41 @@ describe('PhoneInput ref API', () => {
       inputRef.current?.blur();
     });
     await waitFor(() => expect(document.activeElement).not.toBe(input));
+  });
+
+  it('supports clear button and dropdown option interactions', async () => {
+    const onChange = vi.fn();
+    const onCountryChange = vi.fn();
+
+    render(
+      <PhoneInput
+        value="2025550123"
+        onChange={onChange}
+        onCountryChange={onCountryChange}
+        showClear
+        detect={false}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+    });
+
+    const options = await screen.findAllByRole('option');
+    const targetOption = options.find((option) => option.getAttribute('aria-selected') === 'false');
+    expect(targetOption).toBeDefined();
+
+    await act(async () => {
+      fireEvent.mouseEnter(targetOption!);
+      fireEvent.click(targetOption!);
+    });
+
+    expect(onCountryChange).toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Clear phone number' }));
+    });
+
+    expect(onChange).toHaveBeenCalledWith('');
   });
 });
