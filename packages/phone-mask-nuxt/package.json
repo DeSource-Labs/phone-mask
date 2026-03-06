@@ -54,7 +54,9 @@
     "dev:prepare": "nuxt prepare",
     "clean": "rimraf dist .nuxt",
     "build:internal": "pnpm dev:prepare && nuxt-module-build build",
-    "build": "pnpm clean && pnpm build:internal"
+    "build": "pnpm clean && pnpm build:internal",
+    "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "peerDependencies": {
     "vue": "^3.4.33"
@@ -65,6 +67,7 @@
   "devDependencies": {
     "@nuxt/kit": "^4.3.1",
     "@nuxt/module-builder": "^1.0.2",
+    "@nuxt/test-utils": "^4.0.0",
     "nuxt": "^4.3.1",
     "vue": "^3.5.29"
   }
