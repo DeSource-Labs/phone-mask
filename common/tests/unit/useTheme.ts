@@ -168,6 +168,7 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
         const { unmount } = setup({ theme: 'auto' });
         unmount();
         expect(mockRemoveEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+        
       });
 
       it('removes the same handler instance that was registered', () => {
@@ -178,6 +179,16 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
 
         const [, removedHandler] = mockRemoveEventListener.mock.calls[0];
         expect(removedHandler).toBe(registeredHandler);
+      });
+    });
+
+    describe('useTheme fallback', () => {
+      it('returns auto theme without matchMedia support', () => {
+        vi.stubGlobal('matchMedia', undefined as any);
+
+        const { result, unmount } = setup({ theme: 'auto' });
+        expect(toValue(result.themeClass)).toBe('theme-light');
+        unmount();
       });
     });
   });

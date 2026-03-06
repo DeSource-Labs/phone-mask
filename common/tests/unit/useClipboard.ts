@@ -137,6 +137,14 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
     });
 
     describe('copy — failure', () => {
+      beforeEach(() => {
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
+      });
+
+      afterEach(() => {
+        vi.restoreAllMocks();
+      });
+
       it('returns false when clipboard throws', async () => {
         mockWriteText.mockRejectedValue(new Error('Permission denied'));
 

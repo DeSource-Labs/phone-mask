@@ -21,12 +21,4 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('useTheme fallback (Svelte)', () => {
-  it('returns auto theme without matchMedia support', () => {
-    vi.stubGlobal('matchMedia', undefined as any);
 
-    const { result, unmount } = setup({ theme: 'auto' });
-    expect(result.themeClass).toBe('theme-light');
-    unmount();
-  });
-});

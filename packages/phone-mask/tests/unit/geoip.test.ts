@@ -11,7 +11,7 @@ function createMockStorage() {
       store.clear();
     },
     getItem: (key: string) => {
-      return store.has(key) ? store.get(key) ?? null : null;
+      return store.has(key) ? (store.get(key) ?? null) : null;
     },
     setItem: (key: string, value: string) => {
       store.set(key, String(value));
