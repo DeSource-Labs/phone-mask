@@ -129,7 +129,7 @@ describe('useCountrySelector DOM behavior (Vue)', () => {
     ctx.rootRectSpy.mockReturnValue(createRect(100, 140, 5, 200));
 
     await tools.act(async () => {
-      ctx.list.dispatchEvent(new Event('scroll', { bubbles: true }));
+      ctx.list.dispatchEvent(new Event('scroll'));
     });
     await nextTick();
 
