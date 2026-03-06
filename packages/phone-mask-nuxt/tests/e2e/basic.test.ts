@@ -1,19 +1,10 @@
 import { readFile } from 'node:fs/promises';
-import { isAbsolute, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { setup, $fetch, useTestContext } from '@nuxt/test-utils/e2e';
+import { resolve } from 'node:path';
+import { setup, $fetch } from '@nuxt/test-utils/e2e';
 import { describe, expect, it } from 'vitest';
+import { getBuildDir, getFixtureRoot } from './utils';
 
-const fixtureRoot = fileURLToPath(new URL('../fixtures/basic', import.meta.url));
-const getBuildDir = () => {
-  const { options, nuxt } = useTestContext();
-  if (nuxt?.options.buildDir) {
-    return nuxt.options.buildDir;
-  }
-
-  const configuredBuildDir = (options.nuxtConfig.buildDir as string | undefined) ?? '.nuxt';
-  return isAbsolute(configuredBuildDir) ? configuredBuildDir : resolve(options.rootDir, configuredBuildDir);
-};
+const fixtureRoot = getFixtureRoot('../fixtures/basic', import.meta.url);
 
 await setup({
   rootDir: fixtureRoot
