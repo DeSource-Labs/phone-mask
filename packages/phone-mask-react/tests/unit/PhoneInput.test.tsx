@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { createRef } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { PhoneInput } from '../../src/components/PhoneInput';
