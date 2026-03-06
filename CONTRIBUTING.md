@@ -111,6 +111,9 @@ Open [http://localhost:3000](http://localhost:3000) to see the demo.
 # Run unit tests
 pnpm test:unit
 
+# Run unit tests with coverage
+pnpm test:unit:coverage
+
 # Run E2E tests
 pnpm test:e2e
 ```
@@ -222,6 +225,7 @@ pnpm format
 
 # Run tests
 pnpm test:unit
+pnpm test:unit:coverage
 pnpm test:e2e
 ```
 
