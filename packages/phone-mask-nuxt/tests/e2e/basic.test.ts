@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setup, $fetch, useTestContext } from '@nuxt/test-utils/e2e';
 import { describe, expect, it } from 'vitest';
@@ -12,7 +12,7 @@ const getBuildDir = () => {
   }
 
   const configuredBuildDir = (options.nuxtConfig.buildDir as string | undefined) ?? '.nuxt';
-  return configuredBuildDir.startsWith('/') ? configuredBuildDir : resolve(options.rootDir, configuredBuildDir);
+  return isAbsolute(configuredBuildDir) ? configuredBuildDir : resolve(options.rootDir, configuredBuildDir);
 };
 
 await setup({

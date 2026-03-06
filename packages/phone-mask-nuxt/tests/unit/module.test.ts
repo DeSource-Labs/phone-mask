@@ -59,6 +59,8 @@ const defaultOptions = {
   helpers: true
 };
 
+const normalizePath = (value: string) => value.replaceAll('\\', '/');
+
 describe('module setup contract', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -83,7 +85,7 @@ describe('module setup contract', () => {
 
     expect(createResolverMock).toHaveBeenCalledTimes(1);
     expect(nuxt.options.build.transpile).toHaveLength(1);
-    expect(nuxt.options.build.transpile[0]).toContain('/runtime');
+    expect(normalizePath(nuxt.options.build.transpile[0] ?? '')).toContain('/runtime');
     expect(hooks['prepare:types']).toBeTypeOf('function');
     expect(hooks['modules:done']).toBeTypeOf('function');
 
@@ -93,7 +95,7 @@ describe('module setup contract', () => {
 
     hooks['modules:done']();
     expect(addPluginMock).toHaveBeenCalledTimes(1);
-    expect(addPluginMock.mock.calls[0]?.[0]).toContain('runtime/plugin.phone-mask');
+    expect(addPluginMock.mock.calls[0]?.[0] ?? '').toMatch(/runtime[\\/]plugin\.phone-mask/);
 
     expect(addImportsMock).toHaveBeenCalledTimes(1);
     const imports = addImportsMock.mock.calls[0]?.[0] as Array<{ name: string; from: string; type?: boolean }>;
@@ -133,7 +135,7 @@ describe('module setup contract', () => {
       expect.objectContaining({
         name: 'PhoneInput',
         mode: 'client',
-        filePath: expect.stringContaining('runtime/component')
+        filePath: expect.stringMatching(/runtime[\\/]component/)
       })
     );
 
