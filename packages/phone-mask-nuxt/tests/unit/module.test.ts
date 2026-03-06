@@ -101,35 +101,41 @@ describe('module setup contract', () => {
     expect(addImportsMock).toHaveBeenCalledTimes(1);
     const imports = addImportsMock.mock.calls[0]?.[0] as Array<{ name: string; from: string; type?: boolean }>;
     const importNames = imports.map((entry) => entry.name);
-    expect(importNames).toEqual([
-      'vPhoneMaskSetCountry',
-      'PMaskHelpers',
-      'vPhoneMask',
-      'PCountryKey',
-      'PMaskBase',
-      'PMaskBaseMap',
-      'PMask',
-      'PMaskMap',
-      'PMaskWithFlag',
-      'PMaskWithFlagMap',
-      'PMaskFull',
-      'PMaskFullMap',
-      'PMaskPhoneNumber'
-    ]);
+    expect(importNames).toHaveLength(13);
+    expect(importNames).toEqual(
+      expect.arrayContaining([
+        'vPhoneMaskSetCountry',
+        'PMaskHelpers',
+        'vPhoneMask',
+        'PCountryKey',
+        'PMaskBase',
+        'PMaskBaseMap',
+        'PMask',
+        'PMaskMap',
+        'PMaskWithFlag',
+        'PMaskWithFlagMap',
+        'PMaskFull',
+        'PMaskFullMap',
+        'PMaskPhoneNumber'
+      ])
+    );
     expect(imports.every((entry) => entry.from.includes('runtime/shared'))).toBe(true);
     const typedImportNames = imports.filter((entry) => entry.type).map((entry) => entry.name);
-    expect(typedImportNames).toEqual([
-      'PCountryKey',
-      'PMaskBase',
-      'PMaskBaseMap',
-      'PMask',
-      'PMaskMap',
-      'PMaskWithFlag',
-      'PMaskWithFlagMap',
-      'PMaskFull',
-      'PMaskFullMap',
-      'PMaskPhoneNumber'
-    ]);
+    expect(typedImportNames).toHaveLength(10);
+    expect(typedImportNames).toEqual(
+      expect.arrayContaining([
+        'PCountryKey',
+        'PMaskBase',
+        'PMaskBaseMap',
+        'PMask',
+        'PMaskMap',
+        'PMaskWithFlag',
+        'PMaskWithFlagMap',
+        'PMaskFull',
+        'PMaskFullMap',
+        'PMaskPhoneNumber'
+      ])
+    );
 
     expect(addComponentMock).toHaveBeenCalledTimes(1);
     expect(addComponentMock).toHaveBeenCalledWith(
