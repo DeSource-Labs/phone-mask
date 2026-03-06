@@ -62,6 +62,7 @@
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
     "dev": "vite",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run --config vitest.config.ts",
     "gen": "pnpm add -D google-libphonenumber@latest && node scripts/gen.js"
   },
   "devDependencies": {
