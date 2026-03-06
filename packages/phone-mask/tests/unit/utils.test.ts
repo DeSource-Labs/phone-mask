@@ -149,18 +149,18 @@ describe('country list filtering', () => {
 
     const tieCountries: MaskFull[] = [
       {
-        id: 'AA' as never,
+        id: 'AC',
         code: '+10',
         mask: '###',
         name: 'Beta',
-        flag: countryCodeEmoji('US')
+        flag: countryCodeEmoji('AC')
       },
       {
-        id: 'AB' as never,
+        id: 'AD',
         code: '+10',
         mask: '###',
         name: 'Alpha',
-        flag: countryCodeEmoji('DE')
+        flag: countryCodeEmoji('AD')
       }
     ];
 
