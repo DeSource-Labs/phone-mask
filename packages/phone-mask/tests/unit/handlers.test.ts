@@ -86,7 +86,7 @@ describe('processKeydown', () => {
     const formatter = createFormatter();
     const input = document.createElement('input');
     input.value = formatter.formatDisplay('12345');
-    input.setSelectionRange(1, 2);
+    input.setSelectionRange(0, 1); // Select the first digit '1'
 
     const event = {
       key: 'Backspace',
@@ -168,7 +168,7 @@ describe('processPaste', () => {
     const formatter = createFormatter();
     const input = document.createElement('input');
     input.value = formatter.formatDisplay('12');
-    // Value: `1-23-45`; cursor placed at first `-`
+    // Value: `1-2`; cursor placed after the first digit '1' and before the separator
     input.setSelectionRange(1, 1);
 
     const event = {
