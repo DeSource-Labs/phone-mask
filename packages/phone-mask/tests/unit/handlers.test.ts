@@ -161,6 +161,85 @@ describe('processKeydown', () => {
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
     expect(result).toBeUndefined();
   });
+
+  it('returns undefined for Backspace at start with no selection', () => {
+    const formatter = createFormatter();
+    const input = document.createElement('input');
+    input.value = formatter.formatDisplay('12345');
+    input.setSelectionRange(0, 0);
+
+    const event = {
+      key: 'Backspace',
+      target: input,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      preventDefault: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    const result = processKeydown(event, { digits: '12345', formatter });
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(result).toBeUndefined();
+  });
+
+  it('deletes selected digits for Delete key', () => {
+    const formatter = createFormatter();
+    const input = document.createElement('input');
+    input.value = formatter.formatDisplay('12345');
+    input.setSelectionRange(0, 3);
+
+    const event = {
+      key: 'Delete',
+      target: input,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      preventDefault: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    const result = processKeydown(event, { digits: '12345', formatter });
+    expect(result).toEqual({ newDigits: '345', caretDigitIndex: 0 });
+  });
+
+  it('returns undefined for Delete at the end', () => {
+    const formatter = createFormatter();
+    const input = document.createElement('input');
+    input.value = formatter.formatDisplay('12345');
+    input.setSelectionRange(input.value.length, input.value.length);
+
+    const event = {
+      key: 'Delete',
+      target: input,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      preventDefault: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    const result = processKeydown(event, { digits: '12345', formatter });
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(result).toBeUndefined();
+  });
+
+  it('blocks non-numeric single characters', () => {
+    const formatter = createFormatter();
+    const input = document.createElement('input');
+    input.value = formatter.formatDisplay('12');
+    input.setSelectionRange(2, 2);
+
+    const event = {
+      key: 'a',
+      target: input,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      preventDefault: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    const result = processKeydown(event, { digits: '12', formatter });
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(result).toBeUndefined();
+  });
 });
 
 describe('processPaste', () => {
@@ -201,5 +280,23 @@ describe('processPaste', () => {
     const result = processPaste(event, { digits: '12', formatter });
     expect(result?.newDigits).toBe('9999');
     expect(result?.caretDigitIndex).toBe(4);
+  });
+
+  it('returns undefined for paste values without digits', () => {
+    const formatter = createFormatter();
+    const input = document.createElement('input');
+    input.value = formatter.formatDisplay('12');
+    input.setSelectionRange(1, 1);
+
+    const event = {
+      target: input,
+      clipboardData: {
+        getData: () => 'abc()'
+      },
+      preventDefault: vi.fn()
+    } as unknown as ClipboardEvent;
+
+    const result = processPaste(event, { digits: '12', formatter });
+    expect(result).toBeUndefined();
   });
 });
