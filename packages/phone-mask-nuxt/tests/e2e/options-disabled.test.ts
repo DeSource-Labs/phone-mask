@@ -15,11 +15,11 @@ const getBuildDir = () => {
   return configuredBuildDir.startsWith('/') ? configuredBuildDir : resolve(options.rootDir, configuredBuildDir);
 };
 
-describe('Nuxt module contract: disabled options fixture', async () => {
-  await setup({
-    rootDir: fixtureRoot
-  });
+await setup({
+  rootDir: fixtureRoot
+});
 
+describe('Nuxt module contract: disabled options fixture', () => {
   it('renders without directive registration when options disable it', async () => {
     const html = await $fetch('/');
 

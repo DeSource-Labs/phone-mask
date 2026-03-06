@@ -15,11 +15,11 @@ const getBuildDir = () => {
   return configuredBuildDir.startsWith('/') ? configuredBuildDir : resolve(options.rootDir, configuredBuildDir);
 };
 
-describe('Nuxt module contract: basic fixture', async () => {
-  await setup({
-    rootDir: fixtureRoot
-  });
+await setup({
+  rootDir: fixtureRoot
+});
 
+describe('Nuxt module contract: basic fixture', () => {
   it('renders page with module-provided component/directive/helpers', async () => {
     const html = await $fetch('/');
 
