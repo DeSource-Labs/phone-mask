@@ -55,7 +55,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist coverage",
     "build": "pnpm clean && pnpm build:internal",
     "build:internal": "pnpm build:lib && pnpm build:types",
     "build:lib": "vite build",
@@ -63,6 +63,7 @@
     "dev": "vite",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run --config vitest.config.ts",
+    "test:unit:coverage": "vitest run --config vitest.config.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
     "gen": "pnpm add -D google-libphonenumber@latest && node scripts/gen.js"
   },
   "devDependencies": {
