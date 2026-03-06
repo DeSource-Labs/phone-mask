@@ -60,6 +60,16 @@ describe('locale helpers', () => {
     vi.stubGlobal('navigator', { language: 'de-DE' });
     expect(detectCountryFromLocale()).toBe('DE');
   });
+
+  it('falls back to split parsing for underscore locales', () => {
+    vi.stubGlobal('navigator', { language: 'en_US' });
+    expect(detectCountryFromLocale()).toBe('US');
+  });
+
+  it('returns null when locale has no region', () => {
+    vi.stubGlobal('navigator', { language: 'en' });
+    expect(detectCountryFromLocale()).toBeNull();
+  });
 });
 
 describe('country helpers', () => {
@@ -125,6 +135,37 @@ describe('country list filtering', () => {
   it('supports numeric search against country code', () => {
     const results = filterCountries(sampleCountries, '+55');
     expect(results.map((country) => country.id)).toEqual(['BR']);
+  });
+
+  it('supports partial matching for name/id/code and sorts ties by name', () => {
+    const byNameIncludes = filterCountries(sampleCountries, 'states');
+    expect(byNameIncludes.map((country) => country.id)).toEqual(['US']);
+
+    const byIdPrefix = filterCountries(sampleCountries, 'U');
+    expect(byIdPrefix.map((country) => country.id)).toEqual(['US']);
+
+    const byNumericContains = filterCountries(sampleCountries, '9');
+    expect(byNumericContains.map((country) => country.id)).toEqual(['DE']);
+
+    const tieCountries: MaskFull[] = [
+      {
+        id: 'AC',
+        code: '+10',
+        mask: '###',
+        name: 'Beta',
+        flag: countryCodeEmoji('AC')
+      },
+      {
+        id: 'AD',
+        code: '+10',
+        mask: '###',
+        name: 'Alpha',
+        flag: countryCodeEmoji('AD')
+      }
+    ];
+
+    const tied = filterCountries(tieCountries, '+10');
+    expect(tied.map((country) => country.name)).toEqual(['Alpha', 'Beta']);
   });
 });
 
