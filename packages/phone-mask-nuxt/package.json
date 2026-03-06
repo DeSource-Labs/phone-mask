@@ -52,10 +52,11 @@
   },
   "scripts": {
     "dev:prepare": "nuxt prepare",
-    "clean": "rimraf dist .nuxt",
+    "clean": "rimraf dist .nuxt coverage",
     "build:internal": "pnpm dev:prepare && nuxt-module-build build",
     "build": "pnpm clean && pnpm build:internal",
     "test:unit": "vitest run --config vitest.unit.config.ts",
+    "test:unit:coverage": "vitest run --config vitest.unit.config.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "peerDependencies": {
