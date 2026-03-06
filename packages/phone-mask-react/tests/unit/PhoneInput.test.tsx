@@ -57,7 +57,7 @@ describe('PhoneInput ref API', () => {
     const onChange = vi.fn();
     const onCountryChange = vi.fn();
 
-    render(
+    const { container } = render(
       <PhoneInput
         value="2025550123"
         onChange={onChange}
@@ -67,24 +67,24 @@ describe('PhoneInput ref API', () => {
       />
     );
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+
+    await waitFor(() => {
+      expect(document.body.querySelectorAll('.pi-option').length).toBeGreaterThan(0);
     });
 
-    const options = await screen.findAllByRole('option');
+    const options = Array.from(document.body.querySelectorAll<HTMLLIElement>('.pi-option'));
     const targetOption = options.find((option) => option.getAttribute('aria-selected') === 'false');
     expect(targetOption).toBeDefined();
 
-    await act(async () => {
-      fireEvent.mouseEnter(targetOption!);
-      fireEvent.click(targetOption!);
-    });
+    fireEvent.mouseEnter(targetOption!);
+    fireEvent.click(targetOption!);
 
     expect(onCountryChange).toHaveBeenCalled();
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Clear phone number' }));
-    });
+    const clearButton = container.querySelector<HTMLButtonElement>('.pi-btn-clear');
+    expect(clearButton).toBeDefined();
+    fireEvent.click(clearButton!);
 
     expect(onChange).toHaveBeenCalledWith('');
   });
