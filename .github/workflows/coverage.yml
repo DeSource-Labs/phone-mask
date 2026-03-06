@@ -44,4 +44,3 @@ jobs:
             ./packages/phone-mask-react/coverage/lcov.info
             ./packages/phone-mask-svelte/coverage/lcov.info
             ./packages/phone-mask-nuxt/coverage/lcov.info
-          directory: ./packages
