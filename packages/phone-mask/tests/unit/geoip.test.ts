@@ -3,9 +3,35 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CACHE_EXPIRY_MS, CACHE_KEY } from '../../src/services/geoip/consts';
 import { detectByGeoIp, detectCountryFromGeoIP } from '../../src/services/geoip';
 
+function createMockStorage() {
+  const store = new Map<string, string>();
+
+  return {
+    clear: () => {
+      store.clear();
+    },
+    getItem: (key: string) => {
+      return store.has(key) ? store.get(key) ?? null : null;
+    },
+    setItem: (key: string, value: string) => {
+      store.set(key, String(value));
+    },
+    removeItem: (key: string) => {
+      store.delete(key);
+    },
+    key: (index: number) => {
+      return Array.from(store.keys())[index] ?? null;
+    },
+    get length() {
+      return store.size;
+    }
+  } as Storage;
+}
+
 beforeEach(() => {
-  localStorage.clear();
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.stubGlobal('localStorage', createMockStorage());
 });
 
 describe('detectCountryFromGeoIP', () => {
