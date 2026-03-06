@@ -28,28 +28,10 @@ function createMockStorage() {
   } as Storage;
 }
 
-function ensureLocalStorage() {
-  if (typeof globalThis === 'undefined') {
-    return;
-  }
-
-  const storage = globalThis.localStorage;
-
-  if (!storage || typeof storage.clear !== 'function' || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') {
-    Object.defineProperty(globalThis, 'localStorage', {
-      value: createMockStorage(),
-      writable: true,
-      configurable: true
-    });
-    return;
-  }
-
-  storage.clear();
-}
-
 beforeEach(() => {
-  ensureLocalStorage();
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.stubGlobal('localStorage', createMockStorage());
 });
 
 describe('detectCountryFromGeoIP', () => {
