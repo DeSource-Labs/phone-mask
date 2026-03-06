@@ -29,10 +29,6 @@ function createMockStorage() {
 }
 
 function ensureLocalStorage() {
-  if (typeof globalThis === 'undefined') {
-    return;
-  }
-
   const storage = globalThis.localStorage;
 
   if (!storage || typeof storage.clear !== 'function' || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') {
