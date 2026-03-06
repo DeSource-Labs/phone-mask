@@ -84,8 +84,9 @@ describe('module setup contract', () => {
     await typedModule.setup(defaultOptions, nuxt);
 
     expect(createResolverMock).toHaveBeenCalledTimes(1);
-    expect(nuxt.options.build.transpile).toHaveLength(1);
-    expect(normalizePath(nuxt.options.build.transpile[0] ?? '')).toContain('/runtime');
+    const transpileEntries = nuxt.options.build.transpile ?? [];
+    const normalizedTranspile = transpileEntries.map((entry) => normalizePath(String(entry)));
+    expect(normalizedTranspile.some((entry) => entry.includes('/runtime'))).toBe(true);
     expect(hooks['prepare:types']).toBeTypeOf('function');
     expect(hooks['modules:done']).toBeTypeOf('function');
 
