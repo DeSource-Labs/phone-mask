@@ -238,8 +238,14 @@ describe('vPhoneMask directive', () => {
     await setExternalValue('2025550123');
 
     const state = getInput().__phoneMaskState!;
-    const currentMaxDigits = state.formatter.getMaxDigits();
-    const shorterCountry = MasksFull('en').find((country) => createPhoneFormatter(country).getMaxDigits() < currentMaxDigits);
+    const countries = MasksFull('en');
+    const currentCountry = countries.find((country) => country.id === state.country.id)!;
+    const currentMaxDigits = createPhoneFormatter(currentCountry).getMaxDigits();
+    const candidateIds = ['DE', 'GB', 'FR'];
+    const candidateCountries = countries.filter((country) => candidateIds.includes(country.id));
+    const shorterCountry = candidateCountries.find(
+      (country) => createPhoneFormatter(country).getMaxDigits() < currentMaxDigits
+    );
     expect(shorterCountry).toBeDefined();
 
     await setBindingValue({
