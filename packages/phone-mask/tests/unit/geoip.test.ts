@@ -3,8 +3,52 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CACHE_EXPIRY_MS, CACHE_KEY } from '../../src/services/geoip/consts';
 import { detectByGeoIp, detectCountryFromGeoIP } from '../../src/services/geoip';
 
+function createMockStorage() {
+  const store = new Map<string, string>();
+
+  return {
+    clear: () => {
+      store.clear();
+    },
+    getItem: (key: string) => {
+      return store.has(key) ? store.get(key) ?? null : null;
+    },
+    setItem: (key: string, value: string) => {
+      store.set(key, String(value));
+    },
+    removeItem: (key: string) => {
+      store.delete(key);
+    },
+    key: (index: number) => {
+      return Array.from(store.keys())[index] ?? null;
+    },
+    get length() {
+      return store.size;
+    }
+  } as Storage;
+}
+
+function ensureLocalStorage() {
+  if (typeof globalThis === 'undefined') {
+    return;
+  }
+
+  const storage = globalThis.localStorage;
+
+  if (!storage || typeof storage.clear !== 'function' || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') {
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: createMockStorage(),
+      writable: true,
+      configurable: true
+    });
+    return;
+  }
+
+  storage.clear();
+}
+
 beforeEach(() => {
-  localStorage.clear();
+  ensureLocalStorage();
   vi.restoreAllMocks();
 });
 
