@@ -142,7 +142,7 @@ describe('country list filtering', () => {
     expect(byNameIncludes.map((country) => country.id)).toEqual(['US']);
 
     const byIdPrefix = filterCountries(sampleCountries, 'U');
-    expect(byIdPrefix.map((country) => country.id)).toContain('US');
+    expect(byIdPrefix.map((country) => country.id)).toEqual(['US']);
 
     const byNumericContains = filterCountries(sampleCountries, '9');
     expect(byNumericContains.map((country) => country.id)).toEqual(['DE']);
