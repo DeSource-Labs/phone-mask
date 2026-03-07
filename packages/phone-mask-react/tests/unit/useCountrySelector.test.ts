@@ -174,6 +174,30 @@ describe('useCountrySelector DOM behavior (React)', () => {
     }
   });
 
+  it('does not scroll when focused option is already visible', async () => {
+    vi.useFakeTimers();
+    const ctx = setupWithDom();
+
+    try {
+      ctx.listRectSpy.mockReturnValue(createRect(0, 40));
+      ctx.optionBRectSpy.mockReturnValue(createRect(10, 20));
+
+      await tools.act(async () => {
+        ctx.result.openDropdown();
+      });
+
+      await tools.act(async () => {
+        ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() } as never);
+      });
+
+      vi.runAllTimers();
+      expect(ctx.scrollToSpy).not.toHaveBeenCalled();
+    } finally {
+      ctx.unmount();
+      vi.useRealTimers();
+    }
+  });
+
   it('starts closing when countryOption becomes fixed while dropdown is open', async () => {
     const ctx = setupWithDom();
 
