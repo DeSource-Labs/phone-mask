@@ -51,3 +51,24 @@ function setup(options: SetupOptions = {}) {
 }
 
 testUseInputHandlers(setup, tools);
+
+describe('useInputHandlers caret scheduling (React)', () => {
+  it('updates caret position after input processing', async () => {
+    vi.useFakeTimers();
+    const { inputEl, unmount } = setup();
+
+    try {
+      await tools.act(async () => {
+        inputEl.value = '234-567-8901';
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+
+      vi.runAllTimers();
+      expect(inputEl.selectionStart).toBe(inputEl.selectionEnd);
+      expect(inputEl.selectionStart).toBe(12);
+    } finally {
+      unmount();
+      vi.useRealTimers();
+    }
+  });
+});
