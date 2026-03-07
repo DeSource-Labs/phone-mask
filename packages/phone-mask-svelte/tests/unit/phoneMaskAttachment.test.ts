@@ -96,12 +96,39 @@ describe('phoneMask attachment', () => {
     removeEl(el);
   });
 
+  it('uses detected geo country when lookup succeeds', async () => {
+    vi.stubGlobal('navigator', { language: 'en-US' });
+    (detectByGeoIp as ReturnType<typeof vi.fn>).mockResolvedValue('DE');
+
+    const el = createInputEl();
+    const attachment = phoneMask({ detect: true });
+    const cleanup = attachment(el);
+    await settle();
+
+    expect(el.__phoneMaskState?.country.id).toBe('DE');
+
+    if (cleanup) cleanup();
+    removeEl(el);
+  });
+
   it('falls back to US when detect flow has no geo and no locale region', async () => {
     vi.stubGlobal('navigator', { language: 'en' });
     (detectByGeoIp as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('offline'));
 
     const el = createInputEl();
     const attachment = phoneMask({ detect: true });
+    const cleanup = attachment(el);
+    await settle();
+
+    expect(el.__phoneMaskState?.country.id).toBe('US');
+
+    if (cleanup) cleanup();
+    removeEl(el);
+  });
+
+  it('defaults to US when no country and detect are provided', async () => {
+    const el = createInputEl();
+    const attachment = phoneMask();
     const cleanup = attachment(el);
     await settle();
 
