@@ -236,10 +236,10 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
         const { result, unmount } = setup();
 
         // Start first copy — writeText hangs
-        const firstCopy = result.copy(TEXT);
-
-        // Flush isCopying = true state update
-        await act(async () => {});
+        let firstCopy!: Promise<boolean>;
+        await act(async () => {
+          firstCopy = result.copy(TEXT);
+        });
 
         // Second call — should be blocked by the guard
         await act(async () => {
@@ -268,9 +268,10 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
 
         const { result, unmount } = setup();
 
-        const firstCopy = result.copy(TEXT);
-
-        await act(async () => {});
+        let firstCopy!: Promise<boolean>;
+        await act(async () => {
+          firstCopy = result.copy(TEXT);
+        });
 
         let secondReturn = true;
         await act(async () => {

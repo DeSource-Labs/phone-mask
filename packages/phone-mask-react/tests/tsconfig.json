@@ -6,7 +6,8 @@
     "noEmit": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "paths": {
-      "@common/*": ["../../../common/*"]
+      "@common/*": ["../../../common/*"],
+      "@src/*": ["../src/*"]
     }
   },
   "include": ["./**/*", "../src/**/*"]
