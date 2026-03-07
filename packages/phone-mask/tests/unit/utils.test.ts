@@ -56,6 +56,11 @@ describe('locale helpers', () => {
     expect(getNavigatorLang()).toBe('en');
   });
 
+  it('falls back to "en" when navigator language is empty', () => {
+    vi.stubGlobal('navigator', { language: '' });
+    expect(getNavigatorLang()).toBe('en');
+  });
+
   it('detects country from locale', () => {
     vi.stubGlobal('navigator', { language: 'de-DE' });
     expect(detectCountryFromLocale()).toBe('DE');
@@ -68,6 +73,11 @@ describe('locale helpers', () => {
 
   it('returns null when locale has no region', () => {
     vi.stubGlobal('navigator', { language: 'en' });
+    expect(detectCountryFromLocale()).toBeNull();
+  });
+
+  it('returns null when locale contains an empty region segment', () => {
+    vi.stubGlobal('navigator', { language: 'en-' });
     expect(detectCountryFromLocale()).toBeNull();
   });
 });
@@ -102,6 +112,7 @@ describe('string and mask helpers', () => {
   it('counts placeholder characters', () => {
     expect(countPlaceholders('###-##-####')).toBe(9);
     expect(countPlaceholders('+1 ###')).toBe(3);
+    expect(countPlaceholders('(abc)')).toBe(0);
   });
 
   it('removes the country code prefix', () => {
@@ -115,10 +126,36 @@ describe('string and mask helpers', () => {
     expect(pickMaskVariant(['###-##', '#####-####'], 10)).toBe('#####-####');
   });
 
+  it('returns empty string fallback for empty variants input', () => {
+    expect(pickMaskVariant([], 3)).toBe('');
+  });
+
+  it('returns variants[0] when fallback candidate is unexpectedly missing', () => {
+    const malformedVariants = {
+      0: '###-##',
+      length: 2,
+      map: () => []
+    } as unknown as string[];
+
+    expect(pickMaskVariant(malformedVariants, 99)).toBe('###-##');
+  });
+
   it('formats digits and tracks digit map', () => {
     const result = formatDigitsWithMap('###-##-##', '12345');
     expect(result.display).toBe('123-45-');
     expect(result.map).toEqual([0, 1, 2, -1, 3, 4, -1]);
+  });
+
+  it('skips leading separators when there are no digits', () => {
+    const result = formatDigitsWithMap('(###)', '');
+    expect(result.display).toBe('');
+    expect(result.map).toEqual([]);
+  });
+
+  it('includes leading separators when next placeholder will be filled', () => {
+    const result = formatDigitsWithMap('(###)', '1');
+    expect(result.display).toBe('(1');
+    expect(result.map).toEqual([-1, 0]);
   });
 });
 
@@ -166,6 +203,31 @@ describe('country list filtering', () => {
 
     const tied = filterCountries(tieCountries, '+10');
     expect(tied.map((country) => country.name)).toEqual(['Alpha', 'Beta']);
+  });
+
+  it('boosts exact id match in ranking', () => {
+    const results = filterCountries(sampleCountries, 'US');
+    expect(results[0]?.id).toBe('US');
+  });
+
+  it('uses name sorting when scores are equal', () => {
+    const ties: MaskFull[] = [
+      { id: 'US', code: '+1', mask: '###', name: 'Zulu', flag: countryCodeEmoji('US') },
+      { id: 'DE', code: '+1', mask: '###', name: 'Alpha', flag: countryCodeEmoji('DE') },
+      { id: 'BR', code: '+1', mask: '###', name: 'Beta', flag: countryCodeEmoji('BR') }
+    ];
+    const results = filterCountries(ties, '+1');
+    expect(results.map((country) => country.name)).toEqual(['Alpha', 'Beta', 'Zulu']);
+  });
+
+  it('sorts by descending score when matches are not tied', () => {
+    const countries: MaskFull[] = [
+      { id: 'AE', code: '+1', mask: '###', name: 'Alpha', flag: countryCodeEmoji('US') },
+      { id: 'BA', code: '+2', mask: '###', name: 'Beta', flag: countryCodeEmoji('DE') }
+    ];
+
+    const results = filterCountries(countries, 'a');
+    expect(results.map((country) => country.id)).toEqual(['AE', 'BA']);
   });
 });
 
