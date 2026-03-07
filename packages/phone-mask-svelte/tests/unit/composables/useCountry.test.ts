@@ -1,9 +1,9 @@
 /// <reference types="vitest/globals" />
 import type { Mock } from 'vitest';
 import { detectByGeoIp, detectCountryFromLocale } from '@desource/phone-mask';
-import { useCountry } from '../../src/composables/internal/useCountry.svelte';
+import { useCountry } from '../../../src/composables/internal/useCountry.svelte';
 import { testUseCountry, type CountrySetupOptions } from '@common/tests/unit/useCountry';
-import { tools, withSetup, createState } from './setup/tools.svelte';
+import { tools, withSetup, createState } from '../setup/tools.svelte';
 
 vi.mock('@desource/phone-mask', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@desource/phone-mask')>();

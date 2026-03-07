@@ -1,9 +1,9 @@
 /// <reference types="vitest/globals" />
 import { ref } from 'vue';
-import { useCopyAction } from '../../src/composables/internal/useCopyAction';
+import { useCopyAction } from '../../../src/composables/internal/useCopyAction';
 import { testUseCopyAction } from '@common/tests/unit/useCopyAction';
 import type { SetupOptions } from '@common/tests/unit/useCopyAction';
-import { tools, withSetup } from './setup/tools';
+import { tools, withSetup } from '../setup/tools';
 
 function setup(options: SetupOptions) {
   const el = document.createElement('div');

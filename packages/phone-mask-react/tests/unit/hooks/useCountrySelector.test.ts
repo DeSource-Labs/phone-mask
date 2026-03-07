@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
-import { useCountrySelector } from '../../src/hooks/internal/useCountrySelector';
+import { useCountrySelector } from '../../../src/hooks/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
-import { tools, renderHookWithProxy } from './setup/tools';
+import { tools, renderHookWithProxy } from '../setup/tools';
 import { createRect } from '@common/tests/unit/setup/domRect';
 
 function setup(options: SetupOptions = {}) {

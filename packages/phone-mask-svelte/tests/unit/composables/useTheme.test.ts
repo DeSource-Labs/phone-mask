@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
-import { useTheme } from '../../src/composables/internal/useTheme.svelte';
+import { useTheme } from '../../../src/composables/internal/useTheme.svelte';
 import { testUseTheme, type SetupOptions } from '@common/tests/unit/useTheme';
-import { tools, withSetup, createState } from './setup/tools.svelte';
+import { tools, withSetup, createState } from '../setup/tools.svelte';
 
 function setup(options: SetupOptions) {
   const themeState = createState(options.theme);

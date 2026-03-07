@@ -1,36 +1,35 @@
 /// <reference types="vitest/globals" />
 import { getCountry } from '@desource/phone-mask';
-import { useFormatter } from '../../src/hooks/internal/useFormatter';
+import { useFormatter } from '../../../src/composables/internal/useFormatter.svelte';
 import { testUseFormatter, type SetupOptions } from '@common/tests/unit/useFormatter';
-import { tools, renderHookWithProxy } from './setup/tools';
+import { tools, withSetup, createState } from '../setup/tools.svelte';
 
 function setup(options: SetupOptions = {}) {
   const { countryCode = 'US', value: initialValue = '' } = options;
+
+  const countryCodeState = createState(countryCode);
+  const valueState = createState(initialValue);
 
   const onChange = vi.fn();
   const onPhoneChange = vi.fn();
   const onValidationChange = vi.fn();
 
-  const { result, unmount, rerender } = renderHookWithProxy(
-    ({ value, code }: { value: string; code: string }) =>
-      useFormatter({
-        country: getCountry(code, 'en'),
-        value,
-        onChange,
-        onPhoneChange,
-        onValidationChange
-      }),
-    { initialProps: { value: initialValue, code: countryCode } }
+  const { result, unmount } = withSetup(() =>
+    useFormatter({
+      country: () => getCountry(countryCodeState.value, 'en'),
+      value: () => valueState.value,
+      onChange,
+      onPhoneChange,
+      onValidationChange
+    })
   );
 
   return {
     result,
     unmount,
     rerender: ({ value, countryCode: code }: { value?: string; countryCode?: string }) => {
-      rerender({
-        value: value ?? result.digits,
-        code: code ?? countryCode
-      });
+      if (value !== undefined) valueState.value = value;
+      if (code !== undefined) countryCodeState.value = code;
     },
     onChange,
     onPhoneChange,

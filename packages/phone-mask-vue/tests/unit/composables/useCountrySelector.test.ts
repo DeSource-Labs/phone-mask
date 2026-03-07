@@ -1,8 +1,8 @@
 /// <reference types="vitest/globals" />
 import { nextTick, ref, shallowRef, toValue } from 'vue';
-import { useCountrySelector } from '../../src/composables/internal/useCountrySelector';
+import { useCountrySelector } from '../../../src/composables/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
-import { tools, withSetup } from './setup/tools';
+import { tools, withSetup } from '../setup/tools';
 import { createRect } from '@common/tests/unit/setup/domRect';
 
 function setup(options: SetupOptions = {}) {

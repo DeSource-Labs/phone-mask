@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
-import { useCountrySelector } from '../../src/composables/internal/useCountrySelector.svelte';
+import { useCountrySelector } from '../../../src/composables/internal/useCountrySelector.svelte';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
-import { createState, tools, withSetup } from './setup/tools.svelte';
+import { createState, tools, withSetup } from '../setup/tools.svelte';
 import { createRect } from '@common/tests/unit/setup/domRect';
 
 function setup(options: SetupOptions = {}) {

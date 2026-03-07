@@ -1,8 +1,8 @@
 /// <reference types="vitest/globals" />
-import { useCopyAction } from '../../src/hooks/internal/useCopyAction';
+import { useCopyAction } from '../../../src/hooks/internal/useCopyAction';
 import { testUseCopyAction } from '@common/tests/unit/useCopyAction';
 import type { SetupOptions } from '@common/tests/unit/useCopyAction';
-import { tools, renderHookWithProxy } from './setup/tools';
+import { tools, renderHookWithProxy } from '../setup/tools';
 
 function setup(options: SetupOptions) {
   const el = document.createElement('div');
