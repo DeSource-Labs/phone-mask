@@ -1,4 +1,7 @@
 import { createApp } from 'vue';
+import { vPhoneMask } from '../src';
 import App from './App.vue';
 
-createApp(App).mount('#root');
+const app = createApp(App);
+app.directive('phone-mask', vPhoneMask);
+app.mount('#root');

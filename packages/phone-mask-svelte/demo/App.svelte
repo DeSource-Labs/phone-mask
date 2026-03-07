@@ -4,6 +4,7 @@
 
   import DemoPlayground from './components/DemoPlayground.svelte';
   import DemoHook from './components/DemoHook.svelte';
+  import DemoAction from './components/DemoAction.svelte';
 </script>
 
 <main class="app-main">
@@ -15,6 +16,7 @@
   <div class="app-content">
     <DemoPlayground />
     <DemoHook />
+    <DemoAction />
   </div>
 
   <footer class="app-footer">

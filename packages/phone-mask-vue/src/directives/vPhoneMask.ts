@@ -68,8 +68,8 @@ function updateDisplay(el: HTMLInputElement, state: PMaskDirectiveState): void {
 
   // Trigger onChange callback
   if (state.options.onChange) {
-    const fullNumberFormatted = `${state.country.code} ${el.value}`;
-    const fullNumber = `${state.country.code}${state.digits}`;
+    const fullNumberFormatted = el.value ? `${state.country.code} ${el.value}` : '';
+    const fullNumber = state.digits ? `${state.country.code}${state.digits}` : '';
     state.options.onChange({
       full: fullNumber,
       fullFormatted: fullNumberFormatted,

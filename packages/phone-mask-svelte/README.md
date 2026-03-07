@@ -19,7 +19,7 @@ Beautiful, accessible, extreme small & tree-shakeable Svelte 5 phone input with 
 - ♿ **Accessible** — ARIA labels, keyboard navigation
 - 📱 **Mobile-friendly** — Optimized for touch devices
 - 🎯 **TypeScript** — Full type safety
-- 🧩 **Two modes** — Component or composable
+- 🧩 **Three modes** — Component, composable, or action
 - ⚡ **Optimized** — Tree-shaking and code splitting
 
 ## 📦 Installation
@@ -47,6 +47,12 @@ Composable mode:
 
 ```ts
 import { usePhoneMask } from '@desource/phone-mask-svelte';
+```
+
+Action mode (for existing `<input>` elements):
+
+```ts
+import { phoneMask } from '@desource/phone-mask-svelte';
 ```
 
 ### Component Mode
@@ -92,6 +98,52 @@ For custom input implementations:
   <p>Country: {phoneMask.country.name}</p>
   <button onclick={() => phoneMask.setCountry('GB')}>Use UK</button>
 </div>
+```
+
+### Action Mode
+
+For existing `<input>` elements without a wrapper component:
+
+```svelte
+<script lang="ts">
+  import { phoneMask } from '@desource/phone-mask-svelte';
+  import type { PMaskPhoneNumber, PMaskFull } from '@desource/phone-mask-svelte';
+
+  let country = $state('US');
+
+  function handleChange(phone: PMaskPhoneNumber) {
+    console.log('Full:', phone.full, 'Digits:', phone.digits);
+  }
+
+  function handleCountryChange(c: PMaskFull) {
+    console.log('Country:', c.name);
+  }
+</script>
+
+<div class="phone-wrapper">
+  <select bind:value={country}>
+    <option value="US">🇺🇸 +1</option>
+    <option value="GB">🇬🇧 +44</option>
+    <option value="DE">🇩🇪 +49</option>
+  </select>
+
+  <input
+    use:phoneMask={{ country, onChange: handleChange, onCountryChange: handleCountryChange }}
+    placeholder="Phone number"
+  />
+</div>
+```
+
+Shorthand (country code string):
+
+```svelte
+<input use:phoneMask={'US'} />
+```
+
+With auto-detection:
+
+```svelte
+<input use:phoneMask={{ detect: true, onChange: handleChange }} />
 ```
 
 ## 📖 Component API
@@ -298,6 +350,86 @@ interface UsePhoneMaskReturn {
   // ❌ WRONG — loses reactivity
   const { digits } = usePhoneMask(options);
 </script>
+```
+
+## ⚡ Action API
+
+The `phoneMask` Svelte action applies phone masking directly to any `<input>` element via `use:phoneMask`. It's the Svelte equivalent of Vue's `v-phone-mask` directive.
+
+### Basic Usage
+
+```svelte
+<input use:phoneMask={'US'} />
+```
+
+### Options
+
+```ts
+interface PhoneMaskActionOptions {
+  // Predefined country ISO code (e.g., 'US', 'DE', 'GB')
+  country?: string;
+
+  // Locale for country names (default: navigator.language)
+  locale?: string;
+
+  // Auto-detect country from IP/locale (default: false)
+  detect?: boolean;
+
+  // Value change callback
+  onChange?: (phone: PhoneNumber) => void;
+
+  // Country change callback
+  onCountryChange?: (country: MaskFull) => void;
+}
+```
+
+The parameter can be a country code string (shorthand) or an options object:
+
+```svelte
+<!-- Shorthand -->
+<input use:phoneMask={'DE'} />
+
+<!-- Full options -->
+<input use:phoneMask={{ country: 'DE', onChange: handleChange }} />
+
+<!-- Auto-detect -->
+<input use:phoneMask={{ detect: true, onCountryChange: handleCountryChange }} />
+```
+
+### Reactive Country
+
+Bind a reactive variable — Svelte will call `update()` when it changes:
+
+```svelte
+<script lang="ts">
+  import { phoneMask } from '@desource/phone-mask-svelte';
+
+  let selectedCountry = $state('US');
+  let phoneData = $state<{ full: string; digits: string } | null>(null);
+</script>
+
+<select bind:value={selectedCountry}>
+  <option value="US">🇺🇸 United States</option>
+  <option value="GB">🇬🇧 United Kingdom</option>
+  <option value="DE">🇩🇪 Germany</option>
+</select>
+
+<input
+  use:phoneMask={{ country: selectedCountry, onChange: (p) => (phoneData = p) }}
+  placeholder="Phone number"
+/>
+```
+
+### `phoneMaskSetCountry`
+
+Programmatically switch the country on an element that has the action mounted:
+
+```ts
+import { phoneMaskSetCountry } from '@desource/phone-mask-svelte';
+
+const inputEl = document.querySelector('input')!;
+const success = phoneMaskSetCountry(inputEl, 'GB');
+// Returns true if applied successfully, false if no action is mounted on the element
 ```
 
 ## 🎨 Component Styling

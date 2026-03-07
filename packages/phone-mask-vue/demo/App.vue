@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import DemoPlayground from './components/DemoPlayground.vue';
 import DemoHook from './components/DemoHook.vue';
+import DemoDirective from './components/DemoDirective.vue';
 </script>
 
 <template>
@@ -13,6 +14,7 @@ import DemoHook from './components/DemoHook.vue';
     <div class="app-content">
       <DemoPlayground />
       <DemoHook />
+      <DemoDirective />
     </div>
 
     <footer class="app-footer">

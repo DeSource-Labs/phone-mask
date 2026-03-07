@@ -1,4 +1,4 @@
-import type { MaskFull, CountryKey } from '@desource/phone-mask';
+import type { MaskFull, CountryKey, FormatterHelpers } from '@desource/phone-mask';
 import type { Snippet } from 'svelte';
 
 export type Size = 'compact' | 'normal' | 'large';
@@ -86,4 +86,28 @@ export interface UsePhoneMaskReturn {
   locale: string;
   setCountry: (countryCode?: string | null) => boolean;
   clear: () => void;
+}
+
+export interface PhoneMaskActionOptions {
+  country?: string;
+  locale?: string;
+  detect?: boolean;
+  onChange?: (phone: PhoneNumber) => void;
+  onCountryChange?: (country: MaskFull) => void;
+}
+
+export interface PhoneMaskActionState {
+  country: MaskFull;
+  formatter: FormatterHelpers;
+  digits: string;
+  locale: string;
+  options: PhoneMaskActionOptions;
+  beforeInputHandler?: (e: InputEvent) => void;
+  inputHandler?: (e: Event) => void;
+  keydownHandler?: (e: KeyboardEvent) => void;
+  pasteHandler?: (e: ClipboardEvent) => void;
+}
+
+export interface PhoneMaskActionElement extends HTMLInputElement {
+  __phoneMaskState?: PhoneMaskActionState;
 }
