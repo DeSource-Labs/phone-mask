@@ -118,6 +118,46 @@ describe('useCountrySelector DOM behavior (Vue)', () => {
     ctx.unmount();
   });
 
+  it('scrolls focused option into view when navigating up', async () => {
+    const ctx = setupWithDom();
+
+    ctx.listRectSpy.mockReturnValue(createRect(0, 20));
+    ctx.optionARectSpy.mockReturnValue(createRect(-10, 0));
+    ctx.optionBRectSpy.mockReturnValue(createRect(24, 44));
+
+    await tools.act(async () => {
+      ctx.result.openDropdown();
+      ctx.result.setFocusedIndex(1);
+    });
+
+    await tools.act(async () => {
+      ctx.result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() } as unknown as KeyboardEvent);
+    });
+    await nextTick();
+
+    expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: -10, behavior: 'smooth' });
+    ctx.unmount();
+  });
+
+  it('does not scroll when focused option is already visible', async () => {
+    const ctx = setupWithDom();
+
+    ctx.listRectSpy.mockReturnValue(createRect(0, 40));
+    ctx.optionBRectSpy.mockReturnValue(createRect(10, 20));
+
+    await tools.act(async () => {
+      ctx.result.openDropdown();
+    });
+
+    await tools.act(async () => {
+      ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() } as unknown as KeyboardEvent);
+    });
+    await nextTick();
+
+    expect(ctx.scrollToSpy).not.toHaveBeenCalled();
+    ctx.unmount();
+  });
+
   it('ignores scroll reposition events coming from inside dropdown', async () => {
     const ctx = setupWithDom();
 
