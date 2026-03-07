@@ -9,6 +9,7 @@ import type { SetupFn } from '@common/tests/unit/PhoneInput';
 const setup: SetupFn = (options = {}) => {
   const onChange = vi.fn();
   const onCountryChange = vi.fn();
+  const onCopy = vi.fn();
 
   const { container, unmount, component } = render(PhoneInput, {
     props: {
@@ -16,7 +17,8 @@ const setup: SetupFn = (options = {}) => {
       detect: options.detect ?? false,
       showClear: options.showClear,
       onchange: (data) => onChange(data.digits),
-      oncountrychange: onCountryChange
+      oncountrychange: onCountryChange,
+      oncopy: onCopy
     }
   });
 
@@ -26,6 +28,7 @@ const setup: SetupFn = (options = {}) => {
     ref,
     onChange,
     onCountryChange,
+    onCopy,
     container,
     unmount
   };

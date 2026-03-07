@@ -33,6 +33,7 @@ function setup(options: SetupOptions = {}) {
   inputEl.addEventListener('paste', (e) => result.handlePaste(e as ClipboardEvent));
 
   return {
+    result,
     unmount: () => {
       document.body.removeChild(inputEl);
       composableUnmount();
@@ -43,7 +44,10 @@ function setup(options: SetupOptions = {}) {
     },
     onChange,
     scheduleValidationHint,
-    inputEl
+    inputEl,
+    invokeInputWithoutTarget: () => {
+      result.handleInput({ target: null } as unknown as Event);
+    }
   };
 }
 

@@ -1,6 +1,6 @@
 import { mount, unmount, flushSync } from 'svelte';
 import { fireEvent, screen, waitFor } from '@testing-library/svelte';
-import type { TestTools } from '@common/tests/unit/setup/tools';
+import type { TestTools, MaybeRef } from '@common/tests/unit/setup/tools';
 import TestWrapper from './TestWrapper.svelte';
 
 export const act = async (callback: () => void | Promise<void>): Promise<void> => {
@@ -9,7 +9,7 @@ export const act = async (callback: () => void | Promise<void>): Promise<void> =
 };
 
 export const tools: TestTools = {
-  toValue: (val: unknown) => val,
+  toValue: <T>(val: MaybeRef<T>) => val as T,
   act,
   waitFor,
   fireEvent,

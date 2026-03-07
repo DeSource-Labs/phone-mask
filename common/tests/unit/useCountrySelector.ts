@@ -1,9 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { Mock } from 'vitest';
 
-import type { TestTools } from './setup/tools';
-
-type MaybeRef<T> = T | { value: T };
+import type { MaybeRef, TestTools } from './setup/tools';
 
 export interface SetupOptions {
   countryOption?: string;
@@ -112,8 +110,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
             vi.runAllTimers();
           });
 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          expect(searchEl.focus as any).toHaveBeenCalledOnce();
+          expect(searchEl.focus).toHaveBeenCalledOnce();
           unmount();
         } finally {
           vi.useRealTimers();
