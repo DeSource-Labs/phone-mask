@@ -33,6 +33,7 @@ function setup(options: SetupOptions = {}) {
   inputEl.addEventListener('paste', (e) => result.handlePaste(e as ClipboardEvent));
 
   return {
+    result,
     unmount: () => {
       document.body.removeChild(inputEl);
       composableUnmount();
@@ -48,3 +49,33 @@ function setup(options: SetupOptions = {}) {
 }
 
 testUseInputHandlers(setup, tools);
+
+describe('useInputHandlers caret scheduling (Svelte)', () => {
+  it('updates caret position after input processing', async () => {
+    const { inputEl, unmount } = setup();
+
+    await tools.act(async () => {
+      inputEl.value = '234-567-8901';
+      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    await Promise.resolve();
+    await tools.act(async () => {});
+
+    expect(inputEl.selectionStart).toBe(inputEl.selectionEnd);
+    expect(inputEl.selectionStart).toBe(12);
+    unmount();
+  });
+
+  it('ignores input events without target', async () => {
+    const { result, onChange, scheduleValidationHint, unmount } = setup();
+
+    await tools.act(async () => {
+      result.handleInput({ target: null } as unknown as Event);
+    });
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(scheduleValidationHint).not.toHaveBeenCalled();
+    unmount();
+  });
+});
