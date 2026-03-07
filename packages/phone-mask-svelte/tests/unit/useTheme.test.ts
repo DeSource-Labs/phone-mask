@@ -20,5 +20,3 @@ testUseTheme(setup, tools);
 afterEach(() => {
   vi.unstubAllGlobals();
 });
-
-
