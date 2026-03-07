@@ -202,9 +202,9 @@ describe('country list filtering', () => {
 
   it('uses name sorting when scores are equal', () => {
     const ties: MaskFull[] = [
-      { id: 'AA', code: '+1', mask: '###', name: 'Zulu', flag: countryCodeEmoji('US') },
-      { id: 'AB', code: '+1', mask: '###', name: 'Alpha', flag: countryCodeEmoji('DE') },
-      { id: 'AC', code: '+1', mask: '###', name: 'Beta', flag: countryCodeEmoji('BR') }
+      { id: 'US', code: '+1', mask: '###', name: 'Zulu', flag: countryCodeEmoji('US') },
+      { id: 'DE', code: '+1', mask: '###', name: 'Alpha', flag: countryCodeEmoji('DE') },
+      { id: 'BR', code: '+1', mask: '###', name: 'Beta', flag: countryCodeEmoji('BR') }
     ];
     const results = filterCountries(ties, '+1');
     expect(results.map((country) => country.name)).toEqual(['Alpha', 'Beta', 'Zulu']);
@@ -212,12 +212,12 @@ describe('country list filtering', () => {
 
   it('sorts by descending score when matches are not tied', () => {
     const countries: MaskFull[] = [
-      { id: 'AA', code: '+1', mask: '###', name: 'Alpha', flag: countryCodeEmoji('US') },
+      { id: 'AE', code: '+1', mask: '###', name: 'Alpha', flag: countryCodeEmoji('US') },
       { id: 'BA', code: '+2', mask: '###', name: 'Beta', flag: countryCodeEmoji('DE') }
     ];
 
     const results = filterCountries(countries, 'a');
-    expect(results.map((country) => country.id)).toEqual(['AA', 'BA']);
+    expect(results.map((country) => country.id)).toEqual(['AE', 'BA']);
   });
 });
 
