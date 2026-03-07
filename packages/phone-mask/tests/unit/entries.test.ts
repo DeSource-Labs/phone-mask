@@ -31,12 +31,14 @@ describe('entries helpers', () => {
       } as unknown as typeof Intl.DisplayNames
     );
 
-    const map = MasksFullMap('x-coverage-fallback');
-    const arr = MasksFull('x-coverage-fallback-arr');
+    try {
+      const map = MasksFullMap('x-coverage-fallback');
+      const arr = MasksFull('x-coverage-fallback-arr');
 
-    expect(map.US.name).toBe('');
-    expect(arr.find((country) => country.id === 'US')?.name).toBe('');
-
-    displayNamesSpy.mockRestore();
+      expect(map.US.name).toBe('');
+      expect(arr.find((country) => country.id === 'US')?.name).toBe('');
+    } finally {
+      displayNamesSpy.mockRestore();
+    }
   });
 });
