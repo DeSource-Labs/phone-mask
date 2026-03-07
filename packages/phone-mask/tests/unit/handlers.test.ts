@@ -122,6 +122,27 @@ describe('processKeydown', () => {
     expect(result?.newDigits).toBe('2345');
   });
 
+  it('skips delimiters when caret is after a delimiter on Backspace', () => {
+    const formatter = createFormatter();
+    const input = document.createElement('input');
+    input.value = formatter.formatDisplay('12345');
+    // `1-23-45`: index 2 is just after delimiter '-'
+    input.setSelectionRange(2, 2);
+
+    const event = {
+      key: 'Backspace',
+      target: input,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      preventDefault: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    const result = processKeydown(event, { digits: '12345', formatter });
+    expect(result?.newDigits).toBe('2345');
+    expect(result?.caretDigitIndex).toBe(0);
+  });
+
   it('deletes next digit for Delete when caret on delimiter', () => {
     const formatter = createFormatter();
     const input = document.createElement('input');

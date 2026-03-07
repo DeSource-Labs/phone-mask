@@ -44,7 +44,10 @@ function setup(options: SetupOptions = {}) {
     },
     onChange,
     scheduleValidationHint,
-    inputEl
+    inputEl,
+    invokeInputWithoutTarget: () => {
+      result.handleInput({ target: null } as unknown as Event);
+    }
   };
 }
 

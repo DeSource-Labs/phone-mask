@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import { useCountrySelector } from '@src/hooks/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
+import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { tools, renderHookWithProxy } from './setup/tools';
 import { createRect } from '@common/tests/unit/setup/domRect';
 
@@ -122,78 +123,27 @@ function setupWithDom(initialCountryOption?: string) {
     scrollToSpy,
     listRectSpy,
     optionARectSpy,
-    optionBRectSpy
+    optionBRectSpy,
+    flushAsync: async () => {
+      vi.runAllTimers();
+    },
+    setCountryOptionFixed: () => {
+      rerender({ countryOption: 'US' });
+    },
+    completeClose: () => {
+      result.handleDropdownAnimationEnd();
+    }
   };
 }
 
 describe('useCountrySelector DOM behavior (React)', () => {
-  it('scrolls focused option into view when navigating down', async () => {
+  beforeEach(() => {
     vi.useFakeTimers();
-    const ctx = setupWithDom();
-
-    try {
-      await tools.act(async () => {
-        ctx.result.openDropdown();
-      });
-
-      await tools.act(async () => {
-        ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() } as never);
-      });
-
-      vi.runAllTimers();
-      expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: 24, behavior: 'smooth' });
-    } finally {
-      ctx.unmount();
-      vi.useRealTimers();
-    }
   });
 
-  it('scrolls focused option into view when navigating up', async () => {
-    vi.useFakeTimers();
-    const ctx = setupWithDom();
-
-    try {
-      ctx.listRectSpy.mockReturnValue(createRect(0, 20));
-      ctx.optionARectSpy.mockReturnValue(createRect(-10, 0));
-      ctx.optionBRectSpy.mockReturnValue(createRect(24, 44));
-
-      await tools.act(async () => {
-        ctx.result.openDropdown();
-        ctx.result.setFocusedIndex(1);
-      });
-
-      await tools.act(async () => {
-        ctx.result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() } as never);
-      });
-
-      vi.runAllTimers();
-      expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: -10, behavior: 'smooth' });
-    } finally {
-      ctx.unmount();
-      vi.useRealTimers();
-    }
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
-  it('starts closing when countryOption becomes fixed while dropdown is open', async () => {
-    const ctx = setupWithDom();
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
-    expect(ctx.result.dropdownOpen).toBe(true);
-
-    await tools.act(async () => {
-      ctx.rerender({ countryOption: 'US' });
-    });
-
-    expect(ctx.result.isClosing).toBe(true);
-
-    await tools.act(async () => {
-      ctx.result.handleDropdownAnimationEnd();
-    });
-
-    expect(ctx.result.dropdownOpen).toBe(false);
-    expect(ctx.result.isClosing).toBe(false);
-    ctx.unmount();
-  });
+  testUseCountrySelectorDomBehavior(setupWithDom, tools);
 });

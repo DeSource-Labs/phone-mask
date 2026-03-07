@@ -1,8 +1,8 @@
 import { act, renderHook, fireEvent, screen, waitFor, type RenderHookOptions } from '@testing-library/react';
-import type { TestTools } from '@common/tests/unit/setup/tools';
+import type { TestTools, MaybeRef } from '@common/tests/unit/setup/tools';
 
 export const tools: TestTools = {
-  toValue: (val: unknown) => val,
+  toValue: <T>(val: MaybeRef<T>) => val as T,
   act,
   waitFor,
   fireEvent,

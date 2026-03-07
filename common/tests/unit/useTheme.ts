@@ -1,9 +1,7 @@
 /// <reference types="vitest/globals" />
-import type { TestTools } from './setup/tools';
+import type { MaybeRef, TestTools } from './setup/tools';
 
 export type Theme = 'auto' | 'light' | 'dark';
-
-type MaybeRef<T> = T | { value: T };
 
 export interface SetupOptions {
   theme: Theme;

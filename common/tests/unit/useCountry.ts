@@ -1,9 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { Mock } from 'vitest';
 
-import type { TestTools } from './setup/tools';
-
-type MaybeRef<T> = T | { value: T };
+import type { MaybeRef, TestTools } from './setup/tools';
 
 interface CountryData {
   id: string;

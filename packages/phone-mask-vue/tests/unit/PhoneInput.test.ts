@@ -10,6 +10,7 @@ import type { SetupFn } from '@common/tests/unit/PhoneInput';
 const setup: SetupFn = async (options = {}) => {
   const onChange = vi.fn();
   const onCountryChange = vi.fn();
+  const onCopy = vi.fn();
   const phoneRef = shallowRef<PhoneInputExposed | null>(null);
 
   const Wrapper = defineComponent({
@@ -19,6 +20,7 @@ const setup: SetupFn = async (options = {}) => {
         modelValue: options.value ?? '',
         'onUpdate:modelValue': onChange,
         'onCountry-change': onCountryChange,
+        onCopy,
         detect: options.detect ?? false,
         showClear: options.showClear
       })
@@ -32,6 +34,7 @@ const setup: SetupFn = async (options = {}) => {
     ref: phoneRef.value,
     onChange,
     onCountryChange,
+    onCopy,
     container,
     unmount
   };

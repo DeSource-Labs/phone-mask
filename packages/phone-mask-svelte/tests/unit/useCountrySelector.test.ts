@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import { useCountrySelector } from '@src/composables/internal/useCountrySelector.svelte';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
+import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { createState, tools, withSetup } from './setup/tools.svelte';
 import { createRect } from '@common/tests/unit/setup/domRect';
 
@@ -85,7 +86,7 @@ function setupWithDom(initialCountryOption?: string) {
   const countryOptionState = createState<string | undefined>(initialCountryOption);
 
   const rootEl = document.createElement('div');
-  vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
+  const rootRectSpy = vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
 
   const dropdownEl = document.createElement('div');
   const list = document.createElement('ul');
@@ -94,9 +95,9 @@ function setupWithDom(initialCountryOption?: string) {
   list.append(optionA, optionB);
   dropdownEl.append(document.createElement('div'), list);
 
-  vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(createRect(0, 20));
-  vi.spyOn(optionA, 'getBoundingClientRect').mockReturnValue(createRect(0, 10));
-  vi.spyOn(optionB, 'getBoundingClientRect').mockReturnValue(createRect(24, 44));
+  const listRectSpy = vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(createRect(0, 20));
+  const optionARectSpy = vi.spyOn(optionA, 'getBoundingClientRect').mockReturnValue(createRect(0, 10));
+  const optionBRectSpy = vi.spyOn(optionB, 'getBoundingClientRect').mockReturnValue(createRect(24, 44));
 
   const scrollToSpy = vi.fn();
   Object.defineProperty(list, 'scrollTo', {
@@ -119,48 +120,82 @@ function setupWithDom(initialCountryOption?: string) {
     })
   );
 
-  return { result, unmount, countryOptionState, scrollToSpy };
+  return {
+    result,
+    unmount,
+    countryOptionState,
+    scrollToSpy,
+    rootRectSpy,
+    listRectSpy,
+    optionARectSpy,
+    optionBRectSpy,
+    flushAsync: async () => {
+      await Promise.resolve();
+      await tools.act(async () => {});
+    },
+    setCountryOptionFixed: () => {
+      countryOptionState.value = 'US';
+    },
+    completeClose: () => {
+      result.handleDropdownAnimationEnd();
+    }
+  };
 }
 
 describe('useCountrySelector DOM behavior (Svelte)', () => {
-  it('scrolls focused option into view when navigating down', async () => {
+  testUseCountrySelectorDomBehavior(setupWithDom, tools);
+
+  it('handles click listener events with null target safely', async () => {
+    const addListenerSpy = vi.spyOn(window, 'addEventListener');
     const ctx = setupWithDom();
 
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
+    try {
+      await tools.act(async () => {
+        ctx.result.openDropdown();
+      });
 
-    await tools.act(async () => {
-      ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() } as unknown as KeyboardEvent);
-    });
+      const clickListener = addListenerSpy.mock.calls.find(([type]) => type === 'click')?.[1];
+      expect(clickListener).toBeTypeOf('function');
 
-    await Promise.resolve();
-    await tools.act(async () => {});
-
-    expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: 24, behavior: 'smooth' });
-    ctx.unmount();
+      expect(() => {
+        (clickListener as EventListener)({ target: null } as unknown as Event);
+      }).not.toThrow();
+    } finally {
+      addListenerSpy.mockRestore();
+      ctx.unmount();
+    }
   });
 
-  it('starts closing when countryOption becomes fixed while open', async () => {
-    const ctx = setupWithDom();
+  it('safely ignores resize positioning when root is unavailable', async () => {
+    const rootState = createState<HTMLDivElement | null>(document.createElement('div'));
+    vi.spyOn(rootState.value!, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
+
+    const dropdownEl = document.createElement('div');
+    const searchEl = document.createElement('input');
+
+    const { result, unmount } = withSetup(() =>
+      useCountrySelector({
+        rootRef: () => rootState.value,
+        dropdownRef: () => dropdownEl,
+        searchRef: () => searchEl,
+        selectorRef: () => document.createElement('div'),
+        locale: () => 'en',
+        onSelectCountry: vi.fn()
+      })
+    );
 
     await tools.act(async () => {
-      ctx.result.openDropdown();
+      result.openDropdown();
     });
 
     await tools.act(async () => {
-      ctx.countryOptionState.value = 'US';
+      rootState.value = null;
+      window.dispatchEvent(new Event('resize'));
     });
 
-    expect(ctx.result.isClosing).toBe(true);
-
-    await tools.act(async () => {
-      ctx.result.handleDropdownAnimationEnd();
-    });
-
-    expect(ctx.result.dropdownOpen).toBe(false);
-    expect(ctx.result.isClosing).toBe(false);
-    ctx.unmount();
+    expect(result.dropdownOpen).toBe(true);
+    expect(result.dropdownStyle.width).toBe('120px');
+    unmount();
   });
 
   it('ignores animation end when dropdown is not closing', async () => {

@@ -10,6 +10,7 @@ import type { SetupFn } from '@common/tests/unit/PhoneInput';
 const setup: SetupFn = ({ value = '', detect = false, showClear } = {}) => {
   const onChange = vi.fn();
   const onCountryChange = vi.fn();
+  const onCopy = vi.fn();
   const inputRef = createRef<PhoneInputRef>();
 
   const { container, unmount } = render(
@@ -18,6 +19,7 @@ const setup: SetupFn = ({ value = '', detect = false, showClear } = {}) => {
       value={value}
       onChange={onChange}
       onCountryChange={onCountryChange}
+      onCopy={onCopy}
       detect={detect}
       showClear={showClear}
     />
@@ -29,6 +31,7 @@ const setup: SetupFn = ({ value = '', detect = false, showClear } = {}) => {
     ref: createResultProxy(inputRef as RefObject<PhoneInputRef>),
     onChange,
     onCountryChange,
+    onCopy,
     container,
     unmount
   };

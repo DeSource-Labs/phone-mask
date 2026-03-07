@@ -20,6 +20,11 @@ export interface InputHandlersSetupResult {
    * Dispatch events to this element to trigger the handlers under test.
    */
   inputEl: HTMLInputElement;
+  /**
+   * Optional direct invocation path for edge-case coverage
+   * where EventTarget is null.
+   */
+  invokeInputWithoutTarget?: () => void;
 }
 
 export type SetupFn = (options?: SetupOptions) => InputHandlersSetupResult;
@@ -182,6 +187,39 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
         });
 
         expect(onChange).not.toHaveBeenCalled();
+        unmount();
+      });
+
+      it('updates caret position after formatting', async () => {
+        const { inputEl, unmount } = setup();
+
+        await act(async () => {
+          inputEl.value = DISPLAY_COMPLETE;
+          inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+
+        vi.runAllTimers();
+        await Promise.resolve();
+        await act(async () => {});
+
+        expect(inputEl.selectionStart).toBe(inputEl.selectionEnd);
+        expect(inputEl.selectionStart).toBe(DISPLAY_COMPLETE.length);
+        unmount();
+      });
+
+      it('ignores input events without target when direct invocation is available', async () => {
+        const { invokeInputWithoutTarget, onChange, scheduleValidationHint, unmount } = setup();
+        if (!invokeInputWithoutTarget) {
+          unmount();
+          return;
+        }
+
+        await act(async () => {
+          invokeInputWithoutTarget();
+        });
+
+        expect(onChange).not.toHaveBeenCalled();
+        expect(scheduleValidationHint).not.toHaveBeenCalled();
         unmount();
       });
     });
