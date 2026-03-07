@@ -168,7 +168,6 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
         const { unmount } = setup({ theme: 'auto' });
         unmount();
         expect(mockRemoveEventListener).toHaveBeenCalledWith('change', expect.any(Function));
-        
       });
 
       it('removes the same handler instance that was registered', () => {
