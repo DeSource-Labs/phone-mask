@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import { useCountrySelector } from '../../src/composables/internal/useCountrySelector.svelte';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
+import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { createState, tools, withSetup } from './setup/tools.svelte';
 import { createRect } from '@common/tests/unit/setup/domRect';
 
@@ -127,70 +128,22 @@ function setupWithDom(initialCountryOption?: string) {
     rootRectSpy,
     listRectSpy,
     optionARectSpy,
-    optionBRectSpy
+    optionBRectSpy,
+    flushAsync: async () => {
+      await Promise.resolve();
+      await tools.act(async () => {});
+    },
+    setCountryOptionFixed: () => {
+      countryOptionState.value = 'US';
+    },
+    completeClose: () => {
+      result.handleDropdownAnimationEnd();
+    }
   };
 }
 
 describe('useCountrySelector DOM behavior (Svelte)', () => {
-  it('scrolls focused option into view when navigating down', async () => {
-    const ctx = setupWithDom();
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() } as unknown as KeyboardEvent);
-    });
-
-    await Promise.resolve();
-    await tools.act(async () => {});
-
-    expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: 24, behavior: 'smooth' });
-    ctx.unmount();
-  });
-
-  it('scrolls focused option into view when navigating up', async () => {
-    const ctx = setupWithDom();
-    ctx.listRectSpy.mockReturnValue(createRect(0, 20));
-    ctx.optionARectSpy.mockReturnValue(createRect(-10, 0));
-    ctx.optionBRectSpy.mockReturnValue(createRect(24, 44));
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-      ctx.result.setFocusedIndex(1);
-    });
-
-    await tools.act(async () => {
-      ctx.result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() } as unknown as KeyboardEvent);
-    });
-
-    await Promise.resolve();
-    await tools.act(async () => {});
-
-    expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: -10, behavior: 'smooth' });
-    ctx.unmount();
-  });
-
-  it('does not scroll when focused option is already visible', async () => {
-    const ctx = setupWithDom();
-    ctx.listRectSpy.mockReturnValue(createRect(0, 40));
-    ctx.optionBRectSpy.mockReturnValue(createRect(10, 20));
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() } as unknown as KeyboardEvent);
-    });
-
-    await Promise.resolve();
-    await tools.act(async () => {});
-
-    expect(ctx.scrollToSpy).not.toHaveBeenCalled();
-    ctx.unmount();
-  });
+  testUseCountrySelectorDomBehavior(setupWithDom, tools);
 
   it('handles click listener events with null target safely', async () => {
     const addListenerSpy = vi.spyOn(window, 'addEventListener');
@@ -215,7 +168,7 @@ describe('useCountrySelector DOM behavior (Svelte)', () => {
 
   it('safely ignores resize positioning when root is unavailable', async () => {
     const rootState = createState<HTMLDivElement | null>(document.createElement('div'));
-    rootState.value && vi.spyOn(rootState.value, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
+    vi.spyOn(rootState.value!, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
 
     const dropdownEl = document.createElement('div');
     const searchEl = document.createElement('input');
@@ -243,28 +196,6 @@ describe('useCountrySelector DOM behavior (Svelte)', () => {
     expect(result.dropdownOpen).toBe(true);
     expect(result.dropdownStyle.width).toBe('120px');
     unmount();
-  });
-
-  it('starts closing when countryOption becomes fixed while open', async () => {
-    const ctx = setupWithDom();
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      ctx.countryOptionState.value = 'US';
-    });
-
-    expect(ctx.result.isClosing).toBe(true);
-
-    await tools.act(async () => {
-      ctx.result.handleDropdownAnimationEnd();
-    });
-
-    expect(ctx.result.dropdownOpen).toBe(false);
-    expect(ctx.result.isClosing).toBe(false);
-    ctx.unmount();
   });
 
   it('ignores animation end when dropdown is not closing', async () => {

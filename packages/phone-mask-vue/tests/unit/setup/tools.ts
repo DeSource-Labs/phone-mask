@@ -1,6 +1,6 @@
 import { nextTick, toValue, createApp, h } from 'vue';
 import { fireEvent, screen, waitFor } from '@testing-library/vue';
-import type { TestTools } from '@common/tests/unit/setup/tools';
+import type { TestTools, MaybeRef } from '@common/tests/unit/setup/tools';
 
 export const act = async (callback: () => void | Promise<void>): Promise<void> => {
   await callback();
@@ -8,7 +8,7 @@ export const act = async (callback: () => void | Promise<void>): Promise<void> =
 };
 
 export const tools: TestTools = {
-  toValue,
+  toValue: toValue as <T>(val: MaybeRef<T>) => T,
   act,
   waitFor,
   fireEvent,

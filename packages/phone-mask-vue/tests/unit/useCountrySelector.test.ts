@@ -2,6 +2,7 @@
 import { nextTick, ref, shallowRef, toValue } from 'vue';
 import { useCountrySelector } from '../../src/composables/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
+import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { tools, withSetup } from './setup/tools';
 import { createRect } from '@common/tests/unit/setup/domRect';
 
@@ -97,66 +98,19 @@ function setupWithDom(initialCountryOption?: string) {
     listRectSpy,
     optionARectSpy,
     optionBRectSpy,
-    scrollToSpy
+    scrollToSpy,
+    flushAsync: async () => {
+      await nextTick();
+    },
+    setCountryOptionFixed: () => {
+      countryOption.value = 'US';
+    },
+    completeClose: () => {}
   };
 }
 
 describe('useCountrySelector DOM behavior (Vue)', () => {
-  it('scrolls focused option into view when navigating down', async () => {
-    const ctx = setupWithDom();
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() } as unknown as KeyboardEvent);
-    });
-    await nextTick();
-
-    expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: 24, behavior: 'smooth' });
-    ctx.unmount();
-  });
-
-  it('scrolls focused option into view when navigating up', async () => {
-    const ctx = setupWithDom();
-
-    ctx.listRectSpy.mockReturnValue(createRect(0, 20));
-    ctx.optionARectSpy.mockReturnValue(createRect(-10, 0));
-    ctx.optionBRectSpy.mockReturnValue(createRect(24, 44));
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-      ctx.result.setFocusedIndex(1);
-    });
-
-    await tools.act(async () => {
-      ctx.result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() } as unknown as KeyboardEvent);
-    });
-    await nextTick();
-
-    expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: -10, behavior: 'smooth' });
-    ctx.unmount();
-  });
-
-  it('does not scroll when focused option is already visible', async () => {
-    const ctx = setupWithDom();
-
-    ctx.listRectSpy.mockReturnValue(createRect(0, 40));
-    ctx.optionBRectSpy.mockReturnValue(createRect(10, 20));
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() } as unknown as KeyboardEvent);
-    });
-    await nextTick();
-
-    expect(ctx.scrollToSpy).not.toHaveBeenCalled();
-    ctx.unmount();
-  });
+  testUseCountrySelectorDomBehavior(setupWithDom, tools);
 
   it('ignores scroll reposition events coming from inside dropdown', async () => {
     const ctx = setupWithDom();
@@ -176,23 +130,6 @@ describe('useCountrySelector DOM behavior (Vue)', () => {
     // Style should remain unchanged because internal scroll events are ignored.
     expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
     expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
-    ctx.unmount();
-  });
-
-  it('closes dropdown when countryOption becomes fixed while open', async () => {
-    const ctx = setupWithDom();
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
-    expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-
-    await tools.act(async () => {
-      ctx.countryOption.value = 'US';
-    });
-    await nextTick();
-
-    expect(toValue(ctx.result.dropdownOpen)).toBe(false);
     ctx.unmount();
   });
 });

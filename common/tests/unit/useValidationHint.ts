@@ -1,9 +1,7 @@
 /// <reference types="vitest/globals" />
-import type { TestTools } from './setup/tools';
+import type { MaybeRef, TestTools } from './setup/tools';
 
 export const DELAY = 1_000;
-
-type MaybeRef<T> = T | { value: T };
 
 export interface ValidationHintSetupResult {
   result: {

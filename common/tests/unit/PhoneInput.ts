@@ -25,6 +25,7 @@ export interface SetupResult {
   ref: PhoneInputRefLike;
   onChange: Mock;
   onCountryChange: Mock;
+  onCopy: Mock;
   container: Element;
   unmount(): void;
 }
@@ -84,7 +85,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
         showClear: true
       });
 
-      fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+      await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
 
       await waitFor(() => {
         expect(document.body.querySelectorAll('.pi-option').length).toBeGreaterThan(0);
@@ -94,16 +95,68 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       const targetOption = options.find((option) => option.getAttribute('aria-selected') === 'false');
       expect(targetOption).toBeDefined();
 
-      fireEvent.mouseEnter(targetOption!);
-      fireEvent.click(targetOption!);
+      await fireEvent.mouseEnter(targetOption!);
+      await fireEvent.click(targetOption!);
 
       expect(onCountryChange).toHaveBeenCalled();
 
       const clearButton = container.querySelector<HTMLButtonElement>('.pi-btn-clear');
       expect(clearButton).not.toBeNull();
-      fireEvent.click(clearButton!);
+      await fireEvent.click(clearButton!);
 
       expect(onChange).toHaveBeenCalledWith('');
+
+      unmount();
+    });
+
+    it('supports copy/search/input interactions', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true
+      });
+
+      const { container, onCopy, unmount } = await setup({
+        value: '2025550199',
+        detect: false
+      });
+
+      const input = screen.getByRole('textbox');
+      const beforeInput = new InputEvent('beforeinput', {
+        bubbles: true,
+        cancelable: true,
+        inputType: 'insertText',
+        data: '1'
+      });
+      input.dispatchEvent(beforeInput);
+
+      await fireEvent.input(input, { target: { value: '202-555-0199' } });
+      await fireEvent.keyDown(input, { key: 'Backspace' });
+
+      const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
+      Object.defineProperty(pasteEvent, 'clipboardData', {
+        value: { getData: () => '99' },
+        configurable: true
+      });
+      input.dispatchEvent(pasteEvent);
+
+      const copyButton = container.querySelector<HTMLButtonElement>('.pi-btn-copy');
+      expect(copyButton).not.toBeNull();
+
+      await fireEvent.click(copyButton!);
+
+      await waitFor(() => expect(onCopy).toHaveBeenCalled());
+      expect(writeText).toHaveBeenCalled();
+
+      await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+
+      const searchInput = document.body.querySelector<HTMLInputElement>('.pi-search');
+      expect(searchInput).not.toBeNull();
+
+      await fireEvent.input(searchInput!, { target: { value: 'zzzz-no-country' } });
+      await fireEvent.keyDown(searchInput!, { key: 'ArrowDown' });
+
+      await waitFor(() => expect(document.body.textContent).toContain('No countries found'));
 
       unmount();
     });

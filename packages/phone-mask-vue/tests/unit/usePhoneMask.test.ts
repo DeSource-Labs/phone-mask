@@ -3,15 +3,14 @@ import { defineComponent, h, nextTick, ref } from 'vue';
 import { render } from '@testing-library/vue';
 import { usePhoneMask } from '../../src/composables/usePhoneMask';
 import { install } from '../../src/index';
-import { withSetup } from './setup/tools';
+import { testUsePhoneMask } from '@common/tests/unit/usePhoneMask';
+import { tools, withSetup } from './setup/tools';
 
 function setupUsePhoneMaskHarness(initialValue = '') {
   const value = ref(initialValue);
   const onChange = vi.fn((nextDigits: string) => {
     value.value = nextDigits;
   });
-  const onPhoneChange = vi.fn();
-  const onCountryChange = vi.fn();
 
   let api!: ReturnType<typeof usePhoneMask>;
 
@@ -20,9 +19,7 @@ function setupUsePhoneMaskHarness(initialValue = '') {
       api = usePhoneMask({
         value,
         detect: false,
-        onChange,
-        onPhoneChange,
-        onCountryChange
+        onChange
       });
 
       return () =>
@@ -37,70 +34,25 @@ function setupUsePhoneMaskHarness(initialValue = '') {
   const input = rendered.getByTestId('phone-input') as HTMLInputElement;
 
   return {
-    ...rendered,
-    api,
-    input,
-    value,
+    inputEl: input,
     onChange,
-    onPhoneChange,
-    onCountryChange
+    getValue: () => value.value,
+    unmount: rendered.unmount,
+    api: {
+      getDigits: () => api.digits.value,
+      getFull: () => api.full.value,
+      getFullFormatted: () => api.fullFormatted.value,
+      isEmpty: () => api.isEmpty.value,
+      shouldShowWarn: () => api.shouldShowWarn.value,
+      setCountry: (countryCode: string) => api.setCountry(countryCode),
+      clear: () => api.clear()
+    }
   };
 }
 
+testUsePhoneMask(setupUsePhoneMaskHarness, tools);
+
 describe('usePhoneMask', () => {
-  it('sets tel attributes and syncs formatted display to input element', async () => {
-    const { api, input, unmount } = setupUsePhoneMaskHarness('20255501');
-
-    await nextTick();
-
-    expect(input.getAttribute('type')).toBe('tel');
-    expect(input.getAttribute('inputmode')).toBe('tel');
-    expect(input.getAttribute('placeholder')).toBe('###-###-####');
-    expect(input.value).toBe('202-555-01');
-
-    expect(api.digits.value).toBe('20255501');
-    expect(api.full.value).toBe('+120255501');
-    expect(api.fullFormatted.value).toBe('+1 202-555-01');
-    expect(api.isEmpty.value).toBe(false);
-    expect(api.shouldShowWarn.value).toBe(true);
-
-    unmount();
-  });
-
-  it('handles native input events', async () => {
-    const { input, onChange, unmount } = setupUsePhoneMaskHarness('');
-
-    await nextTick();
-
-    input.value = '202-555-0199';
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    await nextTick();
-
-    expect(onChange).toHaveBeenCalledWith('2025550199');
-    unmount();
-  });
-
-  it('supports clear() and setCountry()', async () => {
-    const { api, value, onChange, unmount } = setupUsePhoneMaskHarness('2025550199');
-
-    await nextTick();
-    expect(api.full.value).toBe('+12025550199');
-
-    expect(api.setCountry('DE')).toBe(true);
-    await nextTick();
-    expect(api.full.value).toBe('+492025550199');
-    expect(api.fullFormatted.value).toContain('+49');
-
-    api.clear();
-    await nextTick();
-
-    expect(onChange).toHaveBeenLastCalledWith('');
-    expect(value.value).toBe('');
-    expect(api.isEmpty.value).toBe(true);
-
-    unmount();
-  });
-
   it('removes native listeners on unmount when inputRef is manually assigned', async () => {
     const value = ref('');
     const onChange = vi.fn((nextDigits: string) => {

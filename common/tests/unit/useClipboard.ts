@@ -1,10 +1,8 @@
 /// <reference types="vitest/globals" />
-import type { TestTools } from './setup/tools';
+import type { MaybeRef, TestTools } from './setup/tools';
 
 export const TEXT = '+1 234-567-8901';
 export const DELAY = 1_800;
-
-type MaybeRef<T> = T | { value: T };
 
 export interface ClipboardSetupResult {
   result: {
