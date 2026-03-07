@@ -143,12 +143,41 @@ describe('vPhoneMask directive', () => {
     wrapper.unmount();
   });
 
+  it('uses detected geo country when lookup succeeds', async () => {
+    vi.stubGlobal('navigator', { language: 'en-US' });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({ country_code: 'DE' })
+      })
+    );
+
+    const { wrapper, settle, getInput } = mountInputHost({
+      bindingValue: { detect: true }
+    });
+    await settle();
+
+    expect(getInput().__phoneMaskState?.country.id).toBe('DE');
+    wrapper.unmount();
+  });
+
   it('falls back to US when detect flow has no geo and locale region', async () => {
     vi.stubGlobal('navigator', { language: 'en' });
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
 
     const { wrapper, settle, getInput } = mountInputHost({
       bindingValue: { detect: true }
+    });
+    await settle();
+
+    expect(getInput().__phoneMaskState?.country.id).toBe('US');
+    wrapper.unmount();
+  });
+
+  it('defaults to US when no country and detect are provided', async () => {
+    const { wrapper, settle, getInput } = mountInputHost({
+      bindingValue: undefined
     });
     await settle();
 
