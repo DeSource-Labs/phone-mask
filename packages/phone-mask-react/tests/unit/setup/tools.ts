@@ -1,12 +1,15 @@
-import { act, renderHook, type RenderHookOptions } from '@testing-library/react';
+import { act, renderHook, fireEvent, screen, waitFor, type RenderHookOptions } from '@testing-library/react';
 import type { TestTools } from '@common/tests/unit/setup/tools';
 
 export const tools: TestTools = {
+  toValue: (val: unknown) => val,
   act,
-  toValue: (val: unknown) => val
+  waitFor,
+  fireEvent,
+  screen
 };
 
-function createResultProxy<T extends object>(result: { current: T }): T {
+export function createResultProxy<T extends object>(result: { current: T }): T {
   return new Proxy({} as T, {
     get(_target, key) {
       return result.current[key as keyof T];

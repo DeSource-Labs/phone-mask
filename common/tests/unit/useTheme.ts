@@ -180,5 +180,15 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
         expect(removedHandler).toBe(registeredHandler);
       });
     });
+
+    describe('useTheme fallback', () => {
+      it('returns auto theme without matchMedia support', () => {
+        vi.stubGlobal('matchMedia', undefined);
+
+        const { result, unmount } = setup({ theme: 'auto' });
+        expect(toValue(result.themeClass)).toBe('theme-light');
+        unmount();
+      });
+    });
   });
 }

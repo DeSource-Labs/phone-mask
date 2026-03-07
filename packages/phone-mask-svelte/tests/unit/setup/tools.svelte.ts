@@ -1,13 +1,19 @@
 import { mount, unmount, flushSync } from 'svelte';
+import { fireEvent, screen, waitFor } from '@testing-library/svelte';
 import type { TestTools } from '@common/tests/unit/setup/tools';
 import TestWrapper from './TestWrapper.svelte';
 
+export const act = async (callback: () => void | Promise<void>): Promise<void> => {
+  await callback();
+  flushSync();
+};
+
 export const tools: TestTools = {
-  act: async (callback: () => void | Promise<void>): Promise<void> => {
-    await callback();
-    flushSync();
-  },
-  toValue: (val: unknown) => val
+  toValue: (val: unknown) => val,
+  act,
+  waitFor,
+  fireEvent,
+  screen
 };
 
 /**

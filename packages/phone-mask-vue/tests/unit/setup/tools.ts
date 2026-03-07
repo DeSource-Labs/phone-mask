@@ -1,12 +1,18 @@
 import { nextTick, toValue, createApp, h } from 'vue';
+import { fireEvent, screen, waitFor } from '@testing-library/vue';
 import type { TestTools } from '@common/tests/unit/setup/tools';
 
+export const act = async (callback: () => void | Promise<void>): Promise<void> => {
+  await callback();
+  await nextTick();
+};
+
 export const tools: TestTools = {
-  act: async (callback: () => void | Promise<void>): Promise<void> => {
-    await callback();
-    await nextTick();
-  },
-  toValue
+  toValue,
+  act,
+  waitFor,
+  fireEvent,
+  screen
 };
 
 /**

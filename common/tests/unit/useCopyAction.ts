@@ -178,6 +178,14 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
     });
 
     describe('onCopyClick — failure', () => {
+      beforeEach(() => {
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
+      });
+
+      afterEach(() => {
+        vi.restoreAllMocks();
+      });
+
       it('does not call onCopy when clipboard throws', async () => {
         mockWriteText.mockRejectedValue(new Error('Permission denied'));
 
@@ -229,11 +237,11 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
 
         const { result, unmount } = setup({ fullFormatted: PHONE });
 
-        // Start first copy — writeText hangs
-        const firstCopy = result.onCopyClick();
-
-        // Flush isCopying = true state update
-        await act(async () => {});
+        // Start first copy — writeText hangs; wrap in act to flush setIsCopying(true)
+        let firstCopy!: Promise<void>;
+        await act(async () => {
+          firstCopy = result.onCopyClick();
+        });
 
         // Second click — should be blocked by the guard
         await act(async () => {

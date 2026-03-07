@@ -1,3 +1,4 @@
+/* eslint-disable vue/one-component-per-file */
 /// <reference types="vitest/globals" />
 import { defineComponent, nextTick, ref } from 'vue';
 import { mount, flushPromises } from '@vue/test-utils';
