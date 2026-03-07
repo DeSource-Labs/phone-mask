@@ -126,8 +126,18 @@ describe('string and mask helpers', () => {
     expect(pickMaskVariant(['###-##', '#####-####'], 10)).toBe('#####-####');
   });
 
-  it('returns undefined-like fallback for empty variants input', () => {
-    expect(pickMaskVariant([], 3)).toBeUndefined();
+  it('returns empty string fallback for empty variants input', () => {
+    expect(pickMaskVariant([], 3)).toBe('');
+  });
+
+  it('returns variants[0] when fallback candidate is unexpectedly missing', () => {
+    const malformedVariants = {
+      0: '###-##',
+      length: 2,
+      map: () => []
+    } as unknown as string[];
+
+    expect(pickMaskVariant(malformedVariants, 99)).toBe('###-##');
   });
 
   it('formats digits and tracks digit map', () => {
