@@ -66,17 +66,11 @@ export function createPhoneFormatter(country: MaskFull): FormatterHelpers {
     },
 
     getCaretPosition: (digitIndex: number) => {
-      const template = getMask(digitIndex);
-      const { display, map } = formatDigitsWithMap(template, '0'.repeat(digitIndex));
+      const safeDigitIndex = Math.max(0, digitIndex);
+      if (safeDigitIndex === 0) return 0;
 
-      for (let i = 0; i < map.length; i++) {
-        if (map[i] === digitIndex) return i;
-      }
-      if (digitIndex >= map.length) return display.length;
-
-      for (let i = 0; i < map.length; i++) {
-        if (map[i]! > digitIndex) return i;
-      }
+      const template = getMask(safeDigitIndex);
+      const { display } = formatDigitsWithMap(template, '0'.repeat(safeDigitIndex));
       return display.length;
     },
 
