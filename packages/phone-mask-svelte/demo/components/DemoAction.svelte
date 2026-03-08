@@ -1,5 +1,5 @@
 <script lang="ts">
-import { phoneMask } from '../../src';
+import { phoneMaskAction } from '../../src';
 import type { PMaskFull as MaskFull, PMaskPhoneNumber } from '../../src';
 
 let country = $state<string>('US');
@@ -8,17 +8,17 @@ let detectedCountry = $state<string>('');
 
 function onChange(p: PMaskPhoneNumber) {
   phoneData = p;
-  console.log('Attachment change:', p);
+  console.log('Action change:', p);
 }
 
 function onCountryChange(c: MaskFull) {
   detectedCountry = c.name;
-  console.log('Attachment country change:', c);
+  console.log('Action country change:', c);
 }
 </script>
 
-<section class="attachment-demo" data-testid="attachment">
-  <h2 class="heading">phoneMask Attachment</h2>
+<section class="action-demo" data-testid="action">
+  <h2 class="heading">phoneMask Action</h2>
   <div class="controls">
     <select bind:value={country} class="country-select" data-testid="country-select">
       <option value="US">US +1</option>
@@ -30,10 +30,10 @@ function onCountryChange(c: MaskFull) {
     </select>
 
     <input
-      {@attach phoneMask({ country, onChange, onCountryChange })}
+      use:phoneMaskAction={{ country, onChange, onCountryChange }}
       placeholder="Phone number"
       data-testid="phone-input"
-      class="attachment-input"
+      class="action-input"
     />
   </div>
   <div class="meta">
@@ -45,7 +45,7 @@ function onCountryChange(c: MaskFull) {
 </section>
 
 <style>
-.attachment-demo {
+.action-demo {
   padding: 32px;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -85,7 +85,7 @@ function onCountryChange(c: MaskFull) {
   color: #fff;
 }
 
-.attachment-input {
+.action-input {
   flex: 1;
   padding: 10px 14px;
   border-radius: 8px;
@@ -97,7 +97,7 @@ function onCountryChange(c: MaskFull) {
   outline: none;
 }
 
-.attachment-input::placeholder {
+.action-input::placeholder {
   color: rgba(255, 255, 255, 0.3);
 }
 

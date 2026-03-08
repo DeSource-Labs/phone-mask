@@ -11,6 +11,7 @@ import PhoneInputComponent from './components/PhoneInput.svelte';
 
 export { usePhoneMask } from './composables/usePhoneMask.svelte';
 export { phoneMask, phoneMaskSetCountry } from './attachments/phoneMask.svelte';
+export { phoneMaskAction, phoneMaskActionSetCountry } from './actions/phoneMask';
 
 import type {
   PhoneNumber as PMaskPhoneNumber,
@@ -26,7 +27,10 @@ export type {
   PhoneInputExposed,
   PhoneMaskAttachmentOptions,
   PhoneMaskAttachmentState,
-  PhoneMaskAttachmentElement
+  PhoneMaskAttachmentElement,
+  PhoneMaskActionOptions,
+  PhoneMaskActionState,
+  PhoneMaskActionElement
 } from './types';
 
 export const PhoneInput = PhoneInputComponent as unknown as Component<PhoneInputProps, PhoneInputExposed>;

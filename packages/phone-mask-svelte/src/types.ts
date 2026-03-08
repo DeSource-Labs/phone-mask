@@ -110,3 +110,24 @@ export interface PhoneMaskAttachmentState {
 export interface PhoneMaskAttachmentElement extends HTMLInputElement {
   __phoneMaskState?: PhoneMaskAttachmentState;
 }
+
+export interface PhoneMaskActionOptions {
+  country?: string;
+  locale?: string;
+  detect?: boolean;
+  onChange?: (phone: PhoneNumber) => void;
+  onCountryChange?: (country: MaskFull) => void;
+}
+
+export interface PhoneMaskActionState {
+  country: MaskFull;
+  formatter: FormatterHelpers;
+  digits: string;
+  locale: string;
+  options: PhoneMaskActionOptions;
+  setCountry: (code: string) => boolean;
+}
+
+export interface PhoneMaskActionElement extends HTMLInputElement {
+  __phoneMaskActionState?: PhoneMaskActionState;
+}
