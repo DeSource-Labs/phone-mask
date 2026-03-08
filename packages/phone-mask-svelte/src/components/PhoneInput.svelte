@@ -187,6 +187,7 @@
       placeholder={formatterData.displayPlaceholder}
       value={formatterData.displayValue}
       {disabled} readonly={readonly}
+      aria-label="Phone number"
       aria-invalid={incomplete}
       onbeforeinput={inputHandlers.handleBeforeInput}
       oninput={inputHandlers.handleInput}

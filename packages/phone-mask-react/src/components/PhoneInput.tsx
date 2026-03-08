@@ -256,6 +256,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             value={displayValue}
             disabled={disabled}
             readOnly={readonly}
+            aria-label="Phone number"
             aria-invalid={incomplete}
             onInput={handleInput}
             onBeforeInput={handleBeforeInput}

@@ -59,6 +59,7 @@
         :value="displayValue"
         :disabled="disabled"
         :readonly="readonly"
+        aria-label="Phone number"
         :aria-invalid="incomplete"
         @beforeinput="handleBeforeInput"
         @input="handleInput"
