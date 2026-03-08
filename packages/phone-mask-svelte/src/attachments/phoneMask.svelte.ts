@@ -1,5 +1,4 @@
 import type { Attachment } from 'svelte/attachments';
-import { extractDigits, createPhoneFormatter } from '@desource/phone-mask';
 import { usePhoneMask } from '../composables/usePhoneMask.svelte';
 import type { PhoneMaskAttachmentOptions, PhoneMaskAttachmentState, PhoneMaskAttachmentElement } from '../types';
 
@@ -32,8 +31,8 @@ export function phoneMask(params?: string | PhoneMaskAttachmentOptions): Attachm
     // $effect.root creates a detached reactive scope that works outside a component,
     // and destroys all contained effects synchronously when its return value is called.
     const stopRoot = $effect.root(() => {
-      // Seed initial digits from any pre-existing input value (clamped later by useFormatter)
-      let digits = $state(el.value ? extractDigits(el.value, 15) : '');
+      // Seed initial digits from any pre-existing input value
+      let digits = $state(el.value || '');
 
       const mask = usePhoneMask({
         country: () => options.country,
@@ -54,7 +53,7 @@ export function phoneMask(params?: string | PhoneMaskAttachmentOptions): Attachm
           return mask.country;
         },
         get formatter() {
-          return createPhoneFormatter(mask.country);
+          return mask.formatter;
         },
         get digits() {
           return mask.digits;

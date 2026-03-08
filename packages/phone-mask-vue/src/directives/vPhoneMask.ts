@@ -2,7 +2,8 @@ import { type Directive, type DirectiveBinding, nextTick } from 'vue';
 import {
   getNavigatorLang,
   getCountry,
-  detectCountryFromGeoIP,
+  parseCountryCode,
+  detectByGeoIp,
   detectCountryFromLocale,
   setCaret,
   extractDigits,
@@ -32,25 +33,22 @@ async function initState(binding: DirectiveBinding): Promise<PMaskDirectiveState
   }
 
   const locale = options.locale || getNavigatorLang();
-  let country: MaskFull;
+
+  let country: MaskFull = getCountry(parseCountryCode(options.country, 'US'), locale);
 
   // Determine country
-  if (options.country) {
-    country = getCountry(options.country, locale);
-  } else if (options.detect) {
-    const geoCountry = await detectCountryFromGeoIP();
+  if (options.detect) {
+    const geoCountry = parseCountryCode(await detectByGeoIp());
+
     if (geoCountry) {
       country = getCountry(geoCountry, locale);
     } else {
-      const localeCountry = detectCountryFromLocale();
+      const localeCountry = parseCountryCode(detectCountryFromLocale());
+
       if (localeCountry) {
         country = getCountry(localeCountry, locale);
-      } else {
-        country = getCountry('US', locale);
       }
     }
-  } else {
-    country = getCountry('US', locale);
   }
 
   return {
@@ -156,12 +154,8 @@ async function updateCountry(el: HTMLInputElement, state: PMaskDirectiveState, n
   // Update placeholder
   el.placeholder = state.formatter.getPlaceholder();
 
-  // Truncate digits if needed
   const maxDigits = state.formatter.getMaxDigits();
-  if (state.digits.length > maxDigits) {
-    state.digits = state.digits.slice(0, maxDigits);
-  }
-
+  state.digits = extractDigits(state.digits, maxDigits);
   updateDisplay(el, state);
 
   if (state.options.onCountryChange) {

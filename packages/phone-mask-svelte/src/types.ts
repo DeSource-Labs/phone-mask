@@ -77,6 +77,8 @@ export interface UsePhoneMaskReturn {
   /** Bind this to your &lt;input&gt; element via bind:this */
   inputRef: HTMLInputElement | null;
   digits: string;
+  /** Phone formatter instance */
+  formatter: FormatterHelpers;
   full: string;
   fullFormatted: string;
   isComplete: boolean;

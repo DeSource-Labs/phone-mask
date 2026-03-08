@@ -31,6 +31,8 @@ export interface UsePhoneMaskReturn {
   /** Bind this ref to your &lt;input&gt; element */
   inputRef: ShallowRef<HTMLInputElement | null>;
   digits: ComputedRef<string>;
+  /** Phone formatter instance */
+  formatter: ComputedRef<FormatterHelpers>;
   full: ComputedRef<string>;
   fullFormatted: ComputedRef<string>;
   isComplete: ComputedRef<boolean>;
