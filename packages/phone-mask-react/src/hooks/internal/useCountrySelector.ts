@@ -39,6 +39,15 @@ export function useCountrySelector({
     setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
   }, []);
 
+  const focusSelectorButton = useCallback(() => {
+    setTimeout(() => {
+      const button = selectorRef.current?.querySelector('button');
+      if (button instanceof HTMLButtonElement) {
+        button.focus({ preventScroll: true });
+      }
+    }, 0);
+  }, [selectorRef]);
+
   // Close dropdown with animation — actual DOM removal happens in handleDropdownAnimationEnd
   const closeDropdown = useCallback(() => {
     if (!dropdownOpen) return;
@@ -157,9 +166,10 @@ export function useCountrySelector({
         selectCountry(filteredCountries[focusedIndex]!.id);
       } else if (e.key === 'Escape') {
         closeDropdown();
+        focusSelectorButton();
       }
     },
-    [filteredCountries, focusedIndex, selectCountry, closeDropdown, scrollFocusedIntoView]
+    [filteredCountries, focusedIndex, selectCountry, closeDropdown, scrollFocusedIntoView, focusSelectorButton]
   );
 
   useEffect(() => {

@@ -43,6 +43,15 @@ export function useCountrySelector({
     nextTick(() => searchRef.value?.focus({ preventScroll: true }));
   };
 
+  const focusSelectorButton = () => {
+    nextTick(() => {
+      const button = selectorRef.value?.querySelector('button');
+      if (button instanceof HTMLButtonElement) {
+        button.focus({ preventScroll: true });
+      }
+    });
+  };
+
   const closeDropdown = () => {
     dropdownOpen.value = false;
   };
@@ -135,6 +144,7 @@ export function useCountrySelector({
       selectCountry(filteredCountries.value[focusedIndex.value]!.id);
     } else if (e.key === 'Escape') {
       closeDropdown();
+      focusSelectorButton();
     }
   };
 

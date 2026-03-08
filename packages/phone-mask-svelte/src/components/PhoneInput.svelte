@@ -72,6 +72,8 @@
   const incomplete = $derived(validationHint.showValidationHint && formatterData.shouldShowWarn);
   const showCopyButton = $derived(showCopy && !formatterData.isEmpty && !disabled);
   const showClearButton = $derived(showClear && !formatterData.isEmpty && !inactive);
+  const listboxId = `pi-listbox-${Math.random().toString(36).slice(2, 10)}`;
+  const getOptionId = (idx: number) => `${listboxId}-option-${idx}`;
 
   const copyData = useCopyAction({
     liveRef: () => liveEl,
@@ -92,6 +94,10 @@
     onSelectCountry: countryData.setCountry,
     onAfterSelect: focusInput
   });
+
+  const activeOptionId = $derived(
+    selectorData.filteredCountries[selectorData.focusedIndex] ? getOptionId(selectorData.focusedIndex) : undefined
+  );
 
   const inputHandlers = useInputHandlers({
     formatter: () => formatterData.formatter,
@@ -163,6 +169,7 @@
       aria-label="Selected country: {countryData.country.name}"
       aria-expanded={selectorData.dropdownOpen}
       aria-haspopup={selectorData.hasDropdown ? 'listbox' : undefined}
+      aria-controls={selectorData.hasDropdown ? listboxId : undefined}
       onclick={selectorData.toggleDropdown}>
       <span class="pi-flag" role="img" aria-label="{countryData.country.name} flag">
         {#if flag}{@render flag(countryData.country)}{:else}{countryData.country.flag}{/if}
@@ -248,19 +255,22 @@
     style:top={selectorData.dropdownStyle.top}
     style:left={selectorData.dropdownStyle.left}
     style:width={selectorData.dropdownStyle.width}
-    role="dialog" aria-modal="false" aria-label="Select country"
     onanimationend={selectorData.handleDropdownAnimationEnd}>
     <div class="pi-search-wrap">
       <input bind:this={searchEl} type="search" class="pi-search"
-        aria-label="Search countries" placeholder={searchPlaceholder}
+        role="combobox"
+        aria-label="Search countries"
+        aria-controls={listboxId}
+        aria-expanded={selectorData.dropdownOpen}
+        aria-activedescendant={activeOptionId}
+        placeholder={searchPlaceholder}
         value={selectorData.search}
         onkeydown={selectorData.handleSearchKeydown}
         oninput={selectorData.handleSearchChange} />
     </div>
-    <ul class="pi-options" role="listbox"
-      aria-activedescendant="option-{selectorData.focusedIndex}" tabindex="-1">
+    <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
       {#each selectorData.filteredCountries as c, idx (c.id)}
-        <li id="option-{idx}" role="option"
+        <li id={getOptionId(idx)} role="option"
           class="pi-option"
           class:is-focused={idx === selectorData.focusedIndex}
           class:is-selected={c.id === countryData.country.id}
