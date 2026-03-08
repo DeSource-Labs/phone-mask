@@ -90,15 +90,6 @@ table {
   outline: none;
 }
 
-/* Hide the default video track */
-::cue {
-  display: none !important;
-  visibility: hidden !important;
-  color: transparent !important;
-  background-color: transparent !important;
-  background: none !important;
-}
-
 /* Prevent text selection */
 img {
   -webkit-user-select: none; /* Safari */
