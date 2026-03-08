@@ -1,6 +1,29 @@
 /// <reference types="vitest/globals" />
 import type { SetupFn } from './PhoneInput';
 import type { TestTools } from './setup/tools';
+import { axe } from 'vitest-axe';
+
+const runAxe = async (target: Element | Document = document.body) => {
+  const root: Element = target instanceof Element ? target : target.body;
+
+  return axe(root, {
+    rules: {
+      // Component-level tests are rendered in isolation, not full landmarked pages.
+      region: { enabled: false },
+      // JSDOM does not implement canvas APIs required by this rule.
+      'color-contrast': { enabled: false }
+    }
+  });
+};
+
+const expectNoAxeViolations = (result: Awaited<ReturnType<typeof runAxe>>): void => {
+  const violations = result.violations.map((violation) => ({
+    id: violation.id,
+    impact: violation.impact,
+    nodes: violation.nodes.length
+  }));
+  expect(violations).toEqual([]);
+};
 
 export function testPhoneInputA11y(setup: SetupFn, { fireEvent, screen, waitFor }: TestTools): void {
   describe('PhoneInput a11y', () => {
@@ -121,6 +144,40 @@ export function testPhoneInputA11y(setup: SetupFn, { fireEvent, screen, waitFor 
           throw new Error('Focus was not returned to selector trigger');
         }
       });
+
+      unmount();
+    });
+
+    it('has no axe violations in default closed state', async () => {
+      const { unmount } = await setup({
+        value: '2025550199',
+        detect: false,
+        showClear: true
+      });
+
+      const result = await runAxe(document.body);
+      expectNoAxeViolations(result);
+
+      unmount();
+    });
+
+    it('has no axe violations in opened dropdown state', async () => {
+      const { unmount } = await setup({
+        value: '2025550199',
+        detect: false
+      });
+
+      const selectorButton = screen.getByRole('button', { name: /Selected country:/i });
+      await fireEvent.click(selectorButton);
+
+      await waitFor(() => {
+        if (!document.body.querySelector<HTMLElement>('[role="listbox"]')) {
+          throw new Error('Country listbox is not rendered');
+        }
+      });
+
+      const result = await runAxe(document.body);
+      expectNoAxeViolations(result);
 
       unmount();
     });

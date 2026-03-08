@@ -33,6 +33,7 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.30.0",
+    "axe-core": "^4.11.1",
     "@eslint/js": "^9.39.3",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.3.3",
@@ -51,6 +52,7 @@
     "vite": "^7.3.1",
     "jsdom": "^28.1.0",
     "vitest": "^4.0.18",
+    "vitest-axe": "^0.1.0",
     "vue-eslint-parser": "^10.4.0"
   }
 }
