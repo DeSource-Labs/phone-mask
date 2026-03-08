@@ -3,6 +3,7 @@ import { render } from '@testing-library/svelte';
 import PhoneInput from '../../src/components/PhoneInput.svelte';
 import type { PhoneInputExposed } from '../../src/types';
 import { testPhoneInput } from '@common/tests/unit/PhoneInput';
+import { testPhoneInputA11y } from '@common/tests/unit/PhoneInputA11y';
 import { tools } from './setup/tools.svelte';
 import type { SetupFn } from '@common/tests/unit/PhoneInput';
 
@@ -35,3 +36,4 @@ const setup: SetupFn = (options = {}) => {
 };
 
 testPhoneInput(setup, tools);
+testPhoneInputA11y(setup, tools);

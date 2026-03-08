@@ -4,6 +4,7 @@ import { render } from '@testing-library/react';
 import { PhoneInput } from '../../src/components/PhoneInput';
 import type { PhoneInputRef } from '../../src/types';
 import { testPhoneInput } from '@common/tests/unit/PhoneInput';
+import { testPhoneInputA11y } from '@common/tests/unit/PhoneInputA11y';
 import { tools, createResultProxy } from './setup/tools';
 import type { SetupFn } from '@common/tests/unit/PhoneInput';
 
@@ -38,3 +39,4 @@ const setup: SetupFn = ({ value = '', detect = false, showClear } = {}) => {
 };
 
 testPhoneInput(setup, tools);
+testPhoneInputA11y(setup, tools);
