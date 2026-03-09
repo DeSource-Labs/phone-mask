@@ -241,10 +241,12 @@ const getDarkFallbackStyles = (
   baseStyles: Record<string, string | number>,
   backdropFilterSupported: boolean
 ): Record<string, string | number> => {
-  if (!backdropFilterSupported) {
+  if (backdropFilterSupported) {
     return {
       ...baseStyles,
-      background: 'rgba(0, 0, 0, 0.4)',
+      background: 'rgba(255, 255, 255, 0.1)',
+      backdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
+      WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
       border: '1px solid rgba(255, 255, 255, 0.2)',
       boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
                   inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`
@@ -253,9 +255,7 @@ const getDarkFallbackStyles = (
 
   return {
     ...baseStyles,
-    background: 'rgba(255, 255, 255, 0.1)',
-    backdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
-    WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
+    background: 'rgba(0, 0, 0, 0.4)',
     border: '1px solid rgba(255, 255, 255, 0.2)',
     boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
                 inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`
@@ -266,26 +266,26 @@ const getLightFallbackStyles = (
   baseStyles: Record<string, string | number>,
   backdropFilterSupported: boolean
 ): Record<string, string | number> => {
-  if (!backdropFilterSupported) {
+  if (backdropFilterSupported) {
     return {
       ...baseStyles,
-      background: 'rgba(255, 255, 255, 0.4)',
+      background: 'rgba(255, 255, 255, 0.25)',
+      backdropFilter: 'blur(12px) saturate(1.8) brightness(1.1)',
+      WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.1)',
       border: '1px solid rgba(255, 255, 255, 0.3)',
-      boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
-                  inset 0 -1px 0 0 rgba(255, 255, 255, 0.3)`
+      boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
+                  0 2px 16px 0 rgba(31, 38, 135, 0.1),
+                  inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+                  inset 0 -1px 0 0 rgba(255, 255, 255, 0.2)`
     };
   }
 
   return {
     ...baseStyles,
-    background: 'rgba(255, 255, 255, 0.25)',
-    backdropFilter: 'blur(12px) saturate(1.8) brightness(1.1)',
-    WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.1)',
+    background: 'rgba(255, 255, 255, 0.4)',
     border: '1px solid rgba(255, 255, 255, 0.3)',
-    boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
-                0 2px 16px 0 rgba(31, 38, 135, 0.1),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
-                inset 0 -1px 0 0 rgba(255, 255, 255, 0.2)`
+    boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+                inset 0 -1px 0 0 rgba(255, 255, 255, 0.3)`
   };
 };
 
