@@ -184,7 +184,7 @@ const updateDisplacementMap = () => {
 };
 
 const supportsSVGFilters = () => {
-  if (typeof globalThis.window === 'undefined' || typeof navigator === 'undefined') return false;
+  if (!(globalThis.window && navigator)) return false;
 
   const isWebkit = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
   const isFirefox = /Firefox/.test(navigator.userAgent);
@@ -199,7 +199,7 @@ const supportsSVGFilters = () => {
 };
 
 const supportsBackdropFilter = () => {
-  if (typeof globalThis.window === 'undefined') return false;
+  if (!globalThis.window) return false;
   return CSS.supports('backdrop-filter', 'blur(10px)');
 };
 
