@@ -42,6 +42,13 @@
     --pi-disabled-bg: #374151;
   }
 
+  // Root shared styles (dropdown is teleported, so we need to share some styles)
+  font-size: var(--pi-font-size);
+  background: var(--pi-bg);
+  color: var(--pi-fg);
+  border-radius: var(--pi-radius);
+  border: 1px solid var(--pi-border);
+
   // Reset styles
   *,
   *::before,
@@ -75,16 +82,6 @@
       cursor: not-allowed;
     }
   }
-}
-
-// Root (dropdown shares some variables because of portal)
-.phone-input,
-.phone-dropdown {
-  font-size: var(--pi-font-size);
-  background: var(--pi-bg);
-  color: var(--pi-fg);
-  border-radius: var(--pi-radius);
-  border: 1px solid var(--pi-border);
 }
 
 .phone-input {
