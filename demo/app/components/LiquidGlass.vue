@@ -184,7 +184,7 @@ const updateDisplacementMap = () => {
 };
 
 const supportsSVGFilters = () => {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+  if (typeof globalThis.window === 'undefined' || typeof navigator === 'undefined') return false;
 
   const isWebkit = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
   const isFirefox = /Firefox/.test(navigator.userAgent);
@@ -199,93 +199,115 @@ const supportsSVGFilters = () => {
 };
 
 const supportsBackdropFilter = () => {
-  if (typeof window === 'undefined') return false;
+  if (typeof globalThis.window === 'undefined') return false;
   return CSS.supports('backdrop-filter', 'blur(10px)');
 };
 
-const containerStyles = computed(() => {
-  const baseStyles: Record<string, string | number> = {
-    ...props.style,
-    width: typeof props.width === 'number' ? `${props.width}px` : props.width,
-    height: typeof props.height === 'number' ? `${props.height}px` : props.height,
-    borderRadius: `${props.borderRadius}px`,
-    '--glass-frost': props.backgroundOpacity,
-    '--glass-saturation': props.saturation
-  };
+const getBaseContainerStyles = (): Record<string, string | number> => ({
+  ...props.style,
+  width: typeof props.width === 'number' ? `${props.width}px` : props.width,
+  height: typeof props.height === 'number' ? `${props.height}px` : props.height,
+  borderRadius: `${props.borderRadius}px`,
+  '--glass-frost': props.backgroundOpacity,
+  '--glass-saturation': props.saturation
+});
 
-  const svgSupported = supportsSVGFilters();
-  const backdropFilterSupported = supportsBackdropFilter();
+const getSvgContainerStyles = (baseStyles: Record<string, string | number>): Record<string, string | number> => ({
+  ...baseStyles,
+  background: isDarkMode.value
+    ? `hsl(0 0% 0% / ${props.backgroundOpacity})`
+    : `hsl(0 0% 100% / ${props.backgroundOpacity})`,
+  backdropFilter: `url(#${filterId}) saturate(${props.saturation})`,
+  boxShadow: isDarkMode.value
+    ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset,
+       0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset,
+       0px 4px 16px rgba(17, 17, 26, 0.05),
+       0px 8px 24px rgba(17, 17, 26, 0.05),
+       0px 16px 56px rgba(17, 17, 26, 0.05),
+       0px 4px 16px rgba(17, 17, 26, 0.05) inset,
+       0px 8px 24px rgba(17, 17, 26, 0.05) inset,
+       0px 16px 56px rgba(17, 17, 26, 0.05) inset`
+    : `0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset,
+       0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset,
+       0px 4px 16px rgba(17, 17, 26, 0.05),
+       0px 8px 24px rgba(17, 17, 26, 0.05),
+       0px 16px 56px rgba(17, 17, 26, 0.05),
+       0px 4px 16px rgba(17, 17, 26, 0.05) inset,
+       0px 8px 24px rgba(17, 17, 26, 0.05) inset,
+       0px 16px 56px rgba(17, 17, 26, 0.05) inset`
+});
 
-  if (svgSupported) {
+const getDarkFallbackStyles = (
+  baseStyles: Record<string, string | number>,
+  backdropFilterSupported: boolean
+): Record<string, string | number> => {
+  if (!backdropFilterSupported) {
     return {
       ...baseStyles,
-      background: isDarkMode.value
-        ? `hsl(0 0% 0% / ${props.backgroundOpacity})`
-        : `hsl(0 0% 100% / ${props.backgroundOpacity})`,
-      backdropFilter: `url(#${filterId}) saturate(${props.saturation})`,
-      boxShadow: isDarkMode.value
-        ? `0 0 2px 1px color-mix(in oklch, white, transparent 65%) inset,
-           0 0 10px 4px color-mix(in oklch, white, transparent 85%) inset,
-           0px 4px 16px rgba(17, 17, 26, 0.05),
-           0px 8px 24px rgba(17, 17, 26, 0.05),
-           0px 16px 56px rgba(17, 17, 26, 0.05),
-           0px 4px 16px rgba(17, 17, 26, 0.05) inset,
-           0px 8px 24px rgba(17, 17, 26, 0.05) inset,
-           0px 16px 56px rgba(17, 17, 26, 0.05) inset`
-        : `0 0 2px 1px color-mix(in oklch, black, transparent 85%) inset,
-           0 0 10px 4px color-mix(in oklch, black, transparent 90%) inset,
-           0px 4px 16px rgba(17, 17, 26, 0.05),
-           0px 8px 24px rgba(17, 17, 26, 0.05),
-           0px 16px 56px rgba(17, 17, 26, 0.05),
-           0px 4px 16px rgba(17, 17, 26, 0.05) inset,
-           0px 8px 24px rgba(17, 17, 26, 0.05) inset,
-           0px 16px 56px rgba(17, 17, 26, 0.05) inset`
+      background: 'rgba(0, 0, 0, 0.4)',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                  inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`
     };
-  } else {
-    if (isDarkMode.value) {
-      if (!backdropFilterSupported) {
-        return {
-          ...baseStyles,
-          background: 'rgba(0, 0, 0, 0.4)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-                      inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`
-        };
-      } else {
-        return {
-          ...baseStyles,
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
-          WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
-                      inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`
-        };
-      }
-    } else {
-      if (!backdropFilterSupported) {
-        return {
-          ...baseStyles,
-          background: 'rgba(255, 255, 255, 0.4)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
-                      inset 0 -1px 0 0 rgba(255, 255, 255, 0.3)`
-        };
-      } else {
-        return {
-          ...baseStyles,
-          background: 'rgba(255, 255, 255, 0.25)',
-          backdropFilter: 'blur(12px) saturate(1.8) brightness(1.1)',
-          WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.1)',
-          border: '1px solid rgba(255, 255, 255, 0.3)',
-          boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
-                      0 2px 16px 0 rgba(31, 38, 135, 0.1),
-                      inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
-                      inset 0 -1px 0 0 rgba(255, 255, 255, 0.2)`
-        };
-      }
-    }
   }
+
+  return {
+    ...baseStyles,
+    background: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
+    WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 0 rgba(255, 255, 255, 0.1)`
+  };
+};
+
+const getLightFallbackStyles = (
+  baseStyles: Record<string, string | number>,
+  backdropFilterSupported: boolean
+): Record<string, string | number> => {
+  if (!backdropFilterSupported) {
+    return {
+      ...baseStyles,
+      background: 'rgba(255, 255, 255, 0.4)',
+      border: '1px solid rgba(255, 255, 255, 0.3)',
+      boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.5),
+                  inset 0 -1px 0 0 rgba(255, 255, 255, 0.3)`
+    };
+  }
+
+  return {
+    ...baseStyles,
+    background: 'rgba(255, 255, 255, 0.25)',
+    backdropFilter: 'blur(12px) saturate(1.8) brightness(1.1)',
+    WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.1)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    boxShadow: `0 8px 32px 0 rgba(31, 38, 135, 0.2),
+                0 2px 16px 0 rgba(31, 38, 135, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.4),
+                inset 0 -1px 0 0 rgba(255, 255, 255, 0.2)`
+  };
+};
+
+const getFallbackContainerStyles = (
+  baseStyles: Record<string, string | number>,
+  backdropFilterSupported: boolean
+): Record<string, string | number> => {
+  if (isDarkMode.value) {
+    return getDarkFallbackStyles(baseStyles, backdropFilterSupported);
+  }
+
+  return getLightFallbackStyles(baseStyles, backdropFilterSupported);
+};
+
+const containerStyles = computed(() => {
+  const baseStyles = getBaseContainerStyles();
+
+  if (supportsSVGFilters()) {
+    return getSvgContainerStyles(baseStyles);
+  }
+
+  return getFallbackContainerStyles(baseStyles, supportsBackdropFilter());
 });
 
 const updateFilterElements = () => {
