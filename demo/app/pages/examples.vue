@@ -17,8 +17,8 @@
         <div class="playground-container">
           <div class="playground-controls">
             <div class="control-group">
-              <label>Country Code</label>
-              <select v-model="playgroundCountry">
+              <label for="playground-country">Country Code</label>
+              <select id="playground-country" v-model="playgroundCountry">
                 <option :value="undefined">Not Selected</option>
                 <option value="US">US</option>
                 <option value="GB">GB</option>
@@ -32,8 +32,8 @@
             </div>
 
             <div class="control-group">
-              <label>Size</label>
-              <select v-model="playgroundSize">
+              <label for="playground-size">Size</label>
+              <select id="playground-size" v-model="playgroundSize">
                 <option v-for="size in sizeOptions" :key="size" :value="size">
                   {{ size }}
                 </option>
@@ -41,8 +41,8 @@
             </div>
 
             <div class="control-group">
-              <label>Theme</label>
-              <select v-model="playgroundTheme">
+              <label for="playground-theme">Theme</label>
+              <select id="playground-theme" v-model="playgroundTheme">
                 <option v-for="theme in themeOptions" :key="theme" :value="theme">
                   {{ theme }}
                 </option>
@@ -186,15 +186,15 @@
           <div class="demo">
             <div class="size-demos">
               <div>
-                <label>Compact</label>
+                <span class="demo-caption">Compact</span>
                 <PhoneInput v-model="sizePhone" size="compact" />
               </div>
               <div>
-                <label>Normal (default)</label>
+                <span class="demo-caption">Normal (default)</span>
                 <PhoneInput v-model="sizePhone" size="normal" />
               </div>
               <div>
-                <label>Large</label>
+                <span class="demo-caption">Large</span>
                 <PhoneInput v-model="sizePhone" size="large" />
               </div>
             </div>
@@ -279,11 +279,11 @@
           <div class="demo">
             <div class="state-demos">
               <div>
-                <label>Disabled</label>
+                <span class="demo-caption">Disabled</span>
                 <PhoneInput v-model="disabledPhone" disabled />
               </div>
               <div>
-                <label>Readonly</label>
+                <span class="demo-caption">Readonly</span>
                 <PhoneInput v-model="readonlyPhone" readonly />
               </div>
             </div>
@@ -985,7 +985,9 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 }
 
 .size-demos label,
-.state-demos label {
+.state-demos label,
+.size-demos .demo-caption,
+.state-demos .demo-caption {
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   font-size: 0.875rem;
