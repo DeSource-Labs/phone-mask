@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useRef,
+  useId,
   useCallback,
   type CSSProperties,
   type ForwardedRef
@@ -194,6 +195,9 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     .join(' ');
 
   const actionsCount = +showCopyButton + +showClearButton + (renderActionsBefore ? 1 : 0);
+  const listboxId = useId();
+  const getOptionId = useCallback((idx: number) => `${listboxId}-option-${idx}`, [listboxId]);
+  const activeOptionId = filteredCountries[focusedIndex] ? getOptionId(focusedIndex) : undefined;
 
   return (
     <>
@@ -214,6 +218,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             aria-label={`Selected country: ${country.name}`}
             aria-expanded={dropdownOpen}
             aria-haspopup={hasDropdown ? 'listbox' : undefined}
+            aria-controls={hasDropdown ? listboxId : undefined}
             onClick={toggleDropdown}
           >
             <span className="pi-flag" role="img" aria-label={`${country.name} flag`}>
@@ -256,6 +261,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             value={displayValue}
             disabled={disabled}
             readOnly={readonly}
+            aria-label="Phone number"
             aria-invalid={incomplete}
             onInput={handleInput}
             onBeforeInput={handleBeforeInput}
@@ -326,9 +332,6 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             ref={dropdownRef}
             className={`phone-dropdown ${dropdownClass} ${themeClass} ${isClosing ? 'is-closing' : ''}`}
             style={dropdownStyle}
-            role="dialog"
-            aria-modal="false"
-            aria-label="Select country"
             onAnimationEnd={handleDropdownAnimationEnd}
           >
             <div className="pi-search-wrap">
@@ -336,19 +339,23 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                 ref={searchRef}
                 type="search"
                 className="pi-search"
+                role="combobox"
                 aria-label="Search countries"
+                aria-controls={listboxId}
+                aria-expanded={dropdownOpen}
+                aria-activedescendant={activeOptionId}
                 placeholder={searchPlaceholder}
                 value={search}
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchKeydown}
               />
             </div>
-            <ul className="pi-options" role="listbox" aria-activedescendant={`option-${focusedIndex}`} tabIndex={-1}>
+            <ul id={listboxId} className="pi-options" role="listbox" tabIndex={-1}>
               {filteredCountries.length > 0 ? (
                 filteredCountries.map((c, idx) => (
                   <li
                     key={c.id}
-                    id={`option-${idx}`}
+                    id={getOptionId(idx)}
                     role="option"
                     className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
                       c.id === country.id ? 'is-selected' : ''
