@@ -35,6 +35,18 @@ beforeEach(() => {
 });
 
 describe('detectCountryFromGeoIP', () => {
+  it('parses countryCode field', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ countryCode: 'gb' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+
+    const code = await detectCountryFromGeoIP('https://example.com/geo', 2000);
+    expect(code).toBe('GB');
+  });
+
   it('normalizes country from country_code field', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(JSON.stringify({ country_code: 'ca' }), {
@@ -75,6 +87,38 @@ describe('detectCountryFromGeoIP', () => {
     );
 
     expect(await detectCountryFromGeoIP('https://example.com/geo')).toBeNull();
+  });
+
+  it('returns null on ok response without a country code', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+
+    expect(await detectCountryFromGeoIP('https://example.com/geo')).toBeNull();
+  });
+
+  it('returns null on timeout abort', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.spyOn(globalThis, 'fetch').mockImplementation(
+        (_url: string | URL | Request, init?: RequestInit): Promise<Response> =>
+          new Promise((_resolve, reject) => {
+            const signal = init?.signal as AbortSignal | undefined;
+            signal?.addEventListener('abort', () => {
+              reject(new Error('aborted'));
+            });
+          })
+      );
+
+      const promise = detectCountryFromGeoIP('https://example.com/geo', 5);
+      vi.advanceTimersByTime(10);
+      await expect(promise).resolves.toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

@@ -140,7 +140,7 @@ function generateMasksForRegion(region) {
 }
 
 function main() {
-  const supported = Array.from(phoneUtil.getSupportedRegions()).sort();
+  const supported = Array.from(phoneUtil.getSupportedRegions()).toSorted((a, b) => a.localeCompare(b, 'en'));
   const mapping = {};
 
   for (const regionRaw of supported) {

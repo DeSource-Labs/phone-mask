@@ -73,7 +73,8 @@ export function removeCountryCodePrefix(maskStr: string): string {
 
 /** Pick the most suitable mask variant based on typed digits count */
 export function pickMaskVariant(variants: string[], typedDigitsCount: number): string {
-  if (variants.length === 1) return variants[0]!;
+  if (!variants.length) return '';
+  if (variants.length === 1) return variants[0];
 
   const withCounts = variants.map((m) => ({
     mask: m,
@@ -83,11 +84,11 @@ export function pickMaskVariant(variants: string[], typedDigitsCount: number): s
   // Find the smallest mask that can accommodate the typed digits
   const candidates = withCounts.filter((v) => v.count >= typedDigitsCount).sort((a, b) => a.count - b.count);
 
-  if (candidates.length > 0) return candidates[0]!.mask;
+  if (candidates.length > 0) return candidates[0].mask;
 
   // If no mask is large enough, return the largest available
   const fallback = withCounts.sort((a, b) => b.count - a.count)[0];
-  return fallback ? fallback.mask : variants[0]!;
+  return fallback ? fallback.mask : variants[0];
 }
 
 /** Formatting with mapping for efficient position tracking */
