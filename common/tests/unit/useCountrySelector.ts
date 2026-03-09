@@ -311,7 +311,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         expect(toValue(result.dropdownOpen)).toBe(true);
 
         await act(async () => {
-          window.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          globalThis.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         });
 
         await act(async () => {
