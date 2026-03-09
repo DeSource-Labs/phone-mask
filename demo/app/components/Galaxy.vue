@@ -219,6 +219,10 @@ const smoothMouseActive = ref(0);
 
 let cleanup: (() => void) | null = null;
 
+const handleMouseLeave = () => {
+  targetMouseActive.value = 0;
+};
+
 const setup = () => {
   if (!ctnDom.value) return;
   const ctn = ctnDom.value;
@@ -313,10 +317,6 @@ const setup = () => {
     const y = 1 - (e.clientY - rect.top) / rect.height;
     targetMousePos.value = { x, y };
     targetMouseActive.value = 1;
-  }
-
-  function handleMouseLeave() {
-    targetMouseActive.value = 0;
   }
 
   if (props.mouseInteraction) {
