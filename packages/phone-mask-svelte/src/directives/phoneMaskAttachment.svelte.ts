@@ -1,8 +1,8 @@
 import type { Attachment } from 'svelte/attachments';
 import { usePhoneMask } from '../composables/usePhoneMask.svelte';
-import type { PhoneMaskAttachmentOptions, PhoneMaskAttachmentState, PhoneMaskAttachmentElement } from '../types';
+import type { PhoneMaskBindingOptions, PhoneMaskBindingState, PhoneMaskBindingElement } from '../types';
 
-function parseParams(params: string | PhoneMaskAttachmentOptions | undefined): PhoneMaskAttachmentOptions {
+function parseParams(params: string | PhoneMaskBindingOptions | undefined): PhoneMaskBindingOptions {
   if (typeof params === 'string') return { country: params };
   if (params && typeof params === 'object') return params;
   return {};
@@ -19,7 +19,7 @@ function parseParams(params: string | PhoneMaskAttachmentOptions | undefined): P
  * Unlike the `use:` action, the factory re-runs reactively when reactive state
  * in the call site changes — no `update()` hook needed.
  */
-export function phoneMask(params?: string | PhoneMaskAttachmentOptions): Attachment<HTMLInputElement> {
+export function phoneMaskAttachment(params?: string | PhoneMaskBindingOptions): Attachment<HTMLInputElement> {
   return (el) => {
     if (el.tagName !== 'INPUT') {
       console.warn('[phoneMask] Attachment can only be used on input elements');
@@ -48,7 +48,7 @@ export function phoneMask(params?: string | PhoneMaskAttachmentOptions): Attachm
 
       mask.inputRef = el;
 
-      (el as PhoneMaskAttachmentElement).__phoneMaskState = {
+      (el as PhoneMaskBindingElement).__phoneMaskState = {
         get country() {
           return mask.country;
         },
@@ -63,27 +63,13 @@ export function phoneMask(params?: string | PhoneMaskAttachmentOptions): Attachm
         },
         options,
         setCountry: (code: string) => mask.setCountry(code)
-      } as PhoneMaskAttachmentState;
+      } as PhoneMaskBindingState;
     });
 
     return () => {
       // Destroying the root synchronously runs all $effect cleanups (removes event listeners)
       stopRoot();
-      delete (el as PhoneMaskAttachmentElement).__phoneMaskState;
+      delete (el as PhoneMaskBindingElement).__phoneMaskState;
     };
   };
-}
-
-/**
- * Programmatically switch the country on an element that has the phoneMask attachment mounted.
- * Returns true if applied successfully, false if the element has no active attachment state.
- */
-export function phoneMaskSetCountry(el: HTMLInputElement, newCountryCode: string): boolean {
-  const state = (el as PhoneMaskAttachmentElement).__phoneMaskState;
-  if (!state) return false;
-  try {
-    return state.setCountry(newCountryCode);
-  } catch {
-    return false;
-  }
 }

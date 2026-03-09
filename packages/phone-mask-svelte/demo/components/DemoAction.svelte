@@ -1,5 +1,5 @@
 <script lang="ts">
-import { phoneMaskAction } from '../../src';
+import { phoneMaskAction as phoneMask } from '../../src';
 import type { PMaskFull as MaskFull, PMaskPhoneNumber } from '../../src';
 
 let country = $state<string>('US');
@@ -30,7 +30,7 @@ function onCountryChange(c: MaskFull) {
     </select>
 
     <input
-      use:phoneMaskAction={{ country, onChange, onCountryChange }}
+      use:phoneMask={{ country, onChange, onCountryChange }}
       placeholder="Phone number"
       data-testid="phone-input"
       class="action-input"

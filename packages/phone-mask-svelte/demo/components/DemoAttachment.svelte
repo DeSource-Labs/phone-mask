@@ -1,5 +1,5 @@
 <script lang="ts">
-import { phoneMask } from '../../src';
+import { phoneMaskAttachment as phoneMask } from '../../src';
 import type { PMaskFull as MaskFull, PMaskPhoneNumber } from '../../src';
 
 let country = $state<string>('US');

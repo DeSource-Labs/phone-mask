@@ -52,13 +52,13 @@ import { usePhoneMask } from '@desource/phone-mask-svelte';
 Attachment mode (for existing `<input>` elements, requires Svelte 5.29+):
 
 ```ts
-import { phoneMask } from '@desource/phone-mask-svelte';
+import { phoneMaskAttachment as phoneMask } from '@desource/phone-mask-svelte';
 ```
 
 Action mode (for existing `<input>` elements, works with all Svelte 5 versions):
 
 ```ts
-import { phoneMaskAction } from '@desource/phone-mask-svelte';
+import { phoneMaskAction as phoneMask } from '@desource/phone-mask-svelte';
 ```
 
 ### Component Mode
@@ -112,7 +112,7 @@ For existing `<input>` elements without a wrapper component. Requires Svelte 5.2
 
 ```svelte
 <script lang="ts">
-  import { phoneMask } from '@desource/phone-mask-svelte';
+  import { phoneMaskAttachment as phoneMask } from '@desource/phone-mask-svelte';
   import type { PMaskPhoneNumber, PMaskFull } from '@desource/phone-mask-svelte';
 
   let country = $state('US');
@@ -158,7 +158,7 @@ For existing `<input>` elements without a wrapper component. Works with **all Sv
 
 ```svelte
 <script lang="ts">
-  import { phoneMaskAction } from '@desource/phone-mask-svelte';
+  import { phoneMaskAction as phoneMask } from '@desource/phone-mask-svelte';
   import type { PMaskPhoneNumber, PMaskFull } from '@desource/phone-mask-svelte';
 
   let country = $state('US');
@@ -180,7 +180,7 @@ For existing `<input>` elements without a wrapper component. Works with **all Sv
   </select>
 
   <input
-    use:phoneMaskAction={{ country, onChange: handleChange, onCountryChange: handleCountryChange }}
+    use:phoneMask={{ country, onChange: handleChange, onCountryChange: handleCountryChange }}
     placeholder="Phone number"
   />
 </div>
@@ -189,13 +189,13 @@ For existing `<input>` elements without a wrapper component. Works with **all Sv
 Shorthand (country code string):
 
 ```svelte
-<input use:phoneMaskAction={'US'} />
+<input use:phoneMask={'US'} />
 ```
 
 With auto-detection:
 
 ```svelte
-<input use:phoneMaskAction={{ detect: true, onChange: handleChange }} />
+<input use:phoneMask={{ detect: true, onChange: handleChange }} />
 ```
 
 ## 📖 Component API
@@ -406,18 +406,18 @@ interface UsePhoneMaskReturn {
 
 ## ⚡ Attachment API
 
-The `phoneMask` Svelte attachment (Svelte 5.29+) applies phone masking directly to any `<input>` element via `{@attach phoneMask(...)}`. Unlike `use:` actions, the attachment factory re-runs reactively when reactive state in the call site changes — no manual `update()` needed.
+The `phoneMaskAttachment` Svelte attachment (Svelte 5.29+) applies phone masking directly to any `<input>` element via `{@attach phoneMaskAttachment(...)}`. Unlike `use:` actions, the attachment factory re-runs reactively when reactive state in the call site changes — no manual `update()` needed.
 
 ### Basic Usage
 
 ```svelte
-<input {@attach phoneMask('US')} />
+<input {@attach phoneMaskAttachment('US')} />
 ```
 
 ### Options
 
 ```ts
-interface PhoneMaskAttachmentOptions {
+interface PhoneMaskBindingOptions {
   // Predefined country ISO code (e.g., 'US', 'DE', 'GB')
   country?: string;
 
@@ -439,13 +439,13 @@ The parameter can be a country code string (shorthand) or an options object:
 
 ```svelte
 <!-- Shorthand -->
-<input {@attach phoneMask('DE')} />
+<input {@attach phoneMaskAttachment('DE')} />
 
 <!-- Full options -->
-<input {@attach phoneMask({ country: 'DE', onChange: handleChange })} />
+<input {@attach phoneMaskAttachment({ country: 'DE', onChange: handleChange })} />
 
 <!-- Auto-detect -->
-<input {@attach phoneMask({ detect: true, onCountryChange: handleCountryChange })} />
+<input {@attach phoneMaskAttachment({ detect: true, onCountryChange: handleCountryChange })} />
 ```
 
 ### Reactive Country
@@ -454,7 +454,7 @@ Pass reactive state directly — the factory re-runs automatically when `selecte
 
 ```svelte
 <script lang="ts">
-  import { phoneMask } from '@desource/phone-mask-svelte';
+  import { phoneMaskAttachment as phoneMask } from '@desource/phone-mask-svelte';
 
   let selectedCountry = $state('US');
   let phoneData = $state<{ full: string; digits: string } | null>(null);
@@ -472,18 +472,6 @@ Pass reactive state directly — the factory re-runs automatically when `selecte
 />
 ```
 
-### `phoneMaskSetCountry`
-
-Programmatically switch the country on an element that has the attachment mounted:
-
-```ts
-import { phoneMaskSetCountry } from '@desource/phone-mask-svelte';
-
-const inputEl = document.querySelector('input')!;
-const success = phoneMaskSetCountry(inputEl, 'GB');
-// Returns true if applied successfully, false if no attachment is mounted on the element
-```
-
 ## 🎬 Action API
 
 The `phoneMaskAction` Svelte action applies phone masking directly to any `<input>` element via `use:phoneMaskAction`. It works with **all Svelte 5 versions** — no Svelte 5.29+ required.
@@ -499,7 +487,7 @@ When the bound parameter object changes (e.g. a new `country` value), Svelte aut
 ### Options
 
 ```ts
-interface PhoneMaskActionOptions {
+interface PhoneMaskBindingOptions {
   // Predefined country ISO code (e.g., 'US', 'DE', 'GB')
   country?: string;
 
@@ -536,7 +524,7 @@ Pass reactive `$state` inside the options object — Svelte calls `update()` aut
 
 ```svelte
 <script lang="ts">
-  import { phoneMaskAction } from '@desource/phone-mask-svelte';
+  import { phoneMaskAction as phoneMask } from '@desource/phone-mask-svelte';
 
   let selectedCountry = $state('US');
   let phoneData = $state<{ full: string; digits: string } | null>(null);
@@ -549,31 +537,33 @@ Pass reactive `$state` inside the options object — Svelte calls `update()` aut
 </select>
 
 <input
-  use:phoneMaskAction={{ country: selectedCountry, onChange: (p) => (phoneData = p) }}
+  use:phoneMask={{ country: selectedCountry, onChange: (p) => (phoneData = p) }}
   placeholder="Phone number"
 />
 ```
 
-### `phoneMaskActionSetCountry`
+### Action & Attachment Helpers
 
-Programmatically switch the country on an element that has the action mounted:
+### `phoneMaskSetCountry`
+
+Programmatically switch the country on an element that has the attachment or action mounted:
 
 ```ts
-import { phoneMaskActionSetCountry } from '@desource/phone-mask-svelte';
+import { phoneMaskSetCountry } from '@desource/phone-mask-svelte';
 
 const inputEl = document.querySelector('input')!;
-const success = phoneMaskActionSetCountry(inputEl, 'GB');
-// Returns true if applied successfully, false if no action is mounted on the element
+const success = phoneMaskSetCountry(inputEl, 'GB');
+// Returns true if applied successfully, false if no attachment is mounted on the element
 ```
 
 ### Action vs Attachment
 
-|                          | `use:phoneMaskAction`         | `{@attach phoneMask(...)}` |
-| ------------------------ | ----------------------------- | -------------------------- |
-| Svelte version required  | All Svelte 5                  | Svelte 5.29+               |
-| Reactivity mechanism     | `update()` hook (auto-called) | Factory re-runs reactively |
-| Manual `update()` needed | No (Svelte handles it)        | No                         |
-| Helper function          | `phoneMaskActionSetCountry`   | `phoneMaskSetCountry`      |
+|                          | `use:phoneMaskAction`         | `{@attach phoneMaskAttachment(...)}` |
+| ------------------------ | ----------------------------- | ------------------------------------ |
+| Svelte version required  | All Svelte 5                  | Svelte 5.29+                         |
+| Reactivity mechanism     | `update()` hook (auto-called) | Factory re-runs reactively           |
+| Manual `update()` needed | No (Svelte handles it)        | No                                   |
+| Helper function          | `phoneMaskSetCountry`         | `phoneMaskSetCountry`                |
 
 ## 🎨 Component Styling
 

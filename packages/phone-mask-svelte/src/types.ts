@@ -90,7 +90,7 @@ export interface UsePhoneMaskReturn {
   clear: () => void;
 }
 
-export interface PhoneMaskAttachmentOptions {
+export interface PhoneMaskBindingOptions {
   country?: string;
   locale?: string;
   detect?: boolean;
@@ -98,36 +98,15 @@ export interface PhoneMaskAttachmentOptions {
   onCountryChange?: (country: MaskFull) => void;
 }
 
-export interface PhoneMaskAttachmentState {
+export interface PhoneMaskBindingState {
   country: MaskFull;
   formatter: FormatterHelpers;
   digits: string;
   locale: string;
-  options: PhoneMaskAttachmentOptions;
+  options: PhoneMaskBindingOptions;
   setCountry: (code: string) => boolean;
 }
 
-export interface PhoneMaskAttachmentElement extends HTMLInputElement {
-  __phoneMaskState?: PhoneMaskAttachmentState;
-}
-
-export interface PhoneMaskActionOptions {
-  country?: string;
-  locale?: string;
-  detect?: boolean;
-  onChange?: (phone: PhoneNumber) => void;
-  onCountryChange?: (country: MaskFull) => void;
-}
-
-export interface PhoneMaskActionState {
-  country: MaskFull;
-  formatter: FormatterHelpers;
-  digits: string;
-  locale: string;
-  options: PhoneMaskActionOptions;
-  setCountry: (code: string) => boolean;
-}
-
-export interface PhoneMaskActionElement extends HTMLInputElement {
-  __phoneMaskActionState?: PhoneMaskActionState;
+export interface PhoneMaskBindingElement extends HTMLInputElement {
+  __phoneMaskState?: PhoneMaskBindingState;
 }

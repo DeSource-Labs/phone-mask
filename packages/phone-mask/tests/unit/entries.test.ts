@@ -23,13 +23,13 @@ describe('entries helpers', () => {
   });
 
   it('falls back to empty names when Intl.DisplayNames returns undefined', () => {
-    const displayNamesSpy = vi.spyOn(Intl, 'DisplayNames').mockImplementation(
-      function MockDisplayNames(this: Intl.DisplayNames) {
-        return {
-          of: () => undefined
-        } as Intl.DisplayNames;
-      } as unknown as typeof Intl.DisplayNames
-    );
+    const displayNamesSpy = vi.spyOn(Intl, 'DisplayNames').mockImplementation(function MockDisplayNames(
+      this: Intl.DisplayNames
+    ) {
+      return {
+        of: () => undefined
+      } as Intl.DisplayNames;
+    } as unknown as typeof Intl.DisplayNames);
 
     try {
       const map = MasksFullMap('x-coverage-fallback');

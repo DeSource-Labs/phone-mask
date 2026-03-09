@@ -39,12 +39,8 @@ export function useCountry({
   };
 
   const detectCountry = async () => {
-    try {
-      const geoCountry = await detectByGeoIp();
-      if (setCountry(geoCountry)) return;
-    } catch {
-      // Network failure — fall through to locale detection
-    }
+    const geoCountry = await detectByGeoIp();
+    if (setCountry(geoCountry)) return;
     const localeCountry = detectCountryFromLocale();
     setCountry(localeCountry);
   };

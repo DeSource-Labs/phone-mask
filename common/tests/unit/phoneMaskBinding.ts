@@ -1,34 +1,59 @@
 /// <reference types="vitest/globals" />
 import type { TestTools } from './setup/tools';
 
+interface PhoneMaskBindingOptions {
+  country?: string;
+  locale?: string;
+  detect?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onChange?: (phone: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onCountryChange?: (country: any) => void;
+}
+
+interface PhoneMaskBindingState {
+  country: {
+    id: string;
+    code: string;
+  };
+  formatter: {
+    getMaxDigits: () => number;
+    formatDisplay: (value: string) => string;
+  };
+  digits: string;
+  locale: string;
+  options: PhoneMaskBindingOptions;
+  setCountry?: (code: string) => boolean;
+}
+
 export interface PhoneMaskBindingElement extends HTMLInputElement {
-  [stateKey: string]: any;
+  __phoneMaskState?: PhoneMaskBindingState;
 }
 
 export interface PhoneMaskBindingSetupResult {
   el: PhoneMaskBindingElement;
   onChange: ReturnType<typeof vi.fn>;
   onCountryChange: ReturnType<typeof vi.fn>;
-  update: (newOptions?: any) => Promise<void> | void;
+  update: (newOptions?: PhoneMaskBindingOptions) => Promise<void> | void;
   unmount: () => void;
 }
 
-export type BindingSetupFn = (
+type SetupOptions = string | PhoneMaskBindingOptions | undefined;
+
+type SetupFn = (
   elTag?: 'input' | 'div',
   elValue?: string
-) => (options?: any) => Promise<PhoneMaskBindingSetupResult>;
+) => (options?: SetupOptions) => Promise<PhoneMaskBindingSetupResult>;
 
-export interface PhoneMaskBindingConfig {
-  /** Property key on the element that holds the binding state, e.g. `__phoneMaskState` */
-  stateKey: string;
+interface SetupConfig {
   /** Expected console.warn message when applied to a non-input element */
   warnMessage: string;
   /** Mock for detectByGeoIp — reset before each test */
   detectByGeoIpMock: ReturnType<typeof vi.fn>;
 }
 
-export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBindingConfig, { act }: TestTools): void {
-  const { stateKey, warnMessage, detectByGeoIpMock } = config;
+export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act }: TestTools): void {
+  const { warnMessage, detectByGeoIpMock } = config;
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -42,7 +67,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
     const { el, unmount } = await setup('div')({ country: 'US' });
 
     expect(warnSpy).toHaveBeenCalledWith(warnMessage);
-    expect(el[stateKey]).toBeUndefined();
+    expect(el.__phoneMaskState).toBeUndefined();
 
     unmount();
   });
@@ -50,7 +75,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
   it('initializes from string country param', async () => {
     const { el, unmount } = await setup('input')('GB');
 
-    const state = el[stateKey];
+    const state = el.__phoneMaskState;
     expect(state).toBeDefined();
     expect(state?.country.id).toBe('GB');
     expect(el.getAttribute('type')).toBe('tel');
@@ -63,7 +88,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
   it('triggers initial country callback when provided', async () => {
     const { el, onCountryChange, unmount } = await setup('input')({ country: 'US' });
 
-    const state = el[stateKey]!;
+    const state = el.__phoneMaskState!;
     expect(onCountryChange).toHaveBeenCalledWith(state.country);
 
     unmount();
@@ -75,7 +100,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
 
     const { el, unmount } = await setup('input')({ detect: true });
 
-    expect(el[stateKey]?.country.id).toBe('DE');
+    expect(el.__phoneMaskState?.country.id).toBe('DE');
 
     unmount();
   });
@@ -86,7 +111,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
 
     const { el, unmount } = await setup('input')({ detect: true });
 
-    expect(el[stateKey]?.country.id).toBe('DE');
+    expect(el.__phoneMaskState?.country.id).toBe('DE');
 
     unmount();
   });
@@ -97,7 +122,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
 
     const { el, unmount } = await setup('input')({ detect: true });
 
-    expect(el[stateKey]?.country.id).toBe('US');
+    expect(el.__phoneMaskState?.country.id).toBe('US');
 
     unmount();
   });
@@ -105,7 +130,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
   it('defaults to US when no country and detect are provided', async () => {
     const { el, unmount } = await setup('input')();
 
-    expect(el[stateKey]?.country.id).toBe('US');
+    expect(el.__phoneMaskState?.country.id).toBe('US');
 
     unmount();
   });
@@ -114,7 +139,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
     // oversized — will be clamped to maxDigits
     const { el, unmount, onChange } = await setup('input', '2025550123456789')({ country: 'US' });
 
-    const state = el[stateKey]!;
+    const state = el.__phoneMaskState!;
     expect(state.digits.length).toBe(state.formatter.getMaxDigits());
     expect(el.value).toBe(state.formatter.formatDisplay(state.digits));
 
@@ -135,24 +160,24 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
       el.value = '20255501';
       el.dispatchEvent(new Event('input', { bubbles: true }));
     });
-    expect(el[stateKey]?.digits).toBe('20255501');
+    expect(el.__phoneMaskState?.digits).toBe('20255501');
 
     // keydown ArrowLeft — should not change digits
-    const beforeNavDigits = el[stateKey]?.digits;
+    const beforeNavDigits = el.__phoneMaskState?.digits;
     await act(() => {
       el.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true }));
     });
-    expect(el[stateKey]?.digits).toBe(beforeNavDigits);
+    expect(el.__phoneMaskState?.digits).toBe(beforeNavDigits);
 
     // keydown Backspace at end — should remove one digit
     await act(() => {
       el.setSelectionRange(el.value.length, el.value.length);
       el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
     });
-    expect(el[stateKey]?.digits.length).toBeLessThan((beforeNavDigits ?? '').length);
+    expect(el.__phoneMaskState?.digits.length).toBeLessThan((beforeNavDigits ?? '').length);
 
     // paste with no digits — should not change digits
-    const beforePasteDigits = el[stateKey]?.digits;
+    const beforePasteDigits = el.__phoneMaskState?.digits;
     await act(() => {
       const noDigitsPaste = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
       Object.defineProperty(noDigitsPaste, 'clipboardData', {
@@ -161,7 +186,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
       });
       el.dispatchEvent(noDigitsPaste);
     });
-    expect(el[stateKey]?.digits).toBe(beforePasteDigits);
+    expect(el.__phoneMaskState?.digits).toBe(beforePasteDigits);
 
     // paste with digits — should change digits
     await act(() => {
@@ -173,7 +198,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
       });
       el.dispatchEvent(digitsPaste);
     });
-    expect(el[stateKey]?.digits).not.toBe(beforePasteDigits);
+    expect(el.__phoneMaskState?.digits).not.toBe(beforePasteDigits);
     expect(onChange).toHaveBeenCalled();
 
     unmount();
@@ -189,17 +214,17 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
     expect(removeListenerSpy).toHaveBeenCalledWith('input', expect.any(Function));
     expect(removeListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
     expect(removeListenerSpy).toHaveBeenCalledWith('paste', expect.any(Function));
-    expect(el[stateKey]).toBeUndefined();
+    expect(el.__phoneMaskState).toBeUndefined();
   });
 
   it('updates country when update() is called with a new country', async () => {
     const { el, unmount, update } = await setup('input')({ country: 'US' });
 
-    expect(el[stateKey]?.country.id).toBe('US');
+    expect(el.__phoneMaskState?.country.id).toBe('US');
 
     await update({ country: 'GB' });
 
-    expect(el[stateKey]?.country.id).toBe('GB');
+    expect(el.__phoneMaskState?.country.id).toBe('GB');
     expect(el.getAttribute('placeholder')).toBeTruthy();
 
     unmount();
@@ -212,7 +237,7 @@ export function testPhoneMaskBinding(setup: BindingSetupFn, config: PhoneMaskBin
 
     await update({ country: 'US' });
 
-    const state = el[stateKey]!;
+    const state = el.__phoneMaskState!;
     expect(el.value).toBe(state.formatter.formatDisplay(state.digits));
 
     unmount();

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { phoneMaskAction } from '@src/actions/phoneMask';
-  import type { PhoneMaskActionOptions } from '@src/types';
+  import { phoneMaskAction as phoneMask } from '@src/directives/phoneMaskAction';
+  import type { PhoneMaskBindingOptions } from '@src/types';
 
   let {
     tag = 'input',
@@ -8,10 +8,10 @@
     initialValue
   }: {
     tag?: 'input' | 'div';
-    options?: string | PhoneMaskActionOptions;
+    options?: string | PhoneMaskBindingOptions;
     initialValue?: string;
   } = $props();
 </script>
 
-<svelte:element this={tag} value={initialValue} use:phoneMaskAction={options} />
+<svelte:element this={tag} value={initialValue} use:phoneMask={options} />
 

@@ -13,15 +13,15 @@ import {
   createPhoneFormatter
 } from '@desource/phone-mask';
 
-import type { PhoneMaskActionOptions, PhoneMaskActionState, PhoneMaskActionElement } from '../types';
+import type { PhoneMaskBindingOptions, PhoneMaskBindingState, PhoneMaskBindingElement } from '../types';
 
-function parseParams(params: string | PhoneMaskActionOptions | undefined): PhoneMaskActionOptions {
+function parseParams(params: string | PhoneMaskBindingOptions | undefined): PhoneMaskBindingOptions {
   if (typeof params === 'string') return { country: params };
   if (params && typeof params === 'object') return params;
   return {};
 }
 
-function updateDisplay(el: HTMLInputElement, state: PhoneMaskActionState): void {
+function updateDisplay(el: HTMLInputElement, state: PhoneMaskBindingState): void {
   el.value = state.formatter.formatDisplay(state.digits);
 
   if (state.options.onChange) {
@@ -35,7 +35,7 @@ function updateDisplay(el: HTMLInputElement, state: PhoneMaskActionState): void 
   }
 }
 
-function createInputHandler(el: HTMLInputElement, state: PhoneMaskActionState): (e: Event) => void {
+function createInputHandler(el: HTMLInputElement, state: PhoneMaskBindingState): (e: Event) => void {
   return (e: Event) => {
     const result = processInput(e, { formatter: state.formatter });
     if (!result) return;
@@ -50,7 +50,7 @@ function createInputHandler(el: HTMLInputElement, state: PhoneMaskActionState): 
   };
 }
 
-function createKeydownHandler(el: HTMLInputElement, state: PhoneMaskActionState): (e: KeyboardEvent) => void {
+function createKeydownHandler(el: HTMLInputElement, state: PhoneMaskBindingState): (e: KeyboardEvent) => void {
   return (e: KeyboardEvent) => {
     const result = processKeydown(e, {
       digits: state.digits,
@@ -69,7 +69,7 @@ function createKeydownHandler(el: HTMLInputElement, state: PhoneMaskActionState)
   };
 }
 
-function createPasteHandler(el: HTMLInputElement, state: PhoneMaskActionState): (e: ClipboardEvent) => void {
+function createPasteHandler(el: HTMLInputElement, state: PhoneMaskBindingState): (e: ClipboardEvent) => void {
   return (e: ClipboardEvent) => {
     const result = processPaste(e, {
       digits: state.digits,
@@ -96,14 +96,14 @@ function createPasteHandler(el: HTMLInputElement, state: PhoneMaskActionState): 
  *   <input use:phoneMaskAction={{ country, onChange, onCountryChange }} />
  *   <input use:phoneMaskAction={{ detect: true, onCountryChange: (c) => console.log(c) }} />
  *
- * Unlike {@attach phoneMask(...)}, this works in all Svelte 5 versions
+ * Unlike {@attach phoneMaskAttachment(...)}, this works in all Svelte 5 versions
  * (not just 5.29+). Reactive changes are picked up via the `update()` hook
  * when the bound value changes.
  */
 export function phoneMaskAction(
   el: HTMLInputElement,
-  params?: string | PhoneMaskActionOptions
-): { update: (newParams?: string | PhoneMaskActionOptions) => void; destroy: () => void } {
+  params?: string | PhoneMaskBindingOptions
+): { update: (newParams?: string | PhoneMaskBindingOptions) => void; destroy: () => void } {
   if (el.tagName !== 'INPUT') {
     console.warn('[phoneMaskAction] Action can only be used on input elements');
     return {
@@ -119,7 +119,7 @@ export function phoneMaskAction(
   const locale = options.locale || getNavigatorLang();
   const country = getCountry(parseCountryCode(options.country, 'US'), locale);
 
-  const state: PhoneMaskActionState = {
+  const state: PhoneMaskBindingState = {
     country,
     formatter: createPhoneFormatter(country),
     digits: '',
@@ -161,7 +161,7 @@ export function phoneMaskAction(
     updateDisplay(el, state);
   }
 
-  (el as PhoneMaskActionElement).__phoneMaskActionState = state;
+  (el as PhoneMaskBindingElement).__phoneMaskState = state;
 
   // Async GeoIP detection — updates state after mount
   if (options.detect) {
@@ -177,7 +177,7 @@ export function phoneMaskAction(
   }
 
   return {
-    update(newParams?: string | PhoneMaskActionOptions) {
+    update(newParams?: string | PhoneMaskBindingOptions) {
       const newOptions = parseParams(newParams);
       const oldCountry = state.options.country;
       state.options = newOptions;
@@ -201,21 +201,7 @@ export function phoneMaskAction(
       el.removeEventListener('input', inputHandler);
       el.removeEventListener('keydown', keydownHandler);
       el.removeEventListener('paste', pasteHandler);
-      delete (el as PhoneMaskActionElement).__phoneMaskActionState;
+      delete (el as PhoneMaskBindingElement).__phoneMaskState;
     }
   };
-}
-
-/**
- * Programmatically switch the country on an element with the phoneMaskAction mounted.
- * Returns true if applied successfully, false if the element has no active action state.
- */
-export function phoneMaskActionSetCountry(el: HTMLInputElement, code: string): boolean {
-  const state = (el as PhoneMaskActionElement).__phoneMaskActionState;
-  if (!state) return false;
-  try {
-    return state.setCountry(code);
-  } catch {
-    return false;
-  }
 }
