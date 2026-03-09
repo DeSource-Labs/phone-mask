@@ -1035,9 +1035,9 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 
 .demo-form button {
   padding: 0.75rem;
-  background: rgba(102, 126, 234, 0.8);
+  background: rgba(67, 56, 202, 0.92);
   color: white;
-  border: 1px solid rgba(102, 126, 234, 0.5);
+  border: 1px solid rgba(129, 140, 248, 0.55);
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
@@ -1048,9 +1048,9 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 }
 
 .demo-form button:hover {
-  background: rgba(102, 126, 234, 1);
+  background: rgba(55, 48, 163, 0.98);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 20px rgba(67, 56, 202, 0.45);
 }
 
 .custom-input {
@@ -1137,9 +1137,9 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
   top: 0.5rem;
   right: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(102, 126, 234, 0.8);
+  background: rgba(67, 56, 202, 0.92);
   color: white;
-  border: 1px solid rgba(102, 126, 234, 0.5);
+  border: 1px solid rgba(129, 140, 248, 0.55);
   border-radius: 6px;
   font-size: 0.875rem;
   cursor: pointer;
@@ -1149,9 +1149,9 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 }
 
 .copy-btn:hover {
-  background: rgba(102, 126, 234, 1);
+  background: rgba(55, 48, 163, 0.98);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 20px rgba(67, 56, 202, 0.45);
 }
 
 .code pre,
