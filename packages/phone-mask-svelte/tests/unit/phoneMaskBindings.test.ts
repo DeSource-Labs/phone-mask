@@ -1,9 +1,11 @@
 /// <reference types="vitest/globals" />
 import { render } from '@testing-library/svelte';
 import type { PhoneMaskBindingElement, PhoneMaskBindingOptions } from '@src/types';
+import { testPhoneMaskBinding } from '@common/tests/unit/phoneMaskBinding';
+
+import PhoneMaskAttachmentWrapper from './setup/PhoneMaskAttachmentWrapper.svelte';
 import PhoneMaskActionWrapper from './setup/PhoneMaskActionWrapper.svelte';
 import { tools, flushPromises } from './setup/tools.svelte';
-import { testPhoneMaskBinding } from '@common/tests/unit/phoneMaskBinding';
 
 vi.mock('@desource/phone-mask', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@desource/phone-mask')>();
@@ -15,7 +17,10 @@ vi.mock('@desource/phone-mask', async (importOriginal) => {
 
 import { detectByGeoIp } from '@desource/phone-mask';
 
+type Wrapper = typeof PhoneMaskActionWrapper | typeof PhoneMaskAttachmentWrapper;
+
 const setup =
+  (wrapper: Wrapper) =>
   (elTag: 'input' | 'div' = 'input', elValue?: string) =>
   async (options?: string | PhoneMaskBindingOptions) => {
     const onChange = vi.fn();
@@ -24,7 +29,7 @@ const setup =
     const mergeParams = (opts?: string | PhoneMaskBindingOptions): string | PhoneMaskBindingOptions | undefined =>
       typeof opts === 'object' ? { ...opts, onChange, onCountryChange } : opts;
 
-    const { container, rerender, unmount } = render(PhoneMaskActionWrapper, {
+    const { container, rerender, unmount } = render(wrapper, {
       props: { tag: elTag, options: mergeParams(options), initialValue: elValue }
     });
 
@@ -40,14 +45,25 @@ const setup =
       el,
       onChange,
       onCountryChange,
-      unmount,
-      update
+      update,
+      unmount
     };
   };
 
+describe('phoneMask attachment', () => {
+  testPhoneMaskBinding(
+    setup(PhoneMaskAttachmentWrapper),
+    {
+      warnMessage: '[phoneMaskAttachment] Attachment can only be used on input elements',
+      detectByGeoIpMock: detectByGeoIp as ReturnType<typeof vi.fn>
+    },
+    tools
+  );
+});
+
 describe('phoneMaskAction', () => {
   testPhoneMaskBinding(
-    setup,
+    setup(PhoneMaskActionWrapper),
     {
       warnMessage: '[phoneMaskAction] Action can only be used on input elements',
       detectByGeoIpMock: detectByGeoIp as ReturnType<typeof vi.fn>

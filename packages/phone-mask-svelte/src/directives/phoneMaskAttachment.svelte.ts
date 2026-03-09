@@ -12,9 +12,9 @@ function parseParams(params: string | PhoneMaskBindingOptions | undefined): Phon
  * Svelte 5.29+ attachment that applies phone number masking to an <input> element.
  *
  * Usage:
- *   <input {@attach phoneMask('US')} />
- *   <input {@attach phoneMask({ country: 'DE', onChange: (p) => console.log(p) })} />
- *   <input {@attach phoneMask({ detect: true, onCountryChange: (c) => console.log(c) })} />
+ *   <input {@attach phoneMaskAttachment('US')} />
+ *   <input {@attach phoneMaskAttachment({ country: 'DE', onChange: (p) => console.log(p) })} />
+ *   <input {@attach phoneMaskAttachment({ detect: true, onCountryChange: (c) => console.log(c) })} />
  *
  * Unlike the `use:` action, the factory re-runs reactively when reactive state
  * in the call site changes — no `update()` hook needed.
@@ -22,7 +22,7 @@ function parseParams(params: string | PhoneMaskBindingOptions | undefined): Phon
 export function phoneMaskAttachment(params?: string | PhoneMaskBindingOptions): Attachment<HTMLInputElement> {
   return (el) => {
     if (el.tagName !== 'INPUT') {
-      console.warn('[phoneMask] Attachment can only be used on input elements');
+      console.warn('[phoneMaskAttachment] Attachment can only be used on input elements');
       return;
     }
 
