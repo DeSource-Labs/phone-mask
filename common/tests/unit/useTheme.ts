@@ -36,7 +36,7 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
       dispatchEvent: vi.fn()
     }));
 
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(globalThis, 'matchMedia', {
       value: mockMatchMedia,
       writable: true,
       configurable: true
