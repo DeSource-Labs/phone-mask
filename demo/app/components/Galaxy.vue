@@ -331,7 +331,7 @@ const setup = () => {
       ctn.removeEventListener('mousemove', handleMouseMove);
       ctn.removeEventListener('mouseleave', handleMouseLeave);
     }
-    ctn.removeChild(gl.canvas);
+    gl.canvas.remove();
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
 };
