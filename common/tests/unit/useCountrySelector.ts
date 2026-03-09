@@ -408,7 +408,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('Enter selects the currently focused country', async () => {
         const { result, onSelectCountry, unmount } = setup();
 
-        const firstCountry = toValue(result.filteredCountries)[0]!;
+        const firstCountry = toValue(result.filteredCountries)[0];
 
         await act(async () => {
           result.handleSearchKeydown({ key: 'Enter', preventDefault: vi.fn() });
