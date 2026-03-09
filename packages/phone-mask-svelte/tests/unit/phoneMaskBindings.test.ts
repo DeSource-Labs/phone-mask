@@ -55,7 +55,7 @@ describe('phoneMask attachment', () => {
     setup(PhoneMaskAttachmentWrapper),
     {
       warnMessage: '[phoneMaskAttachment] Attachment can only be used on input elements',
-      detectByGeoIpMock: detectByGeoIp as ReturnType<typeof vi.fn>
+      detectByGeoIpMock: vi.mocked(detectByGeoIp)
     },
     tools
   );
@@ -66,7 +66,7 @@ describe('phoneMaskAction', () => {
     setup(PhoneMaskActionWrapper),
     {
       warnMessage: '[phoneMaskAction] Action can only be used on input elements',
-      detectByGeoIpMock: detectByGeoIp as ReturnType<typeof vi.fn>
+      detectByGeoIpMock: vi.mocked(detectByGeoIp)
     },
     tools
   );

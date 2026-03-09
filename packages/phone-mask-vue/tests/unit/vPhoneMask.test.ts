@@ -55,7 +55,7 @@ describe('vPhoneMask directive', () => {
     setup,
     {
       warnMessage: '[v-phone-mask] Directive can only be used on input elements',
-      detectByGeoIpMock: detectByGeoIp as ReturnType<typeof vi.fn>
+      detectByGeoIpMock: vi.mocked(detectByGeoIp)
     },
     tools
   );
