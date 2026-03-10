@@ -12,14 +12,9 @@ export default defineConfig({
         style: fileURLToPath(new URL('./src/style.scss', import.meta.url))
       },
       formats: ['es', 'cjs'],
-      fileName: (format, entryName) => {
-        if (entryName === 'style') return `style.js`;
-        switch (format) {
-          case 'es':
-            return 'index.mjs';
-          default:
-            return 'index.cjs';
-        }
+      fileName: (format) => {
+        if (format === 'es') return 'index.mjs';
+        return 'index.cjs';
       }
     },
     minify: false,
