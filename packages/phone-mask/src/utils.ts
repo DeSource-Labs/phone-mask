@@ -8,7 +8,7 @@ export type FormatResult = {
 
 /** Get navigator language with fallback to 'en' */
 export function getNavigatorLang(): string {
-  return navigator?.language || 'en';
+  return globalThis.navigator?.language || 'en';
 }
 
 /** Detect country from browser locale */
