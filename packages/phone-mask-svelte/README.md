@@ -553,7 +553,7 @@ import { phoneMaskSetCountry } from '@desource/phone-mask-svelte';
 
 const inputEl = document.querySelector('input')!;
 const success = phoneMaskSetCountry(inputEl, 'GB');
-// Returns true if applied successfully, false if no attachment is mounted on the element
+// Returns true if applied successfully, false if no attachment or action is mounted on the element
 ```
 
 ### Action vs Attachment

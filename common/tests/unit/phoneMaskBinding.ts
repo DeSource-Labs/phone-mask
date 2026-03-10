@@ -127,6 +127,17 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act 
     unmount();
   });
 
+  it('not uses detect flow when country is provided', async () => {
+    vi.stubGlobal('navigator', { language: 'en' });
+    detectByGeoIpMock.mockResolvedValue('US');
+
+    const { el, unmount } = await setup('input')({ country: 'DE', detect: true });
+
+    expect(el.__phoneMaskState?.country.id).toBe('DE');
+
+    unmount();
+  });
+
   it('defaults to US when no country and detect are provided', async () => {
     const { el, unmount } = await setup('input')();
 
@@ -226,6 +237,18 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act 
 
     expect(el.__phoneMaskState?.country.id).toBe('GB');
     expect(el.getAttribute('placeholder')).toBeTruthy();
+
+    unmount();
+  });
+
+  it('not updates country when update() is called with a new invalid country', async () => {
+    const { el, unmount, update, onCountryChange } = await setup('input')({ country: 'US' });
+
+    expect(el.__phoneMaskState?.country.id).toBe('US');
+
+    await update({ country: 'XX' });
+
+    expect(el.__phoneMaskState?.country.id).toBe('US');
 
     unmount();
   });

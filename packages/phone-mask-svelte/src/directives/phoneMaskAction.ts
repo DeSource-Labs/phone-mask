@@ -21,12 +21,16 @@ function parseParams(params: string | PhoneMaskBindingOptions | undefined): Phon
   return {};
 }
 
-function updateDisplay(el: HTMLInputElement, state: PhoneMaskBindingState): void {
+/** Update the state digits and input's display value and trigger onChange callback */
+function updateDigits(el: HTMLInputElement, state: PhoneMaskBindingState, digits: string) {
+  state.digits = digits;
   el.value = state.formatter.formatDisplay(state.digits);
 
+  // Trigger onChange callback
   if (state.options.onChange) {
     const fullNumberFormatted = el.value ? `${state.country.code} ${el.value}` : '';
     const fullNumber = state.digits ? `${state.country.code}${state.digits}` : '';
+
     state.options.onChange({
       full: fullNumber,
       fullFormatted: fullNumberFormatted,
@@ -35,13 +39,35 @@ function updateDisplay(el: HTMLInputElement, state: PhoneMaskBindingState): void
   }
 }
 
-function createInputHandler(el: HTMLInputElement, state: PhoneMaskBindingState): (e: Event) => void {
-  return (e: Event) => {
-    const result = processInput(e, { formatter: state.formatter });
+function checkDigitsUpdate(el: HTMLInputElement, state: PhoneMaskBindingState) {
+  const maxDigits = state.formatter.getMaxDigits();
+  const digits = extractDigits(el.value, maxDigits);
+  const displayValue = state.formatter.formatDisplay(digits);
+
+  if (digits !== state.digits || el.value !== displayValue) {
+    updateDigits(el, state, digits);
+  }
+}
+
+function checkCountryUpdate(state: PhoneMaskBindingState) {
+  const oldCountry = state.country.id;
+  const newCountry = state.options.country;
+
+  if (newCountry && newCountry !== oldCountry) {
+    state.setCountry(newCountry);
+  }
+}
+
+function createHandler<T>(
+  el: HTMLInputElement,
+  state: PhoneMaskBindingState,
+  handler: (e: T, state: PhoneMaskBindingState) => { newDigits: string; caretDigitIndex: number } | undefined
+): (e: T) => void {
+  return (e: T) => {
+    const result = handler(e, state);
     if (!result) return;
 
-    state.digits = result.newDigits;
-    updateDisplay(el, state);
+    updateDigits(el, state, result.newDigits);
 
     Promise.resolve().then(() => {
       const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
@@ -50,42 +76,22 @@ function createInputHandler(el: HTMLInputElement, state: PhoneMaskBindingState):
   };
 }
 
-function createKeydownHandler(el: HTMLInputElement, state: PhoneMaskBindingState): (e: KeyboardEvent) => void {
-  return (e: KeyboardEvent) => {
-    const result = processKeydown(e, {
-      digits: state.digits,
-      formatter: state.formatter
-    });
+async function detectInitialCountry(options: PhoneMaskBindingOptions): Promise<string> {
+  const countryOption = parseCountryCode(options.country);
 
-    if (!result) return;
+  if (countryOption) return countryOption;
 
-    state.digits = result.newDigits;
-    updateDisplay(el, state);
+  if (options.detect) {
+    const geoCountry = parseCountryCode(await detectByGeoIp());
 
-    Promise.resolve().then(() => {
-      const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
-      setCaret(el, pos);
-    });
-  };
-}
+    if (geoCountry) return geoCountry;
 
-function createPasteHandler(el: HTMLInputElement, state: PhoneMaskBindingState): (e: ClipboardEvent) => void {
-  return (e: ClipboardEvent) => {
-    const result = processPaste(e, {
-      digits: state.digits,
-      formatter: state.formatter
-    });
+    const localeCountry = parseCountryCode(detectCountryFromLocale());
 
-    if (!result) return;
+    if (localeCountry) return localeCountry;
+  }
 
-    state.digits = result.newDigits;
-    updateDisplay(el, state);
-
-    Promise.resolve().then(() => {
-      const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
-      setCaret(el, pos);
-    });
-  };
+  return 'US';
 }
 
 /**
@@ -114,6 +120,7 @@ export function phoneMaskAction(
 
   el.setAttribute('type', 'tel');
   el.setAttribute('inputmode', 'tel');
+  el.setAttribute('placeholder', '');
 
   const options = parseParams(params);
   const locale = options.locale || getNavigatorLang();
@@ -126,74 +133,45 @@ export function phoneMaskAction(
     locale,
     options,
     setCountry(code: string) {
-      const newCountry = getCountry(code, state.locale);
-      state.country = newCountry;
-      state.formatter = createPhoneFormatter(newCountry);
-      el.placeholder = state.formatter.getPlaceholder();
-      const maxDigits = state.formatter.getMaxDigits();
-      state.digits = extractDigits(state.digits, maxDigits);
-      updateDisplay(el, state);
-      if (state.options.onCountryChange) {
-        state.options.onCountryChange(newCountry);
-      }
+      const parsed = parseCountryCode(code);
+
+      if (!parsed) return false;
+
+      const newCountry = getCountry(parsed, this.locale);
+
+      this.country = newCountry;
+      this.options.onCountryChange?.(newCountry);
+
+      this.formatter = createPhoneFormatter(newCountry);
+      el.placeholder = this.formatter.getPlaceholder();
+
+      checkDigitsUpdate(el, this);
+
       return true;
     }
   };
 
-  const inputHandler = createInputHandler(el, state);
-  const keydownHandler = createKeydownHandler(el, state);
-  const pasteHandler = createPasteHandler(el, state);
+  (el as PhoneMaskBindingElement).__phoneMaskState = state;
+
+  const inputHandler = createHandler(el, state, processInput);
+  const keydownHandler = createHandler(el, state, processKeydown);
+  const pasteHandler = createHandler(el, state, processPaste);
 
   el.addEventListener('beforeinput', processBeforeInput);
   el.addEventListener('input', inputHandler);
   el.addEventListener('keydown', keydownHandler);
   el.addEventListener('paste', pasteHandler);
 
-  el.setAttribute('placeholder', state.formatter.getPlaceholder());
-
-  if (state.options.onCountryChange) {
-    state.options.onCountryChange(state.country);
-  }
-
-  if (el.value) {
-    const maxDigits = state.formatter.getMaxDigits();
-    state.digits = extractDigits(el.value, maxDigits);
-    updateDisplay(el, state);
-  }
-
-  (el as PhoneMaskBindingElement).__phoneMaskState = state;
-
-  // Async GeoIP detection — updates state after mount
-  if (options.detect) {
-    detectByGeoIp().then((geoCode) => {
-      const code = parseCountryCode(geoCode);
-      if (code) {
-        state.setCountry(code);
-      } else {
-        const localeCode = parseCountryCode(detectCountryFromLocale());
-        if (localeCode) state.setCountry(localeCode);
-      }
-    });
-  }
+  detectInitialCountry(options).then((countryCode) => state.setCountry(countryCode));
 
   return {
     update(newParams?: string | PhoneMaskBindingOptions) {
-      const newOptions = parseParams(newParams);
-      const oldCountry = state.options.country;
-      state.options = newOptions;
-
-      if (newOptions.country && newOptions.country !== oldCountry) {
-        state.setCountry(newOptions.country);
-      }
-
-      // Sync externally changed value
-      const maxDigits = state.formatter.getMaxDigits();
-      const newDigits = extractDigits(el.value, maxDigits);
-      const normalizedDisplay = state.formatter.formatDisplay(newDigits);
-      if (newDigits !== state.digits || el.value !== normalizedDisplay) {
-        state.digits = newDigits;
-        updateDisplay(el, state);
-      }
+      // Always update options to ensure callbacks are current
+      state.options = parseParams(newParams);
+      // Check if country changed and update if needed
+      checkCountryUpdate(state);
+      // Check if element value changed externally
+      checkDigitsUpdate(el, state);
     },
 
     destroy() {

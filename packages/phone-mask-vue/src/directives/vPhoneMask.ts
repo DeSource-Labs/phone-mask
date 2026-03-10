@@ -1,4 +1,4 @@
-import { type Directive, type DirectiveBinding, nextTick } from 'vue';
+import { type Directive, nextTick } from 'vue';
 import {
   getNavigatorLang,
   getCountry,
@@ -11,63 +11,27 @@ import {
   processInput,
   processKeydown,
   processPaste,
-  createPhoneFormatter,
-  type MaskFull
+  createPhoneFormatter
 } from '@desource/phone-mask';
 
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
 
-/**
- * Initialize directive state from binding value.
- * Determines country through explicit setting, detection, or default
- */
-async function initState(binding: DirectiveBinding): Promise<PMaskDirectiveState> {
-  const value = binding.value;
-  let options: PMaskDirectiveOptions = {};
-
-  // Parse binding value
-  if (typeof value === 'string') {
-    options = { country: value };
-  } else if (typeof value === 'object' && value !== null) {
-    options = value;
-  }
-
-  const locale = options.locale || getNavigatorLang();
-
-  let country: MaskFull = getCountry(parseCountryCode(options.country, 'US'), locale);
-
-  // Determine country
-  if (options.detect) {
-    const geoCountry = parseCountryCode(await detectByGeoIp());
-
-    if (geoCountry) {
-      country = getCountry(geoCountry, locale);
-    } else {
-      const localeCountry = parseCountryCode(detectCountryFromLocale());
-
-      if (localeCountry) {
-        country = getCountry(localeCountry, locale);
-      }
-    }
-  }
-
-  return {
-    country,
-    formatter: createPhoneFormatter(country),
-    digits: '',
-    locale,
-    options
-  };
+function parseParams(params: string | PMaskDirectiveOptions | undefined): PMaskDirectiveOptions {
+  if (typeof params === 'string') return { country: params };
+  if (params && typeof params === 'object') return params;
+  return {};
 }
 
-/** Update the input's display value and trigger onChange callback */
-function updateDisplay(el: HTMLInputElement, state: PMaskDirectiveState): void {
+/** Update the state digits and input's display value and trigger onChange callback */
+function updateDigits(el: HTMLInputElement, state: PMaskDirectiveState, digits: string) {
+  state.digits = digits;
   el.value = state.formatter.formatDisplay(state.digits);
 
   // Trigger onChange callback
   if (state.options.onChange) {
     const fullNumberFormatted = el.value ? `${state.country.code} ${el.value}` : '';
     const fullNumber = state.digits ? `${state.country.code}${state.digits}` : '';
+
     state.options.onChange({
       full: fullNumber,
       fullFormatted: fullNumberFormatted,
@@ -76,17 +40,35 @@ function updateDisplay(el: HTMLInputElement, state: PMaskDirectiveState): void {
   }
 }
 
-/**
- * Create input event handler.
- * Extracts digits from typed input, formats display, and positions cursor
- */
-function createInputHandler(el: HTMLInputElement, state: PMaskDirectiveState): (e: Event) => void {
-  return (e: Event) => {
-    const result = processInput(e, { formatter: state.formatter });
+function checkDigitsUpdate(el: HTMLInputElement, state: PMaskDirectiveState) {
+  const maxDigits = state.formatter.getMaxDigits();
+  const digits = extractDigits(el.value, maxDigits);
+  const displayValue = state.formatter.formatDisplay(digits);
+
+  if (digits !== state.digits || el.value !== displayValue) {
+    updateDigits(el, state, digits);
+  }
+}
+
+function checkCountryUpdate(el: HTMLInputElement, state: PMaskDirectiveState) {
+  const oldCountry = state.country.id;
+  const newCountry = state.options.country;
+
+  if (newCountry && newCountry !== oldCountry) {
+    setCountry(el, state, newCountry);
+  }
+}
+
+function createHandler<T>(
+  el: HTMLInputElement,
+  state: PMaskDirectiveState,
+  handler: (e: T, state: PMaskDirectiveState) => { newDigits: string; caretDigitIndex: number } | undefined
+): (e: T) => void {
+  return (e: T) => {
+    const result = handler(e, state);
     if (!result) return;
 
-    state.digits = result.newDigits;
-    updateDisplay(el, state);
+    updateDigits(el, state, result.newDigits);
 
     nextTick(() => {
       const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
@@ -95,161 +77,104 @@ function createInputHandler(el: HTMLInputElement, state: PMaskDirectiveState): (
   };
 }
 
-/**
- * Create keydown event handler.
- * Handles backspace, delete, and navigation keys.
- * Intelligently skips delimiters during deletion
- */
-function createKeydownHandler(el: HTMLInputElement, state: PMaskDirectiveState): (e: KeyboardEvent) => void {
-  return (e: KeyboardEvent) => {
-    const result = processKeydown(e, {
-      digits: state.digits,
-      formatter: state.formatter
-    });
+async function detectInitialCountry(options: PMaskDirectiveOptions): Promise<string> {
+  const countryOption = parseCountryCode(options.country);
 
-    if (!result) return;
+  if (countryOption) return countryOption;
 
-    state.digits = result.newDigits;
-    updateDisplay(el, state);
+  if (options.detect) {
+    const geoCountry = parseCountryCode(await detectByGeoIp());
 
-    nextTick(() => {
-      const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
-      setCaret(el, pos);
-    });
-  };
-}
+    if (geoCountry) return geoCountry;
 
-/**
- * Create paste event handler.
- * Extracts digits from pasted content and intelligently inserts them
- */
-function createPasteHandler(el: HTMLInputElement, state: PMaskDirectiveState): (e: ClipboardEvent) => void {
-  return (e: ClipboardEvent) => {
-    const result = processPaste(e, {
-      digits: state.digits,
-      formatter: state.formatter
-    });
+    const localeCountry = parseCountryCode(detectCountryFromLocale());
 
-    if (!result) return;
+    if (localeCountry) return localeCountry;
+  }
 
-    state.digits = result.newDigits;
-    updateDisplay(el, state);
-
-    nextTick(() => {
-      const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
-      setCaret(el, pos);
-    });
-  };
+  return 'US';
 }
 
 /**
  * Update country and reformat existing input.
  * Updates formatter, placeholder, truncates digits if needed, and triggers callbacks
  */
-async function updateCountry(el: HTMLInputElement, state: PMaskDirectiveState, newCountryCode: string): Promise<void> {
-  const newCountry = getCountry(newCountryCode, state.locale);
-  state.country = newCountry;
-  state.formatter = createPhoneFormatter(newCountry);
+export function setCountry(el: HTMLInputElement, state: PMaskDirectiveState, newCountryCode: string): void {
+  const parsed = parseCountryCode(newCountryCode);
 
-  // Update placeholder
+  if (!parsed) return;
+
+  const newCountry = getCountry(parsed, state.locale);
+
+  state.country = newCountry;
+  state.options.onCountryChange?.(newCountry);
+
+  state.formatter = createPhoneFormatter(newCountry);
   el.placeholder = state.formatter.getPlaceholder();
 
-  const maxDigits = state.formatter.getMaxDigits();
-  state.digits = extractDigits(state.digits, maxDigits);
-  updateDisplay(el, state);
-
-  if (state.options.onCountryChange) {
-    state.options.onCountryChange(newCountry);
-  }
+  checkDigitsUpdate(el, state);
 }
 
 export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDirectiveOptions | undefined> = {
-  async mounted(el, binding) {
+  mounted(el, binding) {
     // Ensure it's an input element
     if (el.tagName !== 'INPUT') {
       console.warn('[v-phone-mask] Directive can only be used on input elements');
       return;
     }
-    // Set input attributes
+
     el.setAttribute('type', 'tel');
     el.setAttribute('inputmode', 'tel');
+    el.setAttribute('placeholder', '');
 
-    // Initialize state
-    const state = await initState(binding);
+    const options = parseParams(binding.value);
+    const locale = options.locale || getNavigatorLang();
+    const country = getCountry(parseCountryCode(options.country, 'US'), locale);
+
+    const state = {
+      country,
+      formatter: createPhoneFormatter(country),
+      digits: '',
+      locale,
+      options
+    } as PMaskDirectiveState;
+
     el.__phoneMaskState = state;
 
     // Create and attach handlers
-    state.inputHandler = createInputHandler(el, state);
-    state.keydownHandler = createKeydownHandler(el, state);
-    state.pasteHandler = createPasteHandler(el, state);
+    state.inputHandler = createHandler(el, state, processInput);
+    state.keydownHandler = createHandler(el, state, processKeydown);
+    state.pasteHandler = createHandler(el, state, processPaste);
     state.beforeInputHandler = processBeforeInput;
 
     el.addEventListener('beforeinput', state.beforeInputHandler);
     el.addEventListener('input', state.inputHandler);
     el.addEventListener('keydown', state.keydownHandler);
     el.addEventListener('paste', state.pasteHandler);
-
-    // Set initial placeholder
-    el.setAttribute('placeholder', state.formatter.getPlaceholder());
-    // Trigger initial country change callback
-    if (state.options.onCountryChange) {
-      state.options.onCountryChange(state.country);
-    }
-    // Parse existing value
-    if (el.value) {
-      const maxDigits = state.formatter.getMaxDigits();
-      state.digits = extractDigits(el.value, maxDigits);
-      updateDisplay(el, state);
-    }
+    // Populate state with country & formatter, then run effects
+    detectInitialCountry(options).then((countryCode) => setCountry(el, state, countryCode));
   },
 
-  async updated(el, binding) {
+  updated(el, binding) {
     const state = el.__phoneMaskState;
     if (!state) return;
-
-    const value = binding.value;
-    let newOptions: PMaskDirectiveOptions = {};
-
-    if (typeof value === 'string') {
-      newOptions = { country: value };
-    } else if (typeof value === 'object' && value !== null) {
-      newOptions = value;
-    }
-
     // Always update options to ensure callbacks are current
-    const oldCountry = state.options.country;
-    state.options = newOptions;
-
+    state.options = parseParams(binding.value);
     // Check if country changed and update if needed
-    const newCountry = newOptions.country;
-    if (newCountry && newCountry !== oldCountry) {
-      await updateCountry(el, state, newCountry);
-    }
-
+    checkCountryUpdate(el, state);
     // Check if element value changed externally
-    const maxDigits = state.formatter.getMaxDigits();
-    const newDigits = extractDigits(el.value, maxDigits);
-    const normalizedDisplay = state.formatter.formatDisplay(newDigits);
-    if (newDigits !== state.digits || el.value !== normalizedDisplay) {
-      state.digits = newDigits;
-      updateDisplay(el, state);
-    }
+    checkDigitsUpdate(el, state);
   },
 
   unmounted(el) {
     const state = el.__phoneMaskState;
     if (!state) return;
-
     // Remove event listeners
     if (state.beforeInputHandler) el.removeEventListener('beforeinput', state.beforeInputHandler);
     if (state.inputHandler) el.removeEventListener('input', state.inputHandler);
     if (state.keydownHandler) el.removeEventListener('keydown', state.keydownHandler);
     if (state.pasteHandler) el.removeEventListener('paste', state.pasteHandler);
-
     // Clean up
     delete el.__phoneMaskState;
   }
 };
-
-// Export helper for programmatic access
-export { updateCountry as setCountry };

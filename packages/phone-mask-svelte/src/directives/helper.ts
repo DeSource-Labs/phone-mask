@@ -1,8 +1,8 @@
 import type { PhoneMaskBindingElement } from '../types';
 
 /**
- * Programmatically switch the country on an element with the phoneMaskAction mounted.
- * Returns true if applied successfully, false if the element has no active action state.
+ * Programmatically switch the country on an element with the `phoneMaskAction` or `phoneMaskAttachment` mounted.
+ * Returns `true` if applied successfully, `false` if the element has no active action state.
  */
 export function phoneMaskSetCountry(el: HTMLInputElement, code: string): boolean {
   const state = (el as PhoneMaskBindingElement).__phoneMaskState;
