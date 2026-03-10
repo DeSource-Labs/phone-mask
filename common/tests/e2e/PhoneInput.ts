@@ -92,28 +92,28 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
 
     test.describe('props', () => {
       test.describe('country', () => {
-        async function dropdownIsPresent() {
+        const assertDropdownPresent = async (): Promise<void> => {
           await expect(chevron).toBeAttached();
           await expect(dropdownBtn).not.toHaveClass(/no-dropdown/);
           await dropdownBtn.click();
           await expect(dropdownMenu).toBeAttached();
-        }
+        };
 
-        async function dropdownIsAbsent() {
+        const assertDropdownAbsent = async (): Promise<void> => {
           await expect(chevron).not.toBeAttached();
           await expect(dropdownBtn).toHaveClass(/no-dropdown/);
           await dropdownBtn.click();
           await expect(dropdownMenu).not.toBeAttached();
-        }
+        };
 
         test('country is not set', async () => {
-          await dropdownIsPresent();
+          await assertDropdownPresent();
         });
 
         test('country is set', async () => {
           await countrySelect.selectOption('US');
 
-          await dropdownIsAbsent();
+          await assertDropdownAbsent();
         });
 
         test('country prop overrides user dropdown selection and locks the dropdown', async () => {
@@ -122,12 +122,12 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
           await dropdownMenu.locator(DROPDOWN_SEARCH_SELECTOR).fill('United Kingdom');
           await dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('United Kingdom', { exact: false }).click();
 
-          await dropdownIsPresent();
+          await assertDropdownPresent();
 
           // 2. Set the country prop to US (+1)
           await countrySelect.selectOption('US');
 
-          await dropdownIsAbsent();
+          await assertDropdownAbsent();
         });
       });
 

@@ -311,7 +311,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         expect(toValue(result.dropdownOpen)).toBe(true);
 
         await act(async () => {
-          window.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          globalThis.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         });
 
         await act(async () => {
@@ -408,7 +408,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('Enter selects the currently focused country', async () => {
         const { result, onSelectCountry, unmount } = setup();
 
-        const firstCountry = toValue(result.filteredCountries)[0]!;
+        const firstCountry = toValue(result.filteredCountries)[0];
 
         await act(async () => {
           result.handleSearchKeydown({ key: 'Enter', preventDefault: vi.fn() });

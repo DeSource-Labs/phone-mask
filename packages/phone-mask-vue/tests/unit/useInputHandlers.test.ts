@@ -28,14 +28,14 @@ function setup(options: SetupOptions = {}) {
     })
   );
 
-  inputEl.addEventListener('beforeinput', (e) => result.handleBeforeInput(e as InputEvent));
+  inputEl.addEventListener('beforeinput', (e) => result.handleBeforeInput(e));
   inputEl.addEventListener('input', (e) => result.handleInput(e));
-  inputEl.addEventListener('keydown', (e) => result.handleKeydown(e as KeyboardEvent));
-  inputEl.addEventListener('paste', (e) => result.handlePaste(e as ClipboardEvent));
+  inputEl.addEventListener('keydown', (e) => result.handleKeydown(e));
+  inputEl.addEventListener('paste', (e) => result.handlePaste(e));
 
   return {
     unmount: () => {
-      document.body.removeChild(inputEl);
+      inputEl.remove();
       composableUnmount();
     },
     rerender: ({ digits, inactive }: { digits?: string; inactive?: boolean }) => {

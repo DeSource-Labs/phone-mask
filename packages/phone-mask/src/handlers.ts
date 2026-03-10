@@ -141,7 +141,7 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
       const displayStr = el.value;
       // Find previous digit position (skip delimiters)
       let prevPos = selectionStart - 1;
-      while (prevPos >= 0 && DELIMITERS.includes(displayStr[prevPos]!)) {
+      while (prevPos >= 0 && DELIMITERS.includes(displayStr[prevPos])) {
         prevPos--;
       }
 
@@ -197,7 +197,7 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
   }
 
   // Handle digits
-  if (/^[0-9]$/.test(e.key)) {
+  if (/^\d$/.test(e.key)) {
     if (digits.length >= formatter.getMaxDigits()) {
       e.preventDefault();
     }
@@ -208,8 +208,6 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
   if (e.key.length === 1) {
     e.preventDefault();
   }
-
-  return;
 }
 
 /**
