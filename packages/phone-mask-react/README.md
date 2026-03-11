@@ -258,6 +258,7 @@ interface UsePhoneMaskReturn {
   isEmpty: boolean;
   shouldShowWarn: boolean;
   country: MaskFull;
+  formatter: FormatterHelpers;
   setCountry: (countryCode: string) => void;
   clear: () => void;
 }
