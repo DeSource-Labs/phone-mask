@@ -146,7 +146,7 @@ describe('useCountrySelector DOM behavior (Svelte)', () => {
   testUseCountrySelectorDomBehavior(setupWithDom, tools);
 
   it('handles click listener events with null target safely', async () => {
-    const addListenerSpy = vi.spyOn(window, 'addEventListener');
+    const addListenerSpy = vi.spyOn(globalThis, 'addEventListener');
     const ctx = setupWithDom();
 
     try {
@@ -190,7 +190,7 @@ describe('useCountrySelector DOM behavior (Svelte)', () => {
 
     await tools.act(async () => {
       rootState.value = null;
-      window.dispatchEvent(new Event('resize'));
+      globalThis.dispatchEvent(new Event('resize'));
     });
 
     expect(result.dropdownOpen).toBe(true);

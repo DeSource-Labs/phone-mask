@@ -1,12 +1,12 @@
-import path from 'path';
+import path from 'node:path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import terser from '@rollup/plugin-terser';
 import packageJson from './package.json';
 
 const rawName = packageJson.name.replace(/^@.*\//, '');
-const safeName = rawName.replace(/[^a-z0-9-_]/gi, '');
-const camelName = safeName.replace(/-([a-z0-9])/g, (_, ch: string) => ch.toUpperCase());
+const safeName = rawName.replaceAll(/[^a-z0-9-_]/gi, '');
+const camelName = safeName.replaceAll(/-([a-z0-9])/g, (_, ch: string) => ch.toUpperCase());
 
 export default defineConfig({
   base: './',

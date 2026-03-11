@@ -49,7 +49,7 @@ function toMaskFromInternational(intlStr) {
   const match = noExt.match(/^\+(\d+)(.*)$/);
   if (!match) {
     // fallback: replace all digits with '#'
-    return noExt.replace(/\d/g, '#');
+    return noExt.replaceAll(/\d/g, '#');
   }
   const cc = match[1]; // digits after +
   const rest = match[2] || '';
@@ -58,7 +58,7 @@ function toMaskFromInternational(intlStr) {
   const keptPrefix = `+${cc}`;
 
   // Replace digits in rest with '#'
-  const maskedRest = rest.replace(/\d/g, '#');
+  const maskedRest = rest.replaceAll(/\d/g, '#');
 
   // Trim leading/trailing spaces to match typical mask formatting
   return (keptPrefix + maskedRest).trim();

@@ -194,15 +194,15 @@ interface GalaxyProps {
 
 const props = withDefaults(defineProps<GalaxyProps>(), {
   focal: () => [0.5, 0.5],
-  rotation: () => [1.0, 0.0],
+  rotation: () => [1, 0],
   starSpeed: 0.5,
   density: 1,
   hueShift: 140,
   disableAnimation: false,
-  speed: 1.0,
+  speed: 1,
   mouseInteraction: true,
   glowIntensity: 0.3,
-  saturation: 0.0,
+  saturation: 0,
   mouseRepulsion: true,
   twinkleIntensity: 0.3,
   rotationSpeed: 0.1,
@@ -214,10 +214,14 @@ const props = withDefaults(defineProps<GalaxyProps>(), {
 const ctnDom = useTemplateRef('ctnDom');
 const targetMousePos = ref({ x: 0.5, y: 0.5 });
 const smoothMousePos = ref({ x: 0.5, y: 0.5 });
-const targetMouseActive = ref(0.0);
-const smoothMouseActive = ref(0.0);
+const targetMouseActive = ref(0);
+const smoothMouseActive = ref(0);
 
 let cleanup: (() => void) | null = null;
+
+const handleMouseLeave = () => {
+  targetMouseActive.value = 0;
+};
 
 const setup = () => {
   if (!ctnDom.value) return;
@@ -276,7 +280,7 @@ const setup = () => {
       uTwinkleIntensity: { value: props.twinkleIntensity },
       uRotationSpeed: { value: props.rotationSpeed },
       uRepulsionStrength: { value: props.repulsionStrength },
-      uMouseActiveFactor: { value: 0.0 },
+      uMouseActiveFactor: { value: 0 },
       uAutoCenterRepulsion: { value: props.autoCenterRepulsion },
       uTransparent: { value: props.transparent }
     }
@@ -289,7 +293,7 @@ const setup = () => {
     animateId = requestAnimationFrame(update);
     if (!props.disableAnimation) {
       program.uniforms.uTime.value = t * 0.001;
-      program.uniforms.uStarSpeed.value = (t * 0.001 * props.starSpeed) / 10.0;
+      program.uniforms.uStarSpeed.value = (t * 0.001 * props.starSpeed) / 10;
     }
 
     const lerpFactor = 0.05;
@@ -310,13 +314,9 @@ const setup = () => {
   function handleMouseMove(e: MouseEvent) {
     const rect = ctn.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
-    const y = 1.0 - (e.clientY - rect.top) / rect.height;
+    const y = 1 - (e.clientY - rect.top) / rect.height;
     targetMousePos.value = { x, y };
-    targetMouseActive.value = 1.0;
-  }
-
-  function handleMouseLeave() {
-    targetMouseActive.value = 0.0;
+    targetMouseActive.value = 1;
   }
 
   if (props.mouseInteraction) {
@@ -331,7 +331,7 @@ const setup = () => {
       ctn.removeEventListener('mousemove', handleMouseMove);
       ctn.removeEventListener('mouseleave', handleMouseLeave);
     }
-    ctn.removeChild(gl.canvas);
+    gl.canvas.remove();
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
 };
