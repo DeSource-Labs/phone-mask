@@ -52,7 +52,7 @@ function checkDigitsUpdate(el: HTMLInputElement, state: PMaskDirectiveState) {
 
 function checkCountryUpdate(el: HTMLInputElement, state: PMaskDirectiveState) {
   const oldCountry = state.country.id;
-  const newCountry = state.options.country;
+  const newCountry = parseCountryCode(state.options.country);
 
   if (newCountry && newCountry !== oldCountry) {
     setCountry(el, state, newCountry);
@@ -151,8 +151,12 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
     el.addEventListener('input', state.inputHandler);
     el.addEventListener('keydown', state.keydownHandler);
     el.addEventListener('paste', state.pasteHandler);
-    // Update state with detected country & formatter, then run effects
-    detectInitialCountry(options).then((countryCode) => setCountry(el, state, countryCode));
+    // Update state with detected country & formatter, then run effects.
+    detectInitialCountry(options).then((countryCode) => {
+      // Guard against the directive being unmounted before the async detection resolves.
+      if (el.__phoneMaskState !== state) return;
+      setCountry(el, state, countryCode);
+    });
   },
 
   updated(el, binding) {

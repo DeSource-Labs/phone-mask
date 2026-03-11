@@ -51,7 +51,7 @@ function checkDigitsUpdate(el: HTMLInputElement, state: PhoneMaskBindingState) {
 
 function checkCountryUpdate(state: PhoneMaskBindingState) {
   const oldCountry = state.country.id;
-  const newCountry = state.options.country;
+  const newCountry = parseCountryCode(state.options.country);
 
   if (newCountry && newCountry !== oldCountry) {
     state.setCountry(newCountry);
@@ -163,7 +163,11 @@ export function phoneMaskAction(
   el.addEventListener('keydown', keydownHandler);
   el.addEventListener('paste', pasteHandler);
   // Update state with detected country & formatter, then run effects
-  detectInitialCountry(options).then((countryCode) => state.setCountry(countryCode));
+  detectInitialCountry(options).then((countryCode) => {
+    // Guard against the directive being unmounted before the async detection resolves.
+    if ((el as PhoneMaskBindingElement).__phoneMaskState !== state) return;
+    state.setCountry(countryCode);
+  });
 
   return {
     update(newParams?: string | PhoneMaskBindingOptions) {
