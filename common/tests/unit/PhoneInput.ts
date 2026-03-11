@@ -143,7 +143,9 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       const copyButton = container.querySelector<HTMLButtonElement>('.pi-btn-copy');
       expect(copyButton).not.toBeNull();
 
-      await fireEvent.click(copyButton!);
+      await act(async () => {
+        await fireEvent.click(copyButton!);
+      });
 
       await waitFor(() => expect(onCopy).toHaveBeenCalled());
       expect(writeText).toHaveBeenCalled();

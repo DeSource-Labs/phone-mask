@@ -542,20 +542,6 @@ Pass reactive `$state` inside the options object — Svelte calls `update()` aut
 />
 ```
 
-### Action & Attachment Helpers
-
-### `phoneMaskSetCountry`
-
-Programmatically switch the country on an element that has the attachment or action mounted:
-
-```ts
-import { phoneMaskSetCountry } from '@desource/phone-mask-svelte';
-
-const inputEl = document.querySelector('input')!;
-const success = phoneMaskSetCountry(inputEl, 'GB');
-// Returns true if applied successfully, false if no attachment or action is mounted on the element
-```
-
 ### Action vs Attachment
 
 |                          | `use:phoneMaskAction`         | `{@attach phoneMaskAttachment(...)}` |
@@ -563,7 +549,6 @@ const success = phoneMaskSetCountry(inputEl, 'GB');
 | Svelte version required  | All Svelte 5                  | Svelte 5.29+                         |
 | Reactivity mechanism     | `update()` hook (auto-called) | Factory re-runs reactively           |
 | Manual `update()` needed | No (Svelte handles it)        | No                                   |
-| Helper function          | `phoneMaskSetCountry`         | `phoneMaskSetCountry`                |
 
 ## 🎨 Component Styling
 

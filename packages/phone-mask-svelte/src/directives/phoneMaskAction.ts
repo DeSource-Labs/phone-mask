@@ -153,6 +153,7 @@ export function phoneMaskAction(
 
   (el as PhoneMaskBindingElement).__phoneMaskState = state;
 
+  // Create and attach handlers
   const inputHandler = createHandler(el, state, processInput);
   const keydownHandler = createHandler(el, state, processKeydown);
   const pasteHandler = createHandler(el, state, processPaste);
@@ -161,7 +162,7 @@ export function phoneMaskAction(
   el.addEventListener('input', inputHandler);
   el.addEventListener('keydown', keydownHandler);
   el.addEventListener('paste', pasteHandler);
-
+  // Update state with detected country & formatter, then run effects
   detectInitialCountry(options).then((countryCode) => state.setCountry(countryCode));
 
   return {

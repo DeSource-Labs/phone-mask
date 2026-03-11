@@ -12,7 +12,6 @@ import PhoneInputComponent from './components/PhoneInput.svelte';
 export { usePhoneMask } from './composables/usePhoneMask.svelte';
 export { phoneMaskAttachment } from './directives/phoneMaskAttachment.svelte';
 export { phoneMaskAction } from './directives/phoneMaskAction';
-export { phoneMaskSetCountry } from './directives/helper';
 
 import type {
   PhoneNumber as PMaskPhoneNumber,
