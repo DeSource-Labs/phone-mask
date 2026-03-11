@@ -1,10 +1,8 @@
 import { usePhoneMask } from '../composables/usePhoneMask.svelte';
 import type { PhoneMaskBindingOptions, PhoneMaskBindingState, PhoneMaskBindingElement } from '../types';
 
-// Local copy of Svelte's `Attachment` type to avoid a hard dependency on `svelte/attachments`for Svelte version below 5.29
-export interface Attachment<T extends EventTarget = Element> {
-  (element: T): void | (() => void);
-}
+// Local copy of Svelte's `Attachment` type to avoid a hard dependency on `svelte/attachments` for Svelte version below 5.29
+type Attachment<T extends EventTarget = Element> = (element: T) => void | (() => void);
 
 function parseParams(params: string | PhoneMaskBindingOptions | undefined): PhoneMaskBindingOptions {
   if (typeof params === 'string') return { country: params };
