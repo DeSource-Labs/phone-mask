@@ -382,12 +382,14 @@ interface UsePhoneMaskOptions {
 interface UsePhoneMaskReturn {
   inputRef: HTMLInputElement | null; // Bind to <input> with bind:this
   digits: string;
+  formatter: FormatterHelpers;
   full: string;
   fullFormatted: string;
   isComplete: boolean;
   isEmpty: boolean;
   shouldShowWarn: boolean;
   country: MaskFull;
+  locale: string;
   setCountry: (countryCode?: string | null) => boolean;
   clear: () => void;
 }
@@ -411,12 +413,18 @@ The `phoneMaskAttachment` Svelte attachment (Svelte 5.29+) applies phone masking
 ### Basic Usage
 
 ```svelte
+<script lang="ts">
+  import { phoneMaskAttachment } from '@desource/phone-mask-svelte';
+</script>
+
 <input {@attach phoneMaskAttachment('US')} />
 ```
 
 ### Options
 
 ```ts
+import type { PMaskFull, PMaskPhoneNumber } from '@desource/phone-mask-svelte';
+
 interface PhoneMaskBindingOptions {
   // Predefined country ISO code (e.g., 'US', 'DE', 'GB')
   country?: string;
@@ -428,10 +436,10 @@ interface PhoneMaskBindingOptions {
   detect?: boolean;
 
   // Value change callback
-  onChange?: (phone: PhoneNumber) => void;
+  onChange?: (phone: PMaskPhoneNumber) => void;
 
   // Country change callback
-  onCountryChange?: (country: MaskFull) => void;
+  onCountryChange?: (country: PMaskFull) => void;
 }
 ```
 
@@ -481,12 +489,18 @@ When the bound parameter object changes (e.g. a new `country` value), Svelte aut
 ### Basic Usage
 
 ```svelte
+<script lang="ts">
+  import { phoneMaskAction } from '@desource/phone-mask-svelte';
+</script>
+
 <input use:phoneMaskAction={'US'} />
 ```
 
 ### Options
 
 ```ts
+import type { PMaskFull, PMaskPhoneNumber } from '@desource/phone-mask-svelte';
+
 interface PhoneMaskBindingOptions {
   // Predefined country ISO code (e.g., 'US', 'DE', 'GB')
   country?: string;
@@ -498,10 +512,10 @@ interface PhoneMaskBindingOptions {
   detect?: boolean;
 
   // Value change callback — fires on every phone number change
-  onChange?: (phone: PhoneNumber) => void;
+  onChange?: (phone: PMaskPhoneNumber) => void;
 
   // Country change callback — fires on initial mount and on country switch
-  onCountryChange?: (country: MaskFull) => void;
+  onCountryChange?: (country: PMaskFull) => void;
 }
 ```
 
