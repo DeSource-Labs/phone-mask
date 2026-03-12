@@ -333,10 +333,10 @@ All exports are tree-shakeable — only import what you use!
 
 ## 🔗 Related Packages
 
-- [@desource/phone-mask-vue](../phone-mask-vue) — Vue 3 component + directive
+- [@desource/phone-mask-vue](../phone-mask-vue) — Vue 3 component + composable + directive
 - [@desource/phone-mask-nuxt](../phone-mask-nuxt) — Nuxt module
 - [@desource/phone-mask-react](../phone-mask-react) — React component + hook
-- [@desource/phone-mask-svelte](../phone-mask-svelte) — Svelte component + composable
+- [@desource/phone-mask-svelte](../phone-mask-svelte) — Svelte component + composable + action + attachment
 
 ## 📄 License
 

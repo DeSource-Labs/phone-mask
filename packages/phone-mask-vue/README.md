@@ -19,7 +19,7 @@ Beautiful, accessible, extreme small & tree-shakeable Vue 3 phone input with aut
 - ♿ **Accessible** — ARIA labels, keyboard navigation
 - 📱 **Mobile-friendly** — Optimized for touch devices
 - 🎯 **TypeScript** — Full type safety
-- 🧩 **Two modes** — Component or directive
+- 🧩 **Three modes** — Component, composable, or directive
 - ⚡ **Optimized** — Tree-shaking and code splitting
 
 ## 📦 Installation
