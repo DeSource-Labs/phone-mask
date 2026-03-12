@@ -515,11 +515,14 @@ interface UsePhoneMaskOptions {
 
 ```ts
 interface UsePhoneMaskReturn {
-  // Ref to attach to your input element - REQUIRED
+  // Ref to attach to your input element
   inputRef: ShallowRef<HTMLInputElement | null>;
 
   // Raw digits without formatting (e.g., "1234567890")
   digits: ComputedRef<string>;
+
+  // Phone formatter instance
+  formatter: ComputedRef<FormatterHelpers>;
 
   // Full phone number with country code (e.g., "+11234567890")
   full: ComputedRef<string>;

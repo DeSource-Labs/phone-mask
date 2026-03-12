@@ -380,17 +380,40 @@ interface UsePhoneMaskOptions {
 
 ```ts
 interface UsePhoneMaskReturn {
-  inputRef: HTMLInputElement | null; // Bind to <input> with bind:this
+  // Ref to attach to your input element
+  inputRef: HTMLInputElement | null;
+
+  // Raw digits without formatting (e.g., "1234567890")
   digits: string;
+
+  // Phone formatter instance
   formatter: FormatterHelpers;
+
+  // Full phone number with country code (e.g., "+11234567890")
   full: string;
+
+  // Full phone number formatted (e.g., "+1 123-456-7890")
   fullFormatted: string;
+
+  // Whether the phone number is complete
   isComplete: boolean;
+
+  // Whether the input is empty
   isEmpty: boolean;
+
+  // Whether to show validation warning
   shouldShowWarn: boolean;
+
+  // Current country data
   country: MaskFull;
+
+  // Current locale used for country names
   locale: string;
+
+  // Change country programmatically
   setCountry: (countryCode?: string | null) => boolean;
+
+  // Clear the input
   clear: () => void;
 }
 ```
