@@ -250,7 +250,7 @@ interface UsePhoneMaskOptions {
 
 ```ts
 interface UsePhoneMaskReturn {
-  ref: RefObject<HTMLInputElement>;
+  ref: RefObject<HTMLInputElement | null>;
   digits: string;
   full: string;
   fullFormatted: string;
