@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { ref } from 'vue';
 import { getCountry } from '@desource/phone-mask';
-import { useFormatter } from '../../src/composables/internal/useFormatter';
+import { useFormatter } from '@src/composables/internal/useFormatter';
 import { testUseFormatter, type SetupOptions } from '@common/tests/unit/useFormatter';
 import { tools, withSetup } from './setup/tools';
 

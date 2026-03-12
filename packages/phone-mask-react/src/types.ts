@@ -1,4 +1,4 @@
-import type { MaskFull, CountryKey } from '@desource/phone-mask';
+import type { MaskFull, CountryKey, FormatterHelpers } from '@desource/phone-mask';
 import type { ReactNode, FocusEvent, RefObject } from 'react';
 
 export type Size = 'compact' | 'normal' | 'large';
@@ -169,6 +169,8 @@ export interface UsePhoneMaskReturn {
   setCountry: (countryCode: string) => void;
   /** Raw digits without formatting */
   digits: string;
+  /** Phone formatter instance */
+  formatter: FormatterHelpers;
   /** Full phone number with country code */
   full: string;
   /** Full phone number formatted */

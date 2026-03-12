@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { useCountrySelector } from '../../src/composables/internal/useCountrySelector.svelte';
+import { useCountrySelector } from '@src/composables/internal/useCountrySelector.svelte';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
 import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { createState, tools, withSetup } from './setup/tools.svelte';

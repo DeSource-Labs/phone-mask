@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { shallowRef } from 'vue';
 import { createPhoneFormatter, getCountry } from '@desource/phone-mask';
-import { useInputHandlers } from '../../src/composables/internal/useInputHandlers';
+import { useInputHandlers } from '@src/composables/internal/useInputHandlers';
 import { testUseInputHandlers, type SetupOptions } from '@common/tests/unit/useInputHandlers';
 import { tools, withSetup } from './setup/tools';
 

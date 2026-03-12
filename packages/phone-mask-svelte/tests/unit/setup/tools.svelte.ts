@@ -3,6 +3,8 @@ import { fireEvent, screen, waitFor } from '@testing-library/svelte';
 import type { TestTools, MaybeRef } from '@common/tests/unit/setup/tools';
 import TestWrapper from './TestWrapper.svelte';
 
+export const flushPromises = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
 export const act = async (callback: () => void | Promise<void>): Promise<void> => {
   await callback();
   flushSync();

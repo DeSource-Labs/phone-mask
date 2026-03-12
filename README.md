@@ -42,10 +42,10 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 
 Ready-made plugins for your stack:
 
-- ✅ **Vue 3** — Composition API component + directive
+- ✅ **Vue 3** — Component, composable, and directive
 - ✅ **Nuxt** — Auto-imported, SSR-compatible
 - ✅ **React** — Component & hook with modern React patterns
-- ✅ **Svelte** — Component & rune for Svelte 5
+- ✅ **Svelte** — Component, composable, action, and attachment for Svelte 5
 - ✅ **TypeScript/Vanilla JS** — Framework-agnostic core
 
 ---
@@ -56,8 +56,8 @@ Ready-made plugins for your stack:
 | ----------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------- |
 | [@desource/phone-mask](./packages/phone-mask)               | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue)        | Core library — TypeScript/JS |
 | [@desource/phone-mask-react](./packages/phone-mask-react)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue)  | React component + hook       |
-| [@desource/phone-mask-vue](./packages/phone-mask-vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue)    | Vue 3 component + directive  |
-| [@desource/phone-mask-svelte](./packages/phone-mask-svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue) | Svelte 5 component + rune    |
+| [@desource/phone-mask-vue](./packages/phone-mask-vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue)    | Vue 3 component + composable + directive |
+| [@desource/phone-mask-svelte](./packages/phone-mask-svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue) | Svelte 5 component + composable + action + attachment |
 | [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue)   | Nuxt module                  |
 
 ---

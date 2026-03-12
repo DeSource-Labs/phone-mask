@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { useCountrySelector } from '../../src/hooks/internal/useCountrySelector';
+import { useCountrySelector } from '@src/hooks/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
 import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { tools, renderHookWithProxy } from './setup/tools';

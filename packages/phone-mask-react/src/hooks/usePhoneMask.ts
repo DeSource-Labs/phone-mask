@@ -92,6 +92,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   return {
     ref: inputRef,
     digits,
+    formatter,
     full,
     fullFormatted,
     isComplete,

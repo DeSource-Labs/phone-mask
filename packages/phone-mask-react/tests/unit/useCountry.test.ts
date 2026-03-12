@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { Mock } from 'vitest';
 import { detectByGeoIp, detectCountryFromLocale } from '@desource/phone-mask';
-import { useCountry } from '../../src/hooks/internal/useCountry';
+import { useCountry } from '@src/hooks/internal/useCountry';
 import { testUseCountry, type CountrySetupOptions } from '@common/tests/unit/useCountry';
 import { tools, renderHookWithProxy } from './setup/tools';
 

@@ -4,7 +4,8 @@
     "composite": false,
     "noEmit": true,
     "paths": {
-      "@common/*": ["../../../common/*"]
+      "@common/*": ["../../../common/*"],
+      "@src/*": ["../src/*"]
     }
   },
   "include": ["./**/*", "../src/**/*"]

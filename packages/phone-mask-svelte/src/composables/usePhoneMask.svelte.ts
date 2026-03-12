@@ -84,6 +84,9 @@ export function usePhoneMask(options: UsePhoneMaskOptions) {
     get digits() {
       return formatterData.digits;
     },
+    get formatter() {
+      return formatterData.formatter;
+    },
     get full() {
       return formatterData.full;
     },

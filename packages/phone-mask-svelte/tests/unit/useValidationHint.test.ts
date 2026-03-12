@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { useValidationHint } from '../../src/composables/internal/useValidationHint.svelte';
+import { useValidationHint } from '@src/composables/internal/useValidationHint.svelte';
 import { testUseValidationHint } from '@common/tests/unit/useValidationHint';
 import { tools, withSetup } from './setup/tools.svelte';
 

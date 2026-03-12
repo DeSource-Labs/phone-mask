@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { getCountry } from '@desource/phone-mask';
-import { useFormatter } from '../../src/hooks/internal/useFormatter';
+import { useFormatter } from '@src/hooks/internal/useFormatter';
 import { testUseFormatter, type SetupOptions } from '@common/tests/unit/useFormatter';
 import { tools, renderHookWithProxy } from './setup/tools';
 

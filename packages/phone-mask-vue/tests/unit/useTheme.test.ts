@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { ref } from 'vue';
-import { useTheme } from '../../src/composables/internal/useTheme';
+import { useTheme } from '@src/composables/internal/useTheme';
 import { testUseTheme } from '@common/tests/unit/useTheme';
 import type { SetupOptions } from '@common/tests/unit/useTheme';
 import { tools, withSetup } from './setup/tools';

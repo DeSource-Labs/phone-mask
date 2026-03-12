@@ -1,7 +1,6 @@
 /// <reference types="vitest/globals" />
-import type { Mock } from 'vitest';
 import { detectByGeoIp, detectCountryFromLocale } from '@desource/phone-mask';
-import { useCountry } from '../../src/composables/internal/useCountry.svelte';
+import { useCountry } from '@src/composables/internal/useCountry.svelte';
 import { testUseCountry, type CountrySetupOptions } from '@common/tests/unit/useCountry';
 import { tools, withSetup, createState } from './setup/tools.svelte';
 
@@ -45,8 +44,8 @@ function setup(options: CountrySetupOptions = {}) {
 }
 
 const mocks = {
-  detectByGeoIp: detectByGeoIp as unknown as Mock,
-  detectCountryFromLocale: detectCountryFromLocale as unknown as Mock
+  detectByGeoIp: vi.mocked(detectByGeoIp),
+  detectCountryFromLocale: vi.mocked(detectCountryFromLocale)
 };
 
 testUseCountry(setup, tools, mocks);
