@@ -94,36 +94,32 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act 
     unmount();
   });
 
-  it('uses detected geo country when lookup succeeds', async () => {
-    vi.stubGlobal('navigator', { language: 'en-US' });
-    detectByGeoIpMock.mockResolvedValue('DE');
+  it.each([
+    {
+      label: 'uses detected geo country when lookup succeeds',
+      language: 'en-US',
+      geoCountry: 'DE',
+      expectedCountry: 'DE'
+    },
+    {
+      label: 'falls back to US when detect flow has no geo and no locale region',
+      language: 'en',
+      geoCountry: null,
+      expectedCountry: 'US'
+    },
+    {
+      label: 'falls back to locale region when geo lookup is empty',
+      language: 'de-DE',
+      geoCountry: null,
+      expectedCountry: 'DE'
+    }
+  ])('$label', async ({ language, geoCountry, expectedCountry }) => {
+    vi.stubGlobal('navigator', { language });
+    detectByGeoIpMock.mockResolvedValue(geoCountry);
 
     const { el, unmount } = await setup('input')({ detect: true });
 
-    expect(el.__phoneMaskState?.country.id).toBe('DE');
-
-    unmount();
-  });
-
-  it('falls back to US when detect flow has no geo and no locale region', async () => {
-    vi.stubGlobal('navigator', { language: 'en' });
-    detectByGeoIpMock.mockResolvedValue(null);
-
-    const { el, unmount } = await setup('input')({ detect: true });
-
-    expect(el.__phoneMaskState?.country.id).toBe('US');
-
-    unmount();
-  });
-
-  it('falls back to locale region when geo lookup is empty', async () => {
-    vi.stubGlobal('navigator', { language: 'de-DE' });
-    detectByGeoIpMock.mockResolvedValue(null);
-
-    const { el, unmount } = await setup('input')({ detect: true });
-
-    expect(el.__phoneMaskState?.country.id).toBe('DE');
-
+    expect(el.__phoneMaskState?.country.id).toBe(expectedCountry);
     unmount();
   });
 
