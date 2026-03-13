@@ -41,6 +41,14 @@ export interface SetupResult {
 export type SetupFn = (options?: SetupOptions) => SetupResult | Promise<SetupResult>;
 
 export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor }: TestTools): void {
+  const setInputValue = async (element: Element, value: string) => {
+    if (fireEvent.update) {
+      await fireEvent.update(element, value);
+      return;
+    }
+    await fireEvent.input(element, { target: { value } });
+  };
+
   describe('PhoneInput API', () => {
     it('exposes imperative methods through ref', async () => {
       const { ref, onChange, unmount } = await setup({ value: '20255501', detect: false });
@@ -139,7 +147,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       });
       input.dispatchEvent(beforeInput);
 
-      await fireEvent.input(input, { target: { value: '202-555-0199' } });
+      await setInputValue(input, '202-555-0199');
       await fireEvent.keyDown(input, { key: 'Backspace' });
 
       const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
@@ -167,7 +175,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       const searchInput = document.body.querySelector<HTMLInputElement>('.pi-search') as HTMLInputElement;
       expect(searchInput).not.toBeNullable();
 
-      await fireEvent.input(searchInput, { target: { value: 'zzzz-no-country' } });
+      await setInputValue(searchInput, 'zzzz-no-country');
       await fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
 
       await waitFor(() => expect(document.body.textContent).toContain('No countries found'));
