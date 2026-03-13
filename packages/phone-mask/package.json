@@ -55,7 +55,7 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "clean": "rimraf dist coverage",
+    "clean": "rimraf dist coverage tsconfig.tsbuildinfo",
     "build": "pnpm clean && pnpm build:internal",
     "build:internal": "pnpm build:lib && pnpm build:types",
     "build:lib": "vite build",
