@@ -23,6 +23,5 @@ export interface TestTools {
     keyDown(element: Element, options: { key: string }): FireEventReturn;
     focus(element: Element): FireEventReturn;
     blur(element: Element): FireEventReturn;
-    update(element: Element, options: { target: { value: string } }): FireEventReturn;
   };
 }

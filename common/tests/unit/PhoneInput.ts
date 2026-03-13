@@ -164,11 +164,11 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
 
       await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
 
-      const searchInput = document.body.querySelector<HTMLInputElement>('.pi-search');
-      expect(searchInput).not.toBeNull();
+      const searchInput = document.body.querySelector<HTMLInputElement>('.pi-search') as HTMLInputElement;
+      expect(searchInput).not.toBeNullable();
 
-      await fireEvent.input(searchInput!, { target: { value: 'zzzz-no-country' } });
-      await fireEvent.keyDown(searchInput!, { key: 'ArrowDown' });
+      await fireEvent.input(searchInput, { target: { value: 'zzzz-no-country' } });
+      await fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
 
       await waitFor(() => expect(document.body.textContent).toContain('No countries found'));
 
