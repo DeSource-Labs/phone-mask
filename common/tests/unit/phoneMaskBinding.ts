@@ -116,6 +116,17 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act 
     unmount();
   });
 
+  it('falls back to locale region when geo lookup is empty', async () => {
+    vi.stubGlobal('navigator', { language: 'de-DE' });
+    detectByGeoIpMock.mockResolvedValue(null);
+
+    const { el, unmount } = await setup('input')({ detect: true });
+
+    expect(el.__phoneMaskState?.country.id).toBe('DE');
+
+    unmount();
+  });
+
   it('does not use detect flow when country is provided', async () => {
     vi.stubGlobal('navigator', { language: 'en' });
     detectByGeoIpMock.mockResolvedValue('US');
@@ -202,6 +213,38 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act 
     expect(onChange).toHaveBeenCalled();
 
     unmount();
+  });
+
+  it('updates state without callbacks when params are provided as a plain string', async () => {
+    const { el, unmount } = await setup('input')('US');
+
+    await act(() => {
+      el.value = '2025550199';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    expect(el.__phoneMaskState?.digits).toBe('2025550199');
+    unmount();
+  });
+
+  it('ignores async detect completion after cleanup', async () => {
+    let resolveGeo!: (value: string | null) => void;
+    detectByGeoIpMock.mockImplementation(
+      () =>
+        new Promise<string | null>((resolve) => {
+          resolveGeo = resolve;
+        })
+    );
+
+    const { onCountryChange, unmount } = await setup('input')({ detect: true });
+    unmount();
+    const callsBeforeResolve = onCountryChange.mock.calls.length;
+
+    resolveGeo('DE');
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(onCountryChange).toHaveBeenCalledTimes(callsBeforeResolve);
   });
 
   it('removes listeners and state on cleanup', async () => {
