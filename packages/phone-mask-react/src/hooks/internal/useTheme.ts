@@ -10,7 +10,11 @@ export function useTheme({ theme }: UseThemeOptions) {
   const [systemDark, setSystemDark] = useState(false);
 
   const themeClass = useMemo(() => {
-    return theme !== 'auto' ? `theme-${theme}` : systemDark ? 'theme-dark' : 'theme-light';
+    if (theme === 'auto') {
+      return systemDark ? 'theme-dark' : 'theme-light';
+    }
+
+    return `theme-${theme}`;
   }, [theme, systemDark]);
 
   // Track system color scheme reactively so theme:'auto' responds to OS changes at runtime
