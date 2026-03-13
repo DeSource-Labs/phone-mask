@@ -78,15 +78,14 @@ describe('locale helpers', () => {
 
   it('falls back to split parsing when Intl.Locale throws', () => {
     vi.stubGlobal('navigator', { language: 'fr-CA' });
+    const brokenLocale = () => {
+      throw new Error('Intl.Locale unavailable');
+    };
     vi.stubGlobal(
       'Intl',
       {
         ...Intl,
-        Locale: class BrokenLocale {
-          constructor() {
-            throw new Error('Intl.Locale unavailable');
-          }
-        }
+        Locale: brokenLocale as unknown as typeof Intl.Locale
       } as unknown as typeof Intl
     );
 
