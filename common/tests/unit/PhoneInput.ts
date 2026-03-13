@@ -160,11 +160,11 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       let copyButton!: HTMLButtonElement;
       await waitFor(() => {
         copyButton = container.querySelector<HTMLButtonElement>('.pi-btn-copy')!;
-        expect(copyButton).not.toBeNullable();
+        expect(copyButton).not.toBeNull();
       });
 
       await act(async () => {
-        await fireEvent.click(copyButton!);
+        await fireEvent.click(copyButton);
       });
 
       await waitFor(() => expect(onCopy).toHaveBeenCalled());
@@ -173,7 +173,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
 
       const searchInput = document.body.querySelector<HTMLInputElement>('.pi-search') as HTMLInputElement;
-      expect(searchInput).not.toBeNullable();
+      expect(searchInput).not.toBeNull();
 
       await setInputValue(searchInput, 'zzzz-no-country');
       await fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
