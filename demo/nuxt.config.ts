@@ -8,6 +8,15 @@ const config: NuxtConfig = {
   css: ['~/assets/styles/index.css'],
   modules: ['@nuxt/image', '@nuxtjs/sitemap', '@desource/phone-mask-nuxt'],
 
+  vite: {
+    optimizeDeps: {
+      include: [
+        'ogl',
+        'gsap',
+      ]
+    }
+  },
+
   app: {
     head: {
       htmlAttrs: {
