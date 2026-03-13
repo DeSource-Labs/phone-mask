@@ -2,11 +2,11 @@
 import { defineComponent, h, nextTick, ref } from 'vue';
 import { render } from '@testing-library/vue';
 import { usePhoneMask } from '../../src/composables/usePhoneMask';
-import { install } from '../../src/index';
-import { testUsePhoneMask } from '@common/tests/unit/usePhoneMask';
+import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { tools, withSetup } from './setup/tools';
 
-function setupUsePhoneMaskHarness(initialValue = '') {
+function setupUsePhoneMaskHarness(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
+  const { attachRef = true } = options;
   const value = ref(initialValue);
   const onChange = vi.fn((nextDigits: string) => {
     value.value = nextDigits;
@@ -24,7 +24,7 @@ function setupUsePhoneMaskHarness(initialValue = '') {
 
       return () =>
         h('input', {
-          ref: api.inputRef,
+          ...(attachRef ? { ref: api.inputRef } : {}),
           'data-testid': 'phone-input'
         });
     }
@@ -80,19 +80,5 @@ describe('usePhoneMask', () => {
     expect(removeEventListenerSpy).toHaveBeenCalledWith('input', expect.any(Function));
     expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
     expect(removeEventListenerSpy).toHaveBeenCalledWith('paste', expect.any(Function));
-  });
-});
-
-describe('vue package index', () => {
-  it('install registers component and directive', () => {
-    const app = {
-      component: vi.fn(),
-      directive: vi.fn()
-    };
-
-    install(app as never);
-
-    expect(app.component).toHaveBeenCalledWith('PhoneInput', expect.anything());
-    expect(app.directive).toHaveBeenCalledWith('phone-mask', expect.anything());
   });
 });

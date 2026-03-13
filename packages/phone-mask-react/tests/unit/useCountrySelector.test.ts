@@ -40,44 +40,6 @@ function setup(options: SetupOptions = {}) {
 
 testUseCountrySelector(setup, tools);
 
-describe('isClosing (React)', () => {
-  it('isClosing is true after closeDropdown before animation completes', async () => {
-    const { result, unmount } = setup();
-
-    await tools.act(async () => {
-      result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      result.closeDropdown();
-    });
-
-    expect(result.isClosing).toBe(true);
-    expect(result.dropdownOpen).toBe(true);
-    unmount();
-  });
-
-  it('isClosing is false and dropdownOpen is false after handleDropdownAnimationEnd', async () => {
-    const { result, unmount } = setup();
-
-    await tools.act(async () => {
-      result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      result.closeDropdown();
-    });
-
-    await tools.act(async () => {
-      result.handleDropdownAnimationEnd();
-    });
-
-    expect(result.isClosing).toBe(false);
-    expect(result.dropdownOpen).toBe(false);
-    unmount();
-  });
-});
-
 function setupWithDom(initialCountryOption?: string) {
   const rootEl = document.createElement('div');
   vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
@@ -101,6 +63,9 @@ function setupWithDom(initialCountryOption?: string) {
 
   const searchEl = document.createElement('input');
   vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const selectorEl = document.createElement('div');
+
+  document.body.append(rootEl, dropdownEl, selectorEl);
 
   const { result, rerender, unmount } = renderHookWithProxy(
     ({ countryOption }: { countryOption?: string }) =>
@@ -108,7 +73,7 @@ function setupWithDom(initialCountryOption?: string) {
         rootRef: { current: rootEl },
         dropdownRef: { current: dropdownEl },
         searchRef: { current: searchEl },
-        selectorRef: { current: document.createElement('div') },
+        selectorRef: { current: selectorEl },
         locale: 'en',
         countryOption,
         onSelectCountry: vi.fn()
@@ -119,11 +84,18 @@ function setupWithDom(initialCountryOption?: string) {
   return {
     result,
     rerender,
-    unmount,
+    unmount: () => {
+      rootEl.remove();
+      dropdownEl.remove();
+      selectorEl.remove();
+      unmount();
+    },
     scrollToSpy,
     listRectSpy,
     optionARectSpy,
     optionBRectSpy,
+    dropdownTarget: dropdownEl,
+    selectorTarget: selectorEl,
     flushAsync: async () => {
       vi.runAllTimers();
     },

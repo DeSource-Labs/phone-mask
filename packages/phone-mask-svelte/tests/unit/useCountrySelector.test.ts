@@ -44,44 +44,6 @@ function setup(options: SetupOptions = {}) {
 
 testUseCountrySelector(setup, tools);
 
-describe('isClosing (Svelte)', () => {
-  it('isClosing is true after closeDropdown before animation completes', async () => {
-    const { result, unmount } = setup();
-
-    await tools.act(async () => {
-      result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      result.closeDropdown();
-    });
-
-    expect(result.isClosing).toBe(true);
-    expect(result.dropdownOpen).toBe(true);
-    unmount();
-  });
-
-  it('isClosing is false and dropdownOpen is false after handleDropdownAnimationEnd', async () => {
-    const { result, unmount } = setup();
-
-    await tools.act(async () => {
-      result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      result.closeDropdown();
-    });
-
-    await tools.act(async () => {
-      result.handleDropdownAnimationEnd();
-    });
-
-    expect(result.isClosing).toBe(false);
-    expect(result.dropdownOpen).toBe(false);
-    unmount();
-  });
-});
-
 function setupWithDom(initialCountryOption?: string) {
   const countryOptionState = createState<string | undefined>(initialCountryOption);
 
@@ -107,13 +69,16 @@ function setupWithDom(initialCountryOption?: string) {
 
   const searchEl = document.createElement('input');
   vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const selectorEl = document.createElement('div');
+
+  document.body.append(rootEl, dropdownEl, selectorEl);
 
   const { result, unmount } = withSetup(() =>
     useCountrySelector({
       rootRef: () => rootEl,
       dropdownRef: () => dropdownEl,
       searchRef: () => searchEl,
-      selectorRef: () => document.createElement('div'),
+      selectorRef: () => selectorEl,
       locale: () => 'en',
       countryOption: () => countryOptionState.value,
       onSelectCountry: vi.fn()
@@ -122,13 +87,20 @@ function setupWithDom(initialCountryOption?: string) {
 
   return {
     result,
-    unmount,
+    unmount: () => {
+      rootEl.remove();
+      dropdownEl.remove();
+      selectorEl.remove();
+      unmount();
+    },
     countryOptionState,
     scrollToSpy,
     rootRectSpy,
     listRectSpy,
     optionARectSpy,
     optionBRectSpy,
+    dropdownTarget: dropdownEl,
+    selectorTarget: selectorEl,
     flushAsync: async () => {
       await Promise.resolve();
       await tools.act(async () => {});

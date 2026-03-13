@@ -6,12 +6,40 @@ import type { PhoneInputRef } from '../../src/types';
 import { testPhoneInput } from '@common/tests/unit/PhoneInput';
 import { tools, createResultProxy } from './setup/tools';
 import type { SetupFn } from '@common/tests/unit/PhoneInput';
+import type { CountryKey } from '@desource/phone-mask';
 
-const setup: SetupFn = ({ value = '', detect = false, showClear } = {}) => {
+const setup: SetupFn = ({
+  value = '',
+  detect = false,
+  showClear,
+  showCopy,
+  disabled,
+  readonly,
+  country,
+  disableDefaultStyles,
+  withCustomRenderers
+} = {}) => {
   const onChange = vi.fn();
   const onCountryChange = vi.fn();
   const onCopy = vi.fn();
+  const onFocus = vi.fn();
+  const onBlur = vi.fn();
   const inputRef = createRef<PhoneInputRef>();
+
+  const customRenderProps = withCustomRenderers
+    ? {
+        dropdownClass: 'custom-dropdown',
+        onFocus,
+        onBlur,
+        renderActionsBefore: () => <span data-testid="actions-before">Before</span>,
+        renderFlag: (c: { id: string }) => <span data-testid="flag-custom">{c.id}</span>,
+        renderCopySvg: (copied: boolean) => <span data-testid="copy-custom">{copied ? 'copied' : 'copy'}</span>,
+        renderClearSvg: () => <span data-testid="clear-custom">clear</span>
+      }
+    : {
+        onFocus,
+        onBlur
+      };
 
   const { container, unmount } = render(
     <PhoneInput
@@ -22,6 +50,12 @@ const setup: SetupFn = ({ value = '', detect = false, showClear } = {}) => {
       onCopy={onCopy}
       detect={detect}
       showClear={showClear}
+      showCopy={showCopy}
+      disabled={disabled}
+      readonly={readonly}
+      country={country as CountryKey | undefined}
+      disableDefaultStyles={disableDefaultStyles}
+      {...customRenderProps}
     />
   );
 
@@ -32,6 +66,8 @@ const setup: SetupFn = ({ value = '', detect = false, showClear } = {}) => {
     onChange,
     onCountryChange,
     onCopy,
+    onFocus,
+    onBlur,
     container,
     unmount
   };

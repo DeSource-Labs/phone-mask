@@ -20,6 +20,10 @@ export interface TestTools {
     click(element: Element): FireEventReturn;
     mouseEnter(element: Element): FireEventReturn;
     input(element: Element, options: { target: { value: string } }): FireEventReturn;
+    /** `update` is **Vue only** method that should be used instead of `input` */
+    update?(element: Element, value: string): FireEventReturn;
     keyDown(element: Element, options: { key: string }): FireEventReturn;
+    focus(element: Element): FireEventReturn;
+    blur(element: Element): FireEventReturn;
   };
 }

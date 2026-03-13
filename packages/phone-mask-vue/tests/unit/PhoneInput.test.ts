@@ -6,12 +6,24 @@ import type { PhoneInputExposed } from '../../src/types';
 import { testPhoneInput } from '@common/tests/unit/PhoneInput';
 import { tools } from './setup/tools';
 import type { SetupFn } from '@common/tests/unit/PhoneInput';
+import type { CountryKey } from '@desource/phone-mask';
 
 const setup: SetupFn = async (options = {}) => {
   const onChange = vi.fn();
   const onCountryChange = vi.fn();
   const onCopy = vi.fn();
+  const onFocus = vi.fn();
+  const onBlur = vi.fn();
   const phoneRef = shallowRef<PhoneInputExposed | null>(null);
+
+  const slots = options.withCustomRenderers
+    ? {
+        'actions-before': () => h('span', { 'data-testid': 'actions-before' }, 'Before'),
+        'copy-svg': () => h('span', { 'data-testid': 'copy-custom' }, 'Copy'),
+        'clear-svg': () => h('span', { 'data-testid': 'clear-custom' }, 'Clear'),
+        flag: ({ country }: { country: { id: string } }) => h('span', { 'data-testid': 'flag-custom' }, country.id)
+      }
+    : undefined;
 
   const Wrapper = defineComponent({
     render: () =>
@@ -21,9 +33,17 @@ const setup: SetupFn = async (options = {}) => {
         'onUpdate:modelValue': onChange,
         'onCountry-change': onCountryChange,
         onCopy,
-        detect: options.detect ?? false,
-        showClear: options.showClear
-      })
+        onFocus,
+        onBlur,
+        detect: options.detect as boolean,
+        showClear: options.showClear as boolean,
+        showCopy: options.showCopy as boolean,
+        disabled: options.disabled as boolean,
+        readonly: options.readonly as boolean,
+        country: options.country as CountryKey | undefined,
+        disableDefaultStyles: options.disableDefaultStyles,
+        dropdownClass: options.withCustomRenderers ? 'custom-dropdown' : undefined
+      }, slots)
   });
 
   const { container, unmount } = render(Wrapper);
@@ -35,6 +55,8 @@ const setup: SetupFn = async (options = {}) => {
     onChange,
     onCountryChange,
     onCopy,
+    onFocus,
+    onBlur,
     container,
     unmount
   };

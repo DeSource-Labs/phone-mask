@@ -2,10 +2,11 @@
 import { useState } from 'react';
 import { render } from '@testing-library/react';
 import { usePhoneMask } from '../../src/hooks/usePhoneMask';
-import { testUsePhoneMask } from '@common/tests/unit/usePhoneMask';
+import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { tools } from './setup/tools';
 
-function setup(initialValue = '') {
+function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
+  const { attachRef = true } = options;
   const onChange = vi.fn();
   let currentValue = initialValue;
   let api: ReturnType<typeof usePhoneMask> | null = null;
@@ -23,7 +24,7 @@ function setup(initialValue = '') {
       }
     });
 
-    return <input data-testid="phone-input" ref={api.ref} />;
+    return <input data-testid="phone-input" ref={attachRef ? api.ref : undefined} />;
   }
 
   const rendered = render(<Harness />);

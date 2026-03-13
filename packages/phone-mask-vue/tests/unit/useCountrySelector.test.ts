@@ -71,11 +71,14 @@ function setupWithDom(initialCountryOption?: string) {
 
   const searchEl = document.createElement('input');
   vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const selectorEl = document.createElement('div');
+
+  document.body.append(rootEl, dropdownEl, selectorEl);
 
   const rootRef = shallowRef(rootEl);
   const dropdownRef = shallowRef(dropdownEl);
   const searchRef = shallowRef(searchEl);
-  const selectorRef = shallowRef(document.createElement('div'));
+  const selectorRef = shallowRef(selectorEl);
 
   const { result, unmount } = withSetup(() =>
     useCountrySelector({
@@ -91,7 +94,12 @@ function setupWithDom(initialCountryOption?: string) {
 
   return {
     result,
-    unmount,
+    unmount: () => {
+      rootEl.remove();
+      dropdownEl.remove();
+      selectorEl.remove();
+      unmount();
+    },
     countryOption,
     list,
     rootRectSpy,
@@ -99,6 +107,8 @@ function setupWithDom(initialCountryOption?: string) {
     optionARectSpy,
     optionBRectSpy,
     scrollToSpy,
+    dropdownTarget: dropdownEl,
+    selectorTarget: selectorEl,
     flushAsync: async () => {
       await nextTick();
     },

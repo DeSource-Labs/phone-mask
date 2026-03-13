@@ -1,9 +1,10 @@
 /// <reference types="vitest/globals" />
 import { usePhoneMask } from '../../src/composables/usePhoneMask.svelte';
-import { testUsePhoneMask } from '@common/tests/unit/usePhoneMask';
+import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { createState, tools, withSetup } from './setup/tools.svelte';
 
-function setup(initialValue = '') {
+function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
+  const { attachRef = true } = options;
   const valueState = createState(initialValue);
   const onChange = vi.fn((nextDigits: string) => {
     valueState.value = nextDigits;
@@ -16,7 +17,9 @@ function setup(initialValue = '') {
       detect: () => false,
       onChange
     });
-    api.inputRef = inputEl;
+    if (attachRef) {
+      api.inputRef = inputEl;
+    }
     return api;
   });
 

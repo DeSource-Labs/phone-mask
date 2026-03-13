@@ -19,6 +19,12 @@ export interface SetupOptions {
   value?: string;
   detect?: boolean;
   showClear?: boolean;
+  showCopy?: boolean;
+  disabled?: boolean;
+  readonly?: boolean;
+  country?: string;
+  disableDefaultStyles?: boolean;
+  withCustomRenderers?: boolean;
 }
 
 export interface SetupResult {
@@ -26,6 +32,8 @@ export interface SetupResult {
   onChange: Mock;
   onCountryChange: Mock;
   onCopy: Mock;
+  onFocus: Mock;
+  onBlur: Mock;
   container: Element;
   unmount(): void;
 }
@@ -33,6 +41,14 @@ export interface SetupResult {
 export type SetupFn = (options?: SetupOptions) => SetupResult | Promise<SetupResult>;
 
 export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor }: TestTools): void {
+  const setInputValue = async (element: Element, value: string) => {
+    if (fireEvent.update) {
+      await fireEvent.update(element, value);
+      return;
+    }
+    await fireEvent.input(element, { target: { value } });
+  };
+
   describe('PhoneInput API', () => {
     it('exposes imperative methods through ref', async () => {
       const { ref, onChange, unmount } = await setup({ value: '20255501', detect: false });
@@ -118,7 +134,8 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
 
       const { container, onCopy, unmount } = await setup({
         value: '2025550199',
-        detect: false
+        detect: false,
+        showCopy: true
       });
 
       const input = screen.getByRole('textbox');
@@ -130,7 +147,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       });
       input.dispatchEvent(beforeInput);
 
-      await fireEvent.input(input, { target: { value: '202-555-0199' } });
+      await setInputValue(input, '202-555-0199');
       await fireEvent.keyDown(input, { key: 'Backspace' });
 
       const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
@@ -140,11 +157,14 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       });
       input.dispatchEvent(pasteEvent);
 
-      const copyButton = container.querySelector<HTMLButtonElement>('.pi-btn-copy');
-      expect(copyButton).not.toBeNull();
+      let copyButton!: HTMLButtonElement;
+      await waitFor(() => {
+        copyButton = container.querySelector<HTMLButtonElement>('.pi-btn-copy')!;
+        expect(copyButton).not.toBeNull();
+      });
 
       await act(async () => {
-        await fireEvent.click(copyButton!);
+        await fireEvent.click(copyButton);
       });
 
       await waitFor(() => expect(onCopy).toHaveBeenCalled());
@@ -152,14 +172,86 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
 
       await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
 
-      const searchInput = document.body.querySelector<HTMLInputElement>('.pi-search');
+      const searchInput = document.body.querySelector<HTMLInputElement>('.pi-search') as HTMLInputElement;
       expect(searchInput).not.toBeNull();
 
-      await fireEvent.input(searchInput!, { target: { value: 'zzzz-no-country' } });
-      await fireEvent.keyDown(searchInput!, { key: 'ArrowDown' });
+      await setInputValue(searchInput, 'zzzz-no-country');
+      await fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
 
       await waitFor(() => expect(document.body.textContent).toContain('No countries found'));
 
+      unmount();
+    });
+
+    it('applies disabled/readonly/fixed-country visual state', async () => {
+      const { container, unmount } = await setup({
+        value: '2025550199',
+        detect: false,
+        showClear: true,
+        disabled: true,
+        readonly: true,
+        country: 'US',
+        disableDefaultStyles: true
+      });
+
+      const root = container.querySelector('.phone-input');
+      expect(root).not.toBeNull();
+      expect(root?.className).toContain('is-disabled');
+      expect(root?.className).toContain('is-readonly');
+      expect(root?.className).toContain('is-unstyled');
+
+      const selectorButton = container.querySelector<HTMLButtonElement>('.pi-selector-btn');
+      expect(selectorButton).not.toBeNull();
+      expect(selectorButton?.className).toContain('no-dropdown');
+      expect(selectorButton?.disabled).toBe(true);
+      expect(selectorButton?.getAttribute('tabindex')).toBe('-1');
+
+      // Disabled inputs hide actionable buttons regardless of value.
+      expect(container.querySelector('.pi-btn-copy')).toBeNull();
+      expect(container.querySelector('.pi-btn-clear')).toBeNull();
+
+      unmount();
+    });
+
+    it('hides copy action when showCopy is disabled', async () => {
+      const { container, unmount } = await setup({
+        value: '2025550199',
+        detect: false,
+        showCopy: false
+      });
+
+      expect(container.querySelector('.pi-btn-copy')).toBeNull();
+      unmount();
+    });
+
+    it('supports custom renderers and focus/blur callbacks', async () => {
+      const { onFocus, onBlur, unmount } = await setup({
+        value: '2025550199',
+        detect: false,
+        showClear: true,
+        showCopy: true,
+        withCustomRenderers: true
+      });
+
+      const input = screen.getByRole('textbox');
+      await fireEvent.focus(input);
+      await fireEvent.blur(input);
+
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      expect(onBlur).toHaveBeenCalledTimes(1);
+
+      expect(document.body.querySelector('[data-testid="actions-before"]')).not.toBeNull();
+      expect(document.body.querySelector('[data-testid="copy-custom"]')).not.toBeNull();
+      expect(document.body.querySelector('[data-testid="clear-custom"]')).not.toBeNull();
+      expect(document.body.querySelector('[data-testid="flag-custom"]')).not.toBeNull();
+
+      await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+
+      await waitFor(() => {
+        expect(document.body.querySelector('.phone-dropdown.custom-dropdown')).not.toBeNull();
+      });
+
+      expect(document.body.querySelectorAll('[data-testid="flag-custom"]').length).toBeGreaterThan(0);
       unmount();
     });
   });

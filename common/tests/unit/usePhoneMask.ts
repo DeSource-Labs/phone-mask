@@ -18,7 +18,14 @@ export interface UsePhoneMaskSetupResult {
   };
 }
 
-export type UsePhoneMaskSetupFn = (initialValue?: string) => UsePhoneMaskSetupResult | Promise<UsePhoneMaskSetupResult>;
+export interface UsePhoneMaskSetupOptions {
+  attachRef?: boolean;
+}
+
+export type UsePhoneMaskSetupFn = (
+  initialValue?: string,
+  options?: UsePhoneMaskSetupOptions
+) => UsePhoneMaskSetupResult | Promise<UsePhoneMaskSetupResult>;
 
 export function testUsePhoneMask(setup: UsePhoneMaskSetupFn, { act }: Pick<TestTools, 'act'>): void {
   describe('usePhoneMask', () => {
@@ -73,6 +80,27 @@ export function testUsePhoneMask(setup: UsePhoneMaskSetupFn, { act }: Pick<TestT
       expect(onChange).toHaveBeenLastCalledWith('');
       expect(getValue()).toBe('');
       expect(api.isEmpty()).toBe(true);
+      unmount();
+    });
+
+    it('handles lifecycle when input ref is not attached', async () => {
+      const { api, onChange, getValue, unmount } = await setup('202', { attachRef: false });
+
+      await act(async () => {});
+      expect(api.getDigits()).toBe('202');
+      expect(api.getFull()).toBe('+1202');
+
+      await act(async () => {
+        api.setCountry('DE');
+      });
+      expect(api.getFull()).toBe('+49202');
+
+      await act(async () => {
+        api.clear();
+      });
+      expect(onChange).toHaveBeenCalledWith('');
+      expect(getValue()).toBe('');
+
       unmount();
     });
   });
