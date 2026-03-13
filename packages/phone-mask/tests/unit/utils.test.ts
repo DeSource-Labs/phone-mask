@@ -76,6 +76,23 @@ describe('locale helpers', () => {
     expect(detectCountryFromLocale()).toBeNull();
   });
 
+  it('falls back to split parsing when Intl.Locale throws', () => {
+    vi.stubGlobal('navigator', { language: 'fr-CA' });
+    vi.stubGlobal(
+      'Intl',
+      {
+        ...Intl,
+        Locale: class BrokenLocale {
+          constructor() {
+            throw new Error('Intl.Locale unavailable');
+          }
+        }
+      } as unknown as typeof Intl
+    );
+
+    expect(detectCountryFromLocale()).toBe('CA');
+  });
+
   it('returns null when locale contains an empty region segment', () => {
     vi.stubGlobal('navigator', { language: 'en-' });
     expect(detectCountryFromLocale()).toBeNull();
@@ -99,6 +116,7 @@ describe('country helpers', () => {
   it('parses country code or fallback when invalid', () => {
     expect(parseCountryCode('us')).toBe('US');
     expect(parseCountryCode('ZZ', 'DE')).toBe('DE');
+    expect(parseCountryCode('', 'DE')).toBe('DE');
     expect(parseCountryCode(undefined, 'DE')).toBe('DE');
   });
 });
