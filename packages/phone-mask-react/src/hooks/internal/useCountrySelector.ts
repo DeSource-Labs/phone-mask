@@ -106,8 +106,8 @@ export function useCountrySelector({
     const rect = rootRef.current.getBoundingClientRect();
 
     setDropdownStyle({
-      top: `${rect.bottom + window.scrollY + 8}px`,
-      left: `${rect.left + window.scrollX}px`,
+      top: `${rect.bottom + globalThis.scrollY + 8}px`,
+      left: `${rect.left + globalThis.scrollX}px`,
       width: `${rect.width}px`
     });
   }, []);
@@ -173,14 +173,14 @@ export function useCountrySelector({
 
     positionDropdown();
 
-    window.addEventListener('resize', positionDropdown);
-    window.addEventListener('scroll', positionDropdown, true);
-    window.addEventListener('click', onDocClick, true);
+    globalThis.addEventListener('resize', positionDropdown);
+    globalThis.addEventListener('scroll', positionDropdown, true);
+    globalThis.addEventListener('click', onDocClick, true);
 
     return () => {
-      window.removeEventListener('resize', positionDropdown);
-      window.removeEventListener('scroll', positionDropdown, true);
-      window.removeEventListener('click', onDocClick, true);
+      globalThis.removeEventListener('resize', positionDropdown);
+      globalThis.removeEventListener('scroll', positionDropdown, true);
+      globalThis.removeEventListener('click', onDocClick, true);
     };
   }, [dropdownOpen, positionDropdown, onDocClick]);
 

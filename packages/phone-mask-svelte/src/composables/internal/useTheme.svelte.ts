@@ -12,8 +12,7 @@ export function useTheme({ theme }: UseThemeOptions) {
   );
 
   $effect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    const mq = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
     if (!mq) return;
     systemDark = mq.matches;
     const handler = (e: MediaQueryListEvent) => {

@@ -15,8 +15,7 @@ export function useTheme({ theme }: UseThemeOptions) {
 
   // Track system color scheme reactively so theme:'auto' responds to OS changes at runtime
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    const mq = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
     if (!mq) return;
     setSystemDark(mq.matches);
 
