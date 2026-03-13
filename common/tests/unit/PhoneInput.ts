@@ -123,7 +123,8 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
 
       const { container, onCopy, unmount } = await setup({
         value: '2025550199',
-        detect: false
+        detect: false,
+        showCopy: true
       });
 
       const input = screen.getByRole('textbox');
@@ -145,8 +146,11 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       });
       input.dispatchEvent(pasteEvent);
 
-      const copyButton = container.querySelector<HTMLButtonElement>('.pi-btn-copy');
-      expect(copyButton).not.toBeNull();
+      let copyButton!: HTMLButtonElement;
+      await waitFor(() => {
+        copyButton = container.querySelector<HTMLButtonElement>('.pi-btn-copy')!;
+        expect(copyButton).not.toBeNullable();
+      });
 
       await act(async () => {
         await fireEvent.click(copyButton!);

@@ -22,11 +22,11 @@ const setup: SetupFn = async (options = {}) => {
         'onUpdate:modelValue': onChange,
         'onCountry-change': onCountryChange,
         onCopy,
-        detect: options.detect ?? false,
-        showClear: options.showClear ?? false,
-        showCopy: options.showCopy ?? false,
-        disabled: options.disabled ?? false,
-        readonly: options.readonly ?? false,
+        detect: options.detect,
+        showClear: options.showClear,
+        showCopy: options.showCopy,
+        disabled: options.disabled,
+        readonly: options.readonly,
         country: options.country as CountryKey | undefined,
         disableDefaultStyles: options.disableDefaultStyles
       })

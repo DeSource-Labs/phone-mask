@@ -2,10 +2,11 @@
 import { useState } from 'react';
 import { render } from '@testing-library/react';
 import { usePhoneMask } from '../../src/hooks/usePhoneMask';
-import { testUsePhoneMask } from '@common/tests/unit/usePhoneMask';
-import { tools, renderHookWithProxy } from './setup/tools';
+import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
+import { tools } from './setup/tools';
 
-function setup(initialValue = '') {
+function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
+  const { attachRef = true } = options;
   const onChange = vi.fn();
   let currentValue = initialValue;
   let api: ReturnType<typeof usePhoneMask> | null = null;
@@ -23,7 +24,7 @@ function setup(initialValue = '') {
       }
     });
 
-    return <input data-testid="phone-input" ref={api.ref} />;
+    return <input data-testid="phone-input" ref={attachRef ? api.ref : undefined} />;
   }
 
   const rendered = render(<Harness />);
@@ -52,34 +53,3 @@ function setup(initialValue = '') {
 }
 
 testUsePhoneMask(setup, tools);
-
-describe('usePhoneMask (React)', () => {
-  it('handles lifecycle when input ref is never attached', async () => {
-    const onChange = vi.fn();
-
-    const { result, rerender, unmount } = renderHookWithProxy(
-      ({ value }: { value: string }) =>
-        usePhoneMask({
-          value,
-          detect: false,
-          onChange
-        }),
-      { initialProps: { value: '202' } }
-    );
-
-    await tools.act(async () => {});
-    expect(result.digits).toBe('202');
-
-    await tools.act(async () => {
-      result.clear();
-    });
-    expect(onChange).toHaveBeenCalledWith('');
-
-    await tools.act(async () => {
-      rerender({ value: '2025550199' });
-    });
-    expect(result.full).toBe('+12025550199');
-
-    unmount();
-  });
-});

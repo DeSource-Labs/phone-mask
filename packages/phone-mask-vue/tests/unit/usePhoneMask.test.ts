@@ -3,10 +3,11 @@ import { defineComponent, h, nextTick, ref } from 'vue';
 import { render } from '@testing-library/vue';
 import { usePhoneMask } from '../../src/composables/usePhoneMask';
 import { install } from '../../src/index';
-import { testUsePhoneMask } from '@common/tests/unit/usePhoneMask';
+import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { tools, withSetup } from './setup/tools';
 
-function setupUsePhoneMaskHarness(initialValue = '') {
+function setupUsePhoneMaskHarness(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
+  const { attachRef = true } = options;
   const value = ref(initialValue);
   const onChange = vi.fn((nextDigits: string) => {
     value.value = nextDigits;
@@ -24,7 +25,7 @@ function setupUsePhoneMaskHarness(initialValue = '') {
 
       return () =>
         h('input', {
-          ref: api.inputRef,
+          ...(attachRef ? { ref: api.inputRef } : {}),
           'data-testid': 'phone-input'
         });
     }
@@ -80,33 +81,6 @@ describe('usePhoneMask', () => {
     expect(removeEventListenerSpy).toHaveBeenCalledWith('input', expect.any(Function));
     expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
     expect(removeEventListenerSpy).toHaveBeenCalledWith('paste', expect.any(Function));
-  });
-
-  it('handles lifecycle when inputRef is never assigned', async () => {
-    const value = ref('202');
-    const onChange = vi.fn((nextDigits: string) => {
-      value.value = nextDigits;
-    });
-
-    const { result, unmount } = withSetup(() =>
-      usePhoneMask({
-        value,
-        detect: false,
-        onChange
-      })
-    );
-
-    await nextTick();
-    expect(result.digits.value).toBe('202');
-
-    result.clear();
-    expect(onChange).toHaveBeenCalledWith('');
-
-    value.value = '2025550199';
-    await nextTick();
-    expect(result.full.value).toBe('+12025550199');
-
-    unmount();
   });
 });
 

@@ -1,9 +1,10 @@
 /// <reference types="vitest/globals" />
 import { usePhoneMask } from '../../src/composables/usePhoneMask.svelte';
-import { testUsePhoneMask } from '@common/tests/unit/usePhoneMask';
+import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { createState, tools, withSetup } from './setup/tools.svelte';
 
-function setup(initialValue = '') {
+function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
+  const { attachRef = true } = options;
   const valueState = createState(initialValue);
   const onChange = vi.fn((nextDigits: string) => {
     valueState.value = nextDigits;
@@ -16,7 +17,9 @@ function setup(initialValue = '') {
       detect: () => false,
       onChange
     });
-    api.inputRef = inputEl;
+    if (attachRef) {
+      api.inputRef = inputEl;
+    }
     return api;
   });
 
@@ -38,31 +41,3 @@ function setup(initialValue = '') {
 }
 
 testUsePhoneMask(setup, tools);
-
-describe('usePhoneMask (Svelte)', () => {
-  it('handles lifecycle when inputRef is never assigned', async () => {
-    const valueState = createState('202');
-    const onChange = vi.fn((nextDigits: string) => {
-      valueState.value = nextDigits;
-    });
-
-    const { result, unmount } = withSetup(() =>
-      usePhoneMask({
-        value: () => valueState.value,
-        detect: () => false,
-        onChange
-      })
-    );
-
-    expect(result.digits).toBe('202');
-
-    result.clear();
-    expect(onChange).toHaveBeenCalledWith('');
-
-    valueState.value = '2025550199';
-    await tools.act(async () => {});
-    expect(result.full).toBe('+12025550199');
-
-    unmount();
-  });
-});
