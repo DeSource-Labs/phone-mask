@@ -46,7 +46,7 @@ function toMaskFromInternational(intlStr) {
   const noExt = intlStr.split(/(?: ext| x| ext\.)/i)[0].trim();
 
   // find leading '+' and the following digit run (country code)
-  const match = noExt.match(/^\+(\d+)(.*)$/);
+  const match = /^\+(\d+)(.*)$/.exec(noExt);
   if (!match) {
     // fallback: replace all digits with '#'
     return noExt.replaceAll(/\d/g, '#');
