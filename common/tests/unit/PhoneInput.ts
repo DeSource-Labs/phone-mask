@@ -24,6 +24,7 @@ export interface SetupOptions {
   readonly?: boolean;
   country?: string;
   disableDefaultStyles?: boolean;
+  withCustomRenderers?: boolean;
 }
 
 export interface SetupResult {
@@ -31,6 +32,8 @@ export interface SetupResult {
   onChange: Mock;
   onCountryChange: Mock;
   onCopy: Mock;
+  onFocus: Mock;
+  onBlur: Mock;
   container: Element;
   unmount(): void;
 }
@@ -210,6 +213,37 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       });
 
       expect(container.querySelector('.pi-btn-copy')).toBeNull();
+      unmount();
+    });
+
+    it('supports custom renderers and focus/blur callbacks', async () => {
+      const { onFocus, onBlur, unmount } = await setup({
+        value: '2025550199',
+        detect: false,
+        showClear: true,
+        showCopy: true,
+        withCustomRenderers: true
+      });
+
+      const input = screen.getByRole('textbox');
+      await fireEvent.focus(input);
+      await fireEvent.blur(input);
+
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      expect(onBlur).toHaveBeenCalledTimes(1);
+
+      expect(document.body.querySelector('[data-testid="actions-before"]')).not.toBeNull();
+      expect(document.body.querySelector('[data-testid="copy-custom"]')).not.toBeNull();
+      expect(document.body.querySelector('[data-testid="clear-custom"]')).not.toBeNull();
+      expect(document.body.querySelector('[data-testid="flag-custom"]')).not.toBeNull();
+
+      await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+
+      await waitFor(() => {
+        expect(document.body.querySelector('.phone-dropdown.custom-dropdown')).not.toBeNull();
+      });
+
+      expect(document.body.querySelectorAll('[data-testid="flag-custom"]').length).toBeGreaterThan(0);
       unmount();
     });
   });

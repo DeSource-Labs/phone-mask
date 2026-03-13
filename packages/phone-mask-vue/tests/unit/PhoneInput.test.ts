@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { defineComponent, shallowRef, h } from 'vue';
-import { render, fireEvent, screen, waitFor } from '@testing-library/vue';
+import { render } from '@testing-library/vue';
 import { PhoneInput } from '../../src/index';
 import type { PhoneInputExposed } from '../../src/types';
 import { testPhoneInput } from '@common/tests/unit/PhoneInput';
@@ -12,7 +12,18 @@ const setup: SetupFn = async (options = {}) => {
   const onChange = vi.fn();
   const onCountryChange = vi.fn();
   const onCopy = vi.fn();
+  const onFocus = vi.fn();
+  const onBlur = vi.fn();
   const phoneRef = shallowRef<PhoneInputExposed | null>(null);
+
+  const slots = options.withCustomRenderers
+    ? {
+        'actions-before': () => h('span', { 'data-testid': 'actions-before' }, 'Before'),
+        'copy-svg': () => h('span', { 'data-testid': 'copy-custom' }, 'Copy'),
+        'clear-svg': () => h('span', { 'data-testid': 'clear-custom' }, 'Clear'),
+        flag: ({ country }: { country: { id: string } }) => h('span', { 'data-testid': 'flag-custom' }, country.id)
+      }
+    : undefined;
 
   const Wrapper = defineComponent({
     render: () =>
@@ -22,14 +33,17 @@ const setup: SetupFn = async (options = {}) => {
         'onUpdate:modelValue': onChange,
         'onCountry-change': onCountryChange,
         onCopy,
-        detect: options.detect,
-        showClear: options.showClear,
-        showCopy: options.showCopy,
-        disabled: options.disabled,
-        readonly: options.readonly,
+        onFocus,
+        onBlur,
+        detect: options.detect as boolean,
+        showClear: options.showClear as boolean,
+        showCopy: options.showCopy as boolean,
+        disabled: options.disabled as boolean,
+        readonly: options.readonly as boolean,
         country: options.country as CountryKey | undefined,
-        disableDefaultStyles: options.disableDefaultStyles
-      })
+        disableDefaultStyles: options.disableDefaultStyles,
+        dropdownClass: options.withCustomRenderers ? 'custom-dropdown' : undefined
+      }, slots)
   });
 
   const { container, unmount } = render(Wrapper);
@@ -41,39 +55,11 @@ const setup: SetupFn = async (options = {}) => {
     onChange,
     onCountryChange,
     onCopy,
+    onFocus,
+    onBlur,
     container,
     unmount
   };
 };
 
 testPhoneInput(setup, tools);
-
-describe('PhoneInput (Vue)', () => {
-  it('renders custom slots for actions, icons and flag', async () => {
-    render(PhoneInput, {
-      props: {
-        modelValue: '2025550199',
-        detect: false,
-        showClear: true
-      },
-      slots: {
-        'actions-before': '<span data-testid="actions-before">Before</span>',
-        'copy-svg': '<span data-testid="copy-slot">Copy</span>',
-        'clear-svg': '<span data-testid="clear-slot">Clear</span>',
-        flag: '<span data-testid="flag-slot">Flag</span>'
-      }
-    });
-
-    expect(screen.queryByTestId('actions-before')).not.toBeNull();
-    expect(screen.queryByTestId('copy-slot')).not.toBeNull();
-    expect(screen.queryByTestId('clear-slot')).not.toBeNull();
-    expect(screen.queryByTestId('flag-slot')).not.toBeNull();
-
-    await fireEvent.click(screen.getByRole('button', { name: /selected country/i }));
-    await waitFor(() => {
-      expect(document.body.querySelector('.phone-dropdown')).not.toBeNull();
-    });
-
-    expect(document.body.querySelectorAll('[data-testid="flag-slot"]').length).toBeGreaterThan(0);
-  });
-});

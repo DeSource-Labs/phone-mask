@@ -21,5 +21,8 @@ export interface TestTools {
     mouseEnter(element: Element): FireEventReturn;
     input(element: Element, options: { target: { value: string } }): FireEventReturn;
     keyDown(element: Element, options: { key: string }): FireEventReturn;
+    focus(element: Element): FireEventReturn;
+    blur(element: Element): FireEventReturn;
+    update(element: Element, options: { target: { value: string } }): FireEventReturn;
   };
 }
