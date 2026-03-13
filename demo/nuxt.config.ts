@@ -10,10 +10,7 @@ const config: NuxtConfig = {
 
   vite: {
     optimizeDeps: {
-      include: [
-        'ogl',
-        'gsap',
-      ]
+      include: ['ogl', 'gsap']
     }
   },
 
