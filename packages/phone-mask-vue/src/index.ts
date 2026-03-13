@@ -9,8 +9,6 @@ import {
 import type { App } from 'vue';
 import PhoneInput from './components/PhoneInput.vue';
 import { vPhoneMask, setCountry as vPhoneMaskSetCountry } from './directives/vPhoneMask';
-import type { PhoneNumber as PMaskPhoneNumber, Size as PhoneInputSize, Theme as PhoneInputTheme } from './types';
-import { usePhoneMask } from './composables/usePhoneMask';
 
 type TPhoneInputComponent = typeof PhoneInput;
 type TPhoneMaskDirective = typeof vPhoneMask;
@@ -26,16 +24,20 @@ export {
   vPhoneMask,
   install,
   vPhoneMaskSetCountry,
-  usePhoneMask,
   type TPhoneInputComponent,
   type TPhoneMaskDirective,
-  type TPhoneMaskSetCountryType,
-  type PMaskPhoneNumber,
-  type PhoneInputSize,
-  type PhoneInputTheme
+  type TPhoneMaskSetCountryType
 };
 
-export type { UsePhoneMaskOptions, UsePhoneMaskReturn } from './types';
+export { usePhoneMask } from './composables/usePhoneMask';
+
+export type {
+  PhoneNumber as PMaskPhoneNumber,
+  Size as PhoneInputSize,
+  Theme as PhoneInputTheme,
+  UsePhoneMaskOptions,
+  UsePhoneMaskReturn
+} from './types';
 
 export default {
   install
