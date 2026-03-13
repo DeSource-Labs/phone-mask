@@ -11,7 +11,13 @@ export function useTheme({ theme }: UseThemeOptions) {
   const systemDark = ref<boolean>(false);
 
   const themeClass = computed<string>(() => {
-    return toValue(theme) !== 'auto' ? `theme-${toValue(theme)}` : systemDark.value ? 'theme-dark' : 'theme-light';
+    const resolvedTheme = toValue(theme);
+
+    if (resolvedTheme === 'auto') {
+      return systemDark.value ? 'theme-dark' : 'theme-light';
+    }
+
+    return `theme-${resolvedTheme}`;
   });
 
   let mq: MediaQueryList | null = null;
