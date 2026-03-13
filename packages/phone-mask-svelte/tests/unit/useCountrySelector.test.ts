@@ -44,44 +44,6 @@ function setup(options: SetupOptions = {}) {
 
 testUseCountrySelector(setup, tools);
 
-describe('isClosing (Svelte)', () => {
-  it('isClosing is true after closeDropdown before animation completes', async () => {
-    const { result, unmount } = setup();
-
-    await tools.act(async () => {
-      result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      result.closeDropdown();
-    });
-
-    expect(result.isClosing).toBe(true);
-    expect(result.dropdownOpen).toBe(true);
-    unmount();
-  });
-
-  it('isClosing is false and dropdownOpen is false after handleDropdownAnimationEnd', async () => {
-    const { result, unmount } = setup();
-
-    await tools.act(async () => {
-      result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      result.closeDropdown();
-    });
-
-    await tools.act(async () => {
-      result.handleDropdownAnimationEnd();
-    });
-
-    expect(result.isClosing).toBe(false);
-    expect(result.dropdownOpen).toBe(false);
-    unmount();
-  });
-});
-
 function setupWithDom(initialCountryOption?: string) {
   const countryOptionState = createState<string | undefined>(initialCountryOption);
 

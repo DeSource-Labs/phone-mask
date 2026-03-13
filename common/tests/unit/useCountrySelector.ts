@@ -11,6 +11,7 @@ export interface SetupOptions {
 export interface CountrySelectorSetupResult {
   result: {
     dropdownOpen: MaybeRef<boolean>;
+    isClosing?: MaybeRef<boolean>;
     search: MaybeRef<string>;
     focusedIndex: MaybeRef<number>;
     filteredCountries: MaybeRef<Array<{ id: string }>>;
@@ -136,6 +137,50 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
           simulateCloseComplete();
         });
 
+        expect(toValue(result.dropdownOpen)).toBe(false);
+        unmount();
+      });
+
+      it('exposes closing state before close animation completes when supported', async () => {
+        const { result, unmount } = setup();
+        if (result.isClosing === undefined) {
+          unmount();
+          return;
+        }
+
+        await act(async () => {
+          result.openDropdown();
+        });
+
+        await act(async () => {
+          result.closeDropdown();
+        });
+
+        expect(toValue(result.isClosing)).toBe(true);
+        expect(toValue(result.dropdownOpen)).toBe(true);
+        unmount();
+      });
+
+      it('resets closing state after close completion when supported', async () => {
+        const { result, simulateCloseComplete, unmount } = setup();
+        if (result.isClosing === undefined) {
+          unmount();
+          return;
+        }
+
+        await act(async () => {
+          result.openDropdown();
+        });
+
+        await act(async () => {
+          result.closeDropdown();
+        });
+
+        await act(async () => {
+          simulateCloseComplete();
+        });
+
+        expect(toValue(result.isClosing)).toBe(false);
         expect(toValue(result.dropdownOpen)).toBe(false);
         unmount();
       });
