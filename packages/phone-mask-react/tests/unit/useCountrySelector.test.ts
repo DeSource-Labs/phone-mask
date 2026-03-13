@@ -101,6 +101,9 @@ function setupWithDom(initialCountryOption?: string) {
 
   const searchEl = document.createElement('input');
   vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const selectorEl = document.createElement('div');
+
+  document.body.append(rootEl, dropdownEl, selectorEl);
 
   const { result, rerender, unmount } = renderHookWithProxy(
     ({ countryOption }: { countryOption?: string }) =>
@@ -108,7 +111,7 @@ function setupWithDom(initialCountryOption?: string) {
         rootRef: { current: rootEl },
         dropdownRef: { current: dropdownEl },
         searchRef: { current: searchEl },
-        selectorRef: { current: document.createElement('div') },
+        selectorRef: { current: selectorEl },
         locale: 'en',
         countryOption,
         onSelectCountry: vi.fn()
@@ -119,11 +122,18 @@ function setupWithDom(initialCountryOption?: string) {
   return {
     result,
     rerender,
-    unmount,
+    unmount: () => {
+      rootEl.remove();
+      dropdownEl.remove();
+      selectorEl.remove();
+      unmount();
+    },
     scrollToSpy,
     listRectSpy,
     optionARectSpy,
     optionBRectSpy,
+    dropdownTarget: dropdownEl,
+    selectorTarget: selectorEl,
     flushAsync: async () => {
       vi.runAllTimers();
     },
