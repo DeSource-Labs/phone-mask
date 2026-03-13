@@ -111,17 +111,14 @@ export function testUseCountrySelectorDomBehavior(
 
     it('does not close when clicking inside dropdown', async () => {
       const ctx = setupWithDom();
-      if (!ctx.dropdownTarget) {
-        ctx.unmount();
-        return;
-      }
+      expect(ctx.dropdownTarget).toBeDefined();
 
       await act(async () => {
         ctx.result.openDropdown();
       });
 
       await act(async () => {
-        ctx.dropdownTarget?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        ctx.dropdownTarget!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       });
       await ctx.flushAsync();
 
@@ -131,17 +128,14 @@ export function testUseCountrySelectorDomBehavior(
 
     it('does not close when clicking on selector trigger area', async () => {
       const ctx = setupWithDom();
-      if (!ctx.selectorTarget) {
-        ctx.unmount();
-        return;
-      }
+      expect(ctx.selectorTarget).toBeDefined();
 
       await act(async () => {
         ctx.result.openDropdown();
       });
 
       await act(async () => {
-        ctx.selectorTarget?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        ctx.selectorTarget!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       });
       await ctx.flushAsync();
 
