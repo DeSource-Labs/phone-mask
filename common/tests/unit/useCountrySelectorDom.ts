@@ -19,8 +19,8 @@ export interface CountrySelectorDomSetupResult {
   flushAsync: () => Promise<void>;
   setCountryOptionFixed?: () => void | Promise<void>;
   completeClose?: () => void;
-  dropdownTarget?: HTMLElement;
-  selectorTarget?: HTMLElement;
+  dropdownTarget: HTMLElement;
+  selectorTarget: HTMLElement;
 }
 
 export type CountrySelectorDomSetupFn = () => CountrySelectorDomSetupResult;
