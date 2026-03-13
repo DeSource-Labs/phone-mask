@@ -38,3 +38,31 @@ function setup(initialValue = '') {
 }
 
 testUsePhoneMask(setup, tools);
+
+describe('usePhoneMask (Svelte)', () => {
+  it('handles lifecycle when inputRef is never assigned', async () => {
+    const valueState = createState('202');
+    const onChange = vi.fn((nextDigits: string) => {
+      valueState.value = nextDigits;
+    });
+
+    const { result, unmount } = withSetup(() =>
+      usePhoneMask({
+        value: () => valueState.value,
+        detect: () => false,
+        onChange
+      })
+    );
+
+    expect(result.digits).toBe('202');
+
+    result.clear();
+    expect(onChange).toHaveBeenCalledWith('');
+
+    valueState.value = '2025550199';
+    await tools.act(async () => {});
+    expect(result.full).toBe('+12025550199');
+
+    unmount();
+  });
+});
