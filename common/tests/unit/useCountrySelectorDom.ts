@@ -19,6 +19,8 @@ export interface CountrySelectorDomSetupResult {
   flushAsync: () => Promise<void>;
   setCountryOptionFixed?: () => void | Promise<void>;
   completeClose?: () => void;
+  dropdownTarget?: HTMLElement;
+  selectorTarget?: HTMLElement;
 }
 
 export type CountrySelectorDomSetupFn = () => CountrySelectorDomSetupResult;
@@ -104,6 +106,46 @@ export function testUseCountrySelectorDomBehavior(
       });
 
       expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+      ctx.unmount();
+    });
+
+    it('does not close when clicking inside dropdown', async () => {
+      const ctx = setupWithDom();
+      if (!ctx.dropdownTarget) {
+        ctx.unmount();
+        return;
+      }
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+
+      await act(async () => {
+        ctx.dropdownTarget?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+      await ctx.flushAsync();
+
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      ctx.unmount();
+    });
+
+    it('does not close when clicking on selector trigger area', async () => {
+      const ctx = setupWithDom();
+      if (!ctx.selectorTarget) {
+        ctx.unmount();
+        return;
+      }
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+
+      await act(async () => {
+        ctx.selectorTarget?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+      await ctx.flushAsync();
+
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
       ctx.unmount();
     });
   });
