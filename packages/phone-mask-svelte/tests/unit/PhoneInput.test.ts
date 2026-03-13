@@ -20,7 +20,7 @@ const setup: SetupFn = (options = {}) => {
           initialValue: options.value ?? '2025550199',
           onfocus: onFocus,
           onblur: onBlur,
-          onchange: onChange,
+          onchange: (data) => onChange(data.digits),
           oncountrychange: onCountryChange,
           oncopy: onCopy
         }
