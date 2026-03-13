@@ -118,7 +118,7 @@ export function testUseCountrySelectorDomBehavior(
       });
 
       await act(async () => {
-        ctx.dropdownTarget!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        ctx.dropdownTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       });
       await ctx.flushAsync();
 
@@ -135,7 +135,7 @@ export function testUseCountrySelectorDomBehavior(
       });
 
       await act(async () => {
-        ctx.selectorTarget!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        ctx.selectorTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
       });
       await ctx.flushAsync();
 
