@@ -19,6 +19,11 @@ export interface SetupOptions {
   value?: string;
   detect?: boolean;
   showClear?: boolean;
+  showCopy?: boolean;
+  disabled?: boolean;
+  readonly?: boolean;
+  country?: string;
+  disableDefaultStyles?: boolean;
 }
 
 export interface SetupResult {
@@ -160,6 +165,47 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
 
       await waitFor(() => expect(document.body.textContent).toContain('No countries found'));
 
+      unmount();
+    });
+
+    it('applies disabled/readonly/fixed-country visual state', async () => {
+      const { container, unmount } = await setup({
+        value: '2025550199',
+        detect: false,
+        showClear: true,
+        disabled: true,
+        readonly: true,
+        country: 'US',
+        disableDefaultStyles: true
+      });
+
+      const root = container.querySelector('.phone-input');
+      expect(root).not.toBeNull();
+      expect(root?.className).toContain('is-disabled');
+      expect(root?.className).toContain('is-readonly');
+      expect(root?.className).toContain('is-unstyled');
+
+      const selectorButton = container.querySelector<HTMLButtonElement>('.pi-selector-btn');
+      expect(selectorButton).not.toBeNull();
+      expect(selectorButton?.className).toContain('no-dropdown');
+      expect(selectorButton?.disabled).toBe(true);
+      expect(selectorButton?.getAttribute('tabindex')).toBe('-1');
+
+      // Disabled inputs hide actionable buttons regardless of value.
+      expect(container.querySelector('.pi-btn-copy')).toBeNull();
+      expect(container.querySelector('.pi-btn-clear')).toBeNull();
+
+      unmount();
+    });
+
+    it('hides copy action when showCopy is disabled', async () => {
+      const { container, unmount } = await setup({
+        value: '2025550199',
+        detect: false,
+        showCopy: false
+      });
+
+      expect(container.querySelector('.pi-btn-copy')).toBeNull();
       unmount();
     });
   });
