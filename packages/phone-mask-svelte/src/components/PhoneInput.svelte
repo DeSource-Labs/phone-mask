@@ -124,6 +124,20 @@
   export function isComplete() { return formatterData.isComplete; }
 
   const handleClearClick = () => { clear(); focusInput(); };
+  const handleOptionClick = (e: MouseEvent) => {
+    const code = (e.currentTarget as HTMLLIElement | null)?.dataset.country;
+    if (code) selectorData.selectCountry(code);
+  };
+  const handleOptionKeydown = (e: KeyboardEvent) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    const code = (e.currentTarget as HTMLLIElement | null)?.dataset.country;
+    if (code) selectorData.selectCountry(code);
+  };
+  const handleOptionMouseEnter = (e: MouseEvent) => {
+    const index = Number((e.currentTarget as HTMLLIElement | null)?.dataset.index);
+    if (!Number.isNaN(index)) selectorData.setFocusedIndex(index);
+  };
 
   const themeData = useTheme({
     theme: () => theme,
@@ -260,14 +274,16 @@
       aria-activedescendant="option-{selectorData.focusedIndex}" tabindex="-1">
       {#each selectorData.filteredCountries as c, idx (c.id)}
         <li id="option-{idx}" role="option"
+          data-country={c.id}
+          data-index={idx}
           class="pi-option"
           class:is-focused={idx === selectorData.focusedIndex}
           class:is-selected={c.id === countryData.country.id}
           aria-selected={c.id === countryData.country.id}
           title={c.name}
-          onclick={() => selectorData.selectCountry(c.id)}
-          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectorData.selectCountry(c.id); } }}
-          onmouseenter={() => selectorData.setFocusedIndex(idx)}>
+          onclick={handleOptionClick}
+          onkeydown={handleOptionKeydown}
+          onmouseenter={handleOptionMouseEnter}>
           <span class="pi-flag" role="img" aria-label="{c.name} flag">
             {#if flag}{@render flag(c)}{:else}{c.flag}{/if}
           </span>

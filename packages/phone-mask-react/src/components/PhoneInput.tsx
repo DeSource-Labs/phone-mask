@@ -161,6 +161,32 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     focusInput();
   }, [clear, focusInput]);
 
+  const handleOptionClick = useCallback(
+    (e: React.MouseEvent<HTMLLIElement>) => {
+      const code = e.currentTarget.dataset.country;
+      if (code) selectCountry(code);
+    },
+    [selectCountry]
+  );
+
+  const handleOptionKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLLIElement>) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      const code = e.currentTarget.dataset.country;
+      if (code) selectCountry(code);
+    },
+    [selectCountry]
+  );
+
+  const handleOptionMouseEnter = useCallback(
+    (e: React.MouseEvent<HTMLLIElement>) => {
+      const index = Number(e.currentTarget.dataset.index);
+      if (!Number.isNaN(index)) setFocusedIndex(index);
+    },
+    [setFocusedIndex]
+  );
+
   // Imperative handle
   useImperativeHandle(
     ref,
@@ -350,19 +376,16 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     key={c.id}
                     id={`option-${idx}`}
                     role="option"
+                    data-country={c.id}
+                    data-index={idx}
                     className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
                       c.id === country.id ? 'is-selected' : ''
                     }`}
                     aria-selected={c.id === country.id}
                     title={c.name}
-                    onClick={() => selectCountry(c.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        selectCountry(c.id);
-                      }
-                    }}
-                    onMouseEnter={() => setFocusedIndex(idx)}
+                    onClick={handleOptionClick}
+                    onKeyDown={handleOptionKeyDown}
+                    onMouseEnter={handleOptionMouseEnter}
                   >
                     <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
                       {renderFlag ? renderFlag(c) : c.flag}

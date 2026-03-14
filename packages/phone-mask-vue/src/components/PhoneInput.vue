@@ -148,6 +148,8 @@
               :id="`option-${idx}`"
               :key="c.id"
               role="option"
+              :data-country="c.id"
+              :data-index="idx"
               :class="[
                 'pi-option',
                 {
@@ -157,10 +159,9 @@
               ]"
               :aria-selected="c.id === country.id"
               :title="c.name"
-              @click="selectCountry(c.id)"
-              @keydown.enter.prevent="selectCountry(c.id)"
-              @keydown.space.prevent="selectCountry(c.id)"
-              @mouseenter="setFocusedIndex(idx)"
+              @click="handleOptionClick"
+              @keydown="handleOptionKeydown"
+              @mouseenter="handleOptionMouseEnter"
             >
               <span class="pi-flag" role="img" :aria-label="`${c.name} flag`">
                 <slot name="flag" :country="c">{{ c.flag }}</slot>
@@ -315,6 +316,23 @@ const clear = () => {
 const onClearClick = () => {
   clear();
   focusInput();
+};
+
+const handleOptionClick = (e: MouseEvent) => {
+  const code = (e.currentTarget as HTMLLIElement | null)?.dataset.country;
+  if (code) selectCountry(code);
+};
+
+const handleOptionKeydown = (e: KeyboardEvent) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  e.preventDefault();
+  const code = (e.currentTarget as HTMLLIElement | null)?.dataset.country;
+  if (code) selectCountry(code);
+};
+
+const handleOptionMouseEnter = (e: MouseEvent) => {
+  const index = Number((e.currentTarget as HTMLLIElement | null)?.dataset.index);
+  if (!Number.isNaN(index)) setFocusedIndex(index);
 };
 
 defineExpose<PhoneInputExposed>({
