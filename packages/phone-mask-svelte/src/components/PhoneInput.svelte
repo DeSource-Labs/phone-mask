@@ -266,7 +266,7 @@
           aria-selected={c.id === countryData.country.id}
           title={c.name}
           onclick={() => selectorData.selectCountry(c.id)}
-          onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectorData.selectCountry(c.id); } }}
+          onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); selectorData.selectCountry(c.id); } }}
           onmouseenter={() => selectorData.setFocusedIndex(idx)}>
           <span class="pi-flag" role="img" aria-label="{c.name} flag">
             {#if flag}{@render flag(c)}{:else}{c.flag}{/if}

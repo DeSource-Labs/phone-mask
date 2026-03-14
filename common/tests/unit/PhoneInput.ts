@@ -125,34 +125,29 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       unmount();
     });
 
-    it('supports keyboard selection on dropdown options (Enter/Space)', async () => {
+    it('supports keyboard selection on dropdown options (Enter)', async () => {
       const { onCountryChange, unmount } = await setup({
         value: '2025550123',
         detect: false
       });
 
-      const selectOptionWithKey = async (key: 'Enter' | ' ') => {
-        await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+      await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
 
-        await waitFor(() => {
-          expect(document.body.querySelectorAll('.pi-option').length).toBeGreaterThan(0);
-        });
+      await waitFor(() => {
+        expect(document.body.querySelectorAll('.pi-option').length).toBeGreaterThan(0);
+      });
 
-        const options = Array.from(document.body.querySelectorAll<HTMLLIElement>('.pi-option'));
-        const targetOption = options.find((option) => option.getAttribute('aria-selected') === 'false');
-        expect(targetOption).toBeDefined();
+      const options = Array.from(document.body.querySelectorAll<HTMLLIElement>('.pi-option'));
+      const targetOption = options.find((option) => option.getAttribute('aria-selected') === 'false');
+      expect(targetOption).toBeDefined();
 
-        const callCountBefore = onCountryChange.mock.calls.length;
+      const callCountBefore = onCountryChange.mock.calls.length;
 
-        await fireEvent.keyDown(targetOption!, { key });
+      await fireEvent.keyDown(targetOption!, { key: 'Enter' });
 
-        await waitFor(() => {
-          expect(onCountryChange.mock.calls.length).toBeGreaterThan(callCountBefore);
-        });
-      };
-
-      await selectOptionWithKey('Enter');
-      await selectOptionWithKey(' ');
+      await waitFor(() => {
+        expect(onCountryChange.mock.calls.length).toBeGreaterThan(callCountBefore);
+      });
 
       unmount();
     });

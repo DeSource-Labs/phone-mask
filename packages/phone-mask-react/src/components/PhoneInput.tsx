@@ -357,7 +357,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     title={c.name}
                     onClick={() => selectCountry(c.id)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === 'Enter') {
                         e.preventDefault();
                         selectCountry(c.id);
                       }

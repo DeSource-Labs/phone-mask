@@ -159,7 +159,6 @@
               :title="c.name"
               @click="selectCountry(c.id)"
               @keydown.enter.prevent="selectCountry(c.id)"
-              @keydown.space.prevent="selectCountry(c.id)"
               @mouseenter="setFocusedIndex(idx)"
             >
               <span class="pi-flag" role="img" :aria-label="`${c.name} flag`">
