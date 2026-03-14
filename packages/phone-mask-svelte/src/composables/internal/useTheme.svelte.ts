@@ -7,13 +7,15 @@ interface UseThemeOptions {
 export function useTheme({ theme }: UseThemeOptions) {
   let systemDark = $state(false);
 
-  const themeClass = $derived<string>((() => {
-    const resolvedTheme = theme();
-    if (resolvedTheme === 'auto') {
-      return systemDark ? 'theme-dark' : 'theme-light';
-    }
-    return `theme-${resolvedTheme}`;
-  })());
+  const themeClass = $derived<string>(
+    (() => {
+      const resolvedTheme = theme();
+      if (resolvedTheme === 'auto') {
+        return systemDark ? 'theme-dark' : 'theme-light';
+      }
+      return `theme-${resolvedTheme}`;
+    })()
+  );
 
   $effect(() => {
     const mq = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? null;

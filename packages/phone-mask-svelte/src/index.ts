@@ -26,11 +26,7 @@ export type {
 
 export const PhoneInput = PhoneInputComponent as unknown as Component<PhoneInputProps, PhoneInputExposed>;
 
-export type {
-  PhoneNumber as PMaskPhoneNumber,
-  Size as PhoneInputSize,
-  Theme as PhoneInputTheme
-} from './types';
+export type { PhoneNumber as PMaskPhoneNumber, Size as PhoneInputSize, Theme as PhoneInputTheme } from './types';
 
 export type {
   CountryKey as PCountryKey,
