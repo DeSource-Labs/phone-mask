@@ -267,7 +267,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
 
           {/* Action Buttons */}
           <div className="pi-actions" role="toolbar" aria-label="Phone input actions">
-            {renderActionsBefore && renderActionsBefore()}
+            {renderActionsBefore?.()}
 
             {showCopyButton && (
               <button
