@@ -356,6 +356,12 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     aria-selected={c.id === country.id}
                     title={c.name}
                     onClick={() => selectCountry(c.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        selectCountry(c.id);
+                      }
+                    }}
                     onMouseEnter={() => setFocusedIndex(idx)}
                   >
                     <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
