@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useRef,
+  useId,
   useCallback,
   type CSSProperties,
   type ForwardedRef
@@ -75,6 +76,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   });
 
   const { showValidationHint, clearValidationHint, scheduleValidationHint } = useValidationHint();
+  const dropdownId = useId();
 
   const telRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -194,6 +196,9 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     .join(' ');
 
   const actionsCount = +showCopyButton + +showClearButton + (renderActionsBefore ? 1 : 0);
+  const listboxId = `pi-options-${dropdownId}`;
+  const optionIdPrefix = `pi-option-${dropdownId}`;
+  const activeOptionId = dropdownOpen && filteredCountries[focusedIndex] ? `${optionIdPrefix}-${focusedIndex}` : undefined;
 
   return (
     <>
@@ -337,18 +342,20 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                 type="search"
                 className="pi-search"
                 aria-label="Search countries"
+                aria-controls={listboxId}
+                aria-activedescendant={activeOptionId}
                 placeholder={searchPlaceholder}
                 value={search}
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchKeydown}
               />
             </div>
-            <ul className="pi-options" role="listbox" aria-activedescendant={`option-${focusedIndex}`} tabIndex={-1}>
+            <ul id={listboxId} className="pi-options" role="listbox" tabIndex={-1}>
               {filteredCountries.length > 0 ? (
                 filteredCountries.map((c, idx) => (
                   <li
                     key={c.id}
-                    id={`option-${idx}`}
+                    id={`${optionIdPrefix}-${idx}`}
                     role="option"
                     className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
                       c.id === country.id ? 'is-selected' : ''
@@ -356,12 +363,6 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     aria-selected={c.id === country.id}
                     title={c.name}
                     onClick={() => selectCountry(c.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        selectCountry(c.id);
-                      }
-                    }}
                     onMouseEnter={() => setFocusedIndex(idx)}
                   >
                     <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
