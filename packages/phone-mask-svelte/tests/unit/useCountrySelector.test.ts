@@ -7,6 +7,8 @@ import { createRect } from '@common/tests/unit/setup/domRect';
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
+  const countryOptionGetter = countryOption === undefined ? undefined : () => countryOption;
+  const inactiveGetter = inactive === undefined ? undefined : () => inactive;
 
   const rootEl = document.createElement('div');
   let dropdownEl: HTMLDivElement | null = null;
@@ -27,8 +29,8 @@ function setup(options: SetupOptions = {}) {
       locale: () => 'en',
       onSelectCountry,
       onAfterSelect,
-      countryOption: countryOption !== undefined ? () => countryOption : undefined,
-      inactive: inactive !== undefined ? () => inactive : undefined
+      countryOption: countryOptionGetter,
+      inactive: inactiveGetter
     })
   );
 
