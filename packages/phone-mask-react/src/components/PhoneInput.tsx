@@ -198,7 +198,8 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   const actionsCount = +showCopyButton + +showClearButton + (renderActionsBefore ? 1 : 0);
   const listboxId = `pi-options-${dropdownId}`;
   const optionIdPrefix = `pi-option-${dropdownId}`;
-  const activeOptionId = dropdownOpen && filteredCountries[focusedIndex] ? `${optionIdPrefix}-${focusedIndex}` : undefined;
+  const activeOptionId =
+    dropdownOpen && filteredCountries[focusedIndex] ? `${optionIdPrefix}-${focusedIndex}` : undefined;
 
   return (
     <>

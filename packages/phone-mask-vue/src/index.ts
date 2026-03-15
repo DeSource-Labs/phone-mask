@@ -19,13 +19,7 @@ function install(app: App): void {
   app.directive('phone-mask', phoneMaskDirective);
 }
 
-export {
-  PhoneInput,
-  install,
-  type TPhoneInputComponent,
-  type TPhoneMaskDirective,
-  type TPhoneMaskSetCountryType
-};
+export { PhoneInput, install, type TPhoneInputComponent, type TPhoneMaskDirective, type TPhoneMaskSetCountryType };
 
 export { vPhoneMask, setCountry as vPhoneMaskSetCountry } from './directives/vPhoneMask';
 
