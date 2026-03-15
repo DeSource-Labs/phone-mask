@@ -8,26 +8,26 @@ import {
 } from '@desource/phone-mask';
 import type { App } from 'vue';
 import PhoneInput from './components/PhoneInput.vue';
-import { vPhoneMask, setCountry as vPhoneMaskSetCountry } from './directives/vPhoneMask';
+import { vPhoneMask as phoneMaskDirective, setCountry as setPhoneMaskCountry } from './directives/vPhoneMask';
 
 type TPhoneInputComponent = typeof PhoneInput;
-type TPhoneMaskDirective = typeof vPhoneMask;
-type TPhoneMaskSetCountryType = typeof vPhoneMaskSetCountry;
+type TPhoneMaskDirective = typeof phoneMaskDirective;
+type TPhoneMaskSetCountryType = typeof setPhoneMaskCountry;
 
 function install(app: App): void {
   app.component('PhoneInput', PhoneInput);
-  app.directive('phone-mask', vPhoneMask);
+  app.directive('phone-mask', phoneMaskDirective);
 }
 
 export {
   PhoneInput,
-  vPhoneMask,
   install,
-  vPhoneMaskSetCountry,
   type TPhoneInputComponent,
   type TPhoneMaskDirective,
   type TPhoneMaskSetCountryType
 };
+
+export { vPhoneMask, setCountry as vPhoneMaskSetCountry } from './directives/vPhoneMask';
 
 export { usePhoneMask } from './composables/usePhoneMask';
 
