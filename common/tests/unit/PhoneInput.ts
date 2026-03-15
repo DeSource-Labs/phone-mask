@@ -137,7 +137,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       unmount();
     });
 
-    it('uses search input active-descendant model for keyboard country selection', async () => {
+    it('supports keyboard navigation and selection from search input', async () => {
       const { onCountryChange, unmount } = await setup({
         value: '2025550123',
         detect: false
@@ -159,6 +159,12 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       expect(initialActiveId).toBeTruthy();
       expect(document.getElementById(initialActiveId)).not.toBeNull();
 
+      await fireEvent.keyDown(searchInput, { key: 'ArrowUp' });
+
+      await waitFor(() => {
+        expect(searchInput.getAttribute('aria-activedescendant')).toBe(initialActiveId);
+      });
+
       await fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
 
       await waitFor(() => {
@@ -168,12 +174,37 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
         expect(document.getElementById(nextActiveId)?.className).toContain('is-focused');
       });
 
+      await fireEvent.keyDown(searchInput, { key: 'ArrowUp' });
+
+      await waitFor(() => {
+        expect(searchInput.getAttribute('aria-activedescendant')).toBe(initialActiveId);
+      });
+
       const callCountBefore = onCountryChange.mock.calls.length;
 
       await fireEvent.keyDown(searchInput, { key: 'Enter' });
 
       await waitFor(() => {
         expect(onCountryChange.mock.calls.length).toBeGreaterThan(callCountBefore);
+      });
+
+      unmount();
+    });
+
+    it('closes dropdown when Escape is pressed in search input', async () => {
+      const { unmount } = await setup({
+        value: '2025550123',
+        detect: false
+      });
+
+      const searchInput = await openDropdownAndGetSearchInput();
+      expect(document.body.querySelector('.phone-dropdown')).not.toBeNull();
+
+      await fireEvent.keyDown(searchInput, { key: 'Escape' });
+
+      await waitFor(() => {
+        const dropdown = document.body.querySelector('.phone-dropdown');
+        expect(dropdown === null || dropdown.className.includes('is-closing')).toBe(true);
       });
 
       unmount();
