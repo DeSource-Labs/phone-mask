@@ -251,7 +251,7 @@ const liveRef = useTemplateRef('liveRef');
 const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const searchRef = useTemplateRef<HTMLInputElement>('searchRef');
 const selectorRef = useTemplateRef<HTMLDivElement>('selectorRef');
-/** Generate unique IDs for ARIA attributes; use useId once stop support of vue < 3.5 */
+/** Generate unique IDs for ARIA attributes; use useId once stop support of vue < 3.5.0 */
 const _listboxId = getCurrentInstance()?.uid ?? 0;
 const listboxId = `pi-options-${_listboxId}`;
 const getOptionId = (idx: number) => `pi-option-${_listboxId}-${idx}`;
