@@ -11,7 +11,13 @@ export function useTheme({ theme }: UseThemeOptions) {
   const systemDark = ref<boolean>(false);
 
   const themeClass = computed<string>(() => {
-    return toValue(theme) !== 'auto' ? `theme-${toValue(theme)}` : systemDark.value ? 'theme-dark' : 'theme-light';
+    const resolvedTheme = toValue(theme);
+
+    if (resolvedTheme === 'auto') {
+      return systemDark.value ? 'theme-dark' : 'theme-light';
+    }
+
+    return `theme-${resolvedTheme}`;
   });
 
   let mq: MediaQueryList | null = null;
@@ -21,8 +27,7 @@ export function useTheme({ theme }: UseThemeOptions) {
   };
 
   onBeforeMount(() => {
-    if (typeof window === 'undefined') return;
-    mq = window.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    mq = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
     if (!mq) return;
     systemDark.value = mq.matches;
     mq.addEventListener('change', handler);

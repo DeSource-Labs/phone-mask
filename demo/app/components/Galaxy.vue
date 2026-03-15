@@ -253,7 +253,7 @@ const setup = () => {
       );
     }
   }
-  window.addEventListener('resize', resize, false);
+  globalThis.addEventListener('resize', resize, false);
   resize();
 
   const geometry = new Triangle(gl);
@@ -326,7 +326,7 @@ const setup = () => {
 
   cleanup = () => {
     cancelAnimationFrame(animateId);
-    window.removeEventListener('resize', resize);
+    globalThis.removeEventListener('resize', resize);
     if (props.mouseInteraction) {
       ctn.removeEventListener('mousemove', handleMouseMove);
       ctn.removeEventListener('mouseleave', handleMouseLeave);

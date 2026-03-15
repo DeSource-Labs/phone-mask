@@ -8,12 +8,17 @@ export function useTheme({ theme }: UseThemeOptions) {
   let systemDark = $state(false);
 
   const themeClass = $derived<string>(
-    theme() !== 'auto' ? `theme-${theme()}` : systemDark ? 'theme-dark' : 'theme-light'
+    (() => {
+      const resolvedTheme = theme();
+      if (resolvedTheme === 'auto') {
+        return systemDark ? 'theme-dark' : 'theme-light';
+      }
+      return `theme-${resolvedTheme}`;
+    })()
   );
 
   $effect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    const mq = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
     if (!mq) return;
     systemDark = mq.matches;
     const handler = (e: MediaQueryListEvent) => {

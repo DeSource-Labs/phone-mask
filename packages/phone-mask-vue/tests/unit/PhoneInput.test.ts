@@ -27,23 +27,27 @@ const setup: SetupFn = async (options = {}) => {
 
   const Wrapper = defineComponent({
     render: () =>
-      h(PhoneInput, {
-        ref: phoneRef,
-        modelValue: options.value ?? '',
-        'onUpdate:modelValue': onChange,
-        'onCountry-change': onCountryChange,
-        onCopy,
-        onFocus,
-        onBlur,
-        detect: options.detect as boolean,
-        showClear: options.showClear as boolean,
-        showCopy: options.showCopy as boolean,
-        disabled: options.disabled as boolean,
-        readonly: options.readonly as boolean,
-        country: options.country as CountryKey | undefined,
-        disableDefaultStyles: options.disableDefaultStyles,
-        dropdownClass: options.withCustomRenderers ? 'custom-dropdown' : undefined
-      }, slots)
+      h(
+        PhoneInput,
+        {
+          ref: phoneRef,
+          modelValue: options.value ?? '',
+          'onUpdate:modelValue': onChange,
+          'onCountry-change': onCountryChange,
+          onCopy,
+          onFocus,
+          onBlur,
+          detect: options.detect as boolean,
+          showClear: options.showClear as boolean,
+          showCopy: options.showCopy as boolean,
+          disabled: options.disabled as boolean,
+          readonly: options.readonly as boolean,
+          country: options.country as CountryKey | undefined,
+          disableDefaultStyles: options.disableDefaultStyles,
+          dropdownClass: options.withCustomRenderers ? 'custom-dropdown' : undefined
+        },
+        slots
+      )
   });
 
   const { container, unmount } = render(Wrapper);

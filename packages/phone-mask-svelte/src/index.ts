@@ -13,13 +13,7 @@ export { usePhoneMask } from './composables/usePhoneMask.svelte';
 export { phoneMaskAttachment } from './directives/phoneMaskAttachment.svelte';
 export { phoneMaskAction } from './directives/phoneMaskAction';
 
-import type {
-  PhoneNumber as PMaskPhoneNumber,
-  Size as PhoneInputSize,
-  Theme as PhoneInputTheme,
-  PhoneInputProps,
-  PhoneInputExposed
-} from './types';
+import type { PhoneInputProps, PhoneInputExposed } from './types';
 export type {
   UsePhoneMaskOptions,
   UsePhoneMaskReturn,
@@ -32,7 +26,7 @@ export type {
 
 export const PhoneInput = PhoneInputComponent as unknown as Component<PhoneInputProps, PhoneInputExposed>;
 
-export { type PMaskPhoneNumber, type PhoneInputSize, type PhoneInputTheme };
+export type { PhoneNumber as PMaskPhoneNumber, Size as PhoneInputSize, Theme as PhoneInputTheme } from './types';
 
 export type {
   CountryKey as PCountryKey,

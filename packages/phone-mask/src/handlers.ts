@@ -41,6 +41,72 @@ interface ProcessPasteParams {
   formatter: FormatterHelpers;
 }
 
+function shouldIgnoreKeydown(e: KeyboardEvent): boolean {
+  return e.ctrlKey || e.metaKey || e.altKey || NAVIGATION_KEYS.includes(e.key);
+}
+
+function removeDigitsRange(digits: string, start: number, end: number): KeydownResult {
+  return {
+    newDigits: digits.slice(0, start) + digits.slice(end),
+    caretDigitIndex: start
+  };
+}
+
+function removeSelectedDigits(
+  digits: string,
+  formatter: FormatterHelpers,
+  selectionStart: number,
+  selectionEnd: number
+): KeydownResult | undefined {
+  if (selectionStart === selectionEnd) return;
+
+  const range = formatter.getDigitRange(digits, selectionStart, selectionEnd);
+  if (!range) return;
+
+  const [start, end] = range;
+  return removeDigitsRange(digits, start, end);
+}
+
+function removePreviousDigit(
+  digits: string,
+  formatter: FormatterHelpers,
+  displayValue: string,
+  selectionStart: number
+): KeydownResult | undefined {
+  if (selectionStart <= 0) return;
+
+  // Find previous digit position (skip delimiters)
+  let prevPos = selectionStart - 1;
+  while (prevPos >= 0 && DELIMITERS.includes(displayValue[prevPos])) {
+    prevPos--;
+  }
+
+  if (prevPos < 0) return;
+
+  const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
+  if (!range) return;
+
+  const [start] = range;
+  return removeDigitsRange(digits, start, start + 1);
+}
+
+function removeNextDigit(
+  digits: string,
+  formatter: FormatterHelpers,
+  displayValue: string,
+  selectionStart: number
+): KeydownResult | undefined {
+  if (selectionStart >= displayValue.length) return;
+
+  // Skip delimiters and delete the next actual digit by finding
+  // the first digit index at/after the caret in a single range lookup.
+  const range = formatter.getDigitRange(digits, selectionStart, displayValue.length);
+  if (!range) return;
+
+  const [start] = range;
+  return removeDigitsRange(digits, start, start + 1);
+}
+
 /**
  * Extract digits from a string, optionally limiting to maxLength
  */
@@ -116,84 +182,27 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
   const { digits, formatter } = params;
 
   // Allow meta & navigation keys
-  if (e.ctrlKey || e.metaKey || e.altKey || NAVIGATION_KEYS.includes(e.key)) return;
+  if (shouldIgnoreKeydown(e)) return;
 
   const [selectionStart, selectionEnd] = getSelection(el);
+  const displayValue = el.value;
 
   // Handle Backspace
   if (e.key === 'Backspace') {
     e.preventDefault();
-    // Selection deletion
-    if (selectionStart !== selectionEnd) {
-      const range = formatter.getDigitRange(digits, selectionStart, selectionEnd);
-      if (range) {
-        const [start, end] = range;
-        const newDigits = digits.slice(0, start) + digits.slice(end);
-        return {
-          newDigits,
-          caretDigitIndex: start
-        };
-      }
-    }
-
-    // Single character deletion
-    if (selectionStart > 0) {
-      const displayStr = el.value;
-      // Find previous digit position (skip delimiters)
-      let prevPos = selectionStart - 1;
-      while (prevPos >= 0 && DELIMITERS.includes(displayStr[prevPos])) {
-        prevPos--;
-      }
-
-      if (prevPos >= 0) {
-        const range = formatter.getDigitRange(digits, prevPos, prevPos + 1);
-        if (range) {
-          const [start] = range;
-          const newDigits = digits.slice(0, start) + digits.slice(start + 1);
-          return {
-            newDigits,
-            caretDigitIndex: start
-          };
-        }
-      }
-    }
-
-    return;
+    return (
+      removeSelectedDigits(digits, formatter, selectionStart, selectionEnd) ??
+      removePreviousDigit(digits, formatter, displayValue, selectionStart)
+    );
   }
 
   // Handle Delete
   if (e.key === 'Delete') {
     e.preventDefault();
-
-    // Selection deletion
-    if (selectionStart !== selectionEnd) {
-      const range = formatter.getDigitRange(digits, selectionStart, selectionEnd);
-      if (range) {
-        const [start, end] = range;
-        const newDigits = digits.slice(0, start) + digits.slice(end);
-        return {
-          newDigits,
-          caretDigitIndex: start
-        };
-      }
-    }
-
-    // Single character deletion
-    if (selectionStart < el.value.length) {
-      // Skip delimiters and delete the next actual digit by finding
-      // the first digit index at/after the caret in a single range lookup.
-      const range = formatter.getDigitRange(digits, selectionStart, el.value.length);
-      if (range) {
-        const [start] = range;
-        const newDigits = digits.slice(0, start) + digits.slice(start + 1);
-        return {
-          newDigits,
-          caretDigitIndex: start
-        };
-      }
-    }
-
-    return;
+    return (
+      removeSelectedDigits(digits, formatter, selectionStart, selectionEnd) ??
+      removeNextDigit(digits, formatter, displayValue, selectionStart)
+    );
   }
 
   // Handle digits
