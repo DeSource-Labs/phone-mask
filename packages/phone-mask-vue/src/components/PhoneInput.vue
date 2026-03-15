@@ -182,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useId, nextTick, useTemplateRef, type CSSProperties } from 'vue';
+import { computed, getCurrentInstance, nextTick, useTemplateRef, type CSSProperties } from 'vue';
 
 import { useCountry } from '../composables/internal/useCountry';
 import { useFormatter } from '../composables/internal/useFormatter';
@@ -251,8 +251,8 @@ const liveRef = useTemplateRef('liveRef');
 const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const searchRef = useTemplateRef<HTMLInputElement>('searchRef');
 const selectorRef = useTemplateRef<HTMLDivElement>('selectorRef');
-
-const _listboxId = useId();
+/** Generate unique IDs for ARIA attributes; use useId once stop support of vue < 3.5 */
+const _listboxId = getCurrentInstance()?.uid ?? 0;
 const listboxId = `pi-options-${_listboxId}`;
 const getOptionId = (idx: number) => `pi-option-${_listboxId}-${idx}`;
 
