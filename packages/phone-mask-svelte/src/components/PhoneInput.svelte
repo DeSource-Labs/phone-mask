@@ -1,9 +1,5 @@
-<script module lang="ts">
-  let phoneInputIdCounter = 0;
-</script>
-
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { useCountry } from '../composables/internal/useCountry.svelte';
   import { useFormatter } from '../composables/internal/useFormatter.svelte';
   import { useValidationHint } from '../composables/internal/useValidationHint.svelte';
@@ -96,8 +92,11 @@
     onSelectCountry: countryData.setCountry,
     onAfterSelect: focusInput
   });
-  const dropdownId = ++phoneInputIdCounter; // Migrate to $props.id() once stop support of Svelte < 5.20.0
-  const listboxId = `pi-options-${dropdownId}`;
+  let dropdownId = $state<string>('0'); // Migrate to $props.id() once stop support of Svelte < 5.20.0
+  onMount(() => {
+    dropdownId = Math.random().toString(36).slice(2, 10);
+  });
+  const listboxId = $derived(`pi-options-${dropdownId}`);
   const getOptionId = (idx: number) => `pi-option-${dropdownId}-${idx}`;
   const activeOptionId = $derived(
     selectorData.dropdownOpen && selectorData.filteredCountries[selectorData.focusedIndex]
