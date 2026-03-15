@@ -252,9 +252,9 @@ const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const searchRef = useTemplateRef<HTMLInputElement>('searchRef');
 const selectorRef = useTemplateRef<HTMLDivElement>('selectorRef');
 /** Generate unique IDs for ARIA attributes; use useId once stop support of vue < 3.5.0 */
-const _listboxId = getCurrentInstance()?.uid ?? 0;
-const listboxId = `pi-options-${_listboxId}`;
-const getOptionId = (idx: number) => `pi-option-${_listboxId}-${idx}`;
+const dropdownId = getCurrentInstance()?.uid ?? 0;
+const listboxId = `pi-options-${dropdownId}`;
+const getOptionId = (idx: number) => `pi-option-${dropdownId}-${idx}`;
 
 const inactive = computed(() => props.disabled || props.readonly);
 const incomplete = computed(() => showValidationHint.value && shouldShowWarn.value);
