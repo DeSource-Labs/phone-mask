@@ -15,11 +15,12 @@
     onfocus?: (e: FocusEvent) => void;
     onblur?: (e: FocusEvent) => void;
     onchange?: (value: PhoneNumber) => void;
-    oncountrychange?: (country: { id: string; code: string; name: string; flag: string; mask: string | string[] }) => void;
+    oncountrychange?: (country: MaskFull) => void;
     oncopy?: (value: string) => void;
   } = $props();
 
-  let value = $derived(initialValue);
+  let value = $derived.by(() => initialValue);
+
 </script>
 
 {#snippet actionsbefore()}
