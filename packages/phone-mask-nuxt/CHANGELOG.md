@@ -1,5 +1,15 @@
 # @desource/phone-mask-nuxt
 
+## 1.1.1
+
+### Patch Changes
+
+- Core Upgrades:
+  - Optimized bundle size of core package
+
+- Updated dependencies []:
+  - @desource/phone-mask-vue@1.1.1
+
 ## 1.1.0
 
 ### Minor Changes

@@ -1,5 +1,12 @@
 # @desource/phone-mask
 
+## 1.1.1
+
+### Patch Changes
+
+- Core Upgrades:
+  - Optimized bundle size of core package
+
 ## 1.1.0
 
 ### Minor Changes

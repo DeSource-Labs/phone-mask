@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask-nuxt",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "🎯 Zero-config Nuxt module for international phone masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
   "type": "module",
   "exports": {
