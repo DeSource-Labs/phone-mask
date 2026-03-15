@@ -49,6 +49,18 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
     await fireEvent.input(element, { target: { value } });
   };
 
+  const openDropdownAndGetSearchInput = async () => {
+    await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+
+    await waitFor(() => {
+      expect(document.body.querySelectorAll('.pi-option').length).toBeGreaterThan(0);
+    });
+
+    const searchInput = document.body.querySelector('.pi-search') as HTMLInputElement;
+    expect(searchInput).not.toBeNull();
+    return searchInput;
+  };
+
   describe('PhoneInput API', () => {
     it('exposes imperative methods through ref', async () => {
       const { ref, onChange, unmount } = await setup({ value: '20255501', detect: false });
@@ -125,25 +137,40 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       unmount();
     });
 
-    it('supports keyboard selection on dropdown options (Enter)', async () => {
+    it('uses search input active-descendant model for keyboard country selection', async () => {
       const { onCountryChange, unmount } = await setup({
         value: '2025550123',
         detect: false
       });
 
-      await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+      const searchInput = await openDropdownAndGetSearchInput();
+
+      await waitFor(() => expect(document.activeElement).toBe(searchInput));
+
+      const listboxId = searchInput.getAttribute('aria-controls') as string;
+      expect(listboxId).toBeTruthy();
+
+      const listbox = document.getElementById(listboxId) as HTMLUListElement;
+      expect(listbox).not.toBeNull();
+      expect(listbox.getAttribute('role')).toBe('listbox');
+      expect(listbox.hasAttribute('aria-activedescendant')).toBe(false);
+
+      const initialActiveId = searchInput.getAttribute('aria-activedescendant') as string;
+      expect(initialActiveId).toBeTruthy();
+      expect(document.getElementById(initialActiveId)).not.toBeNull();
+
+      await fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
 
       await waitFor(() => {
-        expect(document.body.querySelectorAll('.pi-option').length).toBeGreaterThan(0);
+        const nextActiveId = searchInput.getAttribute('aria-activedescendant') as string;
+        expect(nextActiveId).toBeTruthy();
+        expect(nextActiveId).not.toBe(initialActiveId);
+        expect(document.getElementById(nextActiveId)?.className).toContain('is-focused');
       });
-
-      const options = Array.from(document.body.querySelectorAll<HTMLLIElement>('.pi-option'));
-      const targetOption = options.find((option) => option.getAttribute('aria-selected') === 'false');
-      expect(targetOption).toBeDefined();
 
       const callCountBefore = onCountryChange.mock.calls.length;
 
-      await fireEvent.keyDown(targetOption!, { key: 'Enter' });
+      await fireEvent.keyDown(searchInput, { key: 'Enter' });
 
       await waitFor(() => {
         expect(onCountryChange.mock.calls.length).toBeGreaterThan(callCountBefore);
@@ -197,10 +224,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       await waitFor(() => expect(onCopy).toHaveBeenCalled());
       expect(writeText).toHaveBeenCalled();
 
-      await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
-
-      const searchInput = document.body.querySelector<HTMLInputElement>('.pi-search') as HTMLInputElement;
-      expect(searchInput).not.toBeNull();
+      const searchInput = await openDropdownAndGetSearchInput();
 
       await setInputValue(searchInput, 'zzzz-no-country');
       await fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
