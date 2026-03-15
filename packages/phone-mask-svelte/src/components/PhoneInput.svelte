@@ -1,3 +1,7 @@
+<script module lang="ts">
+  let phoneInputIdCounter = 0;
+</script>
+
 <script lang="ts">
   import { tick } from 'svelte';
   import { useCountry } from '../composables/internal/useCountry.svelte';
@@ -92,6 +96,14 @@
     onSelectCountry: countryData.setCountry,
     onAfterSelect: focusInput
   });
+  const dropdownId = ++phoneInputIdCounter; // Migrate to $props.id() once stop support of Svelte < 5.20.0
+  const listboxId = `pi-options-${dropdownId}`;
+  const getOptionId = (idx: number) => `pi-option-${dropdownId}-${idx}`;
+  const activeOptionId = $derived(
+    selectorData.dropdownOpen && selectorData.filteredCountries[selectorData.focusedIndex]
+      ? getOptionId(selectorData.focusedIndex)
+      : undefined
+  );
 
   const inputHandlers = useInputHandlers({
     formatter: () => formatterData.formatter,
@@ -252,21 +264,22 @@
     <div class="pi-search-wrap">
       <input bind:this={searchEl} type="search" class="pi-search"
         aria-label="Search countries" placeholder={searchPlaceholder}
+        aria-controls={listboxId}
+        aria-activedescendant={activeOptionId}
         value={selectorData.search}
         onkeydown={selectorData.handleSearchKeydown}
         oninput={selectorData.handleSearchChange} />
     </div>
-    <ul class="pi-options" role="listbox"
-      aria-activedescendant="option-{selectorData.focusedIndex}" tabindex="-1">
+    <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
       {#each selectorData.filteredCountries as c, idx (c.id)}
-        <li id="option-{idx}" role="option"
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <li id={getOptionId(idx)} role="option"
           class="pi-option"
           class:is-focused={idx === selectorData.focusedIndex}
           class:is-selected={c.id === countryData.country.id}
           aria-selected={c.id === countryData.country.id}
           title={c.name}
           onclick={() => selectorData.selectCountry(c.id)}
-          onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); selectorData.selectCountry(c.id); } }}
           onmouseenter={() => selectorData.setFocusedIndex(idx)}>
           <span class="pi-flag" role="img" aria-label="{c.name} flag">
             {#if flag}{@render flag(c)}{:else}{c.flag}{/if}
