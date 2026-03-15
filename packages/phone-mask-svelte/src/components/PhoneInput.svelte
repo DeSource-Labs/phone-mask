@@ -92,7 +92,7 @@
     onSelectCountry: countryData.setCountry,
     onAfterSelect: focusInput
   });
-  let dropdownId = $state<string>('0'); // Migrate to $props.id() once stop support of Svelte < 5.20.0
+  let dropdownId = $state<string>('0'); // Migrate to $props.id() once we stop supporting Svelte < 5.20.0
   onMount(() => {
     dropdownId = Math.random().toString(36).slice(2, 10);
   });
