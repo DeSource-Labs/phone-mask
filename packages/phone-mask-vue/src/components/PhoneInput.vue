@@ -295,7 +295,7 @@ const {
 });
 
 const activeOptionId = computed(() =>
-  !(dropdownOpen.value && filteredCountries.value[focusedIndex.value]) ? undefined : getOptionId(focusedIndex.value)
+  dropdownOpen.value && filteredCountries.value[focusedIndex.value] ? getOptionId(focusedIndex.value) : undefined
 );
 
 const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
