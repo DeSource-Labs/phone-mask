@@ -1,4 +1,5 @@
 <script lang="ts">
   let { composable }: { composable: () => void } = $props();
-  composable();
+  const runComposable = () => composable();
+  runComposable();
 </script>

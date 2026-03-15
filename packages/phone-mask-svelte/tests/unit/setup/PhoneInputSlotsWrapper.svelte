@@ -18,7 +18,7 @@
     oncopy?: (value: string) => void;
   } = $props();
 
-  let value = $state(initialValue);
+  let value = $derived(initialValue);
 </script>
 
 {#snippet actionsbefore()}
