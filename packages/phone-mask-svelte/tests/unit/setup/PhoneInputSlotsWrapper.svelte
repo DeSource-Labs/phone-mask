@@ -1,6 +1,7 @@
 <script lang="ts">
   import PhoneInput from '@src/components/PhoneInput.svelte';
   import type { PhoneNumber } from '@src/types';
+  import type { MaskFull } from '@desource/phone-mask';
 
   let {
     initialValue = '2025550199',
@@ -25,11 +26,11 @@
   <span data-testid="actions-before">Before</span>
 {/snippet}
 
-{#snippet flag(country)}
+{#snippet flag(country: MaskFull)}
   <span data-testid="flag-custom">{country.id}</span>
 {/snippet}
 
-{#snippet copysvg(copied)}
+{#snippet copysvg(copied: boolean)}
   <span data-testid="copy-custom">{copied ? 'copied' : 'copy'}</span>
 {/snippet}
 
