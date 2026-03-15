@@ -137,15 +137,17 @@
               type="search"
               class="pi-search"
               aria-label="Search countries"
+              :aria-controls="listboxId"
+              :aria-activedescendant="activeOptionId"
               :placeholder="searchPlaceholder"
               @keydown="handleSearchKeydown"
               @input="handleSearchChange"
             />
           </div>
-          <ul class="pi-options" role="listbox" :aria-activedescendant="`option-${focusedIndex}`" tabindex="-1">
+          <ul :id="listboxId" class="pi-options" role="listbox" tabindex="-1">
             <li
               v-for="(c, idx) in filteredCountries"
-              :id="`option-${idx}`"
+              :id="getOptionId(idx)"
               :key="c.id"
               role="option"
               :class="[
@@ -158,7 +160,6 @@
               :aria-selected="c.id === country.id"
               :title="c.name"
               @click="selectCountry(c.id)"
-              @keydown.enter.prevent="selectCountry(c.id)"
               @mouseenter="setFocusedIndex(idx)"
             >
               <span class="pi-flag" role="img" :aria-label="`${c.name} flag`">
@@ -181,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef, type CSSProperties } from 'vue';
+import { computed, useId, nextTick, useTemplateRef, type CSSProperties } from 'vue';
 
 import { useCountry } from '../composables/internal/useCountry';
 import { useFormatter } from '../composables/internal/useFormatter';
@@ -251,6 +252,10 @@ const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const searchRef = useTemplateRef<HTMLInputElement>('searchRef');
 const selectorRef = useTemplateRef<HTMLDivElement>('selectorRef');
 
+const _listboxId = useId();
+const listboxId = `pi-options-${_listboxId}`;
+const getOptionId = (idx: number) => `pi-option-${_listboxId}-${idx}`;
+
 const inactive = computed(() => props.disabled || props.readonly);
 const incomplete = computed(() => showValidationHint.value && shouldShowWarn.value);
 const showCopyButton = computed(() => props.showCopy && !isEmpty.value && !props.disabled);
@@ -288,6 +293,10 @@ const {
   onSelectCountry: setCountry,
   onAfterSelect: focusInput
 });
+
+const activeOptionId = computed(() =>
+  !(dropdownOpen.value && filteredCountries.value[focusedIndex.value]) ? undefined : getOptionId(focusedIndex.value)
+);
 
 const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
   formatter,
