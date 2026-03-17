@@ -54,6 +54,7 @@
   ],
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo test-results coverage",
+    "clean:modules": "rimraf node_modules",
     "dev": "cd demo && vite",
     "build:internal": "vite build && tsc --project tsconfig.build.json",
     "build": "pnpm clean && pnpm build:internal",
@@ -73,6 +74,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   }

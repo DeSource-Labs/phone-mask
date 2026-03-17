@@ -53,6 +53,7 @@
   ],
   "scripts": {
     "clean": "rimraf dist tsconfig.build.tsbuildinfo test-results coverage",
+    "clean:modules": "rimraf node_modules",
     "dev": "vite demo",
     "build": "pnpm clean && pnpm build:internal",
     "build:internal": "pnpm build:lib && pnpm build:types",

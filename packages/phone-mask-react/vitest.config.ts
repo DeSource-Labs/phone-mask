@@ -1,10 +1,9 @@
 import { defineConfig } from 'vitest/config';
 import { fileURLToPath } from 'node:url';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  esbuild: {
-    jsx: 'automatic'
-  },
+  plugins: [react()],
   resolve: {
     alias: {
       '@common': fileURLToPath(new URL('../../common', import.meta.url)),

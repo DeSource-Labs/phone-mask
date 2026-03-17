@@ -1,12 +1,9 @@
 import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
 import { fileURLToPath } from 'node:url';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   plugins: [vue()],
-  resolve: {
-    alias: {}
-  },
   build: {
     lib: {
       name: 'lib',
@@ -25,14 +22,15 @@ export default defineConfig({
         }
       }
     },
-    minify: false,
-    rollupOptions: {
-      external: ['vue'],
+    rolldownOptions: {
+      external: ['@desource/phone-mask', 'vue'],
       output: {
         exports: 'named',
         globals: {
+          '@desource/phone-mask': 'PhoneMask',
           vue: 'Vue'
-        }
+        },
+        minify: true
       }
     }
   }

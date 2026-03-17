@@ -1,12 +1,13 @@
 import { defineConfig } from 'vite';
-import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  plugins: [react()],
   build: {
     lib: {
       entry: {
-        index: resolve(__dirname, 'src/index.ts'),
-        style: resolve(__dirname, 'src/style.scss')
+        index: fileURLToPath(new URL('./src/index.ts', import.meta.url))
       },
       name: 'PhoneMaskReact',
       formats: ['es', 'cjs'],
@@ -15,14 +16,16 @@ export default defineConfig({
         return 'phone-mask-react.cjs';
       }
     },
-    rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
+    rolldownOptions: {
+      external: ['@desource/phone-mask', 'react', 'react-dom', 'react/jsx-runtime'],
       output: {
         globals: {
+          '@desource/phone-mask': 'PhoneMask',
           react: 'React',
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': 'jsxRuntime'
-        }
+        },
+        minify: true
       }
     },
     sourcemap: true,

@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 
 export default defineConfig({
   plugins: [svelte()],
@@ -8,8 +8,7 @@ export default defineConfig({
     lib: {
       name: 'lib',
       entry: {
-        index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
-        style: fileURLToPath(new URL('./src/style.scss', import.meta.url))
+        index: fileURLToPath(new URL('./src/index.ts', import.meta.url))
       },
       formats: ['es', 'cjs'],
       fileName: (format) => {
@@ -18,13 +17,15 @@ export default defineConfig({
       }
     },
     minify: false,
-    rollupOptions: {
-      external: ['svelte', /^svelte\//],
+    rolldownOptions: {
+      external: ['@desource/phone-mask', 'svelte', /^svelte\//],
       output: {
         exports: 'named',
         globals: {
+          '@desource/phone-mask': 'PhoneMask',
           svelte: 'Svelte'
-        }
+        },
+        minify: true
       }
     }
   }

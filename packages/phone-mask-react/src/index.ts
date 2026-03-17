@@ -7,6 +7,8 @@ import {
   toArray
 } from '@desource/phone-mask';
 
+import './style.scss';
+
 export { PhoneInput } from './components/PhoneInput';
 export { usePhoneMask } from './hooks/usePhoneMask';
 
