@@ -29,14 +29,51 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 
 ### 🪶 Lightest in Class
 
-**13 KB total** (4 KB gzipped) with full tree-shaking support. Compare to alternatives:
+Real market comparison, segmented by ecosystem.
+Snapshot: **March 17, 2026** ([Bundlephobia API](https://bundlephobia.com/api/size?package=@desource/phone-mask), [npm Downloads API](https://api.npmjs.org/downloads/point/last-month/@desource/phone-mask), [GitHub API](https://api.github.com/repos/DeSource-Labs/phone-mask)).
 
-| Library                  | Bundle Size (minified) | Gzipped  |
-| ------------------------ | ---------------------- | -------- |
-| **@desource/phone-mask** | **13 KB**              | **4 KB** |
-| react-phone-input-2      | ~80 KB                 | ~25 KB   |
-| react-phone-number-input | ~40 KB                 | ~15 KB   |
-| intl-tel-input           | ~180 KB                | ~55 KB   |
+#### Core (TypeScript/JavaScript)
+
+| Package                            | npm (last month) | GitHub stars | Minified | Gzipped |
+| ---------------------------------- | ----------------: | -----------: | -------: | ------: |
+| **@desource/phone-mask**           |             2,479 |           25 | 16.7 KB  | 5.6 KB  |
+| libphonenumber-js                  |        55,165,513 |        2,966 | 179.0 KB | 43.7 KB |
+| google-libphonenumber              |         6,261,452 |        1,479 | 566.8 KB | 115.2 KB |
+| awesome-phonenumber                |         2,770,649 |          705 | 336.9 KB | 75.4 KB |
+
+#### React
+
+| Package                            | npm (last month) | GitHub stars | Minified | Gzipped |
+| ---------------------------------- | ----------------: | -----------: | -------: | ------: |
+| **@desource/phone-mask-react**     |             2,030 |           25 | 28.9 KB  | 9.7 KB  |
+| react-phone-number-input           |         6,113,673 |          959 | 195.5 KB | 46.7 KB |
+| react-phone-input-2                |         2,339,366 |        1,014 | 53.7 KB  | 17.1 KB |
+| react-international-phone          |         1,347,793 |          436 | 26.1 KB  | 9.4 KB  |
+| mui-tel-input                      |           550,155 |          206 | 167.4 KB | 45.8 KB |
+
+#### Vue
+
+| Package                            | npm (last month) | GitHub stars | Minified | Gzipped |
+| ---------------------------------- | ----------------: | -----------: | -------: | ------: |
+| **@desource/phone-mask-vue**       |             2,185 |           25 | 34.8 KB  | 11.0 KB |
+| vue-tel-input                      |           796,553 |          866 | 27.5 KB  | 10.2 KB |
+| v-phone-input                      |            43,320 |           81 | 239.1 KB | 15.0 KB |
+| vue-phone-number-input             |            49,331 |          622 | 325.7 KB | 95.7 KB |
+
+#### Svelte
+
+| Package                            | npm (last month) | GitHub stars | Minified | Gzipped |
+| ---------------------------------- | ----------------: | -----------: | -------: | ------: |
+| **@desource/phone-mask-svelte**    |             1,744 |           25 | 36.0 KB  | 11.5 KB |
+| svelte-tel-input                   |            72,313 |          119 | 234.4 KB | 62.9 KB |
+
+#### Nuxt
+
+| Package                            | npm (last month) | GitHub stars | Minified | Gzipped |
+| ---------------------------------- | ----------------: | -----------: | -------: | ------: |
+| **@desource/phone-mask-nuxt**      |             2,044 |           25 | 1.5 KB   | 0.7 KB  |
+
+Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input modules with stable npm + Bundlephobia signals comparable to React/Vue/Svelte peers; most Nuxt apps use Vue phone input packages directly.
 
 ### 🎨 Framework-Ready
 
