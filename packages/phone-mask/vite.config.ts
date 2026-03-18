@@ -20,9 +20,6 @@ export default defineConfig({
       fileName: () => `${safeName}.js`
     },
 
-    // disable Vite/esbuild automatic minify so terser is used per-output
-    minify: false,
-
     rolldownOptions: {
       external: [],
       plugins: [],

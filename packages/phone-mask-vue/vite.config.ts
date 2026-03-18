@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [vue()],
   build: {
     lib: {
-      name: 'lib',
+      name: 'PhoneMaskVue',
       entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
       formats: ['es', 'cjs', 'iife'],
       fileName: (format) => {
@@ -27,7 +27,7 @@ export default defineConfig({
       output: {
         exports: 'named',
         globals: {
-          '@desource/phone-mask': 'PhoneMask',
+          '@desource/phone-mask': 'phoneMask',
           vue: 'Vue'
         },
         minify: true

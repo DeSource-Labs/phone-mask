@@ -6,23 +6,20 @@ export default defineConfig({
   plugins: [svelte()],
   build: {
     lib: {
-      name: 'lib',
-      entry: {
-        index: fileURLToPath(new URL('./src/index.ts', import.meta.url))
-      },
+      name: 'PhoneMaskSvelte',
+      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
       formats: ['es', 'cjs'],
       fileName: (format) => {
         if (format === 'es') return 'index.mjs';
         return 'index.cjs';
       }
     },
-    minify: false,
     rolldownOptions: {
       external: ['@desource/phone-mask', 'svelte', /^svelte\//],
       output: {
         exports: 'named',
         globals: {
-          '@desource/phone-mask': 'PhoneMask',
+          '@desource/phone-mask': 'phoneMask',
           svelte: 'Svelte'
         },
         minify: true

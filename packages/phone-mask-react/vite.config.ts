@@ -6,10 +6,8 @@ export default defineConfig({
   plugins: [react()],
   build: {
     lib: {
-      entry: {
-        index: fileURLToPath(new URL('./src/index.ts', import.meta.url))
-      },
       name: 'PhoneMaskReact',
+      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
       formats: ['es', 'cjs'],
       fileName: (format) => {
         if (format === 'es') return 'esm/index.js';
@@ -20,7 +18,7 @@ export default defineConfig({
       external: ['@desource/phone-mask', 'react', 'react-dom', 'react/jsx-runtime'],
       output: {
         globals: {
-          '@desource/phone-mask': 'PhoneMask',
+          '@desource/phone-mask': 'phoneMask',
           react: 'React',
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': 'jsxRuntime'
