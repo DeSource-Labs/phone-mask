@@ -172,10 +172,7 @@ function normalizeRepoUrl(repository) {
     // Replace the first ":" (if present) with "/" to get host/path.
     const colonIndex = withoutScheme.indexOf(':');
     if (colonIndex !== -1) {
-      withoutScheme =
-        withoutScheme.slice(0, colonIndex) +
-        '/' +
-        withoutScheme.slice(colonIndex + 1);
+      withoutScheme = withoutScheme.slice(0, colonIndex) + '/' + withoutScheme.slice(colonIndex + 1);
     }
 
     return `https://${withoutScheme}`.replace(/\.git$/i, '');
@@ -306,7 +303,6 @@ async function collectMetrics() {
  * @returns {string}
  */
 function renderSection(metrics, snapshotDate = getCurrentDateKey()) {
-
   const lines = [
     BENCHMARK_START_MARKER,
     '### 🪶 Lightest in Class',
