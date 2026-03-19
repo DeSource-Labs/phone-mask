@@ -484,7 +484,9 @@ async function main() {
   console.log('Updated README benchmark section.');
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
-});
+}
