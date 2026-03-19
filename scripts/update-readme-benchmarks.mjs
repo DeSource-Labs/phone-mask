@@ -399,7 +399,7 @@ async function main() {
 
   if (checkMode) {
     if (readme !== formattedReadme) {
-      console.error('README benchmark section is outdated. Run: pnpm readme:benchmarks');
+      console.error('README formatting does not match the configured Prettier output. Please format README.md (for example by running: pnpm readme:benchmarks).');
       process.exit(1);
     }
 
