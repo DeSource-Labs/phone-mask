@@ -385,7 +385,7 @@ function parseSnapshotDate(readme) {
       december: 11
     };
     const monthName = legacyMatch[1].toLowerCase();
-    const monthIndex = Object.prototype.hasOwnProperty.call(monthNames, monthName) ? monthNames[monthName] : -1;
+    const monthIndex = Object.hasOwn(monthNames, monthName) ? monthNames[monthName] : -1;
     const day = Number(legacyMatch[2]);
     const year = Number(legacyMatch[3]);
 
