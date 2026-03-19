@@ -290,7 +290,7 @@ function renderSection(metrics) {
     '### 🪶 Lightest in Class',
     '',
     'Real market comparison, segmented by ecosystem.',
-    `Snapshot: **${snapshotDate}** ([Bundlephobia API](${SOURCES.bundlephobia}@desource/phone-mask), [npm Downloads API](${SOURCES.npmDownloads}/last-month/@desource/phone-mask), [npm Registry API](${SOURCES.npmRegistry}/@desource/phone-mask)).`,
+    `Snapshot: **${snapshotDate}** ([Bundlephobia API](${SOURCES.bundlephobia}${encodeURIComponent('@desource/phone-mask')}), [npm Downloads API](${SOURCES.npmDownloads}/last-month/${encodeURIComponent('@desource/phone-mask')}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
     ''
   ];
 
