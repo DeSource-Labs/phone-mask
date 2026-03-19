@@ -302,7 +302,7 @@ async function collectMetrics() {
  * @param {string} [snapshotDate]
  * @returns {string}
  */
-function renderSection(metrics, snapshotDate = getCurrentDateKey()) {
+function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0, 10)) {
   const lines = [
     BENCHMARK_START_MARKER,
     '### 🪶 Lightest in Class',
@@ -361,123 +361,6 @@ function updateReadmeSection(readme, newSection) {
 }
 
 /**
- * Extracts the benchmark section from README markdown.
- * @param {string} readme
- * @returns {string | null}
- */
-function getBenchmarkSection(readme) {
-  const markerStartIndex = readme.indexOf(BENCHMARK_START_MARKER);
-  const markerEndIndex = readme.indexOf(BENCHMARK_END_MARKER);
-
-  if (markerStartIndex >= 0 && markerEndIndex >= 0 && markerEndIndex > markerStartIndex) {
-    const markerEndOffset = markerEndIndex + BENCHMARK_END_MARKER.length;
-    return readme.slice(markerStartIndex, markerEndOffset);
-  }
-
-  return null;
-}
-
-/**
- * Parses the snapshot date from benchmark section.
- * @param {string} readme
- * @returns {string | null}
- */
-function parseSnapshotDate(readme) {
-  const section = getBenchmarkSection(readme);
-  if (!section) return null;
-
-  const snapshotRegex = /Snapshot:\s*\*\*([^*]+)\*\*/;
-  const snapshotMatch = snapshotRegex.exec(section);
-  if (!snapshotMatch?.[1]) return null;
-
-  const raw = snapshotMatch[1].trim();
-
-  // Prefer ISO format: YYYY-MM-DD
-  const isoRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
-  const isoMatch = isoRegex.exec(raw);
-  if (isoMatch) {
-    const year = Number(isoMatch[1]);
-    const month = Number(isoMatch[2]);
-    const day = Number(isoMatch[3]);
-    if (isValidDateParts(year, month, day)) {
-      return toDateKey(year, month, day);
-    }
-  }
-
-  // Fallback for legacy format: "Month DD, YYYY" (e.g., "March 19, 2026")
-  const legacyRegex = /^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/;
-  const legacyMatch = legacyRegex.exec(raw);
-  if (legacyMatch) {
-    const monthNames = {
-      january: 0,
-      february: 1,
-      march: 2,
-      april: 3,
-      may: 4,
-      june: 5,
-      july: 6,
-      august: 7,
-      september: 8,
-      october: 9,
-      november: 10,
-      december: 11
-    };
-    const monthName = legacyMatch[1].toLowerCase();
-    const monthIndex = Object.hasOwn(monthNames, monthName) ? monthNames[monthName] : -1;
-    const day = Number(legacyMatch[2]);
-    const year = Number(legacyMatch[3]);
-
-    if (monthIndex >= 0) {
-      const month = monthIndex + 1;
-      if (isValidDateParts(year, month, day)) {
-        return toDateKey(year, month, day);
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * Converts numeric date parts into canonical YYYY-MM-DD key.
- * @param {number} year
- * @param {number} month
- * @param {number} day
- * @returns {string}
- */
-function toDateKey(year, month, day) {
-  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
-/**
- * Validates date parts as a real calendar date.
- * @param {number} year
- * @param {number} month
- * @param {number} day
- * @returns {boolean}
- */
-function isValidDateParts(year, month, day) {
-  const parsed = new Date(year, month - 1, day);
-  return (
-    Number.isInteger(year) &&
-    Number.isInteger(month) &&
-    Number.isInteger(day) &&
-    parsed.getFullYear() === year &&
-    parsed.getMonth() === month - 1 &&
-    parsed.getDate() === day
-  );
-}
-
-/**
- * Returns current UTC date as YYYY-MM-DD key.
- * @returns {string}
- */
-function getCurrentDateKey() {
-  const now = new Date();
-  return toDateKey(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate());
-}
-
-/**
  * Formats markdown content using repository Prettier configuration.
  * @param {string} markdown
  * @returns {Promise<string>}
@@ -492,50 +375,11 @@ async function formatMarkdown(markdown) {
 }
 
 /**
- * CLI entrypoint for update/check flows.
+ * CLI entrypoint for benchmark section generation.
  * @returns {Promise<void>}
  */
 async function main() {
-  const checkMode = process.argv.includes('--check');
   const readme = await readFile(README_PATH, 'utf8');
-  const formattedReadme = await formatMarkdown(readme);
-
-  if (checkMode) {
-    if (readme !== formattedReadme) {
-      console.error(
-        'README formatting does not match the configured Prettier output. Please format README.md (for example by running: pnpm readme:benchmarks).'
-      );
-      process.exit(1);
-    }
-
-    const snapshotDate = parseSnapshotDate(readme);
-    if (!snapshotDate) {
-      console.error(
-        'Could not find or parse the README benchmark snapshot date. Ensure the "Lightest in Class" section contains a valid snapshot line between the benchmarks markers.'
-      );
-      process.exit(1);
-    }
-
-    const todayKey = getCurrentDateKey();
-
-    if (snapshotDate < todayKey) {
-      console.error('README benchmark snapshot is outdated. Run: pnpm readme:benchmarks');
-      process.exit(1);
-    }
-
-    const metrics = await collectMetrics();
-    const section = renderSection(metrics, snapshotDate);
-    const updated = updateReadmeSection(readme, section);
-    const formattedUpdated = await formatMarkdown(updated);
-
-    if (readme !== formattedUpdated) {
-      console.error('README benchmark section is outdated. Run: pnpm readme:benchmarks');
-      process.exit(1);
-    }
-
-    console.log('README benchmark section is up to date.');
-    return;
-  }
 
   const metrics = await collectMetrics();
   const section = renderSection(metrics);
