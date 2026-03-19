@@ -514,7 +514,9 @@ async function main() {
 
     const snapshotDate = parseSnapshotDate(readme);
     if (!snapshotDate) {
-      console.error('Could not locate "Lightest in Class" section in README.md');
+      console.error(
+        'Could not find or parse the README benchmark snapshot date. Ensure the "Lightest in Class" section contains a valid snapshot line between the benchmarks markers.'
+      );
       process.exit(1);
     }
 
