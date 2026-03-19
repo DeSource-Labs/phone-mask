@@ -458,9 +458,9 @@ async function main() {
     const today = startOfDay(new Date());
     const snapshotDay = startOfDay(snapshotDate);
 
-    if (snapshotDay >= today) {
-      console.log('README benchmark section is up to date.');
-      return;
+    if (snapshotDay < today) {
+      console.error('README benchmark section is outdated. Run: pnpm readme:benchmarks');
+      process.exit(1);
     }
 
     const metrics = await collectMetrics();
