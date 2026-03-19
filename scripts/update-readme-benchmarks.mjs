@@ -1,8 +1,43 @@
 import { readFile, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import process from 'node:process';
+import prettier from 'prettier';
 
 const README_PATH = new URL('../README.md', import.meta.url);
+const README_FILEPATH = fileURLToPath(README_PATH);
 
+/**
+ * @typedef {object} GroupRow
+ * @property {string} pkg
+ * @property {boolean} [highlight]
+ */
+
+/**
+ * @typedef {object} GroupDefinition
+ * @property {string} title
+ * @property {GroupRow[]} rows
+ * @property {string} [note]
+ */
+
+/**
+ * @typedef {object} PublishInfo
+ * @property {string | null} lastPublished
+ * @property {number | null} unpackedSize
+ * @property {string | null} repositoryUrl
+ */
+
+/**
+ * @typedef {object} PackageMetrics
+ * @property {number | null} weekly
+ * @property {number | null} monthly
+ * @property {string | null} lastPublished
+ * @property {number | null} unpacked
+ * @property {string | null} repositoryUrl
+ * @property {number | null} minified
+ * @property {number | null} gzip
+ */
+
+/** @type {GroupDefinition[]} */
 const GROUPS = [
   {
     title: 'Core (TypeScript/JavaScript)',
@@ -49,14 +84,29 @@ const SOURCES = {
   bundlephobia: 'https://bundlephobia.com/api/size?package='
 };
 
+/**
+ * Formats numbers with locale separators and returns '-' for non-finite values.
+ * @param {number | null | undefined} value
+ * @returns {string}
+ */
 function formatNumber(value) {
   return Number.isFinite(value) ? value.toLocaleString('en-US') : '-';
 }
 
+/**
+ * Formats byte values as kilobytes and returns '-' for non-finite values.
+ * @param {number | null | undefined} value
+ * @returns {string}
+ */
 function formatKb(value) {
   return Number.isFinite(value) ? `${(value / 1024).toFixed(1)} KB` : '-';
 }
 
+/**
+ * Formats date-like input as YYYY-MM-DD and returns '-' for invalid/missing values.
+ * @param {string | Date | null | undefined} value
+ * @returns {string}
+ */
 function formatDate(value) {
   if (!value) return '-';
   const date = new Date(value);
@@ -64,11 +114,22 @@ function formatDate(value) {
   return date.toISOString().slice(0, 10);
 }
 
+/**
+ * Builds an npm package markdown link.
+ * @param {string} name
+ * @param {boolean | undefined} highlight
+ * @returns {string}
+ */
 function markdownPkg(name, highlight) {
   const text = highlight ? `**${name}**` : name;
   return `[${text}](https://www.npmjs.com/package/${name})`;
 }
 
+/**
+ * Normalizes common repository formats to canonical HTTP(S) URL.
+ * @param {string | { url?: string } | null | undefined} repository
+ * @returns {string | null}
+ */
 function normalizeRepoUrl(repository) {
   if (!repository) return null;
 
@@ -97,16 +158,33 @@ function normalizeRepoUrl(repository) {
   return null;
 }
 
+/**
+ * Builds a package markdown link with optional repository link.
+ * @param {string} name
+ * @param {boolean | undefined} highlight
+ * @param {string | null | undefined} repositoryUrl
+ * @returns {string}
+ */
 function markdownPkgWithRepo(name, highlight, repositoryUrl) {
   const pkgLink = markdownPkg(name, highlight);
   if (!repositoryUrl) return pkgLink;
   return `${pkgLink} · [Repo](${repositoryUrl})`;
 }
 
+/**
+ * Delays execution for retry backoff.
+ * @param {number} ms
+ * @returns {Promise<void>}
+ */
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Fetches JSON with retries.
+ * @param {string} url
+ * @returns {Promise<any>}
+ */
 async function fetchJson(url) {
   let lastError;
 
@@ -134,16 +212,27 @@ async function fetchJson(url) {
   throw lastError;
 }
 
+/**
+ * Reads publish metadata for a package from npm registry.
+ * @param {string} pkg
+ * @returns {Promise<PublishInfo>}
+ */
 async function fetchNpmPublishedDate(pkg) {
   const metadata = await fetchJson(`${SOURCES.npmRegistry}/${encodeURIComponent(pkg)}`);
   const latest = metadata?.['dist-tags']?.latest;
-  const lastPublished = latest ? metadata?.time?.[latest] ?? null : null;
-  const unpackedSize = latest ? metadata?.versions?.[latest]?.dist?.unpackedSize ?? null : null;
+  const lastPublished = latest ? (metadata?.time?.[latest] ?? null) : null;
+  const unpackedSize = latest ? (metadata?.versions?.[latest]?.dist?.unpackedSize ?? null) : null;
   const repositoryUrl = normalizeRepoUrl(metadata?.repository);
 
   return { lastPublished, unpackedSize, repositoryUrl };
 }
 
+/**
+ * Executes an async loader and converts failures to null.
+ * @template T
+ * @param {() => Promise<T>} loader
+ * @returns {Promise<T | null>}
+ */
 async function fetchOrNull(loader) {
   try {
     return await loader();
@@ -152,6 +241,10 @@ async function fetchOrNull(loader) {
   }
 }
 
+/**
+ * Collects benchmark metrics for all configured packages.
+ * @returns {Promise<Map<string, PackageMetrics>>}
+ */
 async function collectMetrics() {
   const rows = GROUPS.flatMap((group) => group.rows);
   const result = new Map();
@@ -182,7 +275,7 @@ async function collectMetrics() {
 
 /**
  * Renders the benchmark section of the README based on collected metrics.
- * @param {Map<string, {weekly: number|null, monthly: number|null, lastPublished: string|null, unpacked: number|null, repositoryUrl: string|null, minified: number|null, gzip: number|null}>} metrics
+ * @param {Map<string, PackageMetrics>} metrics
  * @returns {string}
  */
 function renderSection(metrics) {
@@ -226,6 +319,12 @@ function renderSection(metrics) {
   return lines.join('\n').trimEnd();
 }
 
+/**
+ * Replaces only the benchmark section inside README markdown.
+ * @param {string} readme
+ * @param {string} newSection
+ * @returns {string}
+ */
 function updateReadmeSection(readme, newSection) {
   const sectionPattern = /### 🪶 Lightest in Class[\s\S]*?(?=\n### 🎨 Framework-Ready)/;
   if (!sectionPattern.test(readme)) {
@@ -235,28 +334,113 @@ function updateReadmeSection(readme, newSection) {
   return readme.replace(sectionPattern, newSection);
 }
 
+/**
+ * Extracts the benchmark section from README markdown.
+ * @param {string} readme
+ * @returns {string | null}
+ */
+function getBenchmarkSection(readme) {
+  const match = readme.match(/### 🪶 Lightest in Class[\s\S]*?(?=\n### 🎨 Framework-Ready)/);
+  return match?.[0] ?? null;
+}
+
+/**
+ * Parses the snapshot date from benchmark section.
+ * @param {string} readme
+ * @returns {Date | null}
+ */
+function parseSnapshotDate(readme) {
+  const section = getBenchmarkSection(readme);
+  if (!section) return null;
+
+  const snapshotMatch = section.match(/Snapshot:\s*\*\*([^*]+)\*\*/);
+  if (!snapshotMatch?.[1]) return null;
+
+  const parsed = new Date(snapshotMatch[1].trim());
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed;
+}
+
+/**
+ * Returns a Date normalized to local start-of-day.
+ * @param {Date} date
+ * @returns {Date}
+ */
+function startOfDay(date) {
+  const normalized = new Date(date);
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
+}
+
+/**
+ * Formats markdown content using repository Prettier configuration.
+ * @param {string} markdown
+ * @returns {Promise<string>}
+ */
+async function formatMarkdown(markdown) {
+  const config = await prettier.resolveConfig(README_FILEPATH);
+  return prettier.format(markdown, {
+    ...config,
+    parser: 'markdown',
+    filepath: README_FILEPATH
+  });
+}
+
+/**
+ * CLI entrypoint for update/check flows.
+ * @returns {Promise<void>}
+ */
 async function main() {
   const checkMode = process.argv.includes('--check');
-  const metrics = await collectMetrics();
-  const section = renderSection(metrics);
   const readme = await readFile(README_PATH, 'utf8');
-  const updated = updateReadmeSection(readme, section);
+  const formattedReadme = await formatMarkdown(readme);
 
   if (checkMode) {
-    if (readme !== updated) {
+    if (readme !== formattedReadme) {
       console.error('README benchmark section is outdated. Run: pnpm readme:benchmarks');
       process.exit(1);
     }
+
+    const snapshotDate = parseSnapshotDate(readme);
+    if (!snapshotDate) {
+      console.error('Could not locate "Lightest in Class" section in README.md');
+      process.exit(1);
+    }
+
+    const today = startOfDay(new Date());
+    const snapshotDay = startOfDay(snapshotDate);
+
+    if (snapshotDay >= today) {
+      console.log('README benchmark section is up to date.');
+      return;
+    }
+
+    const metrics = await collectMetrics();
+    const section = renderSection(metrics);
+    const updated = updateReadmeSection(readme, section);
+    const formattedUpdated = await formatMarkdown(updated);
+
+    if (readme !== formattedUpdated) {
+      console.error('README benchmark section is outdated. Run: pnpm readme:benchmarks');
+      process.exit(1);
+    }
+
     console.log('README benchmark section is up to date.');
     return;
   }
 
-  if (readme === updated) {
+  const metrics = await collectMetrics();
+  const section = renderSection(metrics);
+  const updated = updateReadmeSection(readme, section);
+  const formattedUpdated = await formatMarkdown(updated);
+
+  if (readme === formattedUpdated) {
     console.log('README benchmark section already up to date.');
     return;
   }
 
-  await writeFile(README_PATH, updated, 'utf8');
+  await writeFile(README_PATH, formattedUpdated, 'utf8');
   console.log('Updated README benchmark section.');
 }
 
