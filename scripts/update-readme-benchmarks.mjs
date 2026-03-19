@@ -220,7 +220,7 @@ async function fetchJson(url) {
  * @param {string} pkg
  * @returns {Promise<PublishInfo>}
  */
-async function fetchNpmPublishedDate(pkg) {
+async function fetchNpmPublishInfo(pkg) {
   const metadata = await fetchJson(`${SOURCES.npmRegistry}/${encodeURIComponent(pkg)}`);
   const latest = metadata?.['dist-tags']?.latest;
   const lastPublished = latest ? (metadata?.time?.[latest] ?? null) : null;
@@ -244,7 +244,7 @@ async function collectMetrics() {
     const [week, month, publishInfo, bundle] = await Promise.all([
       fetchJson(`${SOURCES.npmDownloads}/last-week/${encodeURIComponent(pkg)}`),
       fetchJson(`${SOURCES.npmDownloads}/last-month/${encodeURIComponent(pkg)}`),
-      fetchNpmPublishedDate(pkg),
+      fetchNpmPublishInfo(pkg),
       fetchJson(`${SOURCES.bundlephobia}${encodeURIComponent(pkg)}`)
     ]);
 
