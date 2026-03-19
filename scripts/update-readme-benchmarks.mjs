@@ -5,6 +5,8 @@ import prettier from 'prettier';
 
 const README_PATH = new URL('../README.md', import.meta.url);
 const README_FILEPATH = fileURLToPath(README_PATH);
+const BENCHMARK_START_MARKER = '<!-- benchmarks:start -->';
+const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
 
 /**
  * @typedef {object} GroupRow
@@ -191,7 +193,7 @@ async function fetchJson(url) {
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       const response = await fetch(url, {
-        signal: AbortSignal.timeout(5_000),
+        signal: AbortSignal.timeout(10_000),
         headers: {
           'user-agent': 'phone-mask-readme-benchmarks'
         }
@@ -229,20 +231,6 @@ async function fetchNpmPublishedDate(pkg) {
 }
 
 /**
- * Executes an async loader and converts failures to null.
- * @template T
- * @param {() => Promise<T>} loader
- * @returns {Promise<T | null>}
- */
-async function fetchOrNull(loader) {
-  try {
-    return await loader();
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Collects benchmark metrics for all configured packages.
  * @returns {Promise<Map<string, PackageMetrics>>}
  */
@@ -254,20 +242,20 @@ async function collectMetrics() {
     const pkg = row.pkg;
 
     const [week, month, publishInfo, bundle] = await Promise.all([
-      fetchOrNull(() => fetchJson(`${SOURCES.npmDownloads}/last-week/${encodeURIComponent(pkg)}`)),
-      fetchOrNull(() => fetchJson(`${SOURCES.npmDownloads}/last-month/${encodeURIComponent(pkg)}`)),
-      fetchOrNull(() => fetchNpmPublishedDate(pkg)),
-      fetchOrNull(() => fetchJson(`${SOURCES.bundlephobia}${encodeURIComponent(pkg)}`))
+      fetchJson(`${SOURCES.npmDownloads}/last-week/${encodeURIComponent(pkg)}`),
+      fetchJson(`${SOURCES.npmDownloads}/last-month/${encodeURIComponent(pkg)}`),
+      fetchNpmPublishedDate(pkg),
+      fetchJson(`${SOURCES.bundlephobia}${encodeURIComponent(pkg)}`)
     ]);
 
     result.set(pkg, {
-      weekly: week?.downloads ?? null,
-      monthly: month?.downloads ?? null,
-      lastPublished: publishInfo?.lastPublished ?? null,
-      unpacked: publishInfo?.unpackedSize ?? null,
-      repositoryUrl: publishInfo?.repositoryUrl ?? null,
-      minified: bundle?.size ?? null,
-      gzip: bundle?.gzip ?? null
+      weekly: week.downloads ?? null,
+      monthly: month.downloads ?? null,
+      lastPublished: publishInfo.lastPublished ?? null,
+      unpacked: publishInfo.unpackedSize ?? null,
+      repositoryUrl: publishInfo.repositoryUrl ?? null,
+      minified: bundle.size ?? null,
+      gzip: bundle.gzip ?? null
     });
   }
 
@@ -280,9 +268,10 @@ async function collectMetrics() {
  * @param {string} [snapshotDate]
  * @returns {string}
  */
-function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0, 10)) {
+function renderSection(metrics, snapshotDate = getCurrentDateKey()) {
 
   const lines = [
+    BENCHMARK_START_MARKER,
     '### 🪶 Lightest in Class',
     '',
     'Real market comparison, segmented by ecosystem.',
@@ -316,6 +305,7 @@ function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0,
     }
   }
 
+  lines.push(BENCHMARK_END_MARKER);
   return lines.join('\n').trimEnd();
 }
 
@@ -326,12 +316,15 @@ function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0,
  * @returns {string}
  */
 function updateReadmeSection(readme, newSection) {
-  const sectionPattern = /### 🪶 Lightest in Class[\s\S]*?(?=\n### 🎨 Framework-Ready)/;
-  if (!sectionPattern.test(readme)) {
-    throw new Error('Could not locate "Lightest in Class" section in README.md');
+  const markerStartIndex = readme.indexOf(BENCHMARK_START_MARKER);
+  const markerEndIndex = readme.indexOf(BENCHMARK_END_MARKER);
+
+  if (markerStartIndex >= 0 && markerEndIndex >= 0 && markerEndIndex > markerStartIndex) {
+    const markerEndOffset = markerEndIndex + BENCHMARK_END_MARKER.length;
+    return `${readme.slice(0, markerStartIndex)}${newSection}${readme.slice(markerEndOffset)}`;
   }
 
-  return readme.replace(sectionPattern, newSection);
+  throw new Error('Could not locate benchmark section markers in README.md');
 }
 
 /**
@@ -340,15 +333,21 @@ function updateReadmeSection(readme, newSection) {
  * @returns {string | null}
  */
 function getBenchmarkSection(readme) {
-  const sectionRegex = /### 🪶 Lightest in Class[\s\S]*?(?=\n### 🎨 Framework-Ready)/;
-  const match = sectionRegex.exec(readme);
-  return match?.[0] ?? null;
+  const markerStartIndex = readme.indexOf(BENCHMARK_START_MARKER);
+  const markerEndIndex = readme.indexOf(BENCHMARK_END_MARKER);
+
+  if (markerStartIndex >= 0 && markerEndIndex >= 0 && markerEndIndex > markerStartIndex) {
+    const markerEndOffset = markerEndIndex + BENCHMARK_END_MARKER.length;
+    return readme.slice(markerStartIndex, markerEndOffset);
+  }
+
+  return null;
 }
 
 /**
  * Parses the snapshot date from benchmark section.
  * @param {string} readme
- * @returns {Date | null}
+ * @returns {string | null}
  */
 function parseSnapshotDate(readme) {
   const section = getBenchmarkSection(readme);
@@ -367,9 +366,8 @@ function parseSnapshotDate(readme) {
     const year = Number(isoMatch[1]);
     const month = Number(isoMatch[2]);
     const day = Number(isoMatch[3]);
-    const isoDate = new Date(Date.UTC(year, month - 1, day));
-    if (!Number.isNaN(isoDate.getTime())) {
-      return isoDate;
+    if (isValidDateParts(year, month, day)) {
+      return toDateKey(year, month, day);
     }
   }
 
@@ -397,9 +395,9 @@ function parseSnapshotDate(readme) {
     const year = Number(legacyMatch[3]);
 
     if (monthIndex >= 0) {
-      const legacyDate = new Date(Date.UTC(year, monthIndex, day));
-      if (!Number.isNaN(legacyDate.getTime())) {
-        return legacyDate;
+      const month = monthIndex + 1;
+      if (isValidDateParts(year, month, day)) {
+        return toDateKey(year, month, day);
       }
     }
   }
@@ -408,12 +406,42 @@ function parseSnapshotDate(readme) {
 }
 
 /**
- * Converts date into canonical YYYY-MM-DD UTC date key.
- * @param {Date} date
+ * Converts numeric date parts into canonical YYYY-MM-DD key.
+ * @param {number} year
+ * @param {number} month
+ * @param {number} day
  * @returns {string}
  */
-function toUtcDateKey(date) {
-  return date.toISOString().slice(0, 10);
+function toDateKey(year, month, day) {
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
+ * Validates date parts as a real calendar date.
+ * @param {number} year
+ * @param {number} month
+ * @param {number} day
+ * @returns {boolean}
+ */
+function isValidDateParts(year, month, day) {
+  const parsed = new Date(year, month - 1, day);
+  return (
+    Number.isInteger(year) &&
+    Number.isInteger(month) &&
+    Number.isInteger(day) &&
+    parsed.getFullYear() === year &&
+    parsed.getMonth() === month - 1 &&
+    parsed.getDate() === day
+  );
+}
+
+/**
+ * Returns current local date as YYYY-MM-DD key.
+ * @returns {string}
+ */
+function getCurrentDateKey() {
+  const now = new Date();
+  return toDateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
 }
 
 /**
@@ -453,16 +481,15 @@ async function main() {
       process.exit(1);
     }
 
-    const todayKey = toUtcDateKey(new Date());
-    const snapshotKey = toUtcDateKey(snapshotDate);
+    const todayKey = getCurrentDateKey();
 
-    if (snapshotKey < todayKey) {
+    if (snapshotDate < todayKey) {
       console.error('README benchmark snapshot is outdated. Run: pnpm readme:benchmarks');
       process.exit(1);
     }
 
     const metrics = await collectMetrics();
-    const section = renderSection(metrics, snapshotKey);
+    const section = renderSection(metrics, snapshotDate);
     const updated = updateReadmeSection(readme, section);
     const formattedUpdated = await formatMarkdown(updated);
 

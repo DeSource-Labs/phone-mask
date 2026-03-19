@@ -27,6 +27,8 @@
 
 Phone formats sync automatically from [Google's libphonenumber](https://github.com/google/libphonenumber) — no stale data, no manual updates. Just upgrade and you're current with global dialing rules.
 
+<!-- benchmarks:start -->
+
 ### 🪶 Lightest in Class
 
 Real market comparison, segmented by ecosystem.
@@ -74,6 +76,8 @@ Snapshot: **2026-03-19** ([Bundlephobia API](https://bundlephobia.com/api/size?p
 | [**@desource/phone-mask-nuxt**](https://www.npmjs.com/package/@desource/phone-mask-nuxt) · [Repo](https://github.com/DeSource-Labs/phone-mask) |  1,519 |   2,044 |     2026-03-15 |   1.5 KB |  0.7 KB |
 
 Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input modules with stable npm + Bundlephobia signals comparable to React/Vue/Svelte peers; most Nuxt apps use Vue phone input packages directly.
+
+<!-- benchmarks:end -->
 
 ### 🎨 Framework-Ready
 
