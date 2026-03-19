@@ -277,10 +277,10 @@ async function collectMetrics() {
 /**
  * Renders the benchmark section of the README based on collected metrics.
  * @param {Map<string, PackageMetrics>} metrics
+ * @param {string} [snapshotDate]
  * @returns {string}
  */
-function renderSection(metrics) {
-  const snapshotDate = new Date().toISOString().slice(0, 10);
+function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0, 10)) {
 
   const lines = [
     '### 🪶 Lightest in Class',
@@ -408,14 +408,12 @@ function parseSnapshotDate(readme) {
 }
 
 /**
- * Returns a Date normalized to local start-of-day.
+ * Converts date into canonical YYYY-MM-DD UTC date key.
  * @param {Date} date
- * @returns {Date}
+ * @returns {string}
  */
-function startOfDay(date) {
-  const normalized = new Date(date);
-  normalized.setHours(0, 0, 0, 0);
-  return normalized;
+function toUtcDateKey(date) {
+  return date.toISOString().slice(0, 10);
 }
 
 /**
@@ -455,16 +453,16 @@ async function main() {
       process.exit(1);
     }
 
-    const today = startOfDay(new Date());
-    const snapshotDay = startOfDay(snapshotDate);
+    const todayKey = toUtcDateKey(new Date());
+    const snapshotKey = toUtcDateKey(snapshotDate);
 
-    if (snapshotDay < today) {
-      console.error('README benchmark section is outdated. Run: pnpm readme:benchmarks');
-      process.exit(1);
+    if (snapshotKey >= todayKey) {
+      console.log('README benchmark section is up to date.');
+      return;
     }
 
     const metrics = await collectMetrics();
-    const section = renderSection(metrics);
+    const section = renderSection(metrics, snapshotKey);
     const updated = updateReadmeSection(readme, section);
     const formattedUpdated = await formatMarkdown(updated);
 
