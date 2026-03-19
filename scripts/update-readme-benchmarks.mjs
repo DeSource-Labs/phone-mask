@@ -140,26 +140,25 @@ function normalizeRepoUrl(repository) {
 
   const trimmed = raw.trim();
   if (!trimmed) return null;
+  /** @type {string | null} */
+  let candidate = null;
 
   // git+https://github.com/org/repo.git → https://github.com/org/repo
   if (/^git\+https?:\/\//i.test(trimmed)) {
-    return trimmed.replace(/^git\+/, '').replace(/\.git$/i, '');
+    candidate = trimmed.replace(/^git\+/, '').replace(/\.git$/i, '');
   }
-
   // https://github.com/org/repo.git → https://github.com/org/repo
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed.replace(/\.git$/i, '');
+  else if (/^https?:\/\//i.test(trimmed)) {
+    candidate = trimmed.replace(/\.git$/i, '');
   }
-
   // git://github.com/org/repo.git → https://github.com/org/repo
-  if (/^git:\/\//i.test(trimmed)) {
-    return trimmed.replace(/^git:\/\//i, 'https://').replace(/\.git$/i, '');
+  else if (/^git:\/\//i.test(trimmed)) {
+    candidate = trimmed.replace(/^git:\/\//i, 'https://').replace(/\.git$/i, '');
   }
-
   // git+ssh://git@github.com:org/repo.git
   // ssh://git@github.com/org/repo.git
   // ssh://git@bitbucket.org:team/repo.git
-  if (/^(git\+ssh|ssh):\/\//i.test(trimmed)) {
+  else if (/^(git\+ssh|ssh):\/\//i.test(trimmed)) {
     let withoutScheme = trimmed.replace(/^(git\+ssh|ssh):\/\//i, '');
 
     // Drop any "user@" prefix, e.g. "git@"
@@ -174,24 +173,43 @@ function normalizeRepoUrl(repository) {
     if (colonIndex !== -1) {
       withoutScheme = withoutScheme.slice(0, colonIndex) + '/' + withoutScheme.slice(colonIndex + 1);
     }
-
-    return `https://${withoutScheme}`.replace(/\.git$/i, '');
+    candidate = `https://${withoutScheme}`.replace(/\.git$/i, '');
   }
-
   // git@github.com:org/repo.git (and similar scp-like syntax)
-  const scpLikeMatch = /^([^@]+)@([^:]+):(.+)$/.exec(trimmed);
-  if (scpLikeMatch) {
-    const host = scpLikeMatch[2];
-    const path = scpLikeMatch[3].replace(/\.git$/i, '');
-    return `https://${host}/${path}`;
+  else {
+    const scpLikeMatch = /^([^@]+)@([^:]+):(.+)$/.exec(trimmed);
+    if (scpLikeMatch) {
+      const host = scpLikeMatch[2];
+      const path = scpLikeMatch[3].replace(/\.git$/i, '');
+      candidate = `https://${host}/${path}`;
+    }
   }
 
   // owner/repo → https://github.com/owner/repo
-  if (/^[\w.-]+\/[\w.-]+$/.test(trimmed)) {
-    return `https://github.com/${trimmed}`;
+  if (!candidate && /^[\w.-]+\/[\w.-]+$/.test(trimmed)) {
+    candidate = `https://github.com/${trimmed}`;
   }
 
-  return null;
+  if (!candidate) return null;
+
+  try {
+    const normalized = new URL(candidate);
+    if (normalized.protocol !== 'http:' && normalized.protocol !== 'https:') {
+      return null;
+    }
+    return normalized.toString();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Escapes URL characters that can break markdown links.
+ * @param {string} url
+ * @returns {string}
+ */
+function toMarkdownSafeUrl(url) {
+  return url.replaceAll('(', '%28').replaceAll(')', '%29');
 }
 
 /**
@@ -204,7 +222,10 @@ function normalizeRepoUrl(repository) {
 function markdownPkgWithRepo(name, highlight, repositoryUrl) {
   const pkgLink = markdownPkg(name, highlight);
   if (!repositoryUrl) return pkgLink;
-  return `${pkgLink} · [Repo](${repositoryUrl})`;
+
+  const safeUrl = toMarkdownSafeUrl(repositoryUrl);
+  if (!safeUrl) return pkgLink;
+  return `${pkgLink} · [Repo](${safeUrl})`;
 }
 
 /**
