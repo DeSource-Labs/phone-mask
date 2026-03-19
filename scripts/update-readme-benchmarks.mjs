@@ -469,12 +469,12 @@ function isValidDateParts(year, month, day) {
 }
 
 /**
- * Returns current local date as YYYY-MM-DD key.
+ * Returns current UTC date as YYYY-MM-DD key.
  * @returns {string}
  */
 function getCurrentDateKey() {
   const now = new Date();
-  return toDateKey(now.getFullYear(), now.getMonth() + 1, now.getDate());
+  return toDateKey(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate());
 }
 
 /**
