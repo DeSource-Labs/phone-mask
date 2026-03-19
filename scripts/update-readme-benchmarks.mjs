@@ -357,10 +357,54 @@ function parseSnapshotDate(readme) {
   const snapshotMatch = section.match(/Snapshot:\s*\*\*([^*]+)\*\*/);
   if (!snapshotMatch?.[1]) return null;
 
-  const parsed = new Date(snapshotMatch[1].trim());
-  if (Number.isNaN(parsed.getTime())) return null;
+  const raw = snapshotMatch[1].trim();
 
-  return parsed;
+  // Prefer ISO format: YYYY-MM-DD
+  const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    const year = Number(isoMatch[1]);
+    const month = Number(isoMatch[2]);
+    const day = Number(isoMatch[3]);
+    const isoDate = new Date(year, month - 1, day);
+    if (!Number.isNaN(isoDate.getTime())) {
+      return isoDate;
+    }
+  }
+
+  // Fallback for legacy format: "Month DD, YYYY" (e.g., "March 19, 2026")
+  const legacyMatch = raw.match(/^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/);
+  if (legacyMatch) {
+    const monthNames = {
+      january: 0,
+      february: 1,
+      march: 2,
+      april: 3,
+      may: 4,
+      june: 5,
+      july: 6,
+      august: 7,
+      september: 8,
+      october: 9,
+      november: 10,
+      december: 11
+    };
+    const monthName = legacyMatch[1].toLowerCase();
+    const monthIndex =
+      Object.prototype.hasOwnProperty.call(monthNames, monthName) ?
+      monthNames[monthName] :
+      -1;
+    const day = Number(legacyMatch[2]);
+    const year = Number(legacyMatch[3]);
+
+    if (monthIndex >= 0) {
+      const legacyDate = new Date(year, monthIndex, day);
+      if (!Number.isNaN(legacyDate.getTime())) {
+        return legacyDate;
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
