@@ -367,7 +367,7 @@ function parseSnapshotDate(readme) {
     const year = Number(isoMatch[1]);
     const month = Number(isoMatch[2]);
     const day = Number(isoMatch[3]);
-    const isoDate = new Date(year, month - 1, day);
+    const isoDate = new Date(Date.UTC(year, month - 1, day));
     if (!Number.isNaN(isoDate.getTime())) {
       return isoDate;
     }
@@ -397,7 +397,7 @@ function parseSnapshotDate(readme) {
     const year = Number(legacyMatch[3]);
 
     if (monthIndex >= 0) {
-      const legacyDate = new Date(year, monthIndex, day);
+      const legacyDate = new Date(Date.UTC(year, monthIndex, day));
       if (!Number.isNaN(legacyDate.getTime())) {
         return legacyDate;
       }
@@ -456,9 +456,9 @@ async function main() {
     const todayKey = toUtcDateKey(new Date());
     const snapshotKey = toUtcDateKey(snapshotDate);
 
-    if (snapshotKey >= todayKey) {
-      console.log('README benchmark section is up to date.');
-      return;
+    if (snapshotKey < todayKey) {
+      console.error('README benchmark snapshot is outdated. Run: pnpm readme:benchmarks');
+      process.exit(1);
     }
 
     const metrics = await collectMetrics();
