@@ -191,6 +191,7 @@ async function fetchJson(url) {
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       const response = await fetch(url, {
+        signal: AbortSignal.timeout(5_000),
         headers: {
           'user-agent': 'phone-mask-readme-benchmarks'
         }
@@ -279,7 +280,7 @@ async function collectMetrics() {
  * @returns {string}
  */
 function renderSection(metrics) {
-  const snapshotDate = new Date().toLocaleDateString('en-US', {
+  const snapshotDate = new Date().toLocaleDateString('en-CA', {
     month: 'long',
     day: 'numeric',
     year: 'numeric'
@@ -379,7 +380,7 @@ function startOfDay(date) {
  * @returns {Promise<string>}
  */
 async function formatMarkdown(markdown) {
-  const config = await prettier.resolveConfig(README_FILEPATH);
+  const config = (await prettier.resolveConfig(README_FILEPATH)) ?? {};
   return prettier.format(markdown, {
     ...config,
     parser: 'markdown',
