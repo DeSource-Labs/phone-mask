@@ -30,7 +30,7 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 ### 🪶 Lightest in Class
 
 Real market comparison, segmented by ecosystem.
-Snapshot: **March 19, 2026** ([Bundlephobia API](https://bundlephobia.com/api/size?package=@desource/phone-mask), [npm Downloads API](https://api.npmjs.org/downloads/point/last-month/@desource/phone-mask), [npm Registry API](https://registry.npmjs.org/@desource/phone-mask)).
+Snapshot: **2026-03-19** ([Bundlephobia API](https://bundlephobia.com/api/size?package=%40desource%2Fphone-mask), [npm Downloads API](https://api.npmjs.org/downloads/point/last-month/%40desource%2Fphone-mask), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask)).
 
 #### Core (TypeScript/JavaScript)
 
