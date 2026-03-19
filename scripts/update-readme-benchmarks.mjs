@@ -141,18 +141,55 @@ function normalizeRepoUrl(repository) {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
+  // git+https://github.com/org/repo.git → https://github.com/org/repo
   if (/^git\+https?:\/\//i.test(trimmed)) {
     return trimmed.replace(/^git\+/, '').replace(/\.git$/i, '');
   }
 
+  // https://github.com/org/repo.git → https://github.com/org/repo
   if (/^https?:\/\//i.test(trimmed)) {
     return trimmed.replace(/\.git$/i, '');
   }
 
+  // git://github.com/org/repo.git → https://github.com/org/repo
   if (/^git:\/\//i.test(trimmed)) {
     return trimmed.replace(/^git:\/\//i, 'https://').replace(/\.git$/i, '');
   }
 
+  // git+ssh://git@github.com:org/repo.git
+  // ssh://git@github.com/org/repo.git
+  // ssh://git@bitbucket.org:team/repo.git
+  if (/^(git\+ssh|ssh):\/\//i.test(trimmed)) {
+    let withoutScheme = trimmed.replace(/^(git\+ssh|ssh):\/\//i, '');
+
+    // Drop any "user@" prefix, e.g. "git@"
+    const atIndex = withoutScheme.indexOf('@');
+    if (atIndex !== -1) {
+      withoutScheme = withoutScheme.slice(atIndex + 1);
+    }
+
+    // After removing the user, we expect "host[:/]<path>"
+    // Replace the first ":" (if present) with "/" to get host/path.
+    const colonIndex = withoutScheme.indexOf(':');
+    if (colonIndex !== -1) {
+      withoutScheme =
+        withoutScheme.slice(0, colonIndex) +
+        '/' +
+        withoutScheme.slice(colonIndex + 1);
+    }
+
+    return `https://${withoutScheme}`.replace(/\.git$/i, '');
+  }
+
+  // git@github.com:org/repo.git (and similar scp-like syntax)
+  const scpLikeMatch = /^([^@]+)@([^:]+):(.+)$/.exec(trimmed);
+  if (scpLikeMatch) {
+    const host = scpLikeMatch[2];
+    const path = scpLikeMatch[3].replace(/\.git$/i, '');
+    return `https://${host}/${path}`;
+  }
+
+  // owner/repo → https://github.com/owner/repo
   if (/^[\w.-]+\/[\w.-]+$/.test(trimmed)) {
     return `https://github.com/${trimmed}`;
   }
