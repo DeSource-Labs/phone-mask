@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
-import dts from 'vite-plugin-dts';
 import terser from '@rollup/plugin-terser';
 import packageJson from './package.json';
 
@@ -90,13 +89,6 @@ export default defineConfig({
 
     cssCodeSplit: false
   },
-
-  plugins: [
-    dts({
-      insertTypesEntry: true,
-      outDir: 'dist/types'
-    })
-  ],
 
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }

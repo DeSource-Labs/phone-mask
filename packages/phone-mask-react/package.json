@@ -36,14 +36,14 @@
   },
   "sideEffects": false,
   "type": "module",
-  "main": "./dist/phone-mask-react.cjs",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/phone-mask-react.cjs"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     },
     "./assets/lib.css": "./dist/phone-mask-react.css"
   },
@@ -53,11 +53,13 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo test-results coverage",
+    "clean": "rimraf dist tsconfig.tsbuildinfo test-results coverage",
     "clean:modules": "rimraf node_modules",
     "dev": "cd demo && vite",
-    "build:internal": "vite build && tsc --project tsconfig.build.json",
     "build": "pnpm clean && pnpm build:internal",
+    "build:internal": "pnpm build:lib && pnpm build:types",
+    "build:lib": "vite build",
+    "build:types": "tsc --project tsconfig.json",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",

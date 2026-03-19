@@ -10,13 +10,14 @@ export default defineConfig({
       entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
       formats: ['es', 'cjs'],
       fileName: (format) => {
-        if (format === 'es') return 'esm/index.js';
-        return 'phone-mask-react.cjs';
+        if (format === 'es') return 'index.mjs';
+        return 'index.cjs';
       }
     },
     rolldownOptions: {
       external: ['@desource/phone-mask', 'react', 'react-dom', 'react/jsx-runtime'],
       output: {
+        exports: 'named',
         globals: {
           '@desource/phone-mask': 'phoneMask',
           react: 'React',
@@ -25,8 +26,6 @@ export default defineConfig({
         },
         minify: true
       }
-    },
-    sourcemap: true,
-    emptyOutDir: true
+    }
   }
 });

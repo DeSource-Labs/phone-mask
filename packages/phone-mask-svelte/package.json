@@ -52,13 +52,13 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rimraf dist tsconfig.build.tsbuildinfo test-results coverage",
+    "clean": "rimraf dist tsconfig.tsbuildinfo test-results coverage",
     "clean:modules": "rimraf node_modules",
     "dev": "vite demo",
     "build": "pnpm clean && pnpm build:internal",
     "build:internal": "pnpm build:lib && pnpm build:types",
     "build:lib": "vite build",
-    "build:types": "tsc --project tsconfig.build.json",
+    "build:types": "tsc --project tsconfig.json",
     "typecheck": "svelte-check --tsconfig tsconfig.json",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",

@@ -2,10 +2,10 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "src",
-    "declarationDir": "dist/types",
     "outDir": "dist",
+    "declarationDir": "dist/types",
     "verbatimModuleSyntax": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+    "allowArbitraryExtensions": true
   },
   "include": ["src/**/*"]
 }
