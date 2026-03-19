@@ -291,9 +291,12 @@ function renderSection(metrics) {
   ];
 
   for (const group of GROUPS) {
-    lines.push(`#### ${group.title}`, '');
-    lines.push('| Package | Weekly | Monthly | Last published | Minified | Gzipped |');
-    lines.push('| --- | ---: | ---: | ---: | ---: | ---: |');
+    lines.push(
+      `#### ${group.title}`,
+      '',
+      '| Package | Weekly | Monthly | Last published | Minified | Gzipped |',
+      '| --- | ---: | ---: | ---: | ---: | ---: |'
+    );
 
     for (const row of group.rows) {
       const metric = metrics.get(row.pkg);
@@ -337,7 +340,8 @@ function updateReadmeSection(readme, newSection) {
  * @returns {string | null}
  */
 function getBenchmarkSection(readme) {
-  const match = readme.match(/### 🪶 Lightest in Class[\s\S]*?(?=\n### 🎨 Framework-Ready)/);
+  const sectionRegex = /### 🪶 Lightest in Class[\s\S]*?(?=\n### 🎨 Framework-Ready)/;
+  const match = sectionRegex.exec(readme);
   return match?.[0] ?? null;
 }
 
@@ -350,13 +354,15 @@ function parseSnapshotDate(readme) {
   const section = getBenchmarkSection(readme);
   if (!section) return null;
 
-  const snapshotMatch = section.match(/Snapshot:\s*\*\*([^*]+)\*\*/);
+  const snapshotRegex = /Snapshot:\s*\*\*([^*]+)\*\*/;
+  const snapshotMatch = snapshotRegex.exec(section);
   if (!snapshotMatch?.[1]) return null;
 
   const raw = snapshotMatch[1].trim();
 
   // Prefer ISO format: YYYY-MM-DD
-  const isoMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const isoRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const isoMatch = isoRegex.exec(raw);
   if (isoMatch) {
     const year = Number(isoMatch[1]);
     const month = Number(isoMatch[2]);
@@ -368,7 +374,8 @@ function parseSnapshotDate(readme) {
   }
 
   // Fallback for legacy format: "Month DD, YYYY" (e.g., "March 19, 2026")
-  const legacyMatch = raw.match(/^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/);
+  const legacyRegex = /^([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})$/;
+  const legacyMatch = legacyRegex.exec(raw);
   if (legacyMatch) {
     const monthNames = {
       january: 0,
