@@ -280,11 +280,7 @@ async function collectMetrics() {
  * @returns {string}
  */
 function renderSection(metrics) {
-  const snapshotDate = new Date().toLocaleDateString('en-CA', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
+  const snapshotDate = new Date().toISOString().slice(0, 10);
 
   const lines = [
     '### 🪶 Lightest in Class',
@@ -389,10 +385,7 @@ function parseSnapshotDate(readme) {
       december: 11
     };
     const monthName = legacyMatch[1].toLowerCase();
-    const monthIndex =
-      Object.prototype.hasOwnProperty.call(monthNames, monthName) ?
-      monthNames[monthName] :
-      -1;
+    const monthIndex = Object.prototype.hasOwnProperty.call(monthNames, monthName) ? monthNames[monthName] : -1;
     const day = Number(legacyMatch[2]);
     const year = Number(legacyMatch[3]);
 
@@ -443,7 +436,9 @@ async function main() {
 
   if (checkMode) {
     if (readme !== formattedReadme) {
-      console.error('README formatting does not match the configured Prettier output. Please format README.md (for example by running: pnpm readme:benchmarks).');
+      console.error(
+        'README formatting does not match the configured Prettier output. Please format README.md (for example by running: pnpm readme:benchmarks).'
+      );
       process.exit(1);
     }
 
