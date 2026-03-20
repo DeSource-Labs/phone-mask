@@ -17,7 +17,6 @@
     "build:demo": "pnpm --filter demo build",
     "vercel-build": "pnpm build && pnpm dev:prepare && pnpm build:demo",
     "gen": "pnpm --filter phone-mask gen",
-    "gen:google": "pnpm --filter phone-mask gen:google",
     "changeset": "changeset",
     "changeset:version": "changeset version && pnpm install --lockfile-only",
     "changeset:publish": "pnpm build && changeset publish",
