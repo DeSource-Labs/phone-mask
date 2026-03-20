@@ -85,6 +85,8 @@ const SOURCES = {
   npmRegistry: 'https://registry.npmjs.org',
   bundlephobia: 'https://bundlephobia.com/api/size?package='
 };
+const MAX_FETCH_ATTEMPTS = 3;
+const FETCH_TIMEOUT_MS = 10_000;
 
 /**
  * Formats numbers with locale separators and returns '-' for non-finite values.
@@ -128,68 +130,88 @@ function markdownPkg(name, highlight) {
 }
 
 /**
- * Normalizes common repository formats to canonical HTTP(S) URL.
+ * Removes trailing ".git" suffix from repository URLs.
+ * @param {string} value
+ * @returns {string}
+ */
+function stripGitSuffix(value) {
+  return value.replace(/\.git$/i, '');
+}
+
+/**
+ * Extracts and trims raw repository value from package metadata.
  * @param {string | { url?: string } | null | undefined} repository
  * @returns {string | null}
  */
-function normalizeRepoUrl(repository) {
+function getRawRepositoryValue(repository) {
   if (!repository) return null;
-
   const raw = typeof repository === 'string' ? repository : repository.url;
   if (!raw) return null;
-
   const trimmed = raw.trim();
-  if (!trimmed) return null;
-  /** @type {string | null} */
-  let candidate = null;
+  return trimmed || null;
+}
 
-  // git+https://github.com/org/repo.git → https://github.com/org/repo
-  if (/^git\+https?:\/\//i.test(trimmed)) {
-    candidate = trimmed.replace(/^git\+/, '').replace(/\.git$/i, '');
-  }
-  // https://github.com/org/repo.git → https://github.com/org/repo
-  else if (/^https?:\/\//i.test(trimmed)) {
-    candidate = trimmed.replace(/\.git$/i, '');
-  }
-  // git://github.com/org/repo.git → https://github.com/org/repo
-  else if (/^git:\/\//i.test(trimmed)) {
-    candidate = trimmed.replace(/^git:\/\//i, 'https://').replace(/\.git$/i, '');
-  }
-  // git+ssh://git@github.com:org/repo.git
-  // ssh://git@github.com/org/repo.git
-  // ssh://git@bitbucket.org:team/repo.git
-  else if (/^(git\+ssh|ssh):\/\//i.test(trimmed)) {
-    let withoutScheme = trimmed.replace(/^(git\+ssh|ssh):\/\//i, '');
+/**
+ * Parses direct URL-like repository forms.
+ * @param {string} value
+ * @returns {string | null}
+ */
+function parseDirectRepositoryUrl(value) {
+  const transforms = [
+    [/^git\+https?:\/\//i, (raw) => raw.replace(/^git\+/, '')],
+    [/^https?:\/\//i, (raw) => raw],
+    [/^git:\/\//i, (raw) => raw.replace(/^git:\/\//i, 'https://')]
+  ];
 
-    // Drop any "user@" prefix, e.g. "git@"
-    const atIndex = withoutScheme.indexOf('@');
-    if (atIndex !== -1) {
-      withoutScheme = withoutScheme.slice(atIndex + 1);
-    }
-
-    // After removing the user, we expect "host[:/]<path>"
-    // Replace the first ":" (if present) with "/" to get host/path.
-    const colonIndex = withoutScheme.indexOf(':');
-    if (colonIndex !== -1) {
-      withoutScheme = withoutScheme.slice(0, colonIndex) + '/' + withoutScheme.slice(colonIndex + 1);
-    }
-    candidate = `https://${withoutScheme}`.replace(/\.git$/i, '');
-  }
-  // git@github.com:org/repo.git (and similar scp-like syntax)
-  else {
-    const scpLikeMatch = /^([^@]+)@([^:]+):(.+)$/.exec(trimmed);
-    if (scpLikeMatch) {
-      const host = scpLikeMatch[2];
-      const path = scpLikeMatch[3].replace(/\.git$/i, '');
-      candidate = `https://${host}/${path}`;
+  for (const [pattern, transform] of transforms) {
+    if (pattern.test(value)) {
+      return stripGitSuffix(transform(value));
     }
   }
+  return null;
+}
 
-  // owner/repo → https://github.com/owner/repo
-  if (!candidate && /^[\w.-]+\/[\w.-]+$/.test(trimmed)) {
-    candidate = `https://github.com/${trimmed}`;
-  }
+/**
+ * Parses ssh/git+ssh repository formats to canonical HTTP(S) candidate.
+ * @param {string} value
+ * @returns {string | null}
+ */
+function parseSshRepositoryUrl(value) {
+  if (!/^(git\+ssh|ssh):\/\//i.test(value)) return null;
 
+  const withoutScheme = value.replace(/^(git\+ssh|ssh):\/\//i, '');
+  const withoutUser = withoutScheme.includes('@') ? withoutScheme.slice(withoutScheme.indexOf('@') + 1) : withoutScheme;
+  const hostAndPath = withoutUser.replace(':', '/');
+  return stripGitSuffix(`https://${hostAndPath}`);
+}
+
+/**
+ * Parses SCP-like repository forms to canonical HTTP(S) candidate.
+ * @param {string} value
+ * @returns {string | null}
+ */
+function parseScpRepositoryUrl(value) {
+  const scpLikeMatch = /^([^@]+)@([^:]+):(.+)$/.exec(value);
+  if (!scpLikeMatch) return null;
+  return stripGitSuffix(`https://${scpLikeMatch[2]}/${scpLikeMatch[3]}`);
+}
+
+/**
+ * Parses owner/repo shorthand to canonical GitHub URL candidate.
+ * @param {string} value
+ * @returns {string | null}
+ */
+function parseOwnerRepoShorthand(value) {
+  if (!/^[\w.-]+\/[\w.-]+$/.test(value)) return null;
+  return `https://github.com/${value}`;
+}
+
+/**
+ * Validates and normalizes HTTP(S) candidate URL.
+ * @param {string | null} candidate
+ * @returns {string | null}
+ */
+function validateHttpRepositoryUrl(candidate) {
   if (!candidate) return null;
 
   try {
@@ -201,6 +223,24 @@ function normalizeRepoUrl(repository) {
   } catch {
     return null;
   }
+}
+
+/**
+ * Normalizes common repository formats to canonical HTTP(S) URL.
+ * @param {string | { url?: string } | null | undefined} repository
+ * @returns {string | null}
+ */
+function normalizeRepoUrl(repository) {
+  const rawValue = getRawRepositoryValue(repository);
+  if (!rawValue) return null;
+
+  const candidate =
+    parseDirectRepositoryUrl(rawValue) ??
+    parseSshRepositoryUrl(rawValue) ??
+    parseScpRepositoryUrl(rawValue) ??
+    parseOwnerRepoShorthand(rawValue);
+
+  return validateHttpRepositoryUrl(candidate);
 }
 
 /**
@@ -224,7 +264,6 @@ function markdownPkgWithRepo(name, highlight, repositoryUrl) {
   if (!repositoryUrl) return pkgLink;
 
   const safeUrl = toMarkdownSafeUrl(repositoryUrl);
-  if (!safeUrl) return pkgLink;
   return `${pkgLink} · [Repo](${safeUrl})`;
 }
 
@@ -243,12 +282,13 @@ function sleep(ms) {
  * @returns {Promise<any>}
  */
 async function fetchJson(url) {
-  let lastError;
+  /** @type {unknown} */
+  let lastError = null;
 
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
     try {
       const response = await fetch(url, {
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         headers: {
           'user-agent': 'phone-mask-readme-benchmarks'
         }
@@ -261,13 +301,13 @@ async function fetchJson(url) {
       return await response.json();
     } catch (error) {
       lastError = error;
-      if (attempt < 3) {
+      if (attempt < MAX_FETCH_ATTEMPTS) {
         await sleep(300 * attempt);
       }
     }
   }
 
-  throw lastError;
+  throw lastError instanceof Error ? lastError : new Error(`Failed to fetch JSON from ${url}`);
 }
 
 /**
@@ -286,35 +326,78 @@ async function fetchNpmPublishInfo(pkg) {
 }
 
 /**
+ * Fetches combined benchmark metrics for a package.
+ * @param {string} pkg
+ * @returns {Promise<PackageMetrics>}
+ */
+async function fetchPackageMetrics(pkg) {
+  const encoded = encodeURIComponent(pkg);
+  const [week, month, publishInfo, bundle] = await Promise.all([
+    fetchJson(`${SOURCES.npmDownloads}/last-week/${encoded}`),
+    fetchJson(`${SOURCES.npmDownloads}/last-month/${encoded}`),
+    fetchNpmPublishInfo(pkg),
+    fetchJson(`${SOURCES.bundlephobia}${encoded}`)
+  ]);
+
+  return {
+    weekly: week.downloads ?? null,
+    monthly: month.downloads ?? null,
+    lastPublished: publishInfo.lastPublished ?? null,
+    unpacked: publishInfo.unpackedSize ?? null,
+    repositoryUrl: publishInfo.repositoryUrl ?? null,
+    minified: bundle.size ?? null,
+    gzip: bundle.gzip ?? null
+  };
+}
+
+/**
  * Collects benchmark metrics for all configured packages.
  * @returns {Promise<Map<string, PackageMetrics>>}
  */
 async function collectMetrics() {
   const rows = GROUPS.flatMap((group) => group.rows);
-  const result = new Map();
+  const entries = await Promise.all(rows.map(async ({ pkg }) => [pkg, await fetchPackageMetrics(pkg)]));
+  return new Map(entries);
+}
 
-  for (const row of rows) {
-    const pkg = row.pkg;
-
-    const [week, month, publishInfo, bundle] = await Promise.all([
-      fetchJson(`${SOURCES.npmDownloads}/last-week/${encodeURIComponent(pkg)}`),
-      fetchJson(`${SOURCES.npmDownloads}/last-month/${encodeURIComponent(pkg)}`),
-      fetchNpmPublishInfo(pkg),
-      fetchJson(`${SOURCES.bundlephobia}${encodeURIComponent(pkg)}`)
-    ]);
-
-    result.set(pkg, {
-      weekly: week.downloads ?? null,
-      monthly: month.downloads ?? null,
-      lastPublished: publishInfo.lastPublished ?? null,
-      unpacked: publishInfo.unpackedSize ?? null,
-      repositoryUrl: publishInfo.repositoryUrl ?? null,
-      minified: bundle.size ?? null,
-      gzip: bundle.gzip ?? null
-    });
+/**
+ * Renders markdown row for a package metric.
+ * @param {GroupRow} row
+ * @param {PackageMetrics | undefined} metric
+ * @returns {string}
+ */
+function renderMetricRow(row, metric) {
+  if (!metric) {
+    throw new Error(`Missing metrics for ${row.pkg}`);
   }
 
-  return result;
+  return `| ${markdownPkgWithRepo(row.pkg, row.highlight, metric.repositoryUrl)} | ${formatNumber(metric.weekly)} | ${formatNumber(metric.monthly)} | ${formatDate(metric.lastPublished)} | ${formatKb(metric.minified)} | ${formatKb(metric.gzip)} |`;
+}
+
+/**
+ * Renders markdown lines for a package group table.
+ * @param {GroupDefinition} group
+ * @param {Map<string, PackageMetrics>} metrics
+ * @returns {string[]}
+ */
+function renderGroupSection(group, metrics) {
+  const lines = [
+    `#### ${group.title}`,
+    '',
+    '| Package | Weekly | Monthly | Last published | Minified | Gzipped |',
+    '| --- | ---: | ---: | ---: | ---: | ---: |'
+  ];
+
+  for (const row of group.rows) {
+    lines.push(renderMetricRow(row, metrics.get(row.pkg)));
+  }
+
+  lines.push('');
+  if (group.note) {
+    lines.push(group.note, '');
+  }
+
+  return lines;
 }
 
 /**
@@ -324,7 +407,7 @@ async function collectMetrics() {
  * @returns {string}
  */
 function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0, 10)) {
-  const lines = [
+  const header = [
     BENCHMARK_START_MARKER,
     '### 🪶 Lightest in Class',
     '',
@@ -332,34 +415,9 @@ function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0,
     `Snapshot: **${snapshotDate}** ([Bundlephobia API](${SOURCES.bundlephobia}${encodeURIComponent('@desource/phone-mask')}), [npm Downloads API](${SOURCES.npmDownloads}/last-month/${encodeURIComponent('@desource/phone-mask')}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
     ''
   ];
+  const groupSections = GROUPS.flatMap((group) => renderGroupSection(group, metrics));
+  const lines = [...header, ...groupSections, BENCHMARK_END_MARKER];
 
-  for (const group of GROUPS) {
-    lines.push(
-      `#### ${group.title}`,
-      '',
-      '| Package | Weekly | Monthly | Last published | Minified | Gzipped |',
-      '| --- | ---: | ---: | ---: | ---: | ---: |'
-    );
-
-    for (const row of group.rows) {
-      const metric = metrics.get(row.pkg);
-      if (!metric) {
-        throw new Error(`Missing metrics for ${row.pkg}`);
-      }
-
-      lines.push(
-        `| ${markdownPkgWithRepo(row.pkg, row.highlight, metric.repositoryUrl)} | ${formatNumber(metric.weekly)} | ${formatNumber(metric.monthly)} | ${formatDate(metric.lastPublished)} | ${formatKb(metric.minified)} | ${formatKb(metric.gzip)} |`
-      );
-    }
-
-    lines.push('');
-
-    if (group.note) {
-      lines.push(group.note, '');
-    }
-  }
-
-  lines.push(BENCHMARK_END_MARKER);
   return lines.join('\n').trimEnd();
 }
 
