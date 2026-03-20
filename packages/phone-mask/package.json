@@ -64,7 +64,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run --config vitest.config.ts",
     "test:unit:coverage": "vitest run --config vitest.config.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
-    "gen": "pnpm add -D google-libphonenumber@latest && node scripts/gen.js"
+    "gen": "node scripts/gen.js",
+    "gen:google": "node scripts/genGoogle.js"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0",
