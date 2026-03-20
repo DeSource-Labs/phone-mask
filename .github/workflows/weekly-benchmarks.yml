@@ -1,9 +1,9 @@
-name: Weekly data generation
+name: Weekly README benchmarks update
 
 on:
   schedule:
-    # Every Friday at 09:00 UTC
-    - cron: '0 9 * * 5'
+    # Every Monday at 09:00 UTC
+    - cron: '0 9 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -11,11 +11,11 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: weekly-gen
+  group: weekly-benchmarks
   cancel-in-progress: false
 
 jobs:
-  generate-and-pr:
+  benchmarks-and-pr:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -37,28 +37,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate data
-        run: pnpm gen
+      - name: Update README benchmark section
+        run: pnpm readme:benchmarks
 
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c # v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore(data): weekly sync from Google lib"
-          title: "chore(data): weekly sync"
+          commit-message: "docs(readme): weekly benchmark refresh"
+          title: "docs(readme): weekly benchmark refresh"
           body: |
-            Automated weekly generation via GitHub Actions.
+            Automated weekly README benchmark refresh via GitHub Actions.
 
-            This PR was created automatically after running `pnpm gen`.
+            This PR was created automatically after running `pnpm readme:benchmarks`.
 
             cc @stefashkaa
-          branch: chore/weekly-gen
+          branch: chore/weekly-readme-benchmarks
           branch-suffix: timestamp
           labels: |
             automation
-            chore
-            data
+            docs
+            benchmarks
           assignees: |
             stefashkaa
           reviewers: |
