@@ -38,7 +38,7 @@ function readNullTerminatedAscii(buffer) {
 }
 
 function parseTarOctal(octalStr) {
-  const clean = octalStr.replace(/\0/g, '').trim();
+  const clean = octalStr.replaceAll('\0', '').trim();
   if (!clean) return 0;
   return Number.parseInt(clean, 8);
 }
@@ -74,11 +74,11 @@ function extractFileFromTarGz(archiveBuffer, filePathSuffix) {
 
 function decodeXmlEntities(value) {
   return value
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&');
+    .replaceAll('&lt;', '<')
+    .replaceAll('&gt;', '>')
+    .replaceAll('&quot;', '"')
+    .replaceAll('&apos;', "'")
+    .replaceAll('&amp;', '&');
 }
 
 function parseAttributes(raw) {
@@ -91,18 +91,18 @@ function parseAttributes(raw) {
 }
 
 function tagText(block, tagName) {
-  const re = new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`);
+  const re = new RegExp(String.raw`<${tagName}\b[^>]*>([\s\S]*?)<\/${tagName}>`);
   const match = re.exec(block);
   if (!match) return null;
   return decodeXmlEntities(match[1].trim());
 }
 
 function normalizeRegexText(value) {
-  return value.replace(/\s+/g, '');
+  return value.replaceAll(/\s+/g, '');
 }
 
 function extractDigits(value) {
-  return value.replace(/\D/g, '');
+  return value.replaceAll(/\D/g, '');
 }
 
 function uniquePreserveOrder(items) {
@@ -156,7 +156,7 @@ function collectExampleDigitsByType(territoryBlock) {
   const examplesByType = {};
 
   for (const typeName of EXAMPLE_TYPES) {
-    const sectionRe = new RegExp(`<${typeName}\\b[^>]*>([\\s\\S]*?)<\\/${typeName}>`);
+    const sectionRe = new RegExp(String.raw`<${typeName}\b[^>]*>([\s\S]*?)<\/${typeName}>`);
     const sectionMatch = sectionRe.exec(territoryBlock);
     if (!sectionMatch) continue;
 
@@ -208,10 +208,10 @@ function formatNationalNumber(number, formats) {
 }
 
 function maskNationalNumber(nationalFormatted) {
-  return nationalFormatted.replace(/\d/g, '#').replace(/\s+/g, ' ').trim();
+  return nationalFormatted.replaceAll(/\d/g, '#').replaceAll(/\s+/g, ' ').trim();
 }
 
-function pushMaskForExample(countryCode, formats, exampleDigits, typeName, acc) {
+function pushMaskForExample(countryCode, formats, exampleDigits, acc) {
   if (!exampleDigits) return;
   const formattedNational = formatNationalNumber(exampleDigits, formats);
   const maskedNational = maskNationalNumber(formattedNational);
@@ -225,20 +225,20 @@ function buildRegionMasks(countryCode, formats, examplesByType) {
   // Mirror FIXED_LINE_OR_MOBILE intent from old implementation:
   // prefer fixed-line example, fallback to mobile.
   const fixedOrMobile = examplesByType.fixedLine || examplesByType.mobile || null;
-  pushMaskForExample(countryCode, formats, fixedOrMobile, 'fixedLineOrMobile', masks);
+  pushMaskForExample(countryCode, formats, fixedOrMobile, masks);
 
   for (const typeName of EXAMPLE_TYPES) {
-    pushMaskForExample(countryCode, formats, examplesByType[typeName], typeName, masks);
+    pushMaskForExample(countryCode, formats, examplesByType[typeName], masks);
   }
 
   // Keep the legacy fallback pass to preserve behavior ordering/coverage.
   const fallback = fixedOrMobile || examplesByType.mobile || null;
-  pushMaskForExample(countryCode, formats, fallback, 'fixedLineOrMobile', masks);
+  pushMaskForExample(countryCode, formats, fallback, masks);
 
   return uniquePreserveOrder(masks);
 }
 
-function parseMetadataXmlToMasks(xml) {
+function parseTerritories(xml) {
   const territories = [];
   const territoryRe = /<territory\b([^>]*)>([\s\S]*?)<\/territory>/g;
 
@@ -263,7 +263,10 @@ function parseMetadataXmlToMasks(xml) {
     });
   }
 
-  const territoryById = new Map(territories.map((t) => [t.id, t]));
+  return territories;
+}
+
+function buildMainRegionByCode(territories) {
   const mainRegionByCode = new Map();
 
   for (const territory of territories) {
@@ -277,24 +280,45 @@ function parseMetadataXmlToMasks(xml) {
     }
   }
 
-  const mapping = {};
-  for (const territory of territories) {
-    let effectiveFormats = territory.formats;
-    if (effectiveFormats.length === 0) {
-      const mainRegionId = mainRegionByCode.get(territory.countryCode);
-      const mainRegion = mainRegionId ? territoryById.get(mainRegionId) : null;
-      if (mainRegion && mainRegion.formats.length > 0) {
-        effectiveFormats = mainRegion.formats;
-      }
-    }
+  return mainRegionByCode;
+}
 
+function getEffectiveFormats(territory, territoryById, mainRegionByCode) {
+  if (territory.formats.length > 0) return territory.formats;
+
+  const mainRegionId = mainRegionByCode.get(territory.countryCode);
+  const mainRegion = mainRegionId ? territoryById.get(mainRegionId) : null;
+  if (mainRegion && mainRegion.formats.length > 0) {
+    return mainRegion.formats;
+  }
+
+  return territory.formats;
+}
+
+function buildMapping(territories, territoryById, mainRegionByCode) {
+  const mapping = {};
+
+  for (const territory of territories) {
+    const effectiveFormats = getEffectiveFormats(territory, territoryById, mainRegionByCode);
     const masks = buildRegionMasks(territory.countryCode, effectiveFormats, territory.examplesByType);
     if (masks.length === 0) continue;
     mapping[territory.id] = masks.length === 1 ? masks[0] : masks;
   }
 
+  return mapping;
+}
+
+function sortMappingByCountryCode(mapping) {
   const sortedEntries = Object.entries(mapping).sort((a, b) => a[0].localeCompare(b[0], 'en'));
   return Object.fromEntries(sortedEntries);
+}
+
+function parseMetadataXmlToMasks(xml) {
+  const territories = parseTerritories(xml);
+  const territoryById = new Map(territories.map((territory) => [territory.id, territory]));
+  const mainRegionByCode = buildMainRegionByCode(territories);
+  const mapping = buildMapping(territories, territoryById, mainRegionByCode);
+  return sortMappingByCountryCode(mapping);
 }
 
 async function fetchJson(url) {
@@ -331,13 +355,14 @@ function writeOutputs(mapping) {
   fs.mkdirSync(outDir, { recursive: true });
 
   const keys = Object.keys(mapping);
+  const countryKeyUnion = keys.map((key) => `'${key}'`).join(' | ');
   const jsonPath = path.join(outDir, 'data.json');
   const minPath = path.join(outDir, 'data.min.js');
   const typesPath = path.join(outDir, 'data-types.ts');
 
   fs.writeFileSync(jsonPath, `${JSON.stringify(mapping, null, 2)}\n`, 'utf8');
   fs.writeFileSync(minPath, `export default ${JSON.stringify(mapping)};\n`, 'utf8');
-  fs.writeFileSync(typesPath, `export type CountryKey = ${keys.map((key) => `'${key}'`).join(' | ')};\n`, 'utf8');
+  fs.writeFileSync(typesPath, `export type CountryKey = ${countryKeyUnion};\n`, 'utf8');
 
   console.info(`Wrote ${jsonPath}`);
   console.info(`Wrote ${minPath}`);
@@ -366,7 +391,9 @@ async function main() {
   writeOutputs(mapping);
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exit(1);
-});
+}
