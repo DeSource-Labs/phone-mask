@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
         with:
           version: 10.28.0
 
@@ -45,7 +45,7 @@ jobs:
 
       - name: Publish to npm (Changesets)
         id: publish
-        uses: changesets/action@v1
+        uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf # v1
         with:
           publish: pnpm changeset:publish
         env:
