@@ -345,8 +345,8 @@ function writeOutputs(mapping) {
 }
 
 async function main() {
-  // const latestRelease = await fetchJson(GITHUB_RELEASE_LATEST_API);
-  const tag = 'v9.0.22'; // latestRelease?.tag_name;
+  const latestRelease = await fetchJson(GITHUB_RELEASE_LATEST_API);
+  const tag = latestRelease?.tag_name;
   if (!tag || typeof tag !== 'string') {
     throw new Error('Failed to resolve latest libphonenumber release tag');
   }
