@@ -197,8 +197,9 @@ function formatNationalNumber(number, formats) {
 
     if (!patternRe.test(number)) continue;
 
-    const replacement = entry.intlFormat && entry.intlFormat !== 'NA' ? entry.intlFormat : entry.format;
-    if (!replacement || replacement === 'NA') continue;
+    if (entry.intlFormat === 'NA') continue;
+    const replacement = entry.intlFormat ?? entry.format;
+    if (!replacement) continue;
 
     return number.replace(patternRe, replacement).trim();
   }
