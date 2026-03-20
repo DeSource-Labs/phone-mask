@@ -21,7 +21,6 @@ const RELEASE_ARCHIVE_URL = (tag) => `https://github.com/google/libphonenumber/a
 const METADATA_PATH_SUFFIX = '/resources/PhoneNumberMetadata.xml';
 
 const EXAMPLE_TYPES = [
-  'fixedLineOrMobile',
   'mobile',
   'fixedLine',
   'tollFree',
@@ -29,9 +28,7 @@ const EXAMPLE_TYPES = [
   'sharedCost',
   'voip',
   'personalNumber',
-  'pager',
-  'uan',
-  'voicemail'
+  'pager'
 ];
 
 function readNullTerminatedAscii(buffer) {
@@ -155,8 +152,8 @@ function parseNumberFormats(territoryBlock) {
   return formats;
 }
 
-function collectExampleDigits(territoryBlock) {
-  const examples = [];
+function collectExampleDigitsByType(territoryBlock) {
+  const examplesByType = {};
 
   for (const typeName of EXAMPLE_TYPES) {
     const sectionRe = new RegExp(`<${typeName}\\b[^>]*>([\\s\\S]*?)<\\/${typeName}>`);
@@ -167,25 +164,24 @@ function collectExampleDigits(territoryBlock) {
     if (!example) continue;
 
     const digits = extractDigits(example);
-    if (digits) examples.push(digits);
+    if (digits) examplesByType[typeName] = digits;
   }
 
-  return uniquePreserveOrder(examples);
+  return examplesByType;
 }
 
 function matchesLeadingDigits(number, leadingDigits) {
   if (!leadingDigits || leadingDigits.length === 0) return true;
 
-  for (const ld of leadingDigits) {
-    try {
-      const re = new RegExp(`^(?:${ld})`);
-      if (re.test(number)) return true;
-    } catch {
-      // Ignore malformed leading-digits regex entries.
-    }
+  // libphonenumber uses progressively more specific leading-digits patterns;
+  // the last one is the strictest selector for final formatting choice.
+  const strictest = leadingDigits[leadingDigits.length - 1];
+  try {
+    const re = new RegExp(`^(?:${strictest})`);
+    return re.test(number);
+  } catch {
+    return false;
   }
-
-  return false;
 }
 
 function formatNationalNumber(number, formats) {
@@ -214,22 +210,35 @@ function maskNationalNumber(nationalFormatted) {
   return nationalFormatted.replace(/\d/g, '#').replace(/\s+/g, ' ').trim();
 }
 
-function buildRegionMasks(countryCode, formats, examples) {
+function pushMaskForExample(countryCode, formats, exampleDigits, typeName, acc) {
+  if (!exampleDigits) return;
+  const formattedNational = formatNationalNumber(exampleDigits, formats);
+  const maskedNational = maskNationalNumber(formattedNational);
+  if (!maskedNational) return;
+  acc.push(`+${countryCode} ${maskedNational}`.trim());
+}
+
+function buildRegionMasks(countryCode, formats, examplesByType) {
   const masks = [];
 
-  for (const exampleDigits of examples) {
-    const formattedNational = formatNationalNumber(exampleDigits, formats);
-    const maskedNational = maskNationalNumber(formattedNational);
-    if (!maskedNational) continue;
+  // Mirror FIXED_LINE_OR_MOBILE intent from old implementation:
+  // prefer fixed-line example, fallback to mobile.
+  const fixedOrMobile = examplesByType.fixedLine || examplesByType.mobile || null;
+  pushMaskForExample(countryCode, formats, fixedOrMobile, 'fixedLineOrMobile', masks);
 
-    masks.push(`+${countryCode} ${maskedNational}`.trim());
+  for (const typeName of EXAMPLE_TYPES) {
+    pushMaskForExample(countryCode, formats, examplesByType[typeName], typeName, masks);
   }
+
+  // Keep the legacy fallback pass to preserve behavior ordering/coverage.
+  const fallback = fixedOrMobile || examplesByType.mobile || null;
+  pushMaskForExample(countryCode, formats, fallback, 'fixedLineOrMobile', masks);
 
   return uniquePreserveOrder(masks);
 }
 
 function parseMetadataXmlToMasks(xml) {
-  const mapping = {};
+  const territories = [];
   const territoryRe = /<territory\b([^>]*)>([\s\S]*?)<\/territory>/g;
 
   for (const match of xml.matchAll(territoryRe)) {
@@ -237,18 +246,50 @@ function parseMetadataXmlToMasks(xml) {
     const territoryBlock = match[2];
     const id = (attrs.id || '').trim().toUpperCase();
     const countryCode = (attrs.countryCode || '').trim();
+    const isMainCountryForCode = attrs.mainCountryForCode === 'true';
 
     if (!/^[A-Z]{2}$/.test(id)) continue;
     if (!/^\d+$/.test(countryCode)) continue;
 
     const formats = parseNumberFormats(territoryBlock);
-    const examples = collectExampleDigits(territoryBlock);
-    if (examples.length === 0) continue;
+    const examplesByType = collectExampleDigitsByType(territoryBlock);
+    territories.push({
+      id,
+      countryCode,
+      isMainCountryForCode,
+      formats,
+      examplesByType
+    });
+  }
 
-    const masks = buildRegionMasks(countryCode, formats, examples);
+  const territoryById = new Map(territories.map((t) => [t.id, t]));
+  const mainRegionByCode = new Map();
+
+  for (const territory of territories) {
+    if (territory.isMainCountryForCode) {
+      mainRegionByCode.set(territory.countryCode, territory.id);
+    }
+  }
+  for (const territory of territories) {
+    if (!mainRegionByCode.has(territory.countryCode)) {
+      mainRegionByCode.set(territory.countryCode, territory.id);
+    }
+  }
+
+  const mapping = {};
+  for (const territory of territories) {
+    let effectiveFormats = territory.formats;
+    if (effectiveFormats.length === 0) {
+      const mainRegionId = mainRegionByCode.get(territory.countryCode);
+      const mainRegion = mainRegionId ? territoryById.get(mainRegionId) : null;
+      if (mainRegion && mainRegion.formats.length > 0) {
+        effectiveFormats = mainRegion.formats;
+      }
+    }
+
+    const masks = buildRegionMasks(territory.countryCode, effectiveFormats, territory.examplesByType);
     if (masks.length === 0) continue;
-
-    mapping[id] = masks.length === 1 ? masks[0] : masks;
+    mapping[territory.id] = masks.length === 1 ? masks[0] : masks;
   }
 
   const sortedEntries = Object.entries(mapping).sort((a, b) => a[0].localeCompare(b[0], 'en'));
