@@ -323,6 +323,7 @@ function parseMetadataXmlToMasks(xml) {
 
 async function fetchJson(url) {
   const response = await fetch(url, {
+    signal: AbortSignal.timeout(30_000),
     headers: {
       accept: 'application/vnd.github+json',
       'user-agent': 'desource-phone-mask-generator'
@@ -338,6 +339,7 @@ async function fetchJson(url) {
 
 async function fetchArrayBuffer(url) {
   const response = await fetch(url, {
+    signal: AbortSignal.timeout(60_000),
     headers: {
       'user-agent': 'desource-phone-mask-generator'
     }
