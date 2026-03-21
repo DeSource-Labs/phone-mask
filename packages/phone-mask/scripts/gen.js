@@ -69,7 +69,7 @@ function extractFileFromTarGz(archiveBuffer, filePathSuffix) {
     offset = dataStart + paddedSize;
   }
 
-  throw new Error(`Failed to locate file in archive: *${filePathSuffix}`);
+  throw new Error(`Failed to locate file in archive with suffix: ${filePathSuffix}`);
 }
 
 function decodeXmlEntities(value) {
