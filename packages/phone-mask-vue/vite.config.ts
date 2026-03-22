@@ -8,18 +8,10 @@ export default defineConfig({
     lib: {
       name: 'PhoneMaskVue',
       entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
-      formats: ['es', 'cjs', 'iife'],
+      formats: ['es', 'cjs'],
       fileName: (format) => {
-        switch (format) {
-          case 'es':
-            return 'index.mjs';
-          case 'cjs':
-            return 'index.cjs';
-          case 'iife':
-            return 'index.js';
-          default:
-            return 'index.js';
-        }
+        if (format === 'es') return 'index.mjs';
+        return 'index.cjs';
       }
     },
     rolldownOptions: {
