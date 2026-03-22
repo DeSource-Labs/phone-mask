@@ -8,7 +8,7 @@ import {
 } from '@desource/phone-mask';
 import type { Component } from 'svelte';
 
-import './style.scss';
+import './style.scss'; // Importing styles just for vite build, no side effects in js chunks
 
 import PhoneInputComponent from './components/PhoneInput.svelte';
 
