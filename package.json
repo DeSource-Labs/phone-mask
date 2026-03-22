@@ -3,6 +3,7 @@
   "type": "module",
   "pnpm": {
     "overrides": {
+      "vite": "7.3.1",
       "sharp": "^0.34.4",
       "tar": "^7.5.9",
       "citty": "^0.1.6",

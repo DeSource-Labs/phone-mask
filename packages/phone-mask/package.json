@@ -68,7 +68,6 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0",
-    "google-libphonenumber": "^3.2.44",
     "vite-plugin-dts": "^4.5.4"
   }
 }
