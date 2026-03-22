@@ -1,5 +1,16 @@
 # @desource/phone-mask-vue
 
+## 1.1.2
+
+### Patch Changes
+
+- Vue/React/Vue Upgrades:
+  - Reduced package bundle size (optimized build output)
+  - No API changes
+
+- Updated dependencies []:
+  - @desource/phone-mask@1.1.2
+
 ## 1.1.1
 
 ### Patch Changes
