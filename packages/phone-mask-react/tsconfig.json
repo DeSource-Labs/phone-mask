@@ -4,7 +4,8 @@
     "rootDir": "src",
     "outDir": "dist",
     "declarationDir": "dist/types",
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "allowArbitraryExtensions": true
   },
   "include": ["src/**/*"]
 }
