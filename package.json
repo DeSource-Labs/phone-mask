@@ -3,16 +3,13 @@
   "type": "module",
   "pnpm": {
     "overrides": {
-      "sharp": "^0.34.4",
-      "tar": "^7.5.9",
-      "citty": "^0.1.6",
       "glob": "^13.0.6"
     }
   },
   "scripts": {
     "build": "pnpm -w -r --filter \"./packages/**\" --stream run build",
     "clean": "pnpm -w -r --filter \"./packages/**\" --stream run clean",
-    "clean:modules": "pnpm -w -r --filter \"./packages/**\" --stream run clean:modules && rimraf node_modules",
+    "clean:modules": "pnpm -w -r --filter \"*\" --stream run clean:modules && rimraf node_modules",
     "dev:demo": "pnpm --filter demo dev",
     "dev:prepare": "pnpm --filter demo deps:prepare",
     "build:demo": "pnpm --filter demo build",
