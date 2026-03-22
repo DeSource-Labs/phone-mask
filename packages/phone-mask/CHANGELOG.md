@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- Vue/React/Vue Upgrades:
+- Vue/React/Svelte Upgrades:
   - Reduced package bundle size (optimized build output)
   - No API changes
 
