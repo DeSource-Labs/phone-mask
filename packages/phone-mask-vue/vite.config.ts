@@ -1,38 +1,28 @@
 import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
 import { fileURLToPath } from 'node:url';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   plugins: [vue()],
-  resolve: {
-    alias: {}
-  },
   build: {
     lib: {
-      name: 'lib',
+      name: 'PhoneMaskVue',
       entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
-      formats: ['es', 'cjs', 'iife'],
+      formats: ['es', 'cjs'],
       fileName: (format) => {
-        switch (format) {
-          case 'es':
-            return 'index.mjs';
-          case 'cjs':
-            return 'index.cjs';
-          case 'iife':
-            return 'index.js';
-          default:
-            return 'index.js';
-        }
+        if (format === 'es') return 'index.mjs';
+        return 'index.cjs';
       }
     },
-    minify: false,
-    rollupOptions: {
-      external: ['vue'],
+    rolldownOptions: {
+      external: ['@desource/phone-mask', 'vue'],
       output: {
         exports: 'named',
         globals: {
+          '@desource/phone-mask': 'phoneMask',
           vue: 'Vue'
-        }
+        },
+        minify: true
       }
     }
   }

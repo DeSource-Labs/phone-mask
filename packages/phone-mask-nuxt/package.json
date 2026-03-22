@@ -53,6 +53,7 @@
   "scripts": {
     "dev:prepare": "nuxt prepare",
     "clean": "rimraf dist .nuxt coverage",
+    "clean:modules": "rimraf node_modules",
     "build:internal": "pnpm dev:prepare && nuxt-module-build build",
     "build": "pnpm clean && pnpm build:internal",
     "test:unit": "vitest run --config vitest.unit.config.ts",
@@ -70,6 +71,7 @@
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/test-utils": "^4.0.0",
     "nuxt": "^4.4.2",
+    "vite": "7.3.1",
     "vue": "^3.5.30"
   }
 }

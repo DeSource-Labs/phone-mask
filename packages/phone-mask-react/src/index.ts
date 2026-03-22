@@ -7,6 +7,8 @@ import {
   toArray
 } from '@desource/phone-mask';
 
+import './style.scss'; // Importing styles just for vite build, no side effects in js chunks
+
 export { PhoneInput } from './components/PhoneInput';
 export { usePhoneMask } from './hooks/usePhoneMask';
 

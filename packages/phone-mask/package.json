@@ -56,10 +56,11 @@
   },
   "scripts": {
     "clean": "rimraf dist coverage tsconfig.tsbuildinfo",
+    "clean:modules": "rimraf node_modules",
     "build": "pnpm clean && pnpm build:internal",
-    "build:internal": "pnpm build:lib",
+    "build:internal": "pnpm build:lib && pnpm build:types",
     "build:lib": "vite build",
-    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
+    "build:types": "tsc -p tsconfig.json",
     "dev": "vite",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run --config vitest.config.ts",
@@ -67,7 +68,6 @@
     "gen": "node scripts/gen.js"
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^1.0.0",
-    "vite-plugin-dts": "^4.5.4"
+    "@rollup/plugin-terser": "^1.0.0"
   }
 }

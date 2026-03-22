@@ -1,6 +1,5 @@
-import path from 'node:path';
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
+import { fileURLToPath } from 'node:url';
 import terser from '@rollup/plugin-terser';
 import packageJson from './package.json';
 
@@ -15,15 +14,12 @@ export default defineConfig({
     sourcemap: false,
     target: 'es2020',
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
+      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
       name: camelName,
       fileName: () => `${safeName}.js`
     },
 
-    // disable Vite/esbuild automatic minify so terser is used per-output
-    minify: false,
-
-    rollupOptions: {
+    rolldownOptions: {
       external: [],
       plugins: [],
 
@@ -31,12 +27,12 @@ export default defineConfig({
         // ESM per-module output (safe for bundlers). Conservative terser per-module if desired.
         {
           format: 'es',
-          dir: path.resolve(__dirname, 'dist/esm'),
+          dir: fileURLToPath(new URL('./dist/esm', import.meta.url)),
           preserveModules: true,
-          preserveModulesRoot: path.resolve(__dirname, 'src'),
+          preserveModulesRoot: fileURLToPath(new URL('./src', import.meta.url)),
           entryFileNames: '[name].js',
           chunkFileNames: 'chunks/[name]-[hash].js',
-          compact: false,
+          minify: false,
           plugins: [
             terser({
               compress: { passes: 2 },
@@ -50,10 +46,10 @@ export default defineConfig({
         // CJS single-file build for Node consumers. Conservative terser (no toplevel mangle)
         {
           format: 'cjs',
-          dir: path.resolve(__dirname, 'dist'),
+          dir: fileURLToPath(new URL('./dist', import.meta.url)),
           entryFileNames: `${safeName}.cjs`,
           exports: 'named',
-          compact: true,
+          minify: true,
           plugins: [
             terser({
               compress: { passes: 2 },
@@ -68,8 +64,9 @@ export default defineConfig({
         {
           format: 'umd',
           name: camelName,
-          dir: path.resolve(__dirname, 'dist'),
+          dir: fileURLToPath(new URL('./dist', import.meta.url)),
           entryFileNames: `${safeName}.umd.min.js`,
+          minify: true,
           plugins: [
             terser({
               compress: {
@@ -86,22 +83,14 @@ export default defineConfig({
 
       treeshake: {
         moduleSideEffects: false,
-        propertyReadSideEffects: false,
-        tryCatchDeoptimization: false
+        propertyReadSideEffects: false
       }
     },
 
     cssCodeSplit: false
   },
 
-  plugins: [
-    dts({
-      insertTypesEntry: true,
-      outDir: 'dist/types'
-    })
-  ],
-
   resolve: {
-    alias: { '@': path.resolve(__dirname, 'src') }
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }
   }
 });

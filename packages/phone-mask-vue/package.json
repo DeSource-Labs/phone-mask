@@ -54,11 +54,12 @@
   ],
   "scripts": {
     "clean": "rimraf dist tsconfig.tsbuildinfo test-results coverage",
+    "clean:modules": "rimraf node_modules",
     "dev": "vite demo",
     "build": "pnpm clean && pnpm build:internal",
     "build:internal": "pnpm build:lib && pnpm build:types",
     "build:lib": "vite build",
-    "build:types": "vue-tsc --emitDeclarationOnly --declaration -p tsconfig.json",
+    "build:types": "vue-tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
@@ -74,6 +75,6 @@
     "@testing-library/vue": "^8.1.0",
     "@vitejs/plugin-vue": "^6.0.5",
     "vue": "^3.5.30",
-    "vue-tsc": "^3.2.5"
+    "vue-tsc": "^3.2.6"
   }
 }
