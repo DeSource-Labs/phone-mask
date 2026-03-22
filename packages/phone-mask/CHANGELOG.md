@@ -1,5 +1,13 @@
 # @desource/phone-mask
 
+## 1.1.2
+
+### Patch Changes
+
+- Vue/React/Svelte Upgrades:
+  - Reduced package bundle size (optimized build output)
+  - No API changes
+
 ## 1.1.1
 
 ### Patch Changes
