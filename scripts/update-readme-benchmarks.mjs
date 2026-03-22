@@ -24,14 +24,11 @@ const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
 /**
  * @typedef {object} PublishInfo
  * @property {string | null} lastPublished
- * @property {number | null} unpackedSize
  * @property {string | null} repositoryUrl
  */
 
 /**
  * @typedef {object} PackageMetrics
- * @property {number | null} weekly
- * @property {number | null} monthly
  * @property {string | null} lastPublished
  * @property {number | null} unpacked
  * @property {string | null} repositoryUrl
@@ -81,21 +78,11 @@ const GROUPS = [
 ];
 
 const SOURCES = {
-  npmDownloads: 'https://api.npmjs.org/downloads/point',
   npmRegistry: 'https://registry.npmjs.org',
   bundlephobia: 'https://bundlephobia.com/api/size?package='
 };
 const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 10_000;
-
-/**
- * Formats numbers with locale separators and returns '-' for non-finite values.
- * @param {number | null | undefined} value
- * @returns {string}
- */
-function formatNumber(value) {
-  return Number.isFinite(value) ? value.toLocaleString('en-US') : '-';
-}
 
 /**
  * Formats byte values as kilobytes and returns '-' for non-finite values.
@@ -244,27 +231,14 @@ function normalizeRepoUrl(repository) {
 }
 
 /**
- * Escapes URL characters that can break markdown links.
- * @param {string} url
+ * Builds a markdown link for a repository URL, escaping parentheses to avoid markdown parsing issues.
+ * @param {string | null} url
  * @returns {string}
  */
-function toMarkdownSafeUrl(url) {
-  return url.replaceAll('(', '%28').replaceAll(')', '%29');
-}
-
-/**
- * Builds a package markdown link with optional repository link.
- * @param {string} name
- * @param {boolean | undefined} highlight
- * @param {string | null | undefined} repositoryUrl
- * @returns {string}
- */
-function markdownPkgWithRepo(name, highlight, repositoryUrl) {
-  const pkgLink = markdownPkg(name, highlight);
-  if (!repositoryUrl) return pkgLink;
-
-  const safeUrl = toMarkdownSafeUrl(repositoryUrl);
-  return `${pkgLink} · [Repo](${safeUrl})`;
+function markdownRepo(url) {
+  if (!url) return '-';
+  const safeUrl = url.replaceAll('(', '%28').replaceAll(')', '%29');
+  return `[Repo](${safeUrl})`;
 }
 
 /**
@@ -319,10 +293,9 @@ async function fetchNpmPublishInfo(pkg) {
   const metadata = await fetchJson(`${SOURCES.npmRegistry}/${encodeURIComponent(pkg)}`);
   const latest = metadata?.['dist-tags']?.latest;
   const lastPublished = latest ? (metadata?.time?.[latest] ?? null) : null;
-  const unpackedSize = latest ? (metadata?.versions?.[latest]?.dist?.unpackedSize ?? null) : null;
   const repositoryUrl = normalizeRepoUrl(metadata?.repository);
 
-  return { lastPublished, unpackedSize, repositoryUrl };
+  return { lastPublished, repositoryUrl };
 }
 
 /**
@@ -332,18 +305,13 @@ async function fetchNpmPublishInfo(pkg) {
  */
 async function fetchPackageMetrics(pkg) {
   const encoded = encodeURIComponent(pkg);
-  const [week, month, publishInfo, bundle] = await Promise.all([
-    fetchJson(`${SOURCES.npmDownloads}/last-week/${encoded}`),
-    fetchJson(`${SOURCES.npmDownloads}/last-month/${encoded}`),
+  const [publishInfo, bundle] = await Promise.all([
     fetchNpmPublishInfo(pkg),
     fetchJson(`${SOURCES.bundlephobia}${encoded}`)
   ]);
 
   return {
-    weekly: week.downloads ?? null,
-    monthly: month.downloads ?? null,
     lastPublished: publishInfo.lastPublished ?? null,
-    unpacked: publishInfo.unpackedSize ?? null,
     repositoryUrl: publishInfo.repositoryUrl ?? null,
     minified: bundle.size ?? null,
     gzip: bundle.gzip ?? null
@@ -371,7 +339,7 @@ function renderMetricRow(row, metric) {
     throw new Error(`Missing metrics for ${row.pkg}`);
   }
 
-  return `| ${markdownPkgWithRepo(row.pkg, row.highlight, metric.repositoryUrl)} | ${formatNumber(metric.weekly)} | ${formatNumber(metric.monthly)} | ${formatDate(metric.lastPublished)} | ${formatKb(metric.minified)} | ${formatKb(metric.gzip)} |`;
+  return `| ${markdownPkg(row.pkg, row.highlight)} | ${markdownRepo(metric.repositoryUrl)} | ${formatDate(metric.lastPublished)} | ${formatKb(metric.minified)} | ${formatKb(metric.gzip)} |`;
 }
 
 /**
@@ -384,8 +352,8 @@ function renderGroupSection(group, metrics) {
   const lines = [
     `#### ${group.title}`,
     '',
-    '| Package | Weekly | Monthly | Last published | Minified | Gzipped |',
-    '| --- | ---: | ---: | ---: | ---: | ---: |'
+    '| Package | | Last published | Minified | Gzipped |',
+    '| --- | ---: | ---: | ---: | ---: |'
   ];
 
   for (const row of group.rows) {
@@ -412,7 +380,7 @@ function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0,
     '### 🪶 Lightest in Class',
     '',
     'Real market comparison, segmented by ecosystem.',
-    `Snapshot: **${snapshotDate}** ([Bundlephobia API](${SOURCES.bundlephobia}${encodeURIComponent('@desource/phone-mask')}), [npm Downloads API](${SOURCES.npmDownloads}/last-month/${encodeURIComponent('@desource/phone-mask')}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
+    `Snapshot: **${snapshotDate}** ([Bundlephobia API](${SOURCES.bundlephobia}${encodeURIComponent('@desource/phone-mask')}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
     ''
   ];
   const groupSections = GROUPS.flatMap((group) => renderGroupSection(group, metrics));
