@@ -15,7 +15,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 import zlib from 'node:zlib';
+import { fileURLToPath } from 'node:url';
 
+const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const GITHUB_RELEASE_LATEST_API = 'https://api.github.com/repos/google/libphonenumber/releases/latest';
 const RELEASE_ARCHIVE_URL = (tag) => `https://github.com/google/libphonenumber/archive/refs/tags/${tag}.tar.gz`;
 const METADATA_PATH_SUFFIX = '/resources/PhoneNumberMetadata.xml';
@@ -353,7 +355,7 @@ async function fetchArrayBuffer(url) {
 }
 
 function writeOutputs(mapping) {
-  const outDir = path.resolve(process.cwd(), 'src');
+  const outDir = path.join(PACKAGE_ROOT, 'src');
   fs.mkdirSync(outDir, { recursive: true });
 
   const keys = Object.keys(mapping);

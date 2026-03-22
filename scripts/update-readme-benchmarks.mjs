@@ -232,10 +232,11 @@ function normalizeRepoUrl(repository) {
 
 /**
  * Builds a markdown link for a repository URL, escaping parentheses to avoid markdown parsing issues.
- * @param {string} url
+ * @param {string | null} url
  * @returns {string}
  */
 function markdownRepo(url) {
+  if (!url) return '-';
   const safeUrl = url.replaceAll('(', '%28').replaceAll(')', '%29');
   return `[Repo](${safeUrl})`;
 }
