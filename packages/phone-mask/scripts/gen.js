@@ -8,6 +8,8 @@
  * Output:
  * - src/data.json
  * - src/data.min.js
+ * - src/data.v2.min.js
+ * - src/data.v3.min.js
  * - src/data-types.ts
  */
 
@@ -21,6 +23,8 @@ const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 const GITHUB_RELEASE_LATEST_API = 'https://api.github.com/repos/google/libphonenumber/releases/latest';
 const RELEASE_ARCHIVE_URL = (tag) => `https://github.com/google/libphonenumber/archive/refs/tags/${tag}.tar.gz`;
 const METADATA_PATH_SUFFIX = '/resources/PhoneNumberMetadata.xml';
+const TOKEN_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_';
+const TOKEN_BASE = TOKEN_ALPHABET.length;
 
 const EXAMPLE_TYPES = [
   'mobile',
@@ -323,6 +327,112 @@ function parseMetadataXmlToMasks(xml) {
   return sortMappingByCountryCode(mapping);
 }
 
+function parseMaskEntity(maskEntity) {
+  const splitAt = maskEntity.indexOf(' ');
+  if (splitAt === -1) {
+    throw new Error(`Invalid mask entity, expected "<code> <mask>": ${maskEntity}`);
+  }
+
+  const code = maskEntity.slice(1, splitAt);
+  const mask = maskEntity.slice(splitAt + 1);
+  return { code, mask };
+}
+
+function encodeMaskToken(index) {
+  const hi = Math.floor(index / TOKEN_BASE);
+  const lo = index % TOKEN_BASE;
+  if (hi >= TOKEN_BASE) {
+    throw new Error(`Mask dictionary overflow: ${index} exceeds ${TOKEN_BASE * TOKEN_BASE - 1}`);
+  }
+  return `${TOKEN_ALPHABET[hi]}${TOKEN_ALPHABET[lo]}`;
+}
+
+function buildV2Data(mapping) {
+  const countryEntries = Object.entries(mapping).sort((a, b) => a[0].localeCompare(b[0], 'en'));
+  const maskFrequency = new Map();
+
+  for (const [, maskEntity] of countryEntries) {
+    const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
+    for (const item of items) {
+      const { mask } = parseMaskEntity(item);
+      maskFrequency.set(mask, (maskFrequency.get(mask) ?? 0) + 1);
+    }
+  }
+
+  const masks = [...maskFrequency.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'en'))
+    .map(([mask]) => mask);
+
+  const maskIndex = new Map(masks.map((mask, idx) => [mask, idx]));
+  const countries = {};
+
+  for (const [country, maskEntity] of countryEntries) {
+    const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
+    const parsed = items.map(parseMaskEntity);
+    const code = parsed[0]?.code ?? '';
+    if (!code) continue;
+    if (parsed.some((entry) => entry.code !== code)) {
+      throw new Error(`Mixed country codes in ${country}`);
+    }
+
+    const tokenStream = parsed
+      .map((entry) => {
+        const index = maskIndex.get(entry.mask);
+        if (index === undefined) {
+          throw new Error(`Mask not found in dictionary: ${entry.mask}`);
+        }
+        return encodeMaskToken(index);
+      })
+      .join('');
+
+    countries[country] = `${code}|${tokenStream}`;
+  }
+
+  return { masks, countries };
+}
+
+function buildV3Data(mapping) {
+  const countryEntries = Object.entries(mapping).sort((a, b) => a[0].localeCompare(b[0], 'en'));
+  const maskFrequency = new Map();
+
+  for (const [, maskEntity] of countryEntries) {
+    const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
+    for (const item of items) {
+      const { mask } = parseMaskEntity(item);
+      maskFrequency.set(mask, (maskFrequency.get(mask) ?? 0) + 1);
+    }
+  }
+
+  const masks = [...maskFrequency.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'en'))
+    .map(([mask]) => mask);
+
+  const maskIndex = new Map(masks.map((mask, idx) => [mask, idx]));
+  const countries = {};
+
+  for (const [country, maskEntity] of countryEntries) {
+    const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
+    const parsed = items.map(parseMaskEntity);
+    const code = parsed[0]?.code ?? '';
+    if (!code) continue;
+    if (parsed.some((entry) => entry.code !== code)) {
+      throw new Error(`Mixed country codes in ${country}`);
+    }
+
+    const indexedMasks = parsed.map((entry) => {
+      const index = maskIndex.get(entry.mask);
+      if (index === undefined) {
+        throw new Error(`Mask not found in dictionary: ${entry.mask}`);
+      }
+      return String(index);
+    });
+
+    countries[country] = [code, ...indexedMasks].join('|');
+  }
+
+  return { masks, countries };
+}
+
 async function fetchJson(url) {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(30_000),
@@ -362,14 +472,22 @@ function writeOutputs(mapping) {
   const countryKeyUnion = keys.map((key) => `'${key}'`).join(' | ');
   const jsonPath = path.join(outDir, 'data.json');
   const minPath = path.join(outDir, 'data.min.js');
+  const minV2Path = path.join(outDir, 'data.v2.min.js');
+  const minV3Path = path.join(outDir, 'data.v3.min.js');
   const typesPath = path.join(outDir, 'data-types.ts');
+  const v2 = buildV2Data(mapping);
+  const v3 = buildV3Data(mapping);
 
   fs.writeFileSync(jsonPath, `${JSON.stringify(mapping, null, 2)}\n`, 'utf8');
   fs.writeFileSync(minPath, `export default ${JSON.stringify(mapping)};\n`, 'utf8');
+  fs.writeFileSync(minV2Path, `export const masks = ${JSON.stringify(v2.masks)};\nexport const countries = ${JSON.stringify(v2.countries)};\n`, 'utf8');
+  fs.writeFileSync(minV3Path, `export const masks = ${JSON.stringify(v3.masks)};\nexport const countries = ${JSON.stringify(v3.countries)};\n`, 'utf8');
   fs.writeFileSync(typesPath, `export type CountryKey = ${countryKeyUnion};\n`, 'utf8');
 
   console.info(`Wrote ${jsonPath}`);
   console.info(`Wrote ${minPath}`);
+  console.info(`Wrote ${minV2Path}`);
+  console.info(`Wrote ${minV3Path}`);
   console.info(`Wrote ${typesPath}`);
 }
 
