@@ -32,13 +32,13 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 ### 🪶 Lightest in Class
 
 Real market comparison, segmented by ecosystem.
-Snapshot: **2026-03-21** ([Bundlephobia API](https://bundlephobia.com/api/size?package=%40desource%2Fphone-mask), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask)).
+Snapshot: **2026-03-23** ([Bundlephobia API](https://bundlephobia.com/api/size?package=%40desource%2Fphone-mask), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask)).
 
 #### Core (TypeScript/JavaScript)
 
 | Package                                                                        |                                                             | Last published | Minified |  Gzipped |
 | ------------------------------------------------------------------------------ | ----------------------------------------------------------: | -------------: | -------: | -------: |
-| [**@desource/phone-mask**](https://www.npmjs.com/package/@desource/phone-mask) |         [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-15 |  16.7 KB |   5.6 KB |
+| [**@desource/phone-mask**](https://www.npmjs.com/package/@desource/phone-mask) |         [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-22 |  16.7 KB |   5.6 KB |
 | [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js)           | [Repo](https://gitlab.com/catamphetamine/libphonenumber-js) |     2026-03-13 | 179.0 KB |  43.7 KB |
 | [google-libphonenumber](https://www.npmjs.com/package/google-libphonenumber)   | [Repo](https://github.com/ruimarinho/google-libphonenumber) |     2026-01-19 | 566.8 KB | 115.2 KB |
 | [awesome-phonenumber](https://www.npmjs.com/package/awesome-phonenumber)       |     [Repo](https://github.com/grantila/awesome-phonenumber) |     2026-02-18 | 336.9 KB |  75.4 KB |
@@ -47,7 +47,7 @@ Snapshot: **2026-03-21** ([Bundlephobia API](https://bundlephobia.com/api/size?p
 
 | Package                                                                                    |                                                                    | Last published | Minified | Gzipped |
 | ------------------------------------------------------------------------------------------ | -----------------------------------------------------------------: | -------------: | -------: | ------: |
-| [**@desource/phone-mask-react**](https://www.npmjs.com/package/@desource/phone-mask-react) |                [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-15 |  28.9 KB |  9.7 KB |
+| [**@desource/phone-mask-react**](https://www.npmjs.com/package/@desource/phone-mask-react) |                [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-22 |  28.9 KB |  9.7 KB |
 | [react-phone-number-input](https://www.npmjs.com/package/react-phone-number-input)         | [Repo](https://gitlab.com/catamphetamine/react-phone-number-input) |     2026-02-23 | 195.5 KB | 46.7 KB |
 | [react-phone-input-2](https://www.npmjs.com/package/react-phone-input-2)                   |            [Repo](https://github.com/bl00mber/react-phone-input-2) |     2022-07-01 |  53.7 KB | 17.1 KB |
 | [react-international-phone](https://www.npmjs.com/package/react-international-phone)       |   [Repo](https://github.com/ybrusentsov/react-international-phone) |     2026-02-21 |  26.1 KB |  9.4 KB |
@@ -57,7 +57,7 @@ Snapshot: **2026-03-21** ([Bundlephobia API](https://bundlephobia.com/api/size?p
 
 | Package                                                                                |                                                              | Last published | Minified | Gzipped |
 | -------------------------------------------------------------------------------------- | -----------------------------------------------------------: | -------------: | -------: | ------: |
-| [**@desource/phone-mask-vue**](https://www.npmjs.com/package/@desource/phone-mask-vue) |          [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-15 |  34.8 KB | 11.0 KB |
+| [**@desource/phone-mask-vue**](https://www.npmjs.com/package/@desource/phone-mask-vue) |          [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-22 |  34.7 KB | 11.0 KB |
 | [vue-tel-input](https://www.npmjs.com/package/vue-tel-input)                           |        [Repo](https://github.com/iamstevendao/vue-tel-input) |     2026-03-19 |  27.7 KB | 10.3 KB |
 | [v-phone-input](https://www.npmjs.com/package/v-phone-input)                           |        [Repo](https://github.com/paul-thebaud/v-phone-input) |     2026-03-11 | 239.1 KB | 15.0 KB |
 | [vue-phone-number-input](https://www.npmjs.com/package/vue-phone-number-input)         | [Repo](https://github.com/LouisMazel/vue-phone-number-input) |     2022-09-20 | 325.7 KB | 95.7 KB |
@@ -66,14 +66,14 @@ Snapshot: **2026-03-21** ([Bundlephobia API](https://bundlephobia.com/api/size?p
 
 | Package                                                                                      |                                                      | Last published | Minified | Gzipped |
 | -------------------------------------------------------------------------------------------- | ---------------------------------------------------: | -------------: | -------: | ------: |
-| [**@desource/phone-mask-svelte**](https://www.npmjs.com/package/@desource/phone-mask-svelte) |  [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-15 |  36.0 KB | 11.5 KB |
+| [**@desource/phone-mask-svelte**](https://www.npmjs.com/package/@desource/phone-mask-svelte) |  [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-22 |  35.9 KB | 11.5 KB |
 | [svelte-tel-input](https://www.npmjs.com/package/svelte-tel-input)                           | [Repo](https://github.com/gyurielf/svelte-tel-input) |     2025-11-17 | 234.4 KB | 62.9 KB |
 
 #### Nuxt
 
 | Package                                                                                  |                                                     | Last published | Minified | Gzipped |
 | ---------------------------------------------------------------------------------------- | --------------------------------------------------: | -------------: | -------: | ------: |
-| [**@desource/phone-mask-nuxt**](https://www.npmjs.com/package/@desource/phone-mask-nuxt) | [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-15 |   1.5 KB |  0.7 KB |
+| [**@desource/phone-mask-nuxt**](https://www.npmjs.com/package/@desource/phone-mask-nuxt) | [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-22 |   1.5 KB |  0.7 KB |
 
 Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input modules with stable npm + Bundlephobia signals comparable to React/Vue/Svelte peers; most Nuxt apps use Vue phone input packages directly.
 
