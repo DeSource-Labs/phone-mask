@@ -21,11 +21,6 @@ type MaskMap = Record<CountryKey, Omit<Mask, 'id'>>;
 type MaskWithFlagMap = Record<CountryKey, Omit<MaskWithFlag, 'id'>>;
 type MaskFullMap = Record<CountryKey, Omit<MaskFull, 'id'>>;
 
-type DecodedCountry = {
-  code: string;
-  mask: string | Array<string>;
-};
-
 const DEFAULT_LANG = 'en';
 const MAX_DN_CACHE_SIZE = 10;
 const dnCache = new Map<string, Intl.DisplayNames>();
@@ -46,49 +41,6 @@ const getDisplayNames = (lang: string): Intl.DisplayNames => {
   return dn;
 };
 
-function decodeCountryRow(row: string): DecodedCountry {
-  const dividerIndex = row.indexOf('|');
-  if (dividerIndex === -1) {
-    throw new Error(`Invalid country row format in data.v3.min.js: "${row}"`);
-  }
-
-  const codeDigits = row.slice(0, dividerIndex);
-  const indexesPart = row.slice(dividerIndex + 1);
-  if (!indexesPart) {
-    throw new Error(`Missing mask index stream in data.v3.min.js row: "${row}"`);
-  }
-
-  const decodedMasks: string[] = [];
-  let start = 0;
-  for (let i = 0; i <= indexesPart.length; i++) {
-    if (i !== indexesPart.length && indexesPart.charCodeAt(i) !== 124) continue;
-
-    const indexText = indexesPart.slice(start, i);
-    if (!indexText) {
-      throw new Error(`Invalid empty mask index in data.v3.min.js row: "${row}"`);
-    }
-
-    const maskIndex = Number(indexText);
-    if (!Number.isInteger(maskIndex) || maskIndex < 0) {
-      throw new Error(`Invalid mask index "${indexText}" in data.v3.min.js row: "${row}"`);
-    }
-
-    const mask = masks[maskIndex];
-    if (!mask) {
-      throw new Error(`Mask index "${maskIndex}" is missing in data.v3.min.js`);
-    }
-
-    decodedMasks.push(mask);
-    start = i + 1;
-  }
-
-  const code = `+${codeDigits}`;
-  return {
-    code,
-    mask: decodedMasks.length === 1 ? decodedMasks[0] : decodedMasks
-  };
-}
-
 const countryRows = Object.entries(countries) as Array<[CountryKey, string]>;
 
 const MasksBaseMapValue = {} as MaskBaseMap;
@@ -99,9 +51,11 @@ const MasksValue: Mask[] = [];
 const MasksWithFlagValue: MaskWithFlag[] = [];
 
 for (const [id, row] of countryRows) {
-  const { code, mask } = decodeCountryRow(row);
+  const rowEntries = row.split('|');
+  const code = `+${rowEntries[0]}`;
+  const mask = rowEntries.slice(1).map<string>((index) => masks[Number(index)]);
   const flag = countryCodeEmoji(id);
-  const baseMask = Array.isArray(mask) ? mask.map((item) => `${code} ${item}`) : `${code} ${mask}`;
+  const baseMask = mask.length === 1 ? `${code} ${mask[0]}` : mask.map((item) => `${code} ${item}`);
 
   MasksBaseMapValue[id] = baseMask;
   MasksMapValue[id] = { code, mask };
