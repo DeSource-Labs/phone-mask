@@ -25,6 +25,7 @@ const RELEASE_ARCHIVE_URL = (tag) => `https://github.com/google/libphonenumber/a
 const METADATA_PATH_SUFFIX = '/resources/PhoneNumberMetadata.xml';
 const TOKEN_ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_';
 const TOKEN_BASE = TOKEN_ALPHABET.length;
+const JS_IDENTIFIER_RE = /^[A-Za-z_$][0-9A-Za-z_$]*$/;
 
 const EXAMPLE_TYPES = [
   'mobile',
@@ -433,6 +434,38 @@ function buildV3Data(mapping) {
   return { masks, countries };
 }
 
+function escapeJsString(value) {
+  return `'${value
+    .replaceAll('\\', '\\\\')
+    .replaceAll("'", "\\'")
+    .replaceAll('\n', '\\n')
+    .replaceAll('\r', '\\r')
+    .replaceAll('\t', '\\t')}'`;
+}
+
+function serializeJsKey(key) {
+  return JS_IDENTIFIER_RE.test(key) ? key : escapeJsString(key);
+}
+
+function serializeJsValue(value) {
+  if (typeof value === 'string') return escapeJsString(value);
+  if (value === null) return 'null';
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => serializeJsValue(item)).join(',')}]`;
+  }
+
+  if (typeof value === 'object') {
+    const entries = Object.entries(value);
+    return `{${entries
+      .map(([key, item]) => `${serializeJsKey(key)}:${serializeJsValue(item)}`)
+      .join(',')}}`;
+  }
+
+  throw new Error(`Unsupported value type for JS serialization: ${String(value)}`);
+}
+
 async function fetchJson(url) {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(30_000),
@@ -479,9 +512,17 @@ function writeOutputs(mapping) {
   const v3 = buildV3Data(mapping);
 
   fs.writeFileSync(jsonPath, `${JSON.stringify(mapping, null, 2)}\n`, 'utf8');
-  fs.writeFileSync(minPath, `export default ${JSON.stringify(mapping)};\n`, 'utf8');
-  fs.writeFileSync(minV2Path, `export const masks = ${JSON.stringify(v2.masks)};\nexport const countries = ${JSON.stringify(v2.countries)};\n`, 'utf8');
-  fs.writeFileSync(minV3Path, `export const masks = ${JSON.stringify(v3.masks)};\nexport const countries = ${JSON.stringify(v3.countries)};\n`, 'utf8');
+  fs.writeFileSync(minPath, `export default ${serializeJsValue(mapping)};\n`, 'utf8');
+  fs.writeFileSync(
+    minV2Path,
+    `export const masks = ${serializeJsValue(v2.masks)};\nexport const countries = ${serializeJsValue(v2.countries)};\n`,
+    'utf8'
+  );
+  fs.writeFileSync(
+    minV3Path,
+    `export const masks = ${serializeJsValue(v3.masks)};\nexport const countries = ${serializeJsValue(v3.countries)};\n`,
+    'utf8'
+  );
   fs.writeFileSync(typesPath, `export type CountryKey = ${countryKeyUnion};\n`, 'utf8');
 
   console.info(`Wrote ${jsonPath}`);
