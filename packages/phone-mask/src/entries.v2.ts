@@ -23,7 +23,7 @@ type MaskFullMap = Record<CountryKey, Omit<MaskFull, 'id'>>;
 
 type DecodedCountry = {
   code: string;
-  mask: string | Array<string>;
+  mask: Array<string>;
 };
 
 const DEFAULT_LANG = 'en';
@@ -60,45 +60,25 @@ const tokenIndexByCharCode = (() => {
 function decodeToken(twoChars: string): number {
   const hiCode = twoChars.charCodeAt(0);
   const loCode = twoChars.charCodeAt(1);
-  const hi = hiCode < tokenIndexByCharCode.length ? tokenIndexByCharCode[hiCode] : -1;
-  const lo = loCode < tokenIndexByCharCode.length ? tokenIndexByCharCode[loCode] : -1;
-  if (hi < 0 || lo < 0) {
-    throw new Error(`Invalid token in data.v2.min.js: "${twoChars}"`);
-  }
-  return hi * TOKEN_BASE + lo;
+  return tokenIndexByCharCode[hiCode] * TOKEN_BASE + tokenIndexByCharCode[loCode];
 }
 
 function decodeCountryRow(row: string): DecodedCountry {
-  const dividerIndex = row.indexOf('|');
-  if (dividerIndex === -1) {
-    throw new Error(`Invalid country row format in data.v2.min.js: "${row}"`);
-  }
-
-  const codeDigits = row.slice(0, dividerIndex);
-  const tokenStream = row.slice(dividerIndex + 1);
-
-  if (tokenStream.length === 0) {
-    throw new Error(`Missing mask token stream in data.v2.min.js row: "${row}"`);
-  }
-  if (tokenStream.length % 2 !== 0) {
-    throw new Error(`Invalid mask token stream length in data.v2.min.js row: "${row}"`);
-  }
+  const [codeDigits, tokenStream] = row.split('|');
 
   const decodedMasks: string[] = [];
   for (let i = 0; i < tokenStream.length; i += 2) {
     const token = tokenStream.slice(i, i + 2);
     const maskIndex = decodeToken(token);
     const mask = masks[maskIndex];
-    if (!mask) {
-      throw new Error(`Mask index "${maskIndex}" is missing in data.v2.min.js`);
-    }
+
     decodedMasks.push(mask);
   }
 
   const code = `+${codeDigits}`;
   return {
     code,
-    mask: decodedMasks.length === 1 ? decodedMasks[0] : decodedMasks
+    mask: decodedMasks
   };
 }
 
@@ -114,7 +94,7 @@ const MasksWithFlagValue: MaskWithFlag[] = [];
 for (const [id, row] of countryRows) {
   const { code, mask } = decodeCountryRow(row);
   const flag = countryCodeEmoji(id);
-  const baseMask = Array.isArray(mask) ? mask.map((item) => `${code} ${item}`) : `${code} ${mask}`;
+  const baseMask = mask.length === 1 ? `${code} ${mask[0]}` : mask.map((item) => `${code} ${item}`);
 
   MasksBaseMapValue[id] = baseMask;
   MasksMapValue[id] = { code, mask };
