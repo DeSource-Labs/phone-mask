@@ -10,6 +10,7 @@
  * - src/data.min.js
  * - src/data.v2.min.js
  * - src/data.v3.min.js
+ * - src/data.v4.min.js
  * - src/data-types.ts
  */
 
@@ -434,6 +435,59 @@ function buildV3Data(mapping) {
   return { masks, countries };
 }
 
+function encodeV4MaskToken(index) {
+  if (index < TOKEN_BASE - 1) return TOKEN_ALPHABET[index];
+
+  const overflow = index - (TOKEN_BASE - 1);
+  if (overflow >= TOKEN_BASE) {
+    throw new Error(`V4 mask index overflow: ${index}`);
+  }
+  return `~${TOKEN_ALPHABET[overflow]}`;
+}
+
+function buildV4Data(mapping) {
+  const countryEntries = Object.entries(mapping).sort((a, b) => a[0].localeCompare(b[0], 'en'));
+  const maskFrequency = new Map();
+
+  for (const [, maskEntity] of countryEntries) {
+    const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
+    for (const item of items) {
+      const { mask } = parseMaskEntity(item);
+      maskFrequency.set(mask, (maskFrequency.get(mask) ?? 0) + 1);
+    }
+  }
+
+  const masks = [...maskFrequency.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'en'))
+    .map(([mask]) => mask);
+
+  const maskIndex = new Map(masks.map((mask, idx) => [mask, idx]));
+  const ids = countryEntries.map(([country]) => country).join('');
+  const rows = countryEntries
+    .map(([, maskEntity]) => {
+      const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
+      const parsed = items.map(parseMaskEntity);
+      const code = parsed[0]?.code ?? '';
+      if (!code) return '';
+      if (parsed.some((entry) => entry.code !== code)) {
+        throw new Error(`Mixed country codes in V4 row`);
+      }
+
+      const encodedMasks = parsed
+        .map((entry) => {
+          const index = maskIndex.get(entry.mask);
+          if (index === undefined) throw new Error(`Mask not found in dictionary: ${entry.mask}`);
+          return encodeV4MaskToken(index);
+        })
+        .join('');
+
+      return `${code}|${encodedMasks}`;
+    })
+    .join('\n');
+
+  return { masks, ids, rows };
+}
+
 function escapeJsString(value) {
   return `'${value
     .replaceAll('\\', '\\\\')
@@ -507,9 +561,11 @@ function writeOutputs(mapping) {
   const minPath = path.join(outDir, 'data.min.js');
   const minV2Path = path.join(outDir, 'data.v2.min.js');
   const minV3Path = path.join(outDir, 'data.v3.min.js');
+  const minV4Path = path.join(outDir, 'data.v4.min.js');
   const typesPath = path.join(outDir, 'data-types.ts');
   const v2 = buildV2Data(mapping);
   const v3 = buildV3Data(mapping);
+  const v4 = buildV4Data(mapping);
 
   fs.writeFileSync(jsonPath, `${JSON.stringify(mapping, null, 2)}\n`, 'utf8');
   fs.writeFileSync(minPath, `export default ${serializeJsValue(mapping)};\n`, 'utf8');
@@ -523,12 +579,18 @@ function writeOutputs(mapping) {
     `export const masks = ${serializeJsValue(v3.masks)};\nexport const countries = ${serializeJsValue(v3.countries)};\n`,
     'utf8'
   );
+  fs.writeFileSync(
+    minV4Path,
+    `export const masks = ${serializeJsValue(v4.masks)};\nexport const ids = ${serializeJsValue(v4.ids)};\nexport const rows = ${serializeJsValue(v4.rows)};\n`,
+    'utf8'
+  );
   fs.writeFileSync(typesPath, `export type CountryKey = ${countryKeyUnion};\n`, 'utf8');
 
   console.info(`Wrote ${jsonPath}`);
   console.info(`Wrote ${minPath}`);
   console.info(`Wrote ${minV2Path}`);
   console.info(`Wrote ${minV3Path}`);
+  console.info(`Wrote ${minV4Path}`);
   console.info(`Wrote ${typesPath}`);
 }
 

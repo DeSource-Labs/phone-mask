@@ -1,6 +1,6 @@
 // Phone number formatter utilities
 import { toArray, countPlaceholders, removeCountryCodePrefix, pickMaskVariant, formatDigitsWithMap } from './utils';
-import type { MaskFull } from './entries';
+import type { MaskFull } from './entries.v3';
 
 /**
  * Formatter interface for digit range and caret calculations

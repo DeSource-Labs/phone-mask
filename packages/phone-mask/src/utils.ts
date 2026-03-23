@@ -1,5 +1,5 @@
-import { MasksFullMap, MasksFullMapEn } from './entries';
-import type { CountryKey, MaskFull } from './entries';
+import { MasksFullMap, MasksFullMapEn } from './entries.v3';
+import type { CountryKey, MaskFull } from './entries.v3';
 
 export type FormatResult = {
   display: string;
