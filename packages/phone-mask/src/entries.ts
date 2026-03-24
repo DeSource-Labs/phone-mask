@@ -105,7 +105,7 @@ export const MasksWithFlag = masksWithFlagValue;
 /**
  * Full masks map with name and flag emoji. Name is localized based on provided language.
  * @example
- * MasksFullMap.US // { code: "+1", mask: ["###-###-####"], name: "United States", flag: "🇺🇸" }
+ * MasksFullMap('en').US // { code: "+1", mask: ["###-###-####"], name: "United States", flag: "🇺🇸" }
  */
 export const MasksFullMap = (lang: string) => {
   const dn = getDisplayNames(lang);
@@ -122,7 +122,7 @@ export const MasksFullMap = (lang: string) => {
 /**
  * Full masks array with name and flag emoji. Name is localized based on provided language.
  * @example
- * MasksFull[0] // { id: 'AC', code: "+247", mask: ["#####"], name: "Ascension Island", flag: "🇦🇨" }
+ * MasksFull('en')[0] // { id: 'AC', code: "+247", mask: ["#####"], name: "Ascension Island", flag: "🇦🇨" }
  */
 export const MasksFull = (lang: string) => {
   const dn = getDisplayNames(lang);
