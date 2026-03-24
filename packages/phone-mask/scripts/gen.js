@@ -21,6 +21,11 @@ const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 const GITHUB_RELEASE_LATEST_API = 'https://api.github.com/repos/google/libphonenumber/releases/latest';
 const RELEASE_ARCHIVE_URL = (tag) => `https://github.com/google/libphonenumber/archive/refs/tags/${tag}.tar.gz`;
 const METADATA_PATH_SUFFIX = '/resources/PhoneNumberMetadata.xml';
+const JS_IDENTIFIER_RE = /^[A-Za-z_$][0-9A-Za-z_$]*$/;
+const ESCAPED_SINGLE_QUOTE = String.raw`\'`;
+const ESCAPED_NEWLINE = String.raw`\n`;
+const ESCAPED_CARRIAGE_RETURN = String.raw`\r`;
+const ESCAPED_TAB = String.raw`\t`;
 
 const EXAMPLE_TYPES = [
   'mobile',
@@ -323,6 +328,91 @@ function parseMetadataXmlToMasks(xml) {
   return sortMappingByCountryCode(mapping);
 }
 
+function parseMaskEntity(maskEntity) {
+  const splitAt = maskEntity.indexOf(' ');
+  if (splitAt <= 1 || !maskEntity.startsWith('+') || splitAt === maskEntity.length - 1) {
+    throw new Error(`Invalid mask entity, expected "+<code> <mask>": ${maskEntity}`);
+  }
+
+  const code = maskEntity.slice(1, splitAt);
+  const mask = maskEntity.slice(splitAt + 1);
+  return { code, mask };
+}
+
+function buildMinifiedData(mapping) {
+  const countryEntries = Object.entries(mapping).sort((a, b) => a[0].localeCompare(b[0], 'en'));
+  const maskFrequency = new Map();
+
+  for (const [, maskEntity] of countryEntries) {
+    const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
+    for (const item of items) {
+      const { mask } = parseMaskEntity(item);
+      maskFrequency.set(mask, (maskFrequency.get(mask) ?? 0) + 1);
+    }
+  }
+
+  const masks = [...maskFrequency.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'en'))
+    .map(([mask]) => mask);
+
+  const maskIndex = new Map(masks.map((mask, idx) => [mask, idx]));
+  const countries = {};
+
+  for (const [country, maskEntity] of countryEntries) {
+    const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
+    const parsed = items.map(parseMaskEntity);
+    const code = parsed[0]?.code ?? '';
+    if (!code) continue;
+    if (parsed.some((entry) => entry.code !== code)) {
+      throw new Error(`Mixed country codes in ${country}`);
+    }
+
+    const indexedMasks = parsed.map((entry) => {
+      const index = maskIndex.get(entry.mask);
+      if (index === undefined) {
+        throw new Error(`Mask not found in dictionary: ${entry.mask}`);
+      }
+      return String(index);
+    });
+
+    countries[country] = [code, ...indexedMasks].join('|');
+  }
+
+  return { masks, countries };
+}
+
+function escapeJsString(value) {
+  return `'${value
+    .replaceAll('\\', '\\\\')
+    .replaceAll("'", ESCAPED_SINGLE_QUOTE)
+    .replaceAll('\n', ESCAPED_NEWLINE)
+    .replaceAll('\r', ESCAPED_CARRIAGE_RETURN)
+    .replaceAll('\t', ESCAPED_TAB)}'`;
+}
+
+function serializeJsKey(key) {
+  return JS_IDENTIFIER_RE.test(key) ? key : escapeJsString(key);
+}
+
+function serializeJsValue(value) {
+  if (typeof value === 'string') return escapeJsString(value);
+  if (value === null) return 'null';
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => serializeJsValue(item)).join(',')}]`;
+  }
+
+  if (typeof value === 'object') {
+    const entries = Object.entries(value);
+    return `{${entries
+      .map(([key, item]) => `${serializeJsKey(key)}:${serializeJsValue(item)}`)
+      .join(',')}}`;
+  }
+
+  throw new Error(`Unsupported value type for JS serialization: ${String(value)}`);
+}
+
 async function fetchJson(url) {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(30_000),
@@ -364,8 +454,15 @@ function writeOutputs(mapping) {
   const minPath = path.join(outDir, 'data.min.js');
   const typesPath = path.join(outDir, 'data-types.ts');
 
+  const min = buildMinifiedData(mapping);
+
   fs.writeFileSync(jsonPath, `${JSON.stringify(mapping, null, 2)}\n`, 'utf8');
-  fs.writeFileSync(minPath, `export default ${JSON.stringify(mapping)};\n`, 'utf8');
+
+  fs.writeFileSync(
+    minPath,
+    `export const masks = ${serializeJsValue(min.masks)};\nexport default ${serializeJsValue(min.countries)};\n`,
+    'utf8'
+  );
   fs.writeFileSync(typesPath, `export type CountryKey = ${countryKeyUnion};\n`, 'utf8');
 
   console.info(`Wrote ${jsonPath}`);

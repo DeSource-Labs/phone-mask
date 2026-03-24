@@ -36,19 +36,19 @@ import { MasksBaseMap, MasksMap, formatDigitsWithMap } from '@desource/phone-mas
 
 // Get US mask with country code prefix
 const prefixUsMask = MasksBaseMap.US;
-// "+1 ###-###-####"
+// ["+1 ###-###-####"]
 
 // Format digits
-const result = formatDigitsWithMap(prefixUsMask, '2025551234');
+const result = formatDigitsWithMap(prefixUsMask[0], '2025551234');
 console.log(result.display); // "+1 202-555-1234"
 console.log(result.map); // [-1, -1, -1, 0, 1, 2, -1, 3, 4, 5, -1, 6, 7, 8, 9]
 
 // Get US mask without country code prefix
 const usMask = MasksMap.US.mask;
-// "###-###-####"
+// ["###-###-####"]
 
 // Format digits without country code
-const resultNoCode = formatDigitsWithMap(usMask, '2025551234');
+const resultNoCode = formatDigitsWithMap(usMask[0], '2025551234');
 console.log(resultNoCode.display); // "202-555-1234"
 console.log(resultNoCode.map); // [0, 1, 2, -1, 3, 4, 5, -1, 6, 7, 8, 9]
 ```
@@ -63,7 +63,7 @@ const us = MasksFullMapEn.US;
 
 console.log(us.name); // "United States"
 console.log(us.code); // "+1"
-console.log(us.mask); // "###-###-####"
+console.log(us.mask); // ["###-###-####"]
 console.log(us.flag); // "🇺🇸"
 ```
 
@@ -100,16 +100,11 @@ console.log(frenchMap.US.name); // "États-Unis"
 
 ```ts
 import {
-  toArray,
   countPlaceholders,
   removeCountryCodePrefix,
   pickMaskVariant,
   extractDigits
 } from '@desource/phone-mask';
-
-// Ensure mask is an array
-const masks = toArray('+1 ###-###-####');
-// ["+1 ###-###-####"]
 
 // Count placeholder digits
 const count = countPlaceholders('+1 ###-###-####');
@@ -140,7 +135,7 @@ type CountryKey = 'US' | 'GB' | 'DE' | ... // 240+ countries
 // Mask interfaces
 interface MaskBase {
   id: CountryKey;
-  mask: string | Array<string>;
+  mask: Array<string>;
 }
 interface Mask extends MaskBase {
   code: string;
@@ -151,7 +146,7 @@ interface MaskWithFlag extends Mask {
 interface MaskFull extends MaskWithFlag {
   name: string;
 }
-type MaskBaseMap = Record<CountryKey, string | Array<string>>;
+type MaskBaseMap = Record<CountryKey, Array<string>>;
 type MaskMap = Record<CountryKey, Omit<Mask, 'id'>>;
 type MaskWithFlagMap = Record<CountryKey, Omit<MaskWithFlag, 'id'>>;
 type MaskFullMap = Record<CountryKey, Omit<MaskFull, 'id'>>;
@@ -212,9 +207,6 @@ function MasksFull(locale: string): MaskFull[];
 #### Utility Functions
 
 ```ts
-// Convert single mask or array to array
-function toArray<T>(value: T | T[]): T[];
-
 // Count # placeholders in mask
 function countPlaceholders(mask: string): number;
 
@@ -243,13 +235,12 @@ import { MasksFullMapEn, formatDigitsWithMap, extractDigits } from '@desource/ph
 
 function formatPhoneInput(value: string, countryCode: string = 'US') {
   const country = MasksFullMapEn[countryCode];
-  const mask = country?.mask;
+  const mask = country?.mask[0];
   if (!mask) return value;
 
-  const template = Array.isArray(mask) ? mask[0] : mask;
   const digits = extractDigits(value);
 
-  return `${country.code} ${formatDigitsWithMap(template, digits).display}`;
+  return `${country.code} ${formatDigitsWithMap(mask, digits).display}`;
 }
 
 // Usage
@@ -260,13 +251,11 @@ const formatted = formatPhoneInput('2025551234', 'US');
 ### Phone Number Validation
 
 ```ts
-import { MasksFullMapEn, countPlaceholders, toArray } from '@desource/phone-mask';
+import { MasksFullMapEn, countPlaceholders } from '@desource/phone-mask';
 
 function isValidPhoneLength(digits: string, country: string): boolean {
-  const mask = MasksFullMapEn[country]?.mask;
-  if (!mask) return false;
-
-  const masks = toArray(mask);
+  const masks = MasksFullMapEn[country]?.mask;
+  if (!masks) return false;
   const validLengths = masks.map((m) => countPlaceholders(m));
 
   return validLengths.includes(digits.length);
@@ -285,7 +274,7 @@ import { MasksFullEn, type CountryKey, type MaskFull } from '@desource/phone-mas
 type CountryOption = Omit<MaskFull, 'mask'>;
 
 function getCountryOptions(): CountryOption[] {
-  return Object.entries(MasksFullEn).map((data) => ({
+  return MasksFullEn.map((data) => ({
     id: data.id,
     name: data.name,
     code: data.code,

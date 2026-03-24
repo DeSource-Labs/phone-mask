@@ -56,11 +56,6 @@ export function parseCountryCode(code?: string | null, fallback?: string): strin
   return !!code && hasCountry(code) ? code.toUpperCase() : fallback || '';
 }
 
-/** Ensure mask is an array of strings */
-export function toArray<T>(mask: T | T[]): T[] {
-  return Array.isArray(mask) ? mask : [mask];
-}
-
 /** Count number of placeholders (#) in a mask string */
 export function countPlaceholders(maskStr: string): number {
   return (maskStr.match(/#/g) || []).length;

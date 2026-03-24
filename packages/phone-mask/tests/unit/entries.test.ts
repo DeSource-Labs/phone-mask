@@ -28,7 +28,7 @@ describe('entries helpers', () => {
     ) {
       return {
         of: () => undefined
-      } as Intl.DisplayNames;
+      } as unknown as Intl.DisplayNames;
     } as unknown as typeof Intl.DisplayNames);
 
     try {

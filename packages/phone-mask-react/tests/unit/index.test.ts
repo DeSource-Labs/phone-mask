@@ -9,6 +9,5 @@ describe('react package index', () => {
     expect(typeof PMaskHelpers.formatDigitsWithMap).toBe('function');
     expect(typeof PMaskHelpers.pickMaskVariant).toBe('function');
     expect(typeof PMaskHelpers.removeCountryCodePrefix).toBe('function');
-    expect(typeof PMaskHelpers.toArray).toBe('function');
   });
 });

@@ -11,8 +11,7 @@ import {
   getNavigatorLang,
   hasCountry,
   pickMaskVariant,
-  removeCountryCodePrefix,
-  toArray
+  removeCountryCodePrefix
 } from '../../src/utils';
 import { getFlagEmoji } from '../../src/entries';
 import type { MaskFull } from '../../src/entries';
@@ -21,21 +20,21 @@ const sampleCountries: MaskFull[] = [
   {
     id: 'US',
     code: '+1',
-    mask: '###-###-####',
+    mask: ['###-###-####'],
     name: 'United States',
     flag: countryCodeEmoji('US')
   },
   {
     id: 'DE',
     code: '+49',
-    mask: '####-########',
+    mask: ['####-########'],
     name: 'Germany',
     flag: countryCodeEmoji('DE')
   },
   {
     id: 'BR',
     code: '+55',
-    mask: '## ########',
+    mask: ['## ########'],
     name: 'Brazil',
     flag: countryCodeEmoji('BR')
   }
@@ -118,11 +117,6 @@ describe('country helpers', () => {
 });
 
 describe('string and mask helpers', () => {
-  it('normalizes input to an array', () => {
-    expect(toArray('abc')).toEqual(['abc']);
-    expect(toArray(['a', 'b'])).toEqual(['a', 'b']);
-  });
-
   it('counts placeholder characters', () => {
     expect(countPlaceholders('###-##-####')).toBe(9);
     expect(countPlaceholders('+1 ###')).toBe(3);
@@ -202,14 +196,14 @@ describe('country list filtering', () => {
       {
         id: 'AC',
         code: '+10',
-        mask: '###',
+        mask: ['###'],
         name: 'Beta',
         flag: countryCodeEmoji('AC')
       },
       {
         id: 'AD',
         code: '+10',
-        mask: '###',
+        mask: ['###'],
         name: 'Alpha',
         flag: countryCodeEmoji('AD')
       }
@@ -226,9 +220,9 @@ describe('country list filtering', () => {
 
   it('uses name sorting when scores are equal', () => {
     const ties: MaskFull[] = [
-      { id: 'US', code: '+1', mask: '###', name: 'Zulu', flag: countryCodeEmoji('US') },
-      { id: 'DE', code: '+1', mask: '###', name: 'Alpha', flag: countryCodeEmoji('DE') },
-      { id: 'BR', code: '+1', mask: '###', name: 'Beta', flag: countryCodeEmoji('BR') }
+      { id: 'US', code: '+1', mask: ['###'], name: 'Zulu', flag: countryCodeEmoji('US') },
+      { id: 'DE', code: '+1', mask: ['###'], name: 'Alpha', flag: countryCodeEmoji('DE') },
+      { id: 'BR', code: '+1', mask: ['###'], name: 'Beta', flag: countryCodeEmoji('BR') }
     ];
     const results = filterCountries(ties, '+1');
     expect(results.map((country) => country.name)).toEqual(['Alpha', 'Beta', 'Zulu']);
@@ -236,8 +230,8 @@ describe('country list filtering', () => {
 
   it('sorts by descending score when matches are not tied', () => {
     const countries: MaskFull[] = [
-      { id: 'AE', code: '+1', mask: '###', name: 'Alpha', flag: countryCodeEmoji('US') },
-      { id: 'BA', code: '+2', mask: '###', name: 'Beta', flag: countryCodeEmoji('DE') }
+      { id: 'AE', code: '+1', mask: ['###'], name: 'Alpha', flag: countryCodeEmoji('US') },
+      { id: 'BA', code: '+2', mask: ['###'], name: 'Beta', flag: countryCodeEmoji('DE') }
     ];
 
     const results = filterCountries(countries, 'a');

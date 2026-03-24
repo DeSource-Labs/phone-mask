@@ -3,8 +3,7 @@ import {
   countPlaceholders,
   formatDigitsWithMap,
   pickMaskVariant,
-  removeCountryCodePrefix,
-  toArray
+  removeCountryCodePrefix
 } from '@desource/phone-mask';
 
 import './style.scss'; // Importing styles just for vite build, no side effects in js chunks
@@ -39,6 +38,5 @@ export const PMaskHelpers = {
   countPlaceholders,
   formatDigitsWithMap,
   pickMaskVariant,
-  removeCountryCodePrefix,
-  toArray
+  removeCountryCodePrefix
 };
