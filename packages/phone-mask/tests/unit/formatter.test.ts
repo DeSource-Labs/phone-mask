@@ -11,6 +11,14 @@ const countryWithMultipleMasks: MaskFull = {
   mask: ['###', '###-##']
 };
 
+const countryWithoutMask: MaskFull = {
+  id: 'AC',
+  code: '+0',
+  name: 'Noland',
+  flag: '🏴',
+  mask: []
+};
+
 describe('createPhoneFormatter', () => {
   const formatter = createPhoneFormatter(countryWithMultipleMasks);
 
@@ -50,5 +58,35 @@ describe('createPhoneFormatter', () => {
     expect(formatter.isComplete('123')).toBe(true);
     expect(formatter.isComplete('12345')).toBe(true);
     expect(formatter.isComplete('123456')).toBe(false);
+  });
+});
+
+describe('createPhoneFormatter with no masks', () => {
+  const formatter = createPhoneFormatter(countryWithoutMask);
+
+  it('returns empty display and placeholder', () => {
+    expect(formatter.formatDisplay('123')).toBe('');
+    expect(formatter.getPlaceholder()).toBe('');
+  });
+
+  it('returns zero max digits', () => {
+    expect(formatter.getMaxDigits()).toBe(0);
+  });
+
+  it('maps caret position to zero', () => {
+    expect(formatter.getCaretPosition(0)).toBe(0);
+    expect(formatter.getCaretPosition(5)).toBe(0);
+    expect(formatter.getCaretPosition(-1)).toBe(0);
+  });
+
+  it('returns null digit range for any selection', () => {
+    expect(formatter.getDigitRange('123', 0, 3)).toBeNull();
+    expect(formatter.getDigitRange('123', 1, 2)).toBeNull();
+    expect(formatter.getDigitRange('123', -5, 10)).toBeNull();
+  });
+
+  it('never detects complete number', () => {
+    expect(formatter.isComplete('')).toBe(false);
+    expect(formatter.isComplete('123')).toBe(false);
   });
 });

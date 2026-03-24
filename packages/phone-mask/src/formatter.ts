@@ -44,7 +44,7 @@ export interface FormatterHelpers {
 export function createPhoneFormatter(country: MaskFull): FormatterHelpers {
   const variants = country.mask;
   const variantsDigits = variants.map((m) => countPlaceholders(m));
-  const maxDigits = Math.max(...variantsDigits);
+  const maxDigits = Math.max(0, ...variantsDigits);
 
   const getMask = (digitLength: number) => pickMaskVariant(variants, digitLength);
 
