@@ -22,6 +22,10 @@ const GITHUB_RELEASE_LATEST_API = 'https://api.github.com/repos/google/libphonen
 const RELEASE_ARCHIVE_URL = (tag) => `https://github.com/google/libphonenumber/archive/refs/tags/${tag}.tar.gz`;
 const METADATA_PATH_SUFFIX = '/resources/PhoneNumberMetadata.xml';
 const JS_IDENTIFIER_RE = /^[A-Za-z_$][0-9A-Za-z_$]*$/;
+const ESCAPED_SINGLE_QUOTE = String.raw`\'`;
+const ESCAPED_NEWLINE = String.raw`\n`;
+const ESCAPED_CARRIAGE_RETURN = String.raw`\r`;
+const ESCAPED_TAB = String.raw`\t`;
 
 const EXAMPLE_TYPES = [
   'mobile',
@@ -380,10 +384,10 @@ function buildMinifiedData(mapping) {
 function escapeJsString(value) {
   return `'${value
     .replaceAll('\\', '\\\\')
-    .replaceAll("'", "\\'")
-    .replaceAll('\n', '\\n')
-    .replaceAll('\r', '\\r')
-    .replaceAll('\t', '\\t')}'`;
+    .replaceAll("'", ESCAPED_SINGLE_QUOTE)
+    .replaceAll('\n', ESCAPED_NEWLINE)
+    .replaceAll('\r', ESCAPED_CARRIAGE_RETURN)
+    .replaceAll('\t', ESCAPED_TAB)}'`;
 }
 
 function serializeJsKey(key) {
