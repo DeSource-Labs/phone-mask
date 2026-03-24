@@ -44,12 +44,12 @@ const getDisplayNames = (lang: string): Intl.DisplayNames => {
 
 const countryRows = Object.entries(countries) as Array<[CountryKey, string]>;
 
-const MasksBaseMapValue = {} as MaskBaseMap;
-const MasksMapValue = {} as MaskMap;
-const MasksWithFlagMapValue = {} as MaskWithFlagMap;
-const MasksBaseValue: MaskBase[] = [];
-const MasksValue: Mask[] = [];
-const MasksWithFlagValue: MaskWithFlag[] = [];
+const masksBaseMapValue = {} as MaskBaseMap;
+const masksMapValue = {} as MaskMap;
+const masksWithFlagMapValue = {} as MaskWithFlagMap;
+const masksBaseValue: MaskBase[] = [];
+const masksValue: Mask[] = [];
+const masksWithFlagValue: MaskWithFlag[] = [];
 
 for (const [id, row] of countryRows) {
   const rowEntries = row.split('|');
@@ -58,13 +58,13 @@ for (const [id, row] of countryRows) {
   const flag = countryCodeEmoji(id);
   const baseMask = mask.map((item) => `${code} ${item}`);
 
-  MasksBaseMapValue[id] = baseMask;
-  MasksMapValue[id] = { code, mask };
-  MasksWithFlagMapValue[id] = { code, mask, flag };
+  masksBaseMapValue[id] = baseMask;
+  masksMapValue[id] = { code, mask };
+  masksWithFlagMapValue[id] = { code, mask, flag };
 
-  MasksBaseValue.push({ id, mask: baseMask });
-  MasksValue.push({ id, code, mask });
-  MasksWithFlagValue.push({ id, code, mask, flag });
+  masksBaseValue.push({ id, mask: baseMask });
+  masksValue.push({ id, code, mask });
+  masksWithFlagValue.push({ id, code, mask, flag });
 }
 
 /**
@@ -72,36 +72,36 @@ for (const [id, row] of countryRows) {
  * @example
  * MasksBaseMap.US // ["+1 ###-###-####"]
  */
-export const MasksBaseMap: MaskBaseMap = MasksBaseMapValue;
+export const MasksBaseMap: MaskBaseMap = masksBaseMapValue;
 /** Base masks (including country code) array
  * @example
- * MasksBase[0] // { id: 'US', mask: ["+1 ###-###-####"] }
+ * MasksBase[0] // { id: 'AC', mask: ["+247 #####"] }
  */
-export const MasksBase = MasksBaseValue;
+export const MasksBase = masksBaseValue;
 /**
  * Masks map with country code as separate property
  * @example
  * MasksMap.US // { code: "+1", mask: ["###-###-####"] }
  */
-export const MasksMap = MasksMapValue;
+export const MasksMap = masksMapValue;
 /**
  * Masks array with country code as separate property
  * @example
- * Masks[0] // { id: 'US', code: "+1", mask: ["###-###-####"] }
+ * Masks[0] // { id: 'AC', code: "+247", mask: ["#####"] }
  */
-export const Masks = MasksValue;
+export const Masks = masksValue;
 /**
  * Masks map with flag emoji
  * @example
  * MasksWithFlagMap.US // { code: "+1", mask: ["###-###-####"], flag: "🇺🇸" }
  */
-export const MasksWithFlagMap = MasksWithFlagMapValue;
+export const MasksWithFlagMap = masksWithFlagMapValue;
 /**
  * Masks array with flag emoji
  * @example
- * MasksWithFlag[0] // { id: 'US', code: "+1", mask: ["###-###-####"], flag: "🇺🇸" }
+ * MasksWithFlag[0] // { id: 'AC', code: "+247", mask: ["#####"], flag: "🇦🇨" }
  */
-export const MasksWithFlag = MasksWithFlagValue;
+export const MasksWithFlag = masksWithFlagValue;
 /**
  * Full masks map with name and flag emoji. Name is localized based on provided language.
  * @example
@@ -122,7 +122,7 @@ export const MasksFullMap = (lang: string) => {
 /**
  * Full masks array with name and flag emoji. Name is localized based on provided language.
  * @example
- * MasksFull[0] // { id: 'US', code: "+1", mask: ["###-###-####"], name: "United States", flag: "🇺🇸" }
+ * MasksFull[0] // { id: 'AC', code: "+247", mask: ["#####"], name: "Ascension Island", flag: "🇦🇨" }
  */
 export const MasksFull = (lang: string) => {
   const dn = getDisplayNames(lang);
@@ -143,7 +143,7 @@ export const MasksFullMapEn = MasksFullMap(DEFAULT_LANG);
 /**
  * Full masks array with name and flag emoji in English
  * @example
- * MasksFullEn[0] // { id: 'US', code: "+1", mask: ["###-###-####"], name: "United States", flag: "🇺🇸" }
+ * MasksFullEn[0] // { id: 'AC', code: "+247", mask: ["#####"], name: "Ascension Island", flag: "🇦🇨" }
  */
 export const MasksFullEn = MasksFull(DEFAULT_LANG);
 /** Get flag emoji by country ISO code */

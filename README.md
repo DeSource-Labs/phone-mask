@@ -195,7 +195,7 @@ npm install @desource/phone-mask
 import { MasksFullMapEn, formatDigitsWithMap } from '@desource/phone-mask';
 
 const mask = MasksFullMapEn.US.mask[0]; // "###-###-####"
-const formatted = formatDigitsWithMap(mask, '2025551234');
+const formatted = formatDigitsWithMap(mask, '2025551234').display;
 // Result: "202-555-1234"
 ```
 

@@ -7,6 +7,9 @@ import type { CountryKey } from '../../src/data-types';
 
 function splitBaseMask(baseMask: string) {
   const splitAt = baseMask.indexOf(' ');
+  if (splitAt <= 0 || splitAt === baseMask.length - 1) {
+    throw new Error(`Invalid base mask: ${baseMask}`);
+  }
   return {
     code: baseMask.slice(0, splitAt),
     mask: baseMask.slice(splitAt + 1)

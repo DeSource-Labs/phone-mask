@@ -330,8 +330,8 @@ function parseMetadataXmlToMasks(xml) {
 
 function parseMaskEntity(maskEntity) {
   const splitAt = maskEntity.indexOf(' ');
-  if (splitAt === -1) {
-    throw new Error(`Invalid mask entity, expected "<code> <mask>": ${maskEntity}`);
+  if (splitAt <= 1 || !maskEntity.startsWith('+') || splitAt === maskEntity.length - 1) {
+    throw new Error(`Invalid mask entity, expected "+<code> <mask>": ${maskEntity}`);
   }
 
   const code = maskEntity.slice(1, splitAt);
