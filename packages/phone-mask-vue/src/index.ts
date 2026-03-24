@@ -3,8 +3,7 @@ import {
   countPlaceholders,
   formatDigitsWithMap,
   pickMaskVariant,
-  removeCountryCodePrefix,
-  toArray
+  removeCountryCodePrefix
 } from '@desource/phone-mask';
 import type { App } from 'vue';
 import PhoneInput from './components/PhoneInput.vue';
@@ -54,6 +53,5 @@ export const PMaskHelpers = {
   countPlaceholders,
   formatDigitsWithMap,
   pickMaskVariant,
-  removeCountryCodePrefix,
-  toArray
+  removeCountryCodePrefix
 };

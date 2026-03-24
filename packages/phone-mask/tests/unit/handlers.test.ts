@@ -18,7 +18,7 @@ const createFormatter = () =>
     name: 'Testland',
     code: '+9',
     flag: '🏳️',
-    mask: '#-##-##'
+    mask: ['#-##-##']
   });
 
 describe('core handlers: digit helpers', () => {

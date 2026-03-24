@@ -3,8 +3,7 @@ import {
   countPlaceholders,
   formatDigitsWithMap,
   pickMaskVariant,
-  removeCountryCodePrefix,
-  toArray
+  removeCountryCodePrefix
 } from '@desource/phone-mask';
 import type { Component } from 'svelte';
 
@@ -48,6 +47,5 @@ export const PMaskHelpers = {
   countPlaceholders,
   formatDigitsWithMap,
   pickMaskVariant,
-  removeCountryCodePrefix,
-  toArray
+  removeCountryCodePrefix
 };

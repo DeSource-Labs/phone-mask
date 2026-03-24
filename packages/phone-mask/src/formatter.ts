@@ -1,5 +1,5 @@
 // Phone number formatter utilities
-import { toArray, countPlaceholders, removeCountryCodePrefix, pickMaskVariant, formatDigitsWithMap } from './utils';
+import { countPlaceholders, pickMaskVariant, formatDigitsWithMap } from './utils';
 import type { MaskFull } from './entries';
 
 /**
@@ -42,14 +42,11 @@ export interface FormatterHelpers {
  * Create a phone formatter for a given country
  */
 export function createPhoneFormatter(country: MaskFull): FormatterHelpers {
-  const variants = toArray(country.mask);
-  const variantsDigits = variants.map((m) => countPlaceholders(removeCountryCodePrefix(m)));
+  const variants = country.mask;
+  const variantsDigits = variants.map((m) => countPlaceholders(m));
   const maxDigits = Math.max(...variantsDigits);
 
-  const getMask = (digitLength: number) => {
-    const mask = pickMaskVariant(variants, digitLength);
-    return removeCountryCodePrefix(mask);
-  };
+  const getMask = (digitLength: number) => pickMaskVariant(variants, digitLength);
 
   return {
     formatDisplay: (digits: string) => {
