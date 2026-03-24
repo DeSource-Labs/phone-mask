@@ -33,6 +33,7 @@ export default defineConfig({
           entryFileNames: '[name].js',
           chunkFileNames: 'chunks/[name]-[hash].js',
           minify: false,
+          topLevelVar: false,
           plugins: [
             terser({
               compress: { passes: 2 },
@@ -50,6 +51,7 @@ export default defineConfig({
           entryFileNames: `${safeName}.cjs`,
           exports: 'named',
           minify: true,
+          topLevelVar: false,
           plugins: [
             terser({
               compress: { passes: 2 },
@@ -67,6 +69,7 @@ export default defineConfig({
           dir: fileURLToPath(new URL('./dist', import.meta.url)),
           entryFileNames: `${safeName}.umd.min.js`,
           minify: true,
+          topLevelVar: false,
           plugins: [
             terser({
               compress: {

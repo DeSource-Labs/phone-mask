@@ -22,7 +22,8 @@ export default defineConfig({
           '@desource/phone-mask': 'phoneMask',
           vue: 'Vue'
         },
-        minify: true
+        minify: true,
+        topLevelVar: false
       }
     }
   }

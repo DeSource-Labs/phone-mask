@@ -24,7 +24,8 @@ export default defineConfig({
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': 'jsxRuntime'
         },
-        minify: true
+        minify: true,
+        topLevelVar: false
       }
     }
   }

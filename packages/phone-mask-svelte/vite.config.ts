@@ -22,7 +22,8 @@ export default defineConfig({
           '@desource/phone-mask': 'phoneMask',
           svelte: 'Svelte'
         },
-        minify: true
+        minify: true,
+        topLevelVar: false
       }
     }
   }
