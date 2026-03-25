@@ -7,6 +7,7 @@ const README_PATH = new URL('../README.md', import.meta.url);
 const README_FILEPATH = fileURLToPath(README_PATH);
 const BENCHMARK_START_MARKER = '<!-- benchmarks:start -->';
 const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
+const EMPTY_DATA = 'N/A';
 
 /**
  * @typedef {object} GroupRow
@@ -91,7 +92,7 @@ const FETCH_TIMEOUT_MS = 10_000;
  * @returns {string}
  */
 function formatKb(value) {
-  return Number.isFinite(value) ? `${(value / 1024).toFixed(1)} KB` : '-';
+  return Number.isFinite(value) ? `${(value / 1024).toFixed(1)} KB` : EMPTY_DATA;
 }
 
 /**
@@ -354,8 +355,8 @@ function renderMetricRow(row, metric) {
     throw new Error(`Missing metrics for ${row.pkg}`);
   }
 
-  const minifiedCell = metric.bundlephobiaAvailable ? formatKb(metric.minified) : 'N/A';
-  const gzipCell = metric.bundlephobiaAvailable ? formatKb(metric.gzip) : 'N/A';
+  const minifiedCell = metric.bundlephobiaAvailable ? formatKb(metric.minified) : EMPTY_DATA;
+  const gzipCell = metric.bundlephobiaAvailable ? formatKb(metric.gzip) : EMPTY_DATA;
 
   return `| ${markdownPkg(row.pkg, row.highlight)} | ${markdownRepo(metric.repositoryUrl)} | ${formatDate(metric.lastPublished)} | ${minifiedCell} | ${gzipCell} |`;
 }
