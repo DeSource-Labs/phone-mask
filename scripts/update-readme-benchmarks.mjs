@@ -34,6 +34,7 @@ const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
  * @property {string | null} repositoryUrl
  * @property {number | null} minified
  * @property {number | null} gzip
+ * @property {boolean} bundlephobiaAvailable
  */
 
 /** @type {GroupDefinition[]} */
@@ -305,16 +306,30 @@ async function fetchNpmPublishInfo(pkg) {
  */
 async function fetchPackageMetrics(pkg) {
   const encoded = encodeURIComponent(pkg);
-  const [publishInfo, bundle] = await Promise.all([
-    fetchNpmPublishInfo(pkg),
-    fetchJson(`${SOURCES.bundlephobia}${encoded}`)
-  ]);
+  const publishInfo = await fetchNpmPublishInfo(pkg);
+
+  /** @type {number | null} */
+  let minified = null;
+  /** @type {number | null} */
+  let gzip = null;
+  let bundlephobiaAvailable = true;
+
+  try {
+    const bundle = await fetchJson(`${SOURCES.bundlephobia}${encoded}`);
+    minified = bundle.size ?? null;
+    gzip = bundle.gzip ?? null;
+  } catch (error) {
+    bundlephobiaAvailable = false;
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Bundlephobia metrics unavailable for ${pkg}. Using N/A. (${message})`);
+  }
 
   return {
     lastPublished: publishInfo.lastPublished ?? null,
     repositoryUrl: publishInfo.repositoryUrl ?? null,
-    minified: bundle.size ?? null,
-    gzip: bundle.gzip ?? null
+    minified,
+    gzip,
+    bundlephobiaAvailable
   };
 }
 
@@ -339,7 +354,10 @@ function renderMetricRow(row, metric) {
     throw new Error(`Missing metrics for ${row.pkg}`);
   }
 
-  return `| ${markdownPkg(row.pkg, row.highlight)} | ${markdownRepo(metric.repositoryUrl)} | ${formatDate(metric.lastPublished)} | ${formatKb(metric.minified)} | ${formatKb(metric.gzip)} |`;
+  const minifiedCell = metric.bundlephobiaAvailable ? formatKb(metric.minified) : 'N/A';
+  const gzipCell = metric.bundlephobiaAvailable ? formatKb(metric.gzip) : 'N/A';
+
+  return `| ${markdownPkg(row.pkg, row.highlight)} | ${markdownRepo(metric.repositoryUrl)} | ${formatDate(metric.lastPublished)} | ${minifiedCell} | ${gzipCell} |`;
 }
 
 /**
