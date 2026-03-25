@@ -1,5 +1,16 @@
 # @desource/phone-mask
 
+## 1.2.0
+
+### Minor Changes
+
+- Core Upgrades:
+  - Core metadata minification redesigned for better performance and reliability
+  - Breaking changes (minor impact):
+    - Core mask shape normalized: `mask` is now always `string[]` (no `string | string[]` union) across core types/exports
+    - `toArray` removed from all packages
+  - Formatter edge case fixed: countries with no mask variants are now handled safely (`maxDigits = 0` path)
+
 ## 1.1.2
 
 ### Patch Changes
