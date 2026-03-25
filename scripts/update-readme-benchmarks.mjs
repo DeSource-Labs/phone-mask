@@ -7,6 +7,7 @@ const README_PATH = new URL('../README.md', import.meta.url);
 const README_FILEPATH = fileURLToPath(README_PATH);
 const BENCHMARK_START_MARKER = '<!-- benchmarks:start -->';
 const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
+const EMPTY_DATA = 'N/A';
 
 /**
  * @typedef {object} GroupRow
@@ -34,6 +35,7 @@ const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
  * @property {string | null} repositoryUrl
  * @property {number | null} minified
  * @property {number | null} gzip
+ * @property {boolean} bundlephobiaAvailable
  */
 
 /** @type {GroupDefinition[]} */
@@ -90,7 +92,7 @@ const FETCH_TIMEOUT_MS = 10_000;
  * @returns {string}
  */
 function formatKb(value) {
-  return Number.isFinite(value) ? `${(value / 1024).toFixed(1)} KB` : '-';
+  return Number.isFinite(value) ? `${(value / 1024).toFixed(1)} KB` : EMPTY_DATA;
 }
 
 /**
@@ -305,16 +307,30 @@ async function fetchNpmPublishInfo(pkg) {
  */
 async function fetchPackageMetrics(pkg) {
   const encoded = encodeURIComponent(pkg);
-  const [publishInfo, bundle] = await Promise.all([
-    fetchNpmPublishInfo(pkg),
-    fetchJson(`${SOURCES.bundlephobia}${encoded}`)
-  ]);
+  const publishInfo = await fetchNpmPublishInfo(pkg);
+
+  /** @type {number | null} */
+  let minified = null;
+  /** @type {number | null} */
+  let gzip = null;
+  let bundlephobiaAvailable = true;
+
+  try {
+    const bundle = await fetchJson(`${SOURCES.bundlephobia}${encoded}`);
+    minified = bundle.size ?? null;
+    gzip = bundle.gzip ?? null;
+  } catch (error) {
+    bundlephobiaAvailable = false;
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Bundlephobia metrics unavailable for ${pkg}. Using N/A. (${message})`);
+  }
 
   return {
     lastPublished: publishInfo.lastPublished ?? null,
     repositoryUrl: publishInfo.repositoryUrl ?? null,
-    minified: bundle.size ?? null,
-    gzip: bundle.gzip ?? null
+    minified,
+    gzip,
+    bundlephobiaAvailable
   };
 }
 
@@ -339,7 +355,10 @@ function renderMetricRow(row, metric) {
     throw new Error(`Missing metrics for ${row.pkg}`);
   }
 
-  return `| ${markdownPkg(row.pkg, row.highlight)} | ${markdownRepo(metric.repositoryUrl)} | ${formatDate(metric.lastPublished)} | ${formatKb(metric.minified)} | ${formatKb(metric.gzip)} |`;
+  const minifiedCell = metric.bundlephobiaAvailable ? formatKb(metric.minified) : EMPTY_DATA;
+  const gzipCell = metric.bundlephobiaAvailable ? formatKb(metric.gzip) : EMPTY_DATA;
+
+  return `| ${markdownPkg(row.pkg, row.highlight)} | ${markdownRepo(metric.repositoryUrl)} | ${formatDate(metric.lastPublished)} | ${minifiedCell} | ${gzipCell} |`;
 }
 
 /**
