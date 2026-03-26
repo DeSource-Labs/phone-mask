@@ -9,7 +9,7 @@ export default defineConfig({
       name: 'PhoneMaskVue',
       entry: {
         index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
-        core: fileURLToPath(new URL('./src/core.ts', import.meta.url)),
+        core: fileURLToPath(new URL('./src/core.ts', import.meta.url))
       },
       formats: ['es', 'cjs'],
       fileName: (format, entryName) => {
