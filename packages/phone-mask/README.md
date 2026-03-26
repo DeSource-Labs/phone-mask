@@ -99,12 +99,7 @@ console.log(frenchMap.US.name); // "États-Unis"
 ### Utility Functions
 
 ```ts
-import {
-  countPlaceholders,
-  removeCountryCodePrefix,
-  pickMaskVariant,
-  extractDigits
-} from '@desource/phone-mask';
+import { countPlaceholders, removeCountryCodePrefix, pickMaskVariant, extractDigits } from '@desource/phone-mask';
 
 // Count placeholder digits
 const count = countPlaceholders('+1 ###-###-####');

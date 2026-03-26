@@ -45,6 +45,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
+    "./core": {
+      "types": "./dist/types/core.d.ts",
+      "import": "./dist/core.mjs",
+      "require": "./dist/core.cjs"
+    },
     "./assets/lib.css": "./dist/phone-mask-vue.css"
   },
   "files": [

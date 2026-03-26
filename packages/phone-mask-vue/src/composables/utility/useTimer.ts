@@ -1,9 +1,6 @@
 import { onUnmounted } from 'vue';
 
-/**
- * Composable for managing timers with automatic cleanup
- * @returns Object with set and clear methods for timer control
- */
+/** Composable for managing timers with automatic cleanup */
 export function useTimer() {
   let timerRef: ReturnType<typeof setTimeout> | null = null;
 

@@ -1,6 +1,5 @@
 import { ref, computed, watch, onBeforeUnmount, shallowRef, toValue, nextTick } from 'vue';
 import type { MaybeRefOrGetter, ShallowRef, CSSProperties } from 'vue';
-
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
 
 interface UseCountrySelectorOptions {

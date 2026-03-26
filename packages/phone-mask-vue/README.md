@@ -65,6 +65,12 @@ Composable mode (for custom input implementations in case even directive doesn't
 import { usePhoneMask } from '@desource/phone-mask-vue';
 ```
 
+Core helpers (direct re-exports from `@desource/phone-mask`):
+
+```ts
+import { getFlagEmoji, formatDigitsWithMap } from '@desource/phone-mask-vue/core';
+```
+
 Register all at once (component + directive):
 
 ```ts

@@ -13,7 +13,6 @@ import {
   processPaste,
   createPhoneFormatter
 } from '@desource/phone-mask';
-
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
 
 function parseParams(params: string | PMaskDirectiveOptions | undefined): PMaskDirectiveOptions {

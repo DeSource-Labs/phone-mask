@@ -1,5 +1,4 @@
-import { nextTick, toValue } from 'vue';
-import type { MaybeRefOrGetter } from 'vue';
+import { nextTick, toValue, type MaybeRefOrGetter } from 'vue';
 import {
   processBeforeInput,
   processInput,

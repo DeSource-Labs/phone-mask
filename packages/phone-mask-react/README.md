@@ -49,6 +49,12 @@ Hook mode:
 import { usePhoneMask } from '@desource/phone-mask-react';
 ```
 
+Core helpers (direct re-exports from `@desource/phone-mask`):
+
+```ts
+import { getFlagEmoji, formatDigitsWithMap } from '@desource/phone-mask-react/core';
+```
+
 ### Component Mode
 
 ```tsx

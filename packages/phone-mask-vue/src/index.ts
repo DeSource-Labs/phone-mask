@@ -1,10 +1,3 @@
-import {
-  getFlagEmoji,
-  countPlaceholders,
-  formatDigitsWithMap,
-  pickMaskVariant,
-  removeCountryCodePrefix
-} from '@desource/phone-mask';
 import type { App } from 'vue';
 import PhoneInput from './components/PhoneInput.vue';
 import { vPhoneMask as phoneMaskDirective, setCountry as setPhoneMaskCountry } from './directives/vPhoneMask';
@@ -47,11 +40,3 @@ export type {
   MaskFull as PMaskFull,
   MaskFullMap as PMaskFullMap
 } from '@desource/phone-mask';
-
-export const PMaskHelpers = {
-  getFlagEmoji,
-  countPlaceholders,
-  formatDigitsWithMap,
-  pickMaskVariant,
-  removeCountryCodePrefix
-};

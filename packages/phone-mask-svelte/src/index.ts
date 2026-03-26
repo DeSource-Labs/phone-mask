@@ -1,10 +1,3 @@
-import {
-  getFlagEmoji,
-  countPlaceholders,
-  formatDigitsWithMap,
-  pickMaskVariant,
-  removeCountryCodePrefix
-} from '@desource/phone-mask';
 import type { Component } from 'svelte';
 
 import './style.scss'; // Importing styles just for vite build, no side effects in js chunks
@@ -41,11 +34,3 @@ export type {
   MaskFull as PMaskFull,
   MaskFullMap as PMaskFullMap
 } from '@desource/phone-mask';
-
-export const PMaskHelpers = {
-  getFlagEmoji,
-  countPlaceholders,
-  formatDigitsWithMap,
-  pickMaskVariant,
-  removeCountryCodePrefix
-};

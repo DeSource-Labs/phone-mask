@@ -1,17 +1,20 @@
 /// <reference types="vitest/globals" />
-import phoneMaskVue, { PhoneInput, PMaskHelpers, install, usePhoneMask, vPhoneMask } from '../../src/index';
+import phoneMaskVue, { PhoneInput, install, usePhoneMask, vPhoneMask } from '../../src/index';
+import * as core from '../../src/core';
 
 describe('vue package index', () => {
-  it('exports component, directive, composable and helper facade', () => {
+  it('exports component, directive, composable and no root helper facade', async () => {
     expect(PhoneInput).toBeDefined();
     expect(vPhoneMask).toBeDefined();
     expect(typeof usePhoneMask).toBe('function');
+  });
 
-    expect(typeof PMaskHelpers.getFlagEmoji).toBe('function');
-    expect(typeof PMaskHelpers.countPlaceholders).toBe('function');
-    expect(typeof PMaskHelpers.formatDigitsWithMap).toBe('function');
-    expect(typeof PMaskHelpers.pickMaskVariant).toBe('function');
-    expect(typeof PMaskHelpers.removeCountryCodePrefix).toBe('function');
+  it('re-exports core utilities from dedicated core subpath', () => {
+    expect(typeof core.getFlagEmoji).toBe('function');
+    expect(typeof core.countPlaceholders).toBe('function');
+    expect(typeof core.formatDigitsWithMap).toBe('function');
+    expect(typeof core.pickMaskVariant).toBe('function');
+    expect(typeof core.removeCountryCodePrefix).toBe('function');
   });
 
   it('install registers component and directive', () => {

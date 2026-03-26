@@ -1,5 +1,4 @@
-import { shallowRef, watchEffect, onMounted, onUnmounted } from 'vue';
-import type { ShallowRef } from 'vue';
+import { shallowRef, watchEffect, onMounted, onUnmounted, type ShallowRef } from 'vue';
 import { useFormatter } from './internal/useFormatter';
 import { useCountry } from './internal/useCountry';
 import { useInputHandlers } from './internal/useInputHandlers';
