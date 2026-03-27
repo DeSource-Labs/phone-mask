@@ -641,7 +641,7 @@ function renderGroupSection(group, metrics) {
   const lines = [
     `#### ${group.title}`,
     '',
-    '| Package | Last published | Phone data source | Data overhead** | Gzip* | Total gzip* |',
+    '| Package | Last published | Phone data source | Data overhead | Gzip | Total gzip |',
     '| --- | ---: | --- | ---: | ---: | ---: |'
   ];
 
