@@ -580,6 +580,23 @@ const rootStyles = computed<CSSProperties>(() => ({
     border-color: var(--pi-border-focus);
     position: relative;
   }
+
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--pi-fg);
+    caret-color: var(--pi-fg);
+    -webkit-box-shadow: 0 0 0 1000px var(--pi-bg) inset;
+    box-shadow: 0 0 0 1000px var(--pi-bg) inset;
+    transition:
+      background-color 9999s ease-out,
+      color 9999s ease-out;
+  }
+  &:-moz-autofill {
+    -moz-text-fill-color: var(--pi-fg);
+    box-shadow: 0 0 0 1000px var(--pi-bg) inset;
+  }
 }
 
 // Actions

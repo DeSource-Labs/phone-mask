@@ -41,8 +41,12 @@ interface ProcessPasteParams {
   formatter: FormatterHelpers;
 }
 
-function shouldIgnoreKeydown(e: KeyboardEvent): boolean {
-  return e.ctrlKey || e.metaKey || e.altKey || NAVIGATION_KEYS.includes(e.key);
+function getSafeKey(e: KeyboardEvent): string {
+  return typeof e.key === 'string' ? e.key : '';
+}
+
+function shouldIgnoreKeydown(e: KeyboardEvent, key: string): boolean {
+  return !key || e.ctrlKey || e.metaKey || e.altKey || NAVIGATION_KEYS.includes(key);
 }
 
 function removeDigitsRange(digits: string, start: number, end: number): KeydownResult {
@@ -178,17 +182,18 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
   if (!e.target) return;
 
   const el = e.target as HTMLInputElement;
+  const key = getSafeKey(e); // Normalize key to empty string if it's not a string (e.g. auto-complete)
 
   const { digits, formatter } = params;
 
-  // Allow meta & navigation keys
-  if (shouldIgnoreKeydown(e)) return;
+  // Allow autocomplete, meta & navigation keys
+  if (shouldIgnoreKeydown(e, key)) return;
 
   const [selectionStart, selectionEnd] = getSelection(el);
   const displayValue = el.value;
 
   // Handle Backspace
-  if (e.key === 'Backspace') {
+  if (key === 'Backspace') {
     e.preventDefault();
     return (
       removeSelectedDigits(digits, formatter, selectionStart, selectionEnd) ??
@@ -197,7 +202,7 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
   }
 
   // Handle Delete
-  if (e.key === 'Delete') {
+  if (key === 'Delete') {
     e.preventDefault();
     return (
       removeSelectedDigits(digits, formatter, selectionStart, selectionEnd) ??
@@ -206,7 +211,7 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
   }
 
   // Handle digits
-  if (/^\d$/.test(e.key)) {
+  if (/^\d$/.test(key)) {
     if (digits.length >= formatter.getMaxDigits()) {
       e.preventDefault();
     }
@@ -214,7 +219,7 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
   }
 
   // Block non-numeric single characters
-  if (e.key.length === 1) {
+  if (key.length === 1) {
     e.preventDefault();
   }
 }
