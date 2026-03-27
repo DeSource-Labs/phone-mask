@@ -38,13 +38,20 @@ function setup(options: SetupOptions = {}) {
   return { result, simulateCloseComplete, unmount, onSelectCountry, onAfterSelect, searchEl };
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+  document.body.innerHTML = '';
+});
+
 testUseCountrySelector(setup, tools);
 
 function setupWithDom(initialCountryOption?: string) {
   const rootEl = document.createElement('div');
   vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
+  const rootRef = { current: rootEl };
 
   const dropdownEl = document.createElement('div');
+  const dropdownRef = { current: dropdownEl };
   const list = document.createElement('ul');
   const optionA = document.createElement('li');
   const optionB = document.createElement('li');
@@ -63,20 +70,23 @@ function setupWithDom(initialCountryOption?: string) {
 
   const searchEl = document.createElement('input');
   vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const searchRef = { current: searchEl };
   const selectorEl = document.createElement('div');
+  const selectorRef = { current: selectorEl };
+  const onSelectCountry = vi.fn();
 
   document.body.append(rootEl, dropdownEl, selectorEl);
 
   const { result, rerender, unmount } = renderHookWithProxy(
     ({ countryOption }: { countryOption?: string }) =>
       useCountrySelector({
-        rootRef: { current: rootEl },
-        dropdownRef: { current: dropdownEl },
-        searchRef: { current: searchEl },
-        selectorRef: { current: selectorEl },
+        rootRef,
+        dropdownRef,
+        searchRef,
+        selectorRef,
         locale: 'en',
         countryOption,
-        onSelectCountry: vi.fn()
+        onSelectCountry
       }),
     { initialProps: { countryOption: initialCountryOption } }
   );
@@ -114,6 +124,7 @@ describe('useCountrySelector DOM behavior (React)', () => {
   });
 
   afterEach(() => {
+    vi.clearAllTimers();
     vi.useRealTimers();
   });
 
