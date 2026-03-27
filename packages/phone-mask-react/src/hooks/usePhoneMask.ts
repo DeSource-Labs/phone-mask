@@ -87,7 +87,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
 
   const clear = useCallback(() => {
     options.onChange('');
-  }, [options.onChange]);
+  }, [options]);
 
   return {
     ref: inputRef,
