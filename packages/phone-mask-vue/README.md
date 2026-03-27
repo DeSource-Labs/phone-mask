@@ -179,6 +179,10 @@ interface PhoneInputProps {
   // v-model binding
   modelValue?: string;
 
+  // Optional id/name applied to the underlying <input> for forms/autofill
+  id?: string;
+  name?: string;
+
   // Preselected country (ISO 3166-1 alpha-2)
   country?: CountryKey;
 

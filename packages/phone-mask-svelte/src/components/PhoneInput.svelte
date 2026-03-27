@@ -12,6 +12,8 @@
 
   let {
     value = $bindable(''),
+    id,
+    name,
     country: propCountry,
     detect = true,
     locale: propLocale,
@@ -192,6 +194,8 @@
   <!-- Input -->
   <div class="pi-input-wrap">
     <input bind:this={telEl} type="tel" inputmode="tel"
+      {id}
+      {name}
       autocomplete="tel-national" autocorrect="off"
       autocapitalize="off" spellcheck="false"
       class="pi-input"

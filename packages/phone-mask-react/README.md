@@ -117,6 +117,10 @@ interface PhoneInputProps {
   // Controlled value (digits only, without country code) - REQUIRED
   value: string;
 
+  // Optional id/name applied to the underlying <input> for forms/autofill
+  id?: string;
+  name?: string;
+
   // Preselected country (ISO 3166-1 alpha-2)
   country?: CountryKey;
 

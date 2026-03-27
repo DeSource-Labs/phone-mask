@@ -47,6 +47,7 @@
     <div class="pi-input-wrap">
       <!-- Phone Input -->
       <input
+        :id="id"
         ref="telRef"
         type="tel"
         inputmode="tel"
@@ -55,6 +56,7 @@
         autocapitalize="off"
         spellcheck="false"
         class="pi-input"
+        :name="name"
         :placeholder="displayPlaceholder"
         :value="displayValue"
         :disabled="disabled"

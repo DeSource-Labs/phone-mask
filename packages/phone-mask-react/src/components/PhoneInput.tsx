@@ -21,6 +21,8 @@ import type { PhoneInputProps, PhoneInputRef } from '../types';
 const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef>) => {
   const {
     value = '',
+    id,
+    name,
     country: propCountry,
     detect = true,
     locale: propLocale,
@@ -251,6 +253,8 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
         <div className="pi-input-wrap">
           <input
             ref={telRef}
+            id={id}
+            name={name}
             type="tel"
             inputMode="tel"
             autoComplete="tel-national"

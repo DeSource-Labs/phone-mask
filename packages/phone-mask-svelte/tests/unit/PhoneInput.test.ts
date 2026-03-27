@@ -18,6 +18,8 @@ const setup: SetupFn = (options = {}) => {
     ? render(PhoneInputSlotsWrapper, {
         props: {
           initialValue: options.value ?? '2025550199',
+          id: options.id,
+          name: options.name,
           onfocus: onFocus,
           onblur: onBlur,
           onchange: (data) => onChange(data.digits),
@@ -28,6 +30,8 @@ const setup: SetupFn = (options = {}) => {
     : render(PhoneInput, {
         props: {
           value: options.value ?? '',
+          id: options.id,
+          name: options.name,
           detect: options.detect ?? false,
           showClear: options.showClear,
           showCopy: options.showCopy,

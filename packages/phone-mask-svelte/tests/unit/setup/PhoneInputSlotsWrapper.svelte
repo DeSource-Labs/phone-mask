@@ -5,6 +5,8 @@
 
   let {
     initialValue = '2025550199',
+    id,
+    name,
     onfocus,
     onblur,
     onchange,
@@ -12,6 +14,8 @@
     oncopy
   }: {
     initialValue?: string;
+    id?: string;
+    name?: string;
     onfocus?: (e: FocusEvent) => void;
     onblur?: (e: FocusEvent) => void;
     onchange?: (value: PhoneNumber) => void;
@@ -41,6 +45,8 @@
 
 <PhoneInput
   bind:value
+  {id}
+  {name}
   detect={false}
   showClear
   showCopy

@@ -32,6 +32,8 @@ const setup: SetupFn = async (options = {}) => {
         {
           ref: phoneRef,
           modelValue: options.value ?? '',
+          id: options.id,
+          name: options.name,
           'onUpdate:modelValue': onChange,
           'onCountry-change': onCountryChange,
           onCopy,

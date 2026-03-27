@@ -10,6 +10,8 @@ import type { CountryKey } from '@desource/phone-mask';
 
 const setup: SetupFn = ({
   value = '',
+  id,
+  name,
   detect = false,
   showClear,
   showCopy,
@@ -45,6 +47,8 @@ const setup: SetupFn = ({
     <PhoneInput
       ref={inputRef}
       value={value}
+      id={id}
+      name={name}
       onChange={onChange}
       onCountryChange={onCountryChange}
       onCopy={onCopy}
