@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import { testIndexImports } from '@common/tests/unit/index';
 import { install } from '../../src/index';
+import defaultExport from '../../src/index';
 import * as indexModule from '../../src/index';
 import * as coreModule from '../../src/core';
 
@@ -13,6 +14,12 @@ testIndexImports({
 });
 
 describe('vue package installation', () => {
+  it('keeps default export plugin surface', () => {
+    expect(defaultExport).toBeDefined();
+    expect(typeof defaultExport.install).toBe('function');
+    expect(defaultExport.install).toBe(install);
+  });
+
   it('install registers component and directive', () => {
     const app = {
       component: vi.fn(),
