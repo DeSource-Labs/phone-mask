@@ -49,6 +49,12 @@ Composable mode:
 import { usePhoneMask } from '@desource/phone-mask-svelte';
 ```
 
+Core helpers (direct re-exports from `@desource/phone-mask`):
+
+```ts
+import { getFlagEmoji, formatDigitsWithMap } from '@desource/phone-mask-svelte/core';
+```
+
 Attachment mode (for existing `<input>` elements, requires Svelte 5.29+):
 
 ```ts
@@ -208,6 +214,10 @@ With auto-detection:
 interface PhoneInputProps {
   // Bindable value (digits only, without country code)
   value?: string;
+
+  // Optional id/name applied to the underlying <input> for forms/autofill
+  id?: string;
+  name?: string;
 
   // Preselected country (ISO 3166-1 alpha-2)
   country?: CountryKey;

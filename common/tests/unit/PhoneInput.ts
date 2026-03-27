@@ -17,6 +17,8 @@ export interface PhoneInputRefLike {
 
 export interface SetupOptions {
   value?: string;
+  id?: string;
+  name?: string;
   detect?: boolean;
   showClear?: boolean;
   showCopy?: boolean;
@@ -187,6 +189,20 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       await waitFor(() => {
         expect(onCountryChange.mock.calls.length).toBeGreaterThan(callCountBefore);
       });
+
+      unmount();
+    });
+
+    it('applies explicit input id and name for form/autofill integration', async () => {
+      const { unmount } = await setup({
+        detect: false,
+        id: 'phone-mask-input',
+        name: 'phone'
+      });
+
+      const input = screen.getByRole('textbox');
+      expect(input.getAttribute('id')).toBe('phone-mask-input');
+      expect(input.getAttribute('name')).toBe('phone');
 
       unmount();
     });

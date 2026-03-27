@@ -65,6 +65,12 @@ Composable mode (for custom input implementations in case even directive doesn't
 import { usePhoneMask } from '@desource/phone-mask-vue';
 ```
 
+Core helpers (direct re-exports from `@desource/phone-mask`):
+
+```ts
+import { getFlagEmoji, formatDigitsWithMap } from '@desource/phone-mask-vue/core';
+```
+
 Register all at once (component + directive):
 
 ```ts
@@ -172,6 +178,10 @@ const { inputRef, digits, full, fullFormatted, isComplete, setCountry } = usePho
 interface PhoneInputProps {
   // v-model binding
   modelValue?: string;
+
+  // Optional id/name applied to the underlying <input> for forms/autofill
+  id?: string;
+  name?: string;
 
   // Preselected country (ISO 3166-1 alpha-2)
   country?: CountryKey;

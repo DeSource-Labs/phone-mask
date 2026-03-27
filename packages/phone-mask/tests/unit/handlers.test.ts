@@ -464,6 +464,25 @@ describe('processKeydown', () => {
     expect(result).toBeUndefined();
   });
 
+  it('does not throw when keyboard event key is missing, e.g. autocomplete', () => {
+    const formatter = createFormatter();
+    const input = document.createElement('input');
+    input.value = formatter.formatDisplay('12');
+    input.setSelectionRange(2, 2);
+
+    const event = {
+      key: undefined,
+      target: input,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      preventDefault: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    expect(() => processKeydown(event, { digits: '12', formatter })).not.toThrow();
+    expect(event.preventDefault).not.toHaveBeenCalled();
+  });
+
   it('allows numeric input when below max digits', () => {
     const formatter = createFormatter();
     const input = document.createElement('input');

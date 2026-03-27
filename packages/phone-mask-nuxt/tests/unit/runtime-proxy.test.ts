@@ -22,14 +22,16 @@ describe('runtime proxies', () => {
 
     vi.doMock('@desource/phone-mask-vue', () => ({
       vPhoneMaskSetCountry: vPhoneMaskSetCountryMock,
-      vPhoneMask: vPhoneMaskMock,
-      PMaskHelpers: pMaskHelpersMock
+      vPhoneMask: vPhoneMaskMock
+    }));
+    vi.doMock('@desource/phone-mask-vue/core', () => ({
+      ...pMaskHelpersMock
     }));
 
     const sharedRuntime = await import('../../src/runtime/shared');
 
     expect(sharedRuntime.vPhoneMaskSetCountry).toBe(vPhoneMaskSetCountryMock);
     expect(sharedRuntime.vPhoneMask).toBe(vPhoneMaskMock);
-    expect(sharedRuntime.PMaskHelpers).toBe(pMaskHelpersMock);
+    expect(sharedRuntime.PMaskHelpers).toEqual(pMaskHelpersMock);
   });
 });

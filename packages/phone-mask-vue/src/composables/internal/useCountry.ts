@@ -1,5 +1,4 @@
-import { ref, computed, watchEffect, toValue } from 'vue';
-import type { MaybeRefOrGetter, ComputedRef } from 'vue';
+import { ref, computed, watchEffect, toValue, type MaybeRefOrGetter, type ComputedRef } from 'vue';
 import {
   getNavigatorLang,
   getCountry,

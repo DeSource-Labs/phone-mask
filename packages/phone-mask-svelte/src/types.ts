@@ -19,6 +19,10 @@ export type PhoneNumber = {
 export interface PhoneInputProps {
   /** Controlled/bindable value (digits only, without country code) */
   value?: string;
+  /** Optional id attribute applied to the underlying phone input element */
+  id?: string;
+  /** Optional name attribute applied to the underlying phone input element */
+  name?: string;
   /** Whether to preselect a country by ISO 3166-1 alpha-2 code */
   country?: CountryKey;
   /**

@@ -87,7 +87,8 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
 
   const clear = useCallback(() => {
     options.onChange('');
-  }, [options.onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.onChange]); // no need to listen for changes in the entire options, just onChange callback
 
   return {
     ref: inputRef,

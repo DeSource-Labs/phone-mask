@@ -26,7 +26,7 @@ export function useClipboard(delay = 1_800) {
         setIsCopying(false);
       }
     },
-    [isCopying, copyTimer]
+    [isCopying, copyTimer, delay]
   );
 
   return { copied, isCopying, copy };

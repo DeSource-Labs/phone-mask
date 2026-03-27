@@ -1,17 +1,23 @@
 /// <reference types="vitest/globals" />
-import phoneMaskVue, { PhoneInput, PMaskHelpers, install, usePhoneMask, vPhoneMask } from '../../src/index';
+import { testIndexImports } from '@common/tests/unit/index';
+import { install } from '../../src/index';
+import defaultExport from '../../src/index';
+import * as indexModule from '../../src/index';
+import * as coreModule from '../../src/core';
 
-describe('vue package index', () => {
-  it('exports component, directive, composable and helper facade', () => {
-    expect(PhoneInput).toBeDefined();
-    expect(vPhoneMask).toBeDefined();
-    expect(typeof usePhoneMask).toBe('function');
+testIndexImports({
+  suiteName: 'vue',
+  indexModule,
+  coreModule,
+  expectedDefinedExports: ['PhoneInput', 'vPhoneMask'],
+  expectedFunctionExports: ['usePhoneMask', 'install']
+});
 
-    expect(typeof PMaskHelpers.getFlagEmoji).toBe('function');
-    expect(typeof PMaskHelpers.countPlaceholders).toBe('function');
-    expect(typeof PMaskHelpers.formatDigitsWithMap).toBe('function');
-    expect(typeof PMaskHelpers.pickMaskVariant).toBe('function');
-    expect(typeof PMaskHelpers.removeCountryCodePrefix).toBe('function');
+describe('vue package installation', () => {
+  it('keeps default export plugin surface', () => {
+    expect(defaultExport).toBeDefined();
+    expect(typeof defaultExport.install).toBe('function');
+    expect(defaultExport.install).toBe(install);
   });
 
   it('install registers component and directive', () => {
@@ -24,10 +30,5 @@ describe('vue package index', () => {
 
     expect(app.component).toHaveBeenCalledWith('PhoneInput', expect.anything());
     expect(app.directive).toHaveBeenCalledWith('phone-mask', expect.anything());
-  });
-
-  it('default export exposes install', () => {
-    expect(phoneMaskVue).toBeDefined();
-    expect(typeof phoneMaskVue.install).toBe('function');
   });
 });

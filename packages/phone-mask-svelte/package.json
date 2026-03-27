@@ -44,6 +44,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
     },
+    "./core": {
+      "types": "./dist/types/core.d.ts",
+      "import": "./dist/core.mjs",
+      "require": "./dist/core.cjs"
+    },
     "./assets/lib.css": "./dist/phone-mask-svelte.css"
   },
   "files": [
@@ -73,7 +78,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@testing-library/svelte": "^5.3.1",
-    "svelte": "^5.54.1",
+    "svelte": "^5.55.0",
     "svelte-check": "^4.4.5"
   }
 }

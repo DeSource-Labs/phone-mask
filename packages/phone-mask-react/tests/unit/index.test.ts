@@ -1,13 +1,12 @@
 /// <reference types="vitest/globals" />
-import { PhoneInput, PMaskHelpers } from '../../src/index';
+import { testIndexImports } from '@common/tests/unit/index';
+import * as indexModule from '../../src/index';
+import * as coreModule from '../../src/core';
 
-describe('react package index', () => {
-  it('exports public component and helper facade', () => {
-    expect(PhoneInput).toBeDefined();
-    expect(typeof PMaskHelpers.getFlagEmoji).toBe('function');
-    expect(typeof PMaskHelpers.countPlaceholders).toBe('function');
-    expect(typeof PMaskHelpers.formatDigitsWithMap).toBe('function');
-    expect(typeof PMaskHelpers.pickMaskVariant).toBe('function');
-    expect(typeof PMaskHelpers.removeCountryCodePrefix).toBe('function');
-  });
+testIndexImports({
+  suiteName: 'react',
+  indexModule,
+  coreModule,
+  expectedDefinedExports: ['PhoneInput'],
+  expectedFunctionExports: ['usePhoneMask']
 });

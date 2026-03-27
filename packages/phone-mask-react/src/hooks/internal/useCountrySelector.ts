@@ -37,7 +37,7 @@ export function useCountrySelector({
 
   const focusSearch = useCallback(() => {
     setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
-  }, []);
+  }, [searchRef]);
 
   // Close dropdown with animation — actual DOM removal happens in handleDropdownAnimationEnd
   const closeDropdown = useCallback(() => {
@@ -95,45 +95,51 @@ export function useCountrySelector({
       if (selectorEl?.contains(target)) return;
       closeDropdown();
     },
-    [closeDropdown]
+    [closeDropdown, dropdownRef, selectorRef]
   );
 
   // Dropdown positioning
-  const positionDropdown = useCallback((e?: Event | UIEvent) => {
-    if (e?.type === 'scroll' && e.target && dropdownRef.current?.contains(e.target as Node)) return;
-    if (!rootRef?.current) return;
+  const positionDropdown = useCallback(
+    (e?: Event | UIEvent) => {
+      if (e?.type === 'scroll' && e.target && dropdownRef.current?.contains(e.target as Node)) return;
+      if (!rootRef?.current) return;
 
-    const rect = rootRef.current.getBoundingClientRect();
+      const rect = rootRef.current.getBoundingClientRect();
 
-    setDropdownStyle({
-      top: `${rect.bottom + globalThis.scrollY + 8}px`,
-      left: `${rect.left + globalThis.scrollX}px`,
-      width: `${rect.width}px`
-    });
-  }, []);
+      setDropdownStyle({
+        top: `${rect.bottom + globalThis.scrollY + 8}px`,
+        left: `${rect.left + globalThis.scrollX}px`,
+        width: `${rect.width}px`
+      });
+    },
+    [dropdownRef, rootRef]
+  );
 
-  const scrollFocusedIntoView = useCallback((index: number) => {
-    setTimeout(() => {
-      const list = dropdownRef.current?.lastElementChild;
-      const option = list?.children[index];
-      if (!list || !option) return;
+  const scrollFocusedIntoView = useCallback(
+    (index: number) => {
+      setTimeout(() => {
+        const list = dropdownRef.current?.lastElementChild;
+        const option = list?.children[index];
+        if (!list || !option) return;
 
-      const listRect = list.getBoundingClientRect();
-      const optionRect = option.getBoundingClientRect();
+        const listRect = list.getBoundingClientRect();
+        const optionRect = option.getBoundingClientRect();
 
-      let scrollAmount = 0;
+        let scrollAmount = 0;
 
-      if (optionRect.top < listRect.top) {
-        scrollAmount = list.scrollTop - (listRect.top - optionRect.top);
-      } else if (optionRect.bottom > listRect.bottom) {
-        scrollAmount = list.scrollTop + (optionRect.bottom - listRect.bottom);
-      } else {
-        return;
-      }
+        if (optionRect.top < listRect.top) {
+          scrollAmount = list.scrollTop - (listRect.top - optionRect.top);
+        } else if (optionRect.bottom > listRect.bottom) {
+          scrollAmount = list.scrollTop + (optionRect.bottom - listRect.bottom);
+        } else {
+          return;
+        }
 
-      list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
-    }, 0);
-  }, []);
+        list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
+      }, 0);
+    },
+    [dropdownRef]
+  );
 
   // Keyboard navigation for dropdown
   const handleSearchKeydown = useCallback(

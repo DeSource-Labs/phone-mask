@@ -49,6 +49,12 @@ Hook mode:
 import { usePhoneMask } from '@desource/phone-mask-react';
 ```
 
+Core helpers (direct re-exports from `@desource/phone-mask`):
+
+```ts
+import { getFlagEmoji, formatDigitsWithMap } from '@desource/phone-mask-react/core';
+```
+
 ### Component Mode
 
 ```tsx
@@ -110,6 +116,10 @@ function CustomPhoneInput() {
 interface PhoneInputProps {
   // Controlled value (digits only, without country code) - REQUIRED
   value: string;
+
+  // Optional id/name applied to the underlying <input> for forms/autofill
+  id?: string;
+  name?: string;
 
   // Preselected country (ISO 3166-1 alpha-2)
   country?: CountryKey;
