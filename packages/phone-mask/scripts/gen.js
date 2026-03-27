@@ -405,7 +405,8 @@ function serializeJsValue(value) {
 
   if (typeof value === 'object') {
     const entries = Object.entries(value);
-    return `{${entries.map(([key, item]) => `${serializeJsKey(key)}:${serializeJsValue(item)}`).join(',')}}`;
+    const serializedEntries = entries.map(([key, item]) => `${serializeJsKey(key)}:${serializeJsValue(item)}`);
+    return '{' + serializedEntries.join(',') + '}';
   }
 
   throw new Error(`Unsupported value type for JS serialization: ${String(value)}`);

@@ -140,7 +140,7 @@ export default [
     },
     rules: {
       ...react.configs.recommended.rules,
-      ...(react.configs['jsx-runtime']?.rules ?? {}),
+      ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',

@@ -12,10 +12,9 @@ export default defineConfig({
         core: fileURLToPath(new URL('./src/core.ts', import.meta.url))
       },
       formats: ['es', 'cjs'],
-      fileName: (format, entryName) => {
-        const basename = entryName ?? 'index';
-        if (format === 'es') return `${basename}.mjs`;
-        return `${basename}.cjs`;
+      fileName: (format, entryName = 'index') => {
+        if (format === 'es') return `${entryName}.mjs`;
+        return `${entryName}.cjs`;
       }
     },
     rolldownOptions: {
