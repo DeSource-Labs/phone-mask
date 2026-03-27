@@ -34,6 +34,7 @@
     </LiquidGlass>
     <LiquidGlass>
       <PhoneInput
+        id="main-phone-input"
         v-model="testPhone"
         class="phone-input-main"
         dropdown-class="phone-dropdown-main"

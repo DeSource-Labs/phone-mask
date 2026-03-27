@@ -80,6 +80,7 @@
           <div class="playground-preview">
             <div class="preview-box">
               <PhoneInput
+                id="phone-input-playground"
                 v-model="playgroundPhone"
                 :country="playgroundCountry"
                 :size="playgroundSize"
@@ -110,7 +111,7 @@
 
         <div class="example-container">
           <div class="demo">
-            <PhoneInput v-model="basicPhone" />
+            <PhoneInput id="phone-input-basic" v-model="basicPhone" />
             <div class="result">
               <span>Phone: {{ basicPhone || '—' }}</span>
             </div>
@@ -132,7 +133,11 @@
 
         <div class="example-container">
           <div class="demo">
-            <PhoneInput v-model="validationPhone" @validation-change="isValidationValid = $event" />
+            <PhoneInput
+              id="phone-input-validation"
+              v-model="validationPhone"
+              @validation-change="isValidationValid = $event"
+            />
             <div class="result">
               <span :class="isValidationValid ? 'success' : 'error'">
                 {{
@@ -162,7 +167,12 @@
 
         <div class="example-container">
           <div class="demo">
-            <PhoneInput v-model="detectPhone" detect @country-change="handleDetectedCountry" />
+            <PhoneInput
+              id="phone-input-detection"
+              v-model="detectPhone"
+              detect
+              @country-change="handleDetectedCountry"
+            />
             <div class="result">
               <span>Detected Country: {{ detectedCountryName || 'Auto-detecting...' }}</span>
             </div>
@@ -187,15 +197,15 @@
             <div class="size-demos">
               <div>
                 <span class="demo-caption">Compact</span>
-                <PhoneInput v-model="sizePhone" size="compact" />
+                <PhoneInput id="phone-input-compact" v-model="sizePhone" size="compact" />
               </div>
               <div>
                 <span class="demo-caption">Normal (default)</span>
-                <PhoneInput v-model="sizePhone" size="normal" />
+                <PhoneInput id="phone-input-normal" v-model="sizePhone" size="normal" />
               </div>
               <div>
                 <span class="demo-caption">Large</span>
-                <PhoneInput v-model="sizePhone" size="large" />
+                <PhoneInput id="phone-input-large" v-model="sizePhone" size="large" />
               </div>
             </div>
           </div>
@@ -230,7 +240,7 @@
                 Dark
               </label>
             </div>
-            <PhoneInput v-model="themePhone" :theme="selectedTheme" />
+            <PhoneInput id="phone-input-theme-modes" v-model="themePhone" :theme="selectedTheme" />
           </div>
 
           <div class="code">
@@ -250,6 +260,7 @@
         <div class="example-container">
           <div class="demo">
             <PhoneInput
+              id="phone-input-actions"
               v-model="actionPhone"
               show-copy
               show-clear
@@ -280,11 +291,11 @@
             <div class="state-demos">
               <div>
                 <span class="demo-caption">Disabled</span>
-                <PhoneInput v-model="disabledPhone" disabled />
+                <PhoneInput id="phone-input-disabled" v-model="disabledPhone" disabled />
               </div>
               <div>
                 <span class="demo-caption">Readonly</span>
-                <PhoneInput v-model="readonlyPhone" readonly />
+                <PhoneInput id="phone-input-readonly" v-model="readonlyPhone" readonly />
               </div>
             </div>
           </div>
@@ -306,9 +317,28 @@
         <div class="example-container">
           <div class="demo">
             <form class="demo-form" @submit.prevent="handleFormSubmit">
-              <input v-model="formData.name" type="text" placeholder="Full Name" />
-              <input v-model="formData.email" type="email" placeholder="Email Address" />
-              <PhoneInput v-model="formData.phone" @validation-change="handleFormValidation" />
+              <input
+                id="form-name"
+                v-model="formData.name"
+                name="name"
+                type="text"
+                placeholder="Full Name"
+                autocomplete="name"
+              />
+              <input
+                id="form-email"
+                v-model="formData.email"
+                name="email"
+                type="email"
+                placeholder="Email Address"
+                autocomplete="email"
+              />
+              <PhoneInput
+                id="form-phone"
+                v-model="formData.phone"
+                name="phone"
+                @validation-change="handleFormValidation"
+              />
               <span v-if="formErrors.phone" class="error">{{ formErrors.phone }}</span>
               <button type="submit">Submit</button>
             </form>
@@ -338,7 +368,13 @@
 
           <div class="example-container">
             <div class="demo">
-              <input v-model="directiveBasic" v-phone-mask class="custom-input" placeholder="Enter phone number" />
+              <input
+                id="phone-input-basic-directive"
+                v-model="directiveBasic"
+                v-phone-mask
+                class="custom-input"
+                placeholder="Enter phone number"
+              />
               <div class="result">
                 <span>Value: {{ directiveBasic || '—' }}</span>
               </div>
@@ -360,13 +396,14 @@
 
           <div class="example-container">
             <div class="demo">
-              <select v-model="directiveCountry" class="country-select">
+              <select id="country-select-options-directive" v-model="directiveCountry" class="country-select">
                 <option value="US">US</option>
                 <option value="GB">GB</option>
                 <option value="DE">DE</option>
                 <option value="FR">FR</option>
               </select>
               <input
+                id="phone-input-options-directive"
                 v-phone-mask="{
                   country: directiveCountry,
                   onChange: handleDirectiveChange
@@ -398,6 +435,7 @@
           <div class="example-container">
             <div class="demo">
               <input
+                id="phone-input-detect-directive"
                 v-model="directiveDetectPhone"
                 v-phone-mask="{
                   detect: true,
@@ -629,15 +667,25 @@ function handleSubmit() {
 <template>
   <form @submit.prevent="handleSubmit">
     <input
+      id="name"
       v-model="formData.name"
+      name="name"
+      type="text"
+      autocomplete="name"
       placeholder="Name"
     />
     <input
+      id="email"
       v-model="formData.email"
+      name="email"
       type="email"
+      autocomplete="email"
+      placeholder="Email"
     />
     <PhoneInput
+      id="phone"
       v-model="formData.phone"
+      name="phone"
       @validation-change="onValidation"
     />
     <span v-if="formErrors.phone" class="error">

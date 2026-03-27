@@ -508,9 +508,7 @@ async function fetchMissingPhonePeerMetrics(metrics) {
 
   if (missingPeerPkgs.size === 0) return;
 
-  const fetched = await Promise.all(
-    Array.from(missingPeerPkgs, async (pkg) => [pkg, await fetchPackageMetrics(pkg)])
-  );
+  const fetched = await Promise.all(Array.from(missingPeerPkgs, async (pkg) => [pkg, await fetchPackageMetrics(pkg)]));
 
   for (const [pkg, metric] of fetched) {
     metrics.set(pkg, metric);
@@ -599,8 +597,10 @@ function sortRowsByTotalGzip(group, metrics) {
   return [...group.rows].sort((a, b) => {
     const aMetric = metrics.get(a.pkg);
     const bMetric = metrics.get(b.pkg);
-    const aSize = aMetric && Number.isFinite(aMetric.comparableGzip) ? aMetric.comparableGzip : Number.POSITIVE_INFINITY;
-    const bSize = bMetric && Number.isFinite(bMetric.comparableGzip) ? bMetric.comparableGzip : Number.POSITIVE_INFINITY;
+    const aSize =
+      aMetric && Number.isFinite(aMetric.comparableGzip) ? aMetric.comparableGzip : Number.POSITIVE_INFINITY;
+    const bSize =
+      bMetric && Number.isFinite(bMetric.comparableGzip) ? bMetric.comparableGzip : Number.POSITIVE_INFINITY;
     if (aSize !== bSize) return aSize - bSize;
     return a.pkg.localeCompare(b.pkg, 'en');
   });
