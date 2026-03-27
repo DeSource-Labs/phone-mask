@@ -24,7 +24,7 @@ export function testIndexImports({
   expectedFunctionExports = []
 }: IndexContractOptions): void {
   describe(`${suiteName} package index`, () => {
-    it('exports expected root bindings and no root PMaskHelpers facade', () => {
+    it('exports expected root bindings', () => {
       for (const exportName of expectedDefinedExports) {
         expect(indexModule[exportName]).toBeDefined();
       }

@@ -355,8 +355,13 @@ function fetchBundlephobiaExportGzipMap(pkg) {
     return map;
   })();
 
-  bundlephobiaExportsCache.set(pkg, task);
-  return task;
+  const cachedTask = task.catch((error) => {
+    bundlephobiaExportsCache.delete(pkg);
+    throw error;
+  });
+
+  bundlephobiaExportsCache.set(pkg, cachedTask);
+  return cachedTask;
 }
 
 /**
