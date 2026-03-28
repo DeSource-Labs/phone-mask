@@ -4,17 +4,48 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to run coverage against (checks out refs/pull/<number>/head)'
+        required: false
+        type: string
+      ref:
+        description: 'Git ref to checkout (branch, tag, or SHA). Ignored when pr_number is provided.'
+        required: false
+        type: string
 
 permissions:
   contents: read
+  pull-requests: write
+  issues: write
 
 jobs:
   unit-coverage:
     name: Unit Test Coverage
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve checkout ref
+        id: resolve-ref
+        run: |
+          PR_NUMBER="${{ github.event.inputs.pr_number || '' }}"
+          MANUAL_REF="${{ github.event.inputs.ref || '' }}"
+
+          if [ -n "$PR_NUMBER" ]; then
+            echo "ref=refs/pull/${PR_NUMBER}/head" >> "$GITHUB_OUTPUT"
+            echo "Resolved ref: refs/pull/${PR_NUMBER}/head"
+          elif [ -n "$MANUAL_REF" ]; then
+            echo "ref=${MANUAL_REF}" >> "$GITHUB_OUTPUT"
+            echo "Resolved ref: ${MANUAL_REF}"
+          else
+            echo "ref=${GITHUB_REF}" >> "$GITHUB_OUTPUT"
+            echo "Resolved ref: ${GITHUB_REF}"
+          fi
+
       - name: Checkout
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ steps.resolve-ref.outputs.ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
@@ -36,7 +67,25 @@ jobs:
       - name: Run unit tests with coverage
         run: pnpm test:unit:coverage
 
+      - name: Build PR coverage report
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        env:
+          RESOLVED_REF: ${{ steps.resolve-ref.outputs.ref }}
+          JOB_STATUS: ${{ job.status }}
+          CODECOV_API_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          CODECOV_MAIN_BRANCH: main
+        run: node ./scripts/build-coverage-pr-report.mjs
+
+      - name: Comment coverage report to PR
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.inputs.pr_number }}
+          REPO: ${{ github.repository }}
+        run: node ./scripts/comment-coverage-pr.mjs
+
       - name: Upload coverage reports to Codecov
+        if: ${{ github.event_name == 'push' }}
         uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
