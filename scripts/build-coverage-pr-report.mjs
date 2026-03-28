@@ -160,6 +160,51 @@ function getCodecovAvailabilityNote(canFetchCodecov, codecovSuccessfulResponses)
   return null;
 }
 
+/**
+ * @param {string} repository
+ * @param {string} branch
+ * @param {string} token
+ * @returns {Promise<{ canFetchCodecov: boolean; codecovCoverageByPath: Map<string, number | null>; codecovSuccessfulResponses: number }>}
+ */
+async function collectCodecovCoverage(repository, branch, token) {
+  const canFetchCodecov = Boolean(token && repository);
+  const codecovCoverageByPath = new Map();
+  let codecovSuccessfulResponses = 0;
+
+  if (!canFetchCodecov) {
+    return { canFetchCodecov, codecovCoverageByPath, codecovSuccessfulResponses };
+  }
+
+  await Promise.all(
+    PACKAGE_REPORTS.map(async (report) => {
+      const coverage = await fetchCodecovMainCoverage(repository, branch, report.packagePath, token);
+      if (typeof coverage === 'number') codecovSuccessfulResponses += 1;
+      codecovCoverageByPath.set(report.packagePath, coverage);
+    })
+  );
+
+  return { canFetchCodecov, codecovCoverageByPath, codecovSuccessfulResponses };
+}
+
+/**
+ * @param {string[]} lines
+ * @param {Map<string, number | null>} codecovCoverageByPath
+ * @param {boolean} canFetchCodecov
+ */
+function appendCoverageRows(lines, codecovCoverageByPath, canFetchCodecov) {
+  for (const report of PACKAGE_REPORTS) {
+    const row = getCoverageRow(path.resolve(report.file));
+    const mainLineCoverage = canFetchCodecov ? (codecovCoverageByPath.get(report.packagePath) ?? null) : null;
+    const mainLineCell = typeof mainLineCoverage === 'number' ? `${formatPercent(mainLineCoverage)}%` : 'N/A';
+    const deltaCell =
+      typeof mainLineCoverage === 'number' && typeof row.linePct === 'number'
+        ? formatDelta(row.linePct - mainLineCoverage)
+        : 'N/A';
+
+    lines.push(`| ${report.label} | ${row.lineCell} | ${row.branchCell} | ${mainLineCell} | ${deltaCell} |`);
+  }
+}
+
 async function main() {
   const outputPath = process.argv[2] || DEFAULT_OUTPUT;
   const workflow = process.env.GITHUB_WORKFLOW || 'Coverage';
@@ -169,24 +214,11 @@ async function main() {
   const status = process.env.JOB_STATUS || '';
   const codecovToken = process.env.CODECOV_API_TOKEN || '';
   const codecovMainBranch = process.env.CODECOV_MAIN_BRANCH || 'main';
-  const canFetchCodecov = Boolean(codecovToken && repository);
-
-  const codecovCoverageByPath = new Map();
-  let codecovSuccessfulResponses = 0;
-  if (canFetchCodecov) {
-    await Promise.all(
-      PACKAGE_REPORTS.map(async (report) => {
-        const coverage = await fetchCodecovMainCoverage(
-          repository,
-          codecovMainBranch,
-          report.packagePath,
-          codecovToken
-        );
-        if (typeof coverage === 'number') codecovSuccessfulResponses += 1;
-        codecovCoverageByPath.set(report.packagePath, coverage);
-      })
-    );
-  }
+  const { canFetchCodecov, codecovCoverageByPath, codecovSuccessfulResponses } = await collectCodecovCoverage(
+    repository,
+    codecovMainBranch,
+    codecovToken
+  );
 
   const lines = [
     MARKER,
@@ -201,17 +233,7 @@ async function main() {
     '| --- | ---: | ---: | ---: | ---: |'
   ];
 
-  for (const report of PACKAGE_REPORTS) {
-    const row = getCoverageRow(path.resolve(report.file));
-    const mainLineCoverage = canFetchCodecov ? (codecovCoverageByPath.get(report.packagePath) ?? null) : null;
-    const mainLineCell = typeof mainLineCoverage === 'number' ? `${formatPercent(mainLineCoverage)}%` : 'N/A';
-    let deltaCell = 'N/A';
-    if (typeof mainLineCoverage === 'number' && typeof row.linePct === 'number') {
-      deltaCell = formatDelta(row.linePct - mainLineCoverage);
-    }
-
-    lines.push(`| ${report.label} | ${row.lineCell} | ${row.branchCell} | ${mainLineCell} | ${deltaCell} |`);
-  }
+  appendCoverageRows(lines, codecovCoverageByPath, canFetchCodecov);
 
   const codecovNote = getCodecovAvailabilityNote(canFetchCodecov, codecovSuccessfulResponses);
   if (codecovNote) {
