@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { nextTick, ref, shallowRef, toValue } from 'vue';
+import { nextTick, ref, shallowRef } from 'vue';
 import { useCountrySelector } from '@src/composables/internal/useCountrySelector';
 import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
 import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
@@ -75,7 +75,7 @@ function setupWithDom(initialCountryOption?: string) {
 
   document.body.append(rootEl, dropdownEl, selectorEl);
 
-  const rootRef = shallowRef(rootEl);
+  const rootRef = shallowRef<HTMLDivElement | null>(rootEl);
   const dropdownRef = shallowRef(dropdownEl);
   const searchRef = shallowRef(searchEl);
   const selectorRef = shallowRef(selectorEl);
@@ -115,31 +115,14 @@ function setupWithDom(initialCountryOption?: string) {
     setCountryOptionFixed: () => {
       countryOption.value = 'US';
     },
+    setRootUnavailable: () => {
+      rootRef.value = null;
+      globalThis.dispatchEvent(new Event('resize'));
+    },
     completeClose: () => {}
   };
 }
 
 describe('useCountrySelector DOM behavior (Vue)', () => {
   testUseCountrySelectorDomBehavior(setupWithDom, tools);
-
-  it('ignores scroll reposition events coming from inside dropdown', async () => {
-    const ctx = setupWithDom();
-
-    await tools.act(async () => {
-      ctx.result.openDropdown();
-    });
-    expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
-
-    ctx.rootRectSpy.mockReturnValue(createRect(100, 140, 5, 200));
-
-    await tools.act(async () => {
-      ctx.list.dispatchEvent(new Event('scroll'));
-    });
-    await nextTick();
-
-    // Style should remain unchanged because internal scroll events are ignored.
-    expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
-    expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
-    ctx.unmount();
-  });
 });

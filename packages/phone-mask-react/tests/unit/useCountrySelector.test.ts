@@ -47,8 +47,8 @@ testUseCountrySelector(setup, tools);
 
 function setupWithDom(initialCountryOption?: string) {
   const rootEl = document.createElement('div');
-  vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
-  const rootRef = { current: rootEl };
+  const rootRectSpy = vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
+  const rootRef: { current: HTMLDivElement | null } = { current: rootEl };
 
   const dropdownEl = document.createElement('div');
   const dropdownRef = { current: dropdownEl };
@@ -104,6 +104,9 @@ function setupWithDom(initialCountryOption?: string) {
     listRectSpy,
     optionARectSpy,
     optionBRectSpy,
+    rootRectSpy,
+    list,
+    rootRef,
     dropdownTarget: dropdownEl,
     selectorTarget: selectorEl,
     flushAsync: async () => {
@@ -111,6 +114,10 @@ function setupWithDom(initialCountryOption?: string) {
     },
     setCountryOptionFixed: () => {
       rerender({ countryOption: 'US' });
+    },
+    setRootUnavailable: () => {
+      rootRef.current = null;
+      globalThis.dispatchEvent(new Event('resize'));
     },
     completeClose: () => {
       result.handleDropdownAnimationEnd();

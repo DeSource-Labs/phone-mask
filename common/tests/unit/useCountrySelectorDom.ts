@@ -6,8 +6,15 @@ import { createRect } from './setup/domRect';
 export interface CountrySelectorDomSetupResult {
   result: {
     dropdownOpen: MaybeRef<boolean>;
+    isClosing?: MaybeRef<boolean>;
+    dropdownStyle?: MaybeRef<{
+      top?: string | number;
+      left?: string | number;
+      width?: string | number;
+    }>;
     openDropdown: () => void;
     setFocusedIndex: (index: number) => void;
+    handleDropdownAnimationEnd?: () => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleSearchKeydown: (e: any) => void;
   };
@@ -16,8 +23,11 @@ export interface CountrySelectorDomSetupResult {
   listRectSpy: { mockReturnValue: (value: DOMRect) => unknown };
   optionARectSpy: { mockReturnValue: (value: DOMRect) => unknown };
   optionBRectSpy: { mockReturnValue: (value: DOMRect) => unknown };
+  rootRectSpy?: { mockReturnValue: (value: DOMRect) => unknown };
+  list?: HTMLElement;
   flushAsync: () => Promise<void>;
   setCountryOptionFixed?: () => void | Promise<void>;
+  setRootUnavailable?: () => void | Promise<void>;
   completeClose?: () => void;
   dropdownTarget: HTMLElement;
   selectorTarget: HTMLElement;
@@ -140,6 +150,93 @@ export function testUseCountrySelectorDomBehavior(
       await ctx.flushAsync();
 
       expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      ctx.unmount();
+    });
+
+    it('handles click listener events with null target safely', async () => {
+      const addListenerSpy = vi.spyOn(globalThis, 'addEventListener');
+      const ctx = setupWithDom();
+
+      try {
+        await act(async () => {
+          ctx.result.openDropdown();
+        });
+
+        const clickListener = addListenerSpy.mock.calls.find(([type]) => type === 'click')?.[1];
+        expect(clickListener).toBeTypeOf('function');
+
+        expect(() => {
+          (clickListener as EventListener)({ target: null } as unknown as Event);
+        }).not.toThrow();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      } finally {
+        addListenerSpy.mockRestore();
+        ctx.unmount();
+      }
+    });
+
+    it('ignores scroll reposition events coming from inside dropdown', async () => {
+      const ctx = setupWithDom();
+      if (!ctx.list || !ctx.rootRectSpy || ctx.result.dropdownStyle === undefined) {
+        ctx.unmount();
+        return;
+      }
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+      expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
+
+      ctx.rootRectSpy.mockReturnValue(createRect(100, 140, 5, 200));
+
+      await act(async () => {
+        ctx.list?.dispatchEvent(new Event('scroll'));
+      });
+      await ctx.flushAsync();
+
+      // Style should remain unchanged because internal scroll events are ignored.
+      expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
+      expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
+      ctx.unmount();
+    });
+
+    it('safely ignores resize positioning when root ref is unavailable', async () => {
+      const ctx = setupWithDom();
+      if (!ctx.setRootUnavailable || ctx.result.dropdownStyle === undefined) {
+        ctx.unmount();
+        return;
+      }
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+      expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
+
+      await act(async () => {
+        await ctx.setRootUnavailable?.();
+      });
+      await ctx.flushAsync();
+
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
+      ctx.unmount();
+    });
+
+    it('ignores animation end when dropdown is not closing', async () => {
+      const ctx = setupWithDom();
+      if (!ctx.result.handleDropdownAnimationEnd) {
+        ctx.unmount();
+        return;
+      }
+
+      await act(async () => {
+        ctx.result.handleDropdownAnimationEnd?.();
+      });
+
+      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+      if (ctx.result.isClosing !== undefined) {
+        expect(toValue(ctx.result.isClosing)).toBe(false);
+      }
       ctx.unmount();
     });
   });

@@ -50,6 +50,7 @@ function setupWithDom(initialCountryOption?: string) {
   const countryOptionState = createState<string | undefined>(initialCountryOption);
 
   const rootEl = document.createElement('div');
+  const rootState = createState<HTMLDivElement | null>(rootEl);
   const rootRectSpy = vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
 
   const dropdownEl = document.createElement('div');
@@ -77,7 +78,7 @@ function setupWithDom(initialCountryOption?: string) {
 
   const { result, unmount } = withSetup(() =>
     useCountrySelector({
-      rootRef: () => rootEl,
+      rootRef: () => rootState.value,
       dropdownRef: () => dropdownEl,
       searchRef: () => searchEl,
       selectorRef: () => selectorEl,
@@ -97,6 +98,7 @@ function setupWithDom(initialCountryOption?: string) {
     },
     countryOptionState,
     scrollToSpy,
+    list,
     rootRectSpy,
     listRectSpy,
     optionARectSpy,
@@ -110,6 +112,10 @@ function setupWithDom(initialCountryOption?: string) {
     setCountryOptionFixed: () => {
       countryOptionState.value = 'US';
     },
+    setRootUnavailable: () => {
+      rootState.value = null;
+      globalThis.dispatchEvent(new Event('resize'));
+    },
     completeClose: () => {
       result.handleDropdownAnimationEnd();
     }
@@ -118,69 +124,4 @@ function setupWithDom(initialCountryOption?: string) {
 
 describe('useCountrySelector DOM behavior (Svelte)', () => {
   testUseCountrySelectorDomBehavior(setupWithDom, tools);
-
-  it('handles click listener events with null target safely', async () => {
-    const addListenerSpy = vi.spyOn(globalThis, 'addEventListener');
-    const ctx = setupWithDom();
-
-    try {
-      await tools.act(async () => {
-        ctx.result.openDropdown();
-      });
-
-      const clickListener = addListenerSpy.mock.calls.find(([type]) => type === 'click')?.[1];
-      expect(clickListener).toBeTypeOf('function');
-
-      expect(() => {
-        (clickListener as EventListener)({ target: null } as unknown as Event);
-      }).not.toThrow();
-    } finally {
-      addListenerSpy.mockRestore();
-      ctx.unmount();
-    }
-  });
-
-  it('safely ignores resize positioning when root is unavailable', async () => {
-    const rootState = createState<HTMLDivElement | null>(document.createElement('div'));
-    vi.spyOn(rootState.value!, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
-
-    const dropdownEl = document.createElement('div');
-    const searchEl = document.createElement('input');
-
-    const { result, unmount } = withSetup(() =>
-      useCountrySelector({
-        rootRef: () => rootState.value,
-        dropdownRef: () => dropdownEl,
-        searchRef: () => searchEl,
-        selectorRef: () => document.createElement('div'),
-        locale: () => 'en',
-        onSelectCountry: vi.fn()
-      })
-    );
-
-    await tools.act(async () => {
-      result.openDropdown();
-    });
-
-    await tools.act(async () => {
-      rootState.value = null;
-      globalThis.dispatchEvent(new Event('resize'));
-    });
-
-    expect(result.dropdownOpen).toBe(true);
-    expect(result.dropdownStyle.width).toBe('120px');
-    unmount();
-  });
-
-  it('ignores animation end when dropdown is not closing', async () => {
-    const { result, unmount } = setupWithDom();
-
-    await tools.act(async () => {
-      result.handleDropdownAnimationEnd();
-    });
-
-    expect(result.dropdownOpen).toBe(false);
-    expect(result.isClosing).toBe(false);
-    unmount();
-  });
 });

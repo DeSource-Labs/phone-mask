@@ -269,6 +269,21 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act 
     unmount();
   });
 
+  it('exposes locale and setCountry through binding state', async () => {
+    const { el, unmount } = await setup('input')({ country: 'US' });
+    const state = el.__phoneMaskState!;
+
+    expect(state.locale.toLowerCase().startsWith('en')).toBe(true);
+    if (typeof state.setCountry === 'function') {
+      state.setCountry('GB');
+      expect(state.country.id).toBe('GB');
+    } else {
+      expect(state.country.id).toBe('US');
+    }
+
+    unmount();
+  });
+
   it('does not update country when update() is called with an invalid country', async () => {
     const { el, unmount, update } = await setup('input')({ country: 'US' });
 
