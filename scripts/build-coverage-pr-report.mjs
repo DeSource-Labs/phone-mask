@@ -145,6 +145,21 @@ async function fetchCodecovMainCoverage(repository, branch, packagePath, token) 
   }
 }
 
+/**
+ * @param {boolean} canFetchCodecov
+ * @param {number} codecovSuccessfulResponses
+ * @returns {string | null}
+ */
+function getCodecovAvailabilityNote(canFetchCodecov, codecovSuccessfulResponses) {
+  if (!canFetchCodecov) {
+    return 'ℹ️ Main baseline columns are `N/A` because `CODECOV_API_TOKEN` is not configured.';
+  }
+  if (codecovSuccessfulResponses === 0) {
+    return 'ℹ️ Main baseline columns are `N/A` because Codecov API data was unavailable for this run.';
+  }
+  return null;
+}
+
 async function main() {
   const outputPath = process.argv[2] || DEFAULT_OUTPUT;
   const workflow = process.env.GITHUB_WORKFLOW || 'Coverage';
@@ -198,12 +213,10 @@ async function main() {
     lines.push(`| ${report.label} | ${row.lineCell} | ${row.branchCell} | ${mainLineCell} | ${deltaCell} |`);
   }
 
-  lines.push('');
-  if (!canFetchCodecov) {
-    lines.push('ℹ️ Main baseline columns are `N/A` because `CODECOV_API_TOKEN` is not configured.');
-    lines.push('');
-  } else if (codecovSuccessfulResponses === 0) {
-    lines.push('ℹ️ Main baseline columns are `N/A` because Codecov API data was unavailable for this run.');
+  const codecovNote = getCodecovAvailabilityNote(canFetchCodecov, codecovSuccessfulResponses);
+  if (codecovNote) {
+    lines.push('', codecovNote, '');
+  } else {
     lines.push('');
   }
   if (status === 'success') {

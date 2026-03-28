@@ -32,8 +32,11 @@ const headers = {
  * @param {string} url
  * @param {RequestInit} [init]
  */
-async function request(url, init = {}) {
-  const res = await fetch(url, { ...init, headers: { ...headers, ...(init.headers || {}) } });
+async function request(url, init) {
+  const res = await fetch(url, {
+    ...init,
+    headers: init?.headers ? { ...headers, ...init.headers } : headers
+  });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`GitHub API ${res.status} ${res.statusText}: ${text}`);
