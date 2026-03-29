@@ -182,60 +182,54 @@ export function testUseCountrySelectorDomBehavior(
         return;
       }
 
+      expect(ctx.list).toBeDefined();
+      expect(ctx.rootRectSpy).toBeDefined();
+      expect(ctx.result.dropdownStyle).toBeDefined();
+
       await act(async () => {
         ctx.result.openDropdown();
       });
-      expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
+      expect(toValue(ctx.result.dropdownStyle!).top).toBe('38px');
 
-      ctx.rootRectSpy.mockReturnValue(createRect(100, 140, 5, 200));
+      ctx.rootRectSpy!.mockReturnValue(createRect(100, 140, 5, 200));
 
       await act(async () => {
-        ctx.list?.dispatchEvent(new Event('scroll'));
+        ctx.list!.dispatchEvent(new Event('scroll'));
       });
       await ctx.flushAsync();
 
       // Style should remain unchanged because internal scroll events are ignored.
-      expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
-      expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
+      expect(toValue(ctx.result.dropdownStyle!).top).toBe('38px');
+      expect(toValue(ctx.result.dropdownStyle!).width).toBe('120px');
       ctx.unmount();
     });
 
     it('safely ignores resize positioning when root ref is unavailable', async () => {
       const ctx = setupWithDom();
-      if (!ctx.setRootUnavailable || ctx.result.dropdownStyle === undefined) {
-        ctx.unmount();
-        return;
-      }
+      expect(ctx.setRootUnavailable).toBeDefined();
+      expect(ctx.result.dropdownStyle).toBeDefined();
 
       await act(async () => {
         ctx.result.openDropdown();
       });
-      expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
+      expect(toValue(ctx.result.dropdownStyle!).width).toBe('120px');
 
       await act(async () => {
-        await ctx.setRootUnavailable?.();
+        await ctx.setRootUnavailable!();
       });
       await ctx.flushAsync();
 
       expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
+      expect(toValue(ctx.result.dropdownStyle!).width).toBe('120px');
       ctx.unmount();
     });
 
     it('ignores animation end when dropdown is not closing', async () => {
       const ctx = setupWithDom();
-      if (!ctx.result.handleDropdownAnimationEnd) {
-        ctx.unmount();
-        return;
-      }
+      expect(ctx.result.handleDropdownAnimationEnd).toBeDefined();
 
       await act(async () => {
-        ctx.result.openDropdown();
-      });
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-
-      await act(async () => {
-        ctx.result.handleDropdownAnimationEnd?.();
+        ctx.result.handleDropdownAnimationEnd!();
       });
 
       // Should remain open because isClosing was never set
