@@ -32,10 +32,14 @@ const headers = {
  * @param {RequestInit} [init]
  */
 async function request(url, init) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30_000);
   const res = await fetch(url, {
     ...init,
-    headers: init?.headers ? { ...headers, ...init.headers } : headers
+    headers: init?.headers ? { ...headers, ...init.headers } : headers,
+    signal: controller.signal
   });
+  clearTimeout(timeoutId);
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`GitHub API ${res.status} ${res.statusText}: ${text}`);

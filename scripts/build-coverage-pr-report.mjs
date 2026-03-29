@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const MARKER = '<!-- coverage-manual-report -->';
 const DEFAULT_OUTPUT = 'coverage-pr-report.md';
 
 const PACKAGE_REPORTS = [
@@ -153,14 +152,17 @@ async function fetchCodecovMainCoverage(repository, branch, packagePath, token) 
   url.searchParams.set('path', packagePath);
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15_000);
     const res = await fetch(url, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: 'application/json',
         'User-Agent': 'coverage-workflow'
-      }
+      },
+      signal: controller.signal
     });
-
+    clearTimeout(timeoutId);
     if (!res.ok) return null;
     const payload = await res.json();
     return extractCoverageFromPayload(payload);
@@ -230,7 +232,7 @@ function appendCoverageRows(lines, codecovCoverageByPath, canFetchCodecov) {
 }
 
 async function main() {
-  const outputPath = process.argv[2] || DEFAULT_OUTPUT;
+  const outputPath = process.env.REPORT_FILE || process.argv[2] || DEFAULT_OUTPUT;
   const workflow = process.env.GITHUB_WORKFLOW || 'Coverage';
   const repository = process.env.GITHUB_REPOSITORY || '';
   const runId = process.env.GITHUB_RUN_ID || '';
@@ -245,7 +247,6 @@ async function main() {
   );
 
   const lines = [
-    MARKER,
     '## Manual Coverage Report',
     '',
     `- Workflow: \`${workflow}\``,
