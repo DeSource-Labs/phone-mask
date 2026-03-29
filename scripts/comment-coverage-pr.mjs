@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 
-const MARKER = '<!-- coverage-manual-report -->';
 const REPORT_FILE = process.env.REPORT_FILE || 'coverage-pr-report.md';
 const token = process.env.GITHUB_TOKEN;
 const repo = process.env.REPO;
@@ -45,26 +44,6 @@ async function request(url, init) {
 }
 
 async function main() {
-  const commentsRes = await request(
-    `https://api.github.com/repos/${owner}/${name}/issues/${prNumber}/comments?per_page=100`
-  );
-  const comments = await commentsRes.json();
-  const existing = comments.find(
-    (comment) =>
-      comment?.user?.login === 'github-actions[bot]' &&
-      typeof comment?.body === 'string' &&
-      comment.body.includes(MARKER)
-  );
-
-  if (existing) {
-    await request(`https://api.github.com/repos/${owner}/${name}/issues/comments/${existing.id}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ body })
-    });
-    console.log(`Updated existing coverage comment (${existing.id}) on PR #${prNumber}.`);
-    return;
-  }
-
   await request(`https://api.github.com/repos/${owner}/${name}/issues/${prNumber}/comments`, {
     method: 'POST',
     body: JSON.stringify({ body })

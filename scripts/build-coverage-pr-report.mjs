@@ -91,13 +91,33 @@ function getCoverageRow(filePath) {
 function extractCoverageFromPayload(payload) {
   if (!payload || typeof payload !== 'object') return null;
 
+  /**
+   * @param {unknown} value
+   * @returns {number | null}
+   */
+  const parseCoverageValue = (value) => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+  };
+
   const direct = /** @type {Record<string, unknown>} */ (payload).coverage;
-  if (typeof direct === 'number') return direct;
+  const directParsed = parseCoverageValue(direct);
+  if (directParsed !== null) return directParsed;
 
   const totals = /** @type {Record<string, unknown>} */ (payload).totals;
   if (totals && typeof totals === 'object') {
     const totalsCoverage = /** @type {Record<string, unknown>} */ (totals).coverage;
-    if (typeof totalsCoverage === 'number') return totalsCoverage;
+    const totalsCoverageParsed = parseCoverageValue(totalsCoverage);
+    if (totalsCoverageParsed !== null) return totalsCoverageParsed;
+
+    // Some Codecov totals payloads expose compact key `c` (coverage).
+    const totalsCompactCoverage = /** @type {Record<string, unknown>} */ (totals).c;
+    const totalsCompactParsed = parseCoverageValue(totalsCompactCoverage);
+    if (totalsCompactParsed !== null) return totalsCompactParsed;
   }
 
   const results = /** @type {Record<string, unknown>} */ (payload).results;
