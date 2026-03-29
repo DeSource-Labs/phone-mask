@@ -680,11 +680,12 @@ const form = reactive({
 ```
 @desource/phone-mask-vue/
 ├── dist/
-│   ├── types               # TypeScript definitions
-│   ├── index.js            # ESM bundle
-│   ├── index.cjs           # CommonJS bundle
-│   ├── index.mjs           # ESM module bundle
-│   └── phone-mask-vue.css  # Component styles
+│   ├── index.mjs           # Main ESM entry
+│   ├── index.cjs           # Main CommonJS entry
+│   ├── core.mjs            # Core helpers subpath (@desource/phone-mask-vue/core)
+│   ├── core.cjs            # Core helpers CJS subpath
+│   ├── phone-mask-vue.css  # Component styles
+│   └── types/              # TypeScript declarations
 ├── README.md               # This file
 └── package.json            # Package manifest
 ```

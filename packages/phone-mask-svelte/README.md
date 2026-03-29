@@ -796,10 +796,12 @@ Or with CSS:
 ```
 @desource/phone-mask-svelte/
 ├── dist/
-│   ├── types/                 # TypeScript declaration files
-│   ├── index.mjs              # ES module bundle
-│   ├── index.cjs              # CommonJS bundle
-│   └── phone-mask-svelte.css  # Component styles
+│   ├── index.mjs              # Main ESM/Svelte entry
+│   ├── index.cjs              # Main CommonJS entry
+│   ├── core.mjs               # Core helpers subpath (@desource/phone-mask-svelte/core)
+│   ├── core.cjs               # Core helpers CJS subpath
+│   ├── phone-mask-svelte.css  # Component styles
+│   └── types/                 # TypeScript declaration files
 ├── README.md                  # This file
 └── package.json               # Package manifest
 ```

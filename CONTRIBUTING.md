@@ -424,6 +424,8 @@ Brief description of changes
 - [ ] New feature (non-breaking)
 - [ ] Breaking change
 - [ ] Documentation update
+- [ ] Tests
+- [ ] Other (describe below):
 
 ## Testing
 
@@ -442,6 +444,10 @@ Add screenshots for UI changes
 - [ ] No new warnings generated
 - [ ] Tests added/updated
 - [ ] All tests passing
+
+## Manual Coverage (Optional)
+
+Use the coverage workflow button in the PR template to run a manual coverage report for that PR (`pr_number` required, maintainer permissions required).
 ```
 
 ### Review Process

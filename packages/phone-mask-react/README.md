@@ -464,9 +464,12 @@ function Example() {
 ```
 @desource/phone-mask-react/
 ├── dist/
-│   ├── esm                     # ESM bundle + types
-│   ├── phone-mask-react.cjs.js # CommonJS bundle
-│   └── phone-mask-react.css    # Component styles
+│   ├── index.mjs               # Main ESM entry
+│   ├── index.cjs               # Main CommonJS entry
+│   ├── core.mjs                # Core helpers subpath (@desource/phone-mask-react/core)
+│   ├── core.cjs                # Core helpers CJS subpath
+│   ├── phone-mask-react.css    # Component styles
+│   └── types/                  # TypeScript declarations
 ├── README.md                   # This file
 └── package.json                # Package manifest
 ```
