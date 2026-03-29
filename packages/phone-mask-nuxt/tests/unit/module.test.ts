@@ -56,7 +56,9 @@ const defaultOptions = {
   css: true,
   component: true,
   directive: true,
-  helpers: true
+  types: true,
+  helpers: false,
+  composable: false
 };
 
 const normalizePath = (value: string) => value.replaceAll('\\', '/');
@@ -77,7 +79,7 @@ describe('module setup contract', () => {
     expect(typedModule.defaults).toEqual(defaultOptions);
   });
 
-  it('registers plugin, imports, component, css and type references by default', async () => {
+  it('registers plugin, typed imports, component, css and type references by default', async () => {
     const typedModule = module as { setup: (options: typeof defaultOptions, nuxt: NuxtStub) => Promise<void> };
     const { nuxt, hooks } = createNuxtStub();
 
@@ -101,12 +103,9 @@ describe('module setup contract', () => {
     expect(addImportsMock).toHaveBeenCalledTimes(1);
     const imports = addImportsMock.mock.calls[0]?.[0] as Array<{ name: string; from: string; type?: boolean }>;
     const importNames = imports.map((entry) => entry.name);
-    expect(importNames).toHaveLength(13);
+    expect(importNames).toHaveLength(10);
     expect(importNames).toEqual(
       expect.arrayContaining([
-        'vPhoneMaskSetCountry',
-        'PMaskHelpers',
-        'vPhoneMask',
         'PCountryKey',
         'PMaskBase',
         'PMaskBaseMap',
@@ -119,6 +118,7 @@ describe('module setup contract', () => {
         'PMaskPhoneNumber'
       ])
     );
+    expect(importNames).not.toEqual(expect.arrayContaining(['vPhoneMaskSetCountry', 'PMaskHelpers', 'vPhoneMask']));
     expect(imports.every((entry) => entry.from.includes('runtime/shared'))).toBe(true);
     const typedImportNames = imports.filter((entry) => entry.type).map((entry) => entry.name);
     expect(typedImportNames).toHaveLength(10);
@@ -158,7 +158,9 @@ describe('module setup contract', () => {
         css: false,
         component: false,
         directive: false,
-        helpers: false
+        types: false,
+        helpers: false,
+        composable: false
       },
       nuxt
     );
@@ -168,6 +170,26 @@ describe('module setup contract', () => {
     expect(addImportsMock).not.toHaveBeenCalled();
     expect(addComponentMock).not.toHaveBeenCalled();
     expect(nuxt.options.css).toEqual([]);
+  });
+
+  it('registers optional helper/composable imports when explicitly enabled', async () => {
+    const typedModule = module as { setup: (options: typeof defaultOptions, nuxt: NuxtStub) => Promise<void> };
+    const { nuxt } = createNuxtStub();
+
+    await typedModule.setup(
+      {
+        ...defaultOptions,
+        helpers: true,
+        composable: true
+      },
+      nuxt
+    );
+
+    expect(addImportsMock).toHaveBeenCalledTimes(3);
+    const allCalls = addImportsMock.mock.calls.flatMap((call) => (Array.isArray(call[0]) ? call[0] : [call[0]]));
+    const names = allCalls.map((entry: { name: string }) => entry.name);
+
+    expect(names).toEqual(expect.arrayContaining(['vPhoneMaskSetCountry', 'PMaskHelpers', 'vPhoneMask', 'usePhoneMask']));
   });
 
   it('does not add directive plugin for Nuxt 2 runtime', async () => {
