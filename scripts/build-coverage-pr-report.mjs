@@ -5,26 +5,30 @@ const MARKER = '<!-- coverage-manual-report -->';
 const DEFAULT_OUTPUT = 'coverage-pr-report.md';
 
 const PACKAGE_REPORTS = [
-  { label: 'phone-mask', file: './packages/phone-mask/coverage/lcov.info', packagePath: 'packages/phone-mask' },
+  {
+    label: 'phone-mask',
+    file: './packages/phone-mask/coverage/lcov.info',
+    packagePath: 'packages/phone-mask/src'
+  },
   {
     label: 'phone-mask-vue',
     file: './packages/phone-mask-vue/coverage/lcov.info',
-    packagePath: 'packages/phone-mask-vue'
+    packagePath: 'packages/phone-mask-vue/src'
   },
   {
     label: 'phone-mask-react',
     file: './packages/phone-mask-react/coverage/lcov.info',
-    packagePath: 'packages/phone-mask-react'
+    packagePath: 'packages/phone-mask-react/src'
   },
   {
     label: 'phone-mask-svelte',
     file: './packages/phone-mask-svelte/coverage/lcov.info',
-    packagePath: 'packages/phone-mask-svelte'
+    packagePath: 'packages/phone-mask-svelte/src'
   },
   {
     label: 'phone-mask-nuxt',
     file: './packages/phone-mask-nuxt/coverage/lcov.info',
-    packagePath: 'packages/phone-mask-nuxt'
+    packagePath: 'packages/phone-mask-nuxt/src'
   }
 ];
 
