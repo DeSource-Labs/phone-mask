@@ -32,3 +32,9 @@ Add screenshots for UI changes
 - [ ] No new warnings generated
 - [ ] Tests added/updated
 - [ ] All tests passing
+
+## Manual Coverage (Optional)
+
+[![Run Coverage Workflow](https://img.shields.io/badge/Run%20Coverage%20Workflow-GitHub%20Actions-2ea44f?logo=githubactions&logoColor=white)](https://github.com/DeSource-Labs/phone-mask/actions/workflows/coverage.yml)
+
+_Maintainers only (`write/maintain/admin` access): open the workflow, click `Run workflow`, and set `pr_number` to this PR number to post/update a coverage comment on this PR_

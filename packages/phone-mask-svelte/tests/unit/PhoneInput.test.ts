@@ -64,3 +64,39 @@ const setup: SetupFn = (options = {}) => {
 };
 
 testPhoneInput(setup, tools);
+
+describe('PhoneInput (Svelte specifics)', () => {
+  it('completes dropdown close on animation end', async () => {
+    const { unmount } = await setup({
+      value: '2025550199',
+      detect: false
+    });
+
+    await tools.fireEvent.click(tools.screen.getByRole('button', { name: /Selected country:/i }));
+
+    let searchInput!: HTMLInputElement;
+    await tools.waitFor(() => {
+      searchInput = document.body.querySelector('.pi-search') as HTMLInputElement;
+      expect(searchInput).not.toBeNull();
+    });
+
+    await tools.fireEvent.keyDown(searchInput, { key: 'Escape' });
+
+    let dropdown!: HTMLDivElement;
+    await tools.waitFor(() => {
+      dropdown = document.body.querySelector('.phone-dropdown') as HTMLDivElement;
+      expect(dropdown).not.toBeNull();
+      expect(dropdown.className).toContain('is-closing');
+    });
+
+    await tools.act(async () => {
+      dropdown.dispatchEvent(new Event('animationend', { bubbles: true }));
+    });
+
+    await tools.waitFor(() => {
+      expect(document.body.querySelector('.phone-dropdown')).toBeNull();
+    });
+
+    unmount();
+  });
+});

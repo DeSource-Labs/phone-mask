@@ -6,8 +6,29 @@ coverage:
     project:
       default:
         target: auto
-        threshold: 0.1%
+        threshold: 0.5%
+        if_ci_failed: error
+        if_not_found: success
     patch:
       default:
-        target: auto
-        threshold: 0.1%
+        target: 95%
+        threshold: 2%
+        only_pulls: true
+        if_ci_failed: error
+        if_not_found: success
+
+comment:
+  layout: 'reach,diff,flags,tree'
+  behavior: default
+  require_changes: true
+  require_base: false
+  require_head: true
+  hide_project_coverage: false
+
+ignore:
+  - '**/*.d.ts'
+  - '**/dist/**'
+  - 'demo/**'
+  - '**/tests/**'
+  - '**/*.test.*'
+  - '**/*.spec.*'
