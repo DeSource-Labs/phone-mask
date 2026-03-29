@@ -230,10 +230,16 @@ export function testUseCountrySelectorDomBehavior(
       }
 
       await act(async () => {
+        ctx.result.openDropdown();
+      });
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+
+      await act(async () => {
         ctx.result.handleDropdownAnimationEnd?.();
       });
 
-      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+      // Should remain open because isClosing was never set
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
       if (ctx.result.isClosing !== undefined) {
         expect(toValue(ctx.result.isClosing)).toBe(false);
       }

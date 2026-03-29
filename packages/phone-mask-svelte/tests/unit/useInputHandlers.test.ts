@@ -56,16 +56,21 @@ testUseInputHandlers(setup, tools);
 describe('useInputHandlers (Svelte specifics)', () => {
   it('runs deferred caret update path after input event', async () => {
     const { inputEl, onChange, unmount } = setup();
+    const setSelectionRangeSpy = vi.spyOn(inputEl, 'setSelectionRange');
 
-    await tools.act(async () => {
-      inputEl.value = '202-555-0199';
-      inputEl.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    try {
+      await tools.act(async () => {
+        inputEl.value = '202-555-0199';
+        inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+      });
 
-    await Promise.resolve();
-    await tools.act(async () => {});
+      await Promise.resolve();
+      await tools.act(async () => {});
 
-    expect(onChange).toHaveBeenCalledWith('2025550199');
-    unmount();
+      expect(onChange).toHaveBeenCalledWith('2025550199');
+      expect(setSelectionRangeSpy).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
+    } finally {
+      unmount();
+    }
   });
 });

@@ -269,7 +269,7 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act 
     unmount();
   });
 
-  it('exposes locale and setCountry through binding state', async () => {
+  it('exposes locale and supports optional setCountry in binding state', async () => {
     const { el, unmount } = await setup('input')({ country: 'US' });
     const state = el.__phoneMaskState!;
 
