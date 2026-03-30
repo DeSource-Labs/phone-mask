@@ -47,6 +47,12 @@ jobs:
         with:
           ref: ${{ steps.resolve-ref.outputs.ref }}
 
+      - name: Resolve base SHA for manual PR run
+        id: resolve-base
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        run: |
+          echo "base_sha=$(git rev-parse HEAD^1)" >> "$GITHUB_OUTPUT"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
         with:
@@ -67,6 +73,30 @@ jobs:
       - name: Run unit tests with coverage
         run: pnpm test:unit:coverage
 
+      - name: Prepare baseline worktree
+        id: baseline-worktree
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        run: |
+          BASE_WORKTREE="$RUNNER_TEMP/coverage-baseline"
+          rm -rf "$BASE_WORKTREE"
+          git worktree add --detach "$BASE_WORKTREE" "${{ steps.resolve-base.outputs.base_sha }}"
+          echo "path=$BASE_WORKTREE" >> "$GITHUB_OUTPUT"
+
+      - name: Install baseline dependencies
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        working-directory: ${{ steps.baseline-worktree.outputs.path }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build baseline packages
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        working-directory: ${{ steps.baseline-worktree.outputs.path }}
+        run: pnpm build
+
+      - name: Run baseline unit tests with coverage
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        working-directory: ${{ steps.baseline-worktree.outputs.path }}
+        run: pnpm test:unit:coverage
+
       - name: Build PR coverage report
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
         env:
@@ -74,6 +104,9 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           CODECOV_API_TOKEN: ${{ secrets.CODECOV_API_TOKEN || secrets.CODECOV_TOKEN }}
           CODECOV_MAIN_BRANCH: main
+          HEAD_COVERAGE_ROOT: ${{ github.workspace }}
+          BASE_COVERAGE_ROOT: ${{ steps.baseline-worktree.outputs.path }}
+          BASE_COVERAGE_REF: ${{ steps.resolve-base.outputs.base_sha }}
         run: node ./scripts/build-coverage-pr-report.mjs
 
       - name: Comment coverage report to PR
@@ -96,3 +129,8 @@ jobs:
             ./packages/phone-mask-react/coverage/lcov.info
             ./packages/phone-mask-svelte/coverage/lcov.info
             ./packages/phone-mask-nuxt/coverage/lcov.info
+
+      - name: Cleanup baseline worktree
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' && steps.baseline-worktree.outputs.path != '' }}
+        run: |
+          git worktree remove --force "${{ steps.baseline-worktree.outputs.path }}" || true
