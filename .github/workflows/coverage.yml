@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to run coverage against (checks out refs/pull/<number>/head)'
+        description: 'PR number to run coverage against (checks out refs/pull/<number>/merge)'
         required: false
         type: string
       ref:
@@ -32,8 +32,8 @@ jobs:
           MANUAL_REF='${{ github.event.inputs.ref }}'
 
           if [ -n "$PR_NUMBER" ]; then
-            echo "ref=refs/pull/${PR_NUMBER}/head" >> "$GITHUB_OUTPUT"
-            echo "Resolved ref: refs/pull/${PR_NUMBER}/head"
+            echo "ref=refs/pull/${PR_NUMBER}/merge" >> "$GITHUB_OUTPUT"
+            echo "Resolved ref: refs/pull/${PR_NUMBER}/merge"
           elif [ -n "$MANUAL_REF" ]; then
             echo "ref=${MANUAL_REF}" >> "$GITHUB_OUTPUT"
             echo "Resolved ref: ${MANUAL_REF}"

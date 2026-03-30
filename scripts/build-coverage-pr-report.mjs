@@ -33,15 +33,30 @@ const PACKAGE_REPORTS = [
 
 /**
  * Parse LCOV totals and return line/branch coverage summary.
+ * If includePath is set, only SF records that contain that path are counted.
  * @param {string} content
+ * @param {string} [includePath]
  */
-function parseLcovTotals(content) {
+function parseLcovTotals(content, includePath) {
   let lf = 0;
   let lh = 0;
   let bf = 0;
   let bh = 0;
+  const needle = includePath ? includePath.replaceAll('\\', '/') : '';
+  let includeCurrentRecord = !needle;
 
   for (const line of content.split('\n')) {
+    if (line.startsWith('SF:')) {
+      if (!needle) {
+        includeCurrentRecord = true;
+      } else {
+        const sourceFile = line.slice(3).replaceAll('\\', '/');
+        includeCurrentRecord = sourceFile.includes(needle);
+      }
+      continue;
+    }
+    if (!includeCurrentRecord) continue;
+
     if (line.startsWith('LF:')) lf += Number(line.slice(3)) || 0;
     if (line.startsWith('LH:')) lh += Number(line.slice(3)) || 0;
     if (line.startsWith('BRF:')) bf += Number(line.slice(4)) || 0;
@@ -72,14 +87,15 @@ function formatDelta(value) {
 
 /**
  * @param {string} filePath
+ * @param {string} packagePath
  */
-function getCoverageRow(filePath) {
+function getCoverageRow(filePath, packagePath) {
   if (!fs.existsSync(filePath)) {
     return { lineCell: 'N/A', branchCell: 'N/A', linePct: null };
   }
 
   const content = fs.readFileSync(filePath, 'utf8');
-  const totals = parseLcovTotals(content);
+  const totals = parseLcovTotals(content, packagePath);
   return {
     lineCell: `${totals.lh}/${totals.lf} (${formatPercent(totals.linePct)}%)`,
     branchCell: `${totals.bh}/${totals.bf} (${formatPercent(totals.branchPct)}%)`,
@@ -117,7 +133,6 @@ function extractCoverageFromPayload(payload) {
     const totalsCoverageParsed = parseCoverageValue(totalsCoverage);
     if (totalsCoverageParsed !== null) return totalsCoverageParsed;
 
-    // Some Codecov totals payloads expose compact key `c` (coverage).
     const totalsCompactCoverage = /** @type {Record<string, unknown>} */ (totals).c;
     const totalsCompactParsed = parseCoverageValue(totalsCompactCoverage);
     if (totalsCompactParsed !== null) return totalsCompactParsed;
@@ -219,7 +234,7 @@ async function collectCodecovCoverage(repository, branch, token) {
  */
 function appendCoverageRows(lines, codecovCoverageByPath, canFetchCodecov) {
   for (const report of PACKAGE_REPORTS) {
-    const row = getCoverageRow(path.resolve(report.file));
+    const row = getCoverageRow(path.resolve(report.file), report.packagePath);
     const mainLineCoverage = canFetchCodecov ? (codecovCoverageByPath.get(report.packagePath) ?? null) : null;
     const mainLineCell = typeof mainLineCoverage === 'number' ? `${formatPercent(mainLineCoverage)}%` : 'N/A';
     const deltaCell =
