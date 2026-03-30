@@ -46,12 +46,15 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ steps.resolve-ref.outputs.ref }}
+          fetch-depth: 0
 
       - name: Resolve base SHA for manual PR run
         id: resolve-base
         if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
         run: |
-          echo "base_sha=$(git rev-parse HEAD^1)" >> "$GITHUB_OUTPUT"
+          BASE_SHA="$(git rev-parse HEAD^1)"
+          git cat-file -e "${BASE_SHA}^{commit}"
+          echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
