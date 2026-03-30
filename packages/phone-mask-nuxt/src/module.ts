@@ -49,7 +49,7 @@ const module: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
       addImports([
         { name: 'vPhoneMaskSetCountry', from: shared },
         { name: 'PMaskHelpers', from: shared },
-        { name: 'vPhoneMask', from: shared },
+        { name: 'vPhoneMask', from: shared }
       ]);
     }
     if (options.composable) {

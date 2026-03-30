@@ -10,3 +10,4 @@ pnpm-lock.yaml
 packages/phone-mask/src/data.json
 packages/phone-mask/src/data-types.ts
 packages/phone-mask/src/data.min.js
+demo/public/vendor/context7-widget.fork.js

@@ -189,7 +189,9 @@ describe('module setup contract', () => {
     const allCalls = addImportsMock.mock.calls.flatMap((call) => (Array.isArray(call[0]) ? call[0] : [call[0]]));
     const names = allCalls.map((entry: { name: string }) => entry.name);
 
-    expect(names).toEqual(expect.arrayContaining(['vPhoneMaskSetCountry', 'PMaskHelpers', 'vPhoneMask', 'usePhoneMask']));
+    expect(names).toEqual(
+      expect.arrayContaining(['vPhoneMaskSetCountry', 'PMaskHelpers', 'vPhoneMask', 'usePhoneMask'])
+    );
   });
 
   it('does not add directive plugin for Nuxt 2 runtime', async () => {

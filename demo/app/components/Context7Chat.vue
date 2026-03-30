@@ -29,7 +29,7 @@ interface Context7ChatProps {
 }
 
 const props = withDefaults(defineProps<Context7ChatProps>(), {
-  variant: 'footer',
+  variant: 'footer'
 });
 
 const triggerRef = useTemplateRef('triggerRef');
@@ -191,8 +191,7 @@ const checkContext7Ready = () => {
   }
 
   const backoffFactor = Math.pow(2, readyCheckAttempts - 1);
-  const delay =
-    Math.min(initialReadyCheckDelayMs * backoffFactor, maxReadyCheckDelayMs);
+  const delay = Math.min(initialReadyCheckDelayMs * backoffFactor, maxReadyCheckDelayMs);
 
   context7Ready.value = false;
   readyCheckRafId = setTimeout(checkContext7Ready, delay);
