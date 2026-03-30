@@ -32,6 +32,31 @@ const PACKAGE_REPORTS = [
 ];
 
 /**
+ * @param {string} sourceFile
+ * @param {string} needle
+ * @returns {boolean}
+ */
+function shouldIncludeSourceFile(sourceFile, needle) {
+  if (needle === '') return true;
+
+  const normalized = sourceFile.replaceAll('\\', '/');
+  const inMonorepoPath = normalized.includes(needle);
+  const inLocalSrcPath = normalized.startsWith('src/') || normalized.includes('/src/');
+  return inMonorepoPath || inLocalSrcPath;
+}
+
+/**
+ * @param {string} line
+ * @param {{ lf: number; lh: number; bf: number; bh: number }} counters
+ */
+function updateLcovCounters(line, counters) {
+  if (line.startsWith('LF:')) counters.lf += Number(line.slice(3)) || 0;
+  if (line.startsWith('LH:')) counters.lh += Number(line.slice(3)) || 0;
+  if (line.startsWith('BRF:')) counters.bf += Number(line.slice(4)) || 0;
+  if (line.startsWith('BRH:')) counters.bh += Number(line.slice(4)) || 0;
+}
+
+/**
  * Parse LCOV totals and return line/branch coverage summary.
  * If includePath is set, only SF records under package src are counted.
  * Supports monorepo absolute paths and package-local `src/...` paths.
@@ -39,36 +64,23 @@ const PACKAGE_REPORTS = [
  * @param {string} [includePath]
  */
 function parseLcovTotals(content, includePath) {
-  let lf = 0;
-  let lh = 0;
-  let bf = 0;
-  let bh = 0;
+  const counters = { lf: 0, lh: 0, bf: 0, bh: 0 };
   const needle = includePath ? includePath.replaceAll('\\', '/') : '';
-  let includeCurrentRecord = !needle;
+  let includeCurrentRecord = needle === '';
 
   for (const line of content.split('\n')) {
     if (line.startsWith('SF:')) {
-      if (!needle) {
-        includeCurrentRecord = true;
-      } else {
-        const sourceFile = line.slice(3).replaceAll('\\', '/');
-        const inMonorepoPath = sourceFile.includes(needle);
-        const inLocalSrcPath = sourceFile.startsWith('src/') || sourceFile.includes('/src/');
-        includeCurrentRecord = inMonorepoPath || inLocalSrcPath;
-      }
+      includeCurrentRecord = shouldIncludeSourceFile(line.slice(3), needle);
       continue;
     }
-    if (!includeCurrentRecord) continue;
+    if (includeCurrentRecord === false) continue;
 
-    if (line.startsWith('LF:')) lf += Number(line.slice(3)) || 0;
-    if (line.startsWith('LH:')) lh += Number(line.slice(3)) || 0;
-    if (line.startsWith('BRF:')) bf += Number(line.slice(4)) || 0;
-    if (line.startsWith('BRH:')) bh += Number(line.slice(4)) || 0;
+    updateLcovCounters(line, counters);
   }
 
-  const linePct = lf === 0 ? 0 : (lh / lf) * 100;
-  const branchPct = bf === 0 ? 0 : (bh / bf) * 100;
-  return { lf, lh, bf, bh, linePct, branchPct };
+  const linePct = counters.lf === 0 ? 0 : (counters.lh / counters.lf) * 100;
+  const branchPct = counters.bf === 0 ? 0 : (counters.bh / counters.bf) * 100;
+  return { ...counters, linePct, branchPct };
 }
 
 /**
@@ -260,80 +272,167 @@ function hasBaselineData(baselineByPath) {
   return Array.from(baselineByPath.values()).some((value) => typeof value === 'number');
 }
 
-async function main() {
-  const outputPath = process.env.REPORT_FILE || process.argv[2] || DEFAULT_OUTPUT;
-  const workflow = process.env.GITHUB_WORKFLOW || 'Coverage';
-  const repository = process.env.GITHUB_REPOSITORY || '';
-  const runId = process.env.GITHUB_RUN_ID || '';
-  const resolvedRef = process.env.RESOLVED_REF || '';
-  const status = process.env.JOB_STATUS || '';
-  const codecovToken = process.env.CODECOV_API_TOKEN || '';
-  const codecovMainBranch = process.env.CODECOV_MAIN_BRANCH || 'main';
+/**
+ * @returns {{
+ * outputPath: string;
+ * workflow: string;
+ * repository: string;
+ * runId: string;
+ * resolvedRef: string;
+ * status: string;
+ * codecovToken: string;
+ * codecovMainBranch: string;
+ * headCoverageRoot: string;
+ * baseCoverageRoot: string;
+ * baseCoverageRef: string;
+ * }}
+ */
+function getReportConfig() {
+  return {
+    outputPath: process.env.REPORT_FILE || process.argv[2] || DEFAULT_OUTPUT,
+    workflow: process.env.GITHUB_WORKFLOW || 'Coverage',
+    repository: process.env.GITHUB_REPOSITORY || '',
+    runId: process.env.GITHUB_RUN_ID || '',
+    resolvedRef: process.env.RESOLVED_REF || '',
+    status: process.env.JOB_STATUS || '',
+    codecovToken: process.env.CODECOV_API_TOKEN || '',
+    codecovMainBranch: process.env.CODECOV_MAIN_BRANCH || 'main',
+    headCoverageRoot: process.env.HEAD_COVERAGE_ROOT || process.cwd(),
+    baseCoverageRoot: process.env.BASE_COVERAGE_ROOT || '',
+    baseCoverageRef: process.env.BASE_COVERAGE_REF || ''
+  };
+}
 
-  const headCoverageRoot = process.env.HEAD_COVERAGE_ROOT || process.cwd();
-  const baseCoverageRoot = process.env.BASE_COVERAGE_ROOT || '';
-  const baseCoverageRef = process.env.BASE_COVERAGE_REF || '';
-
-  const headRows = collectCoverageRows(headCoverageRoot);
-
+/**
+ * @param {string} baseCoverageRoot
+ * @param {string} baseCoverageRef
+ * @param {string} codecovMainBranch
+ * @returns {{ baselineByPath: Map<string, number | null>; baselineSource: string }}
+ */
+function collectLocalBaseline(baseCoverageRoot, baseCoverageRef, codecovMainBranch) {
   const baselineByPath = new Map();
-  let baselineSource = `Codecov (${codecovMainBranch} branch)`;
-  let codecovCanFetch = false;
-  let codecovSuccessfulResponses = 0;
+  const defaultSource = `Codecov (${codecovMainBranch} branch)`;
 
-  if (baseCoverageRoot) {
+  if (baseCoverageRoot !== '') {
     const baseRows = collectCoverageRows(baseCoverageRoot);
     if (hasCoverageData(baseRows)) {
       for (const report of PACKAGE_REPORTS) {
         const row = baseRows.get(report.label);
         baselineByPath.set(report.packagePath, row?.linePct ?? null);
       }
-      baselineSource = baseCoverageRef ? `Local base run (${baseCoverageRef.slice(0, 12)})` : 'Local base run';
+      const localSource = baseCoverageRef ? `Local base run (${baseCoverageRef.slice(0, 12)})` : 'Local base run';
+      return { baselineByPath, baselineSource: localSource };
     }
   }
 
-  if (!hasBaselineData(baselineByPath)) {
-    const codecov = await collectCodecovCoverage(repository, codecovMainBranch, codecovToken);
+  return { baselineByPath, baselineSource: defaultSource };
+}
+
+/**
+ * @param {{
+ * baselineByPath: Map<string, number | null>;
+ * repository: string;
+ * codecovMainBranch: string;
+ * codecovToken: string;
+ * }} params
+ * @returns {Promise<{ baselineByPath: Map<string, number | null>; codecovCanFetch: boolean; codecovSuccessfulResponses: number }>}
+ */
+async function ensureBaselineCoverage(params) {
+  let codecovCanFetch = false;
+  let codecovSuccessfulResponses = 0;
+
+  if (hasBaselineData(params.baselineByPath) === false) {
+    const codecov = await collectCodecovCoverage(params.repository, params.codecovMainBranch, params.codecovToken);
     codecovCanFetch = codecov.canFetchCodecov;
     codecovSuccessfulResponses = codecov.successfulResponses;
     for (const [packagePath, value] of codecov.coverageByPath) {
-      baselineByPath.set(packagePath, value);
+      params.baselineByPath.set(packagePath, value);
     }
   }
 
-  const lines = [
+  return {
+    baselineByPath: params.baselineByPath,
+    codecovCanFetch,
+    codecovSuccessfulResponses
+  };
+}
+
+/**
+ * @param {{ workflow: string; repository: string; runId: string; resolvedRef: string; baselineSource: string }} params
+ * @returns {string[]}
+ */
+function buildReportHeader(params) {
+  return [
     '## Manual Coverage Report',
     '',
-    `- Workflow: \`${workflow}\``,
-    repository && runId ? `- Run: https://github.com/${repository}/actions/runs/${runId}` : '- Run: N/A',
-    `- Ref: \`${resolvedRef || 'N/A'}\``,
-    `- Baseline source: \`${baselineSource}\``,
+    `- Workflow: \`${params.workflow}\``,
+    params.repository && params.runId
+      ? `- Run: https://github.com/${params.repository}/actions/runs/${params.runId}`
+      : '- Run: N/A',
+    `- Ref: \`${params.resolvedRef || 'N/A'}\``,
+    `- Baseline source: \`${params.baselineSource}\``,
     '',
     '| Package | Lines | Branches | Baseline line | Delta vs baseline |',
     '| --- | ---: | ---: | ---: | ---: |'
   ];
+}
 
-  appendCoverageRows(lines, headRows, baselineByPath);
+/**
+ * @param {string} baselineSource
+ * @param {boolean} codecovCanFetch
+ * @param {number} codecovSuccessfulResponses
+ * @returns {string | null}
+ */
+function getBaselineNote(baselineSource, codecovCanFetch, codecovSuccessfulResponses) {
+  if (baselineSource.startsWith('Codecov') === false) return null;
+  if (codecovCanFetch === false) {
+    return 'ℹ️ Baseline columns are `N/A` because `CODECOV_API_TOKEN` is not configured.';
+  }
+  if (codecovSuccessfulResponses === 0) {
+    return 'ℹ️ Baseline columns are `N/A` because Codecov API data was unavailable for this run.';
+  }
+  return '';
+}
 
-  if (baselineSource.startsWith('Codecov')) {
-    if (!codecovCanFetch) {
-      lines.push('', 'ℹ️ Baseline columns are `N/A` because `CODECOV_API_TOKEN` is not configured.', '');
-    } else if (codecovSuccessfulResponses === 0) {
-      lines.push('', 'ℹ️ Baseline columns are `N/A` because Codecov API data was unavailable for this run.', '');
-    } else {
-      lines.push('');
-    }
-  } else {
+async function main() {
+  const config = getReportConfig();
+  const headRows = collectCoverageRows(config.headCoverageRoot);
+  const localBaseline = collectLocalBaseline(config.baseCoverageRoot, config.baseCoverageRef, config.codecovMainBranch);
+  const baselineCoverage = await ensureBaselineCoverage({
+    baselineByPath: localBaseline.baselineByPath,
+    repository: config.repository,
+    codecovMainBranch: config.codecovMainBranch,
+    codecovToken: config.codecovToken
+  });
+
+  const lines = buildReportHeader({
+    workflow: config.workflow,
+    repository: config.repository,
+    runId: config.runId,
+    resolvedRef: config.resolvedRef,
+    baselineSource: localBaseline.baselineSource
+  });
+
+  appendCoverageRows(lines, headRows, baselineCoverage.baselineByPath);
+
+  const baselineNote = getBaselineNote(
+    localBaseline.baselineSource,
+    baselineCoverage.codecovCanFetch,
+    baselineCoverage.codecovSuccessfulResponses
+  );
+  if (baselineNote === null || baselineNote === '') {
     lines.push('');
+  } else {
+    lines.push('', baselineNote, '');
   }
 
-  if (status === 'success') {
+  if (config.status === 'success') {
     lines.push('✅ Unit coverage workflow completed successfully.');
   } else {
     lines.push('❌ Unit coverage workflow failed. See logs in the run link above.');
   }
 
-  fs.writeFileSync(outputPath, `${lines.join('\n')}\n`, 'utf8');
+  fs.writeFileSync(config.outputPath, `${lines.join('\n')}\n`, 'utf8');
 }
 
 await main();
