@@ -32,7 +32,7 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 ### 🪶 Lightest in Class
 
 Real market comparison, segmented by ecosystem and measured for what developers actually ship.
-Snapshot: **2026-03-27** ([Bundlephobia API](https://bundlephobia.com/api/size?package=%40desource%2Fphone-mask), [Bundlephobia Exports API](https://bundlephobia.com/api/exports-sizes?package=libphonenumber-js), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask)).
+Snapshot: **2026-03-30** ([Bundlephobia API](https://bundlephobia.com/api/size?package=%40desource%2Fphone-mask), [Bundlephobia Exports API](https://bundlephobia.com/api/exports-sizes?package=libphonenumber-js), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask)).
 
 _Use `Total gzip` as the primary comparison column._
 _`Gzip` is Bundlephobia raw package gzip._
@@ -44,7 +44,7 @@ _`Total gzip` = `Gzip` + `Data overhead`._
 | Package                                                                                                                                    | Last published | Phone data source   | Data overhead |     Gzip | Total gzip |
 | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------: | ------------------- | ------------: | -------: | ---------: |
 | [**@desource/phone-mask**](https://www.npmjs.com/package/@desource/phone-mask) · [Repo](https://github.com/DeSource-Labs/phone-mask)       |     2026-03-25 | Included in package |        0.0 KB |   5.1 KB |     5.1 KB |
-| [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) · [Repo](https://gitlab.com/catamphetamine/libphonenumber-js)         |     2026-03-13 | Included in package |        0.0 KB |  43.7 KB |    43.7 KB |
+| [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) · [Repo](https://gitlab.com/catamphetamine/libphonenumber-js)         |     2026-03-28 | Included in package |        0.0 KB |  43.7 KB |    43.7 KB |
 | [awesome-phonenumber](https://www.npmjs.com/package/awesome-phonenumber) · [Repo](https://github.com/grantila/awesome-phonenumber)         |     2026-02-18 | Included in package |        0.0 KB |  75.4 KB |    75.4 KB |
 | [google-libphonenumber](https://www.npmjs.com/package/google-libphonenumber) · [Repo](https://github.com/ruimarinho/google-libphonenumber) |     2026-01-19 | Included in package |        0.0 KB | 115.2 KB |   115.2 KB |
 
