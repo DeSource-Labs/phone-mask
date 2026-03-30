@@ -1,5 +1,47 @@
 # @desource/phone-mask-vue
 
+## 1.3.0
+
+### Minor Changes
+
+- Core Upgrades:
+  - Improved process keydown event handler for browser autocomplete cases
+
+- Vue Upgrades:
+  - Added new `@desource/phone-mask-vue/core` subpath export (direct core helpers re-export)
+  - Root `PMaskHelpers` facade removed from index (helpers now via `/core` to reduce bundle size impact for Vue users)
+  - Added `id` and `name` props on `PhoneInput`, passed to underlying `<input>` element for better form integration and accessibility
+  - Added autofill style normalization (`-webkit-autofill` / `-moz-autofill`) for better visual consistency
+
+- React Upgrades:
+  - Added new `@desource/phone-mask-react/core` subpath export (direct core helpers re-export)
+  - Root `PMaskHelpers` facade removed from index (helpers now via `/core` to reduce bundle size impact for React users)
+  - Added `id` and `name` props on `PhoneInput`, passed to underlying `<input>` element for better form integration and accessibility
+  - Added autofill style normalization (`-webkit-autofill` / `-moz-autofill`) for better visual consistency
+  - `useCountrySelector`, `useClipboard` internals stabilized (deps/callback consistency improvements)
+  - `usePhoneMask` callback dependency tuning for better stability
+
+- Svelte Upgrades:
+  - Added new `@desource/phone-mask-svelte/core` subpath export (direct core helpers re-export)
+  - Root `PMaskHelpers` facade removed from index (helpers now via `/core` to reduce bundle size impact for Svelte users)
+  - Added `id` and `name` props on `PhoneInput`, passed to underlying `<input>` element for better form integration and accessibility
+  - Added autofill style normalization (`-webkit-autofill` / `-moz-autofill`) for better visual consistency
+
+- Nuxt Upgrades:
+  - Module options expanded and clarified:
+    - `types` (default `true`): auto-import types from packages for TypeScript users
+    - `helpers` (default `false`): auto-import core helpers for direct usage in Nuxt apps (optional due to potential bundle size impact)
+    - new: `composable` (default `false`): auto-import Vue composable for custom phone mask logic (optional for users who only need more custom solution than the provided component/directive)
+  - Default auto-imports now focus on component/directive/types; helpers/composable are opt-in
+  - Runtime shared exports updated:
+    - `usePhoneMask` (composable) is now a separate export from `phoneMaskDirective` and `PhoneInput` component for more flexible usage patterns
+    - `PMaskHelpers` sourced via `@desource/phone-mask-vue/core` for better tree-shaking and bundle size control
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @desource/phone-mask@1.3.0
+
 ## 1.2.0
 
 ### Minor Changes
