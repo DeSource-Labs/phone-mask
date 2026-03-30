@@ -167,13 +167,35 @@ const applyContext7Theme = (widget: Context7WidgetApi): boolean => {
   return true;
 };
 
+let readyCheckAttempts = 0;
+const maxReadyCheckAttempts = 300; // ~ from 100ms up to capped backoff, then give up
+const initialReadyCheckDelayMs = 100;
+const maxReadyCheckDelayMs = 5000;
+
 const checkContext7Ready = () => {
   const widget = getContext7Widget();
-  context7Ready.value = Boolean(widget);
 
-  if (!widget || !applyContext7Theme(widget)) {
-    readyCheckRafId = window.requestAnimationFrame(checkContext7Ready);
+  if (widget && applyContext7Theme(widget)) {
+    context7Ready.value = true;
+    readyCheckAttempts = 0;
+    return;
   }
+
+  // Widget not available or theming failed – retry with bounded backoff
+  readyCheckAttempts += 1;
+
+  if (readyCheckAttempts >= maxReadyCheckAttempts) {
+    // Give up to avoid an infinite loop; mark as not ready
+    context7Ready.value = false;
+    return;
+  }
+
+  const backoffFactor = Math.pow(2, readyCheckAttempts - 1);
+  const delay =
+    Math.min(initialReadyCheckDelayMs * backoffFactor, maxReadyCheckDelayMs);
+
+  context7Ready.value = false;
+  readyCheckRafId = window.setTimeout(checkContext7Ready, delay);
 };
 
 const toggleContext7 = () => {
