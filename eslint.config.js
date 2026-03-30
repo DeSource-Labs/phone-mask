@@ -60,6 +60,7 @@ export default [
       '**/.output/**',
       '**/.svelte-kit/**',
       '**/coverage/**',
+      '**/*.fork.js',
       '**/*.min.js',
       '**/*.min.css',
       'pnpm-lock.yaml'

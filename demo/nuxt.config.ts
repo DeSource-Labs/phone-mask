@@ -38,6 +38,20 @@ const config: NuxtConfig = {
       //     'data-domain': meta.domain,
       //   },
       // ],
+      script: [
+        {
+          key: 'context7-widget',
+          src: '/vendor/context7-widget.fork.js',
+          defer: true,
+          tagPosition: 'bodyClose',
+          'data-library': '/desource-labs/phone-mask',
+          'data-api-url': 'https://context7.com',
+          'data-hide-default-button': 'true',
+          'data-position': 'bottom-right',
+          'data-placeholder': 'Ask about phone-mask...',
+          'data-color': '#4F46E5'
+        }
+      ],
       meta: [
         // TODO: Uncomment fields below when ready
         {

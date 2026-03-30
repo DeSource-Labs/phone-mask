@@ -3,6 +3,7 @@ export * as PMaskHelpers from '@desource/phone-mask-vue/core';
 export {
   vPhoneMaskSetCountry,
   vPhoneMask,
+  usePhoneMask,
   type PCountryKey,
   type PMaskBase,
   type PMaskBaseMap,

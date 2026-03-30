@@ -100,6 +100,7 @@ pnpm build
 
 ```bash
 # Start demo with hot reload
+pnpm dev:prepare
 pnpm dev:demo
 ```
 
@@ -144,50 +145,65 @@ pnpm format:check
 
 ## 📁 Project Structure
 
+Source-oriented overview (`dist`, `.nuxt`, `coverage`, `node_modules`, and other generated folders are omitted):
+
 ```
 phone-mask/
 ├── packages/
-│   ├── phone-mask/            # Core TypeScript library
+│   ├── phone-mask/              # Core package
 │   │   ├── src/
-│   │   │   ├── data.json      # Phone mask data written automatically by script
-│   │   │   ├── data.min.js    # Phone mask data written automatically by script
-│   │   │   ├── data-types.ts  # Phone mask types written automatically by script
-│   │   │   ├── utils.ts       # Utility functions
-│   │   │   ├── entries.ts     # Core exports
-│   │   │   └── index.ts       # Public API
+│   │   │   ├── data.json        # Source-of-truth phone metadata
+│   │   │   ├── data.min.js      # Generated compact metadata
+│   │   │   ├── data-types.ts    # Generated metadata typings
+│   │   │   ├── entries.ts       # Static maps/entries exports
+│   │   │   ├── formatter.ts
+│   │   │   ├── handlers.ts
+│   │   │   ├── services/
+│   │   │   ├── utils.ts
+│   │   │   └── index.ts
 │   │   ├── scripts/
-│   │   │   └── gen.js         # Data generator
-│   │   └── package.json
-│   │
-│   ├── phone-mask-vue/        # Vue 3 components
-│   │   ├── src/
-│   │   │   ├── components/    # Vue components
-│   │   │   ├── directives/    # Vue directives
-│   │   │   ├── composables/   # Vue composables
-│   │   │   ├── consts.ts      # Constants
-│   │   │   ├── types.ts       # TypeScript types
-│   │   │   └── index.ts       # Public API
-│   │   └── package.json
-│   │
-│   └── phone-mask-nuxt/       # Nuxt module
-│       ├── src/
-│       │   ├── runtime/                   # Nuxt runtime files
-│       │   │   ├── component.ts           # Auto-registered component
-│       │   │   ├── plugin.phone-mask.ts   # Auto-registered directive plugin
-│       │   │   └── shared.ts              # Auto-registered shared utilities
-│       │   └── module.ts
-│       └── package.json
+│   │   │   └── gen.js           # Metadata generator (Google libphonenumber release artifacts)
+│   │   └── tests/
+│   │       └── unit/
 │
-├── demo/                      # Demo application
+│   ├── phone-mask-react/        # React package
+│   │   ├── src/                 # components/, hooks/, types.ts, index.ts
+│   │   └── tests/               # unit + e2e
+│   │
+│   ├── phone-mask-vue/          # Vue package
+│   │   ├── src/                 # components/, composables/, directives/, types.ts, index.ts
+│   │   └── tests/               # unit + e2e
+│   │
+│   ├── phone-mask-svelte/       # Svelte package
+│   │   ├── src/                 # components/, composables/, directives/, types.ts, index.ts
+│   │   └── tests/               # unit + e2e
+│   │
+│   └── phone-mask-nuxt/         # Nuxt module package
+│       ├── src/                 # module.ts + runtime/
+│       └── tests/               # unit + e2e fixtures
+│
+├── common/
+│   └── tests/                   # Shared test contracts/utilities for framework packages
+│       ├── unit/
+│       └── e2e/
+│
+├── scripts/
+│   ├── update-readme-benchmarks.mjs
+│   ├── build-coverage-pr-report.mjs
+│   └── comment-coverage-pr.mjs
+
+├── demo/                        # Nuxt playground/demo app
 │   ├── app/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   └── composables/
 │   └── nuxt.config.ts
 │
+├── .changeset/                  # Changesets entries for release notes/versioning
 └── .github/
+    ├── PULL_REQUEST_TEMPLATE.md
     └── workflows/
-        └── weekly-gen.yml     # Auto-sync workflow
+        ├── coverage.yml         # Coverage on main + optional manual PR report
+        ├── release.yml          # Changesets publish workflow
+        ├── weekly-gen.yml       # Weekly metadata sync PR
+        └── weekly-benchmarks.yml # Weekly README benchmark refresh PR
 ```
 
 ## 🔄 Development Workflow
@@ -214,6 +230,7 @@ git checkout -b fix/bug-description
 pnpm build
 
 # Run demo to verify visually
+pnpm dev:prepare
 pnpm dev:demo
 
 # Run linting
@@ -357,7 +374,9 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 ### Scopes
 
 - **core:** Core library (`@desource/phone-mask`)
+- **react:** React package (`@desource/phone-mask-react`)
 - **vue:** Vue components (`@desource/phone-mask-vue`)
+- **svelte:** Svelte package (`@desource/phone-mask-svelte`)
 - **nuxt:** Nuxt module (`@desource/phone-mask-nuxt`)
 - **demo:** Demo application
 - **docs:** Documentation
@@ -386,10 +405,11 @@ BREAKING CHANGE: Renamed 'value' prop to 'modelValue' for v-model support"
 ### Before Submitting
 
 - [ ] Run `pnpm build` — all packages build successfully
-- [ ] Run `pnpm test:e2e` — all tests pass
+- [ ] Run `pnpm test:unit` — unit tests pass
+- [ ] Run `pnpm test:e2e` for changes that affect browser/runtime behavior
 - [ ] Update documentation for changed APIs
 - [ ] Add tests for new features
-- [ ] Update CHANGELOG.md (if applicable)
+- [ ] Add a changeset for publishable package changes (`pnpm changeset`)
 
 ### PR Description Template
 
@@ -404,6 +424,8 @@ Brief description of changes
 - [ ] New feature (non-breaking)
 - [ ] Breaking change
 - [ ] Documentation update
+- [ ] Tests
+- [ ] Other (describe below):
 
 ## Testing
 
@@ -422,6 +444,10 @@ Add screenshots for UI changes
 - [ ] No new warnings generated
 - [ ] Tests added/updated
 - [ ] All tests passing
+
+## Manual Coverage (Optional)
+
+Use the coverage workflow button in the PR template to run a manual coverage report for that PR (`pr_number` required, maintainer permissions required).
 ```
 
 ### Review Process
@@ -431,6 +457,17 @@ Add screenshots for UI changes
 3. **Feedback** — Address review comments
 4. **Approval** — Maintainer approves PR
 5. **Merge** — PR is merged to main
+
+### Optional Manual PR Coverage Report (Maintainers)
+
+If you need a package-by-package coverage comment directly in a PR:
+
+1. Open **Actions → Coverage → Run workflow**
+2. Select your branch
+3. Set `pr_number` to the PR number
+4. Run workflow
+
+The PR template includes a direct link to this workflow. This action requires `write/maintain/admin` repository permissions.
 
 ## 🚀 Release Process
 
@@ -463,12 +500,9 @@ Release workflow also supports manual dispatch from GitHub Actions if needed.
 
 ## 🎯 Areas We Need Help
 
-- 🧱 **Core package tests** — Expand direct tests for `@desource/phone-mask`
 - 🧪 **More tests** — Increase coverage
-- 🌍 **Localization** — Add more locale support
 - 📖 **Documentation** — Improve guides and examples
 - ♿ **Accessibility** — Enhance ARIA support
-- 🎨 **Themes** — Create more theme presets
 
 ## 💬 Community
 

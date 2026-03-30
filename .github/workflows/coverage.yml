@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to run coverage against (checks out refs/pull/<number>/head)'
+        description: 'PR number to run coverage against (checks out refs/pull/<number>/merge)'
         required: false
         type: string
       ref:
@@ -32,8 +32,8 @@ jobs:
           MANUAL_REF='${{ github.event.inputs.ref }}'
 
           if [ -n "$PR_NUMBER" ]; then
-            echo "ref=refs/pull/${PR_NUMBER}/head" >> "$GITHUB_OUTPUT"
-            echo "Resolved ref: refs/pull/${PR_NUMBER}/head"
+            echo "ref=refs/pull/${PR_NUMBER}/merge" >> "$GITHUB_OUTPUT"
+            echo "Resolved ref: refs/pull/${PR_NUMBER}/merge"
           elif [ -n "$MANUAL_REF" ]; then
             echo "ref=${MANUAL_REF}" >> "$GITHUB_OUTPUT"
             echo "Resolved ref: ${MANUAL_REF}"
@@ -46,6 +46,15 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ steps.resolve-ref.outputs.ref }}
+          fetch-depth: 0
+
+      - name: Resolve base SHA for manual PR run
+        id: resolve-base
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        run: |
+          BASE_SHA="$(git rev-parse HEAD^1)"
+          git cat-file -e "${BASE_SHA}^{commit}"
+          echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
@@ -67,6 +76,30 @@ jobs:
       - name: Run unit tests with coverage
         run: pnpm test:unit:coverage
 
+      - name: Prepare baseline worktree
+        id: baseline-worktree
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        run: |
+          BASE_WORKTREE="$RUNNER_TEMP/coverage-baseline"
+          rm -rf "$BASE_WORKTREE"
+          git worktree add --detach "$BASE_WORKTREE" "${{ steps.resolve-base.outputs.base_sha }}"
+          echo "path=$BASE_WORKTREE" >> "$GITHUB_OUTPUT"
+
+      - name: Install baseline dependencies
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        working-directory: ${{ steps.baseline-worktree.outputs.path }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build baseline packages
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        working-directory: ${{ steps.baseline-worktree.outputs.path }}
+        run: pnpm build
+
+      - name: Run baseline unit tests with coverage
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
+        working-directory: ${{ steps.baseline-worktree.outputs.path }}
+        run: pnpm test:unit:coverage
+
       - name: Build PR coverage report
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' }}
         env:
@@ -74,6 +107,9 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           CODECOV_API_TOKEN: ${{ secrets.CODECOV_API_TOKEN || secrets.CODECOV_TOKEN }}
           CODECOV_MAIN_BRANCH: main
+          HEAD_COVERAGE_ROOT: ${{ github.workspace }}
+          BASE_COVERAGE_ROOT: ${{ steps.baseline-worktree.outputs.path }}
+          BASE_COVERAGE_REF: ${{ steps.resolve-base.outputs.base_sha }}
         run: node ./scripts/build-coverage-pr-report.mjs
 
       - name: Comment coverage report to PR
@@ -96,3 +132,8 @@ jobs:
             ./packages/phone-mask-react/coverage/lcov.info
             ./packages/phone-mask-svelte/coverage/lcov.info
             ./packages/phone-mask-nuxt/coverage/lcov.info
+
+      - name: Cleanup baseline worktree
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' && steps.baseline-worktree.outputs.path != '' }}
+        run: |
+          git worktree remove --force "${{ steps.baseline-worktree.outputs.path }}" || true

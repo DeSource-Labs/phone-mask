@@ -6,52 +6,81 @@ const DEFAULT_OUTPUT = 'coverage-pr-report.md';
 const PACKAGE_REPORTS = [
   {
     label: 'phone-mask',
-    file: './packages/phone-mask/coverage/lcov.info',
+    file: 'packages/phone-mask/coverage/lcov.info',
     packagePath: 'packages/phone-mask/src'
   },
   {
     label: 'phone-mask-vue',
-    file: './packages/phone-mask-vue/coverage/lcov.info',
+    file: 'packages/phone-mask-vue/coverage/lcov.info',
     packagePath: 'packages/phone-mask-vue/src'
   },
   {
     label: 'phone-mask-react',
-    file: './packages/phone-mask-react/coverage/lcov.info',
+    file: 'packages/phone-mask-react/coverage/lcov.info',
     packagePath: 'packages/phone-mask-react/src'
   },
   {
     label: 'phone-mask-svelte',
-    file: './packages/phone-mask-svelte/coverage/lcov.info',
+    file: 'packages/phone-mask-svelte/coverage/lcov.info',
     packagePath: 'packages/phone-mask-svelte/src'
   },
   {
     label: 'phone-mask-nuxt',
-    file: './packages/phone-mask-nuxt/coverage/lcov.info',
+    file: 'packages/phone-mask-nuxt/coverage/lcov.info',
     packagePath: 'packages/phone-mask-nuxt/src'
   }
 ];
 
 /**
- * Parse LCOV totals and return line/branch coverage summary.
- * @param {string} content
+ * @param {string} sourceFile
+ * @param {string} needle
+ * @returns {boolean}
  */
-function parseLcovTotals(content) {
-  let lf = 0;
-  let lh = 0;
-  let bf = 0;
-  let bh = 0;
+function shouldIncludeSourceFile(sourceFile, needle) {
+  if (needle === '') return true;
+
+  const normalized = sourceFile.replaceAll('\\', '/');
+  const inMonorepoPath = normalized.includes(needle);
+  const inLocalSrcPath = normalized.startsWith('src/') || normalized.includes('/src/');
+  return inMonorepoPath || inLocalSrcPath;
+}
+
+/**
+ * @param {string} line
+ * @param {{ lf: number; lh: number; bf: number; bh: number }} counters
+ */
+function updateLcovCounters(line, counters) {
+  if (line.startsWith('LF:')) counters.lf += Number(line.slice(3)) || 0;
+  if (line.startsWith('LH:')) counters.lh += Number(line.slice(3)) || 0;
+  if (line.startsWith('BRF:')) counters.bf += Number(line.slice(4)) || 0;
+  if (line.startsWith('BRH:')) counters.bh += Number(line.slice(4)) || 0;
+}
+
+/**
+ * Parse LCOV totals and return line/branch coverage summary.
+ * If includePath is set, only SF records under package src are counted.
+ * Supports monorepo absolute paths and package-local `src/...` paths.
+ * @param {string} content
+ * @param {string} [includePath]
+ */
+function parseLcovTotals(content, includePath) {
+  const counters = { lf: 0, lh: 0, bf: 0, bh: 0 };
+  const needle = includePath ? includePath.replaceAll('\\', '/') : '';
+  let includeCurrentRecord = needle === '';
 
   for (const line of content.split('\n')) {
-    if (line.startsWith('LF:')) lf += Number(line.slice(3)) || 0;
-    if (line.startsWith('LH:')) lh += Number(line.slice(3)) || 0;
-    if (line.startsWith('BRF:')) bf += Number(line.slice(4)) || 0;
-    if (line.startsWith('BRH:')) bh += Number(line.slice(4)) || 0;
+    if (line.startsWith('SF:')) {
+      includeCurrentRecord = shouldIncludeSourceFile(line.slice(3), needle);
+      continue;
+    }
+    if (includeCurrentRecord === false) continue;
+
+    updateLcovCounters(line, counters);
   }
 
-  const linePct = lf === 0 ? 0 : (lh / lf) * 100;
-  const branchPct = bf === 0 ? 0 : (bh / bf) * 100;
-
-  return { lf, lh, bf, bh, linePct, branchPct };
+  const linePct = counters.lf === 0 ? 0 : (counters.lh / counters.lf) * 100;
+  const branchPct = counters.bf === 0 ? 0 : (counters.bh / counters.bf) * 100;
+  return { ...counters, linePct, branchPct };
 }
 
 /**
@@ -71,20 +100,40 @@ function formatDelta(value) {
 }
 
 /**
- * @param {string} filePath
+ * @param {string} absoluteLcovPath
+ * @param {string} packagePath
  */
-function getCoverageRow(filePath) {
-  if (!fs.existsSync(filePath)) {
+function getCoverageRow(absoluteLcovPath, packagePath) {
+  if (!fs.existsSync(absoluteLcovPath)) {
     return { lineCell: 'N/A', branchCell: 'N/A', linePct: null };
   }
 
-  const content = fs.readFileSync(filePath, 'utf8');
-  const totals = parseLcovTotals(content);
+  const content = fs.readFileSync(absoluteLcovPath, 'utf8');
+  const totals = parseLcovTotals(content, packagePath);
   return {
     lineCell: `${totals.lh}/${totals.lf} (${formatPercent(totals.linePct)}%)`,
     branchCell: `${totals.bh}/${totals.bf} (${formatPercent(totals.branchPct)}%)`,
     linePct: totals.linePct
   };
+}
+
+/**
+ * @param {string} rootDir
+ */
+function collectCoverageRows(rootDir) {
+  const rows = new Map();
+  for (const report of PACKAGE_REPORTS) {
+    const filePath = path.resolve(rootDir, report.file);
+    rows.set(report.label, getCoverageRow(filePath, report.packagePath));
+  }
+  return rows;
+}
+
+/**
+ * @param {Map<string, { lineCell: string; branchCell: string; linePct: number | null }>} rows
+ */
+function hasCoverageData(rows) {
+  return Array.from(rows.values()).some((row) => typeof row.linePct === 'number');
 }
 
 /**
@@ -117,7 +166,6 @@ function extractCoverageFromPayload(payload) {
     const totalsCoverageParsed = parseCoverageValue(totalsCoverage);
     if (totalsCoverageParsed !== null) return totalsCoverageParsed;
 
-    // Some Codecov totals payloads expose compact key `c` (coverage).
     const totalsCompactCoverage = /** @type {Record<string, unknown>} */ (totals).c;
     const totalsCompactParsed = parseCoverageValue(totalsCompactCoverage);
     if (totalsCompactParsed !== null) return totalsCompactParsed;
@@ -172,107 +220,219 @@ async function fetchCodecovMainCoverage(repository, branch, packagePath, token) 
 }
 
 /**
- * @param {boolean} canFetchCodecov
- * @param {number} codecovSuccessfulResponses
- * @returns {string | null}
- */
-function getCodecovAvailabilityNote(canFetchCodecov, codecovSuccessfulResponses) {
-  if (!canFetchCodecov) {
-    return 'ℹ️ Main baseline columns are `N/A` because `CODECOV_API_TOKEN` is not configured.';
-  }
-  if (codecovSuccessfulResponses === 0) {
-    return 'ℹ️ Main baseline columns are `N/A` because Codecov API data was unavailable for this run.';
-  }
-  return null;
-}
-
-/**
  * @param {string} repository
  * @param {string} branch
  * @param {string} token
- * @returns {Promise<{ canFetchCodecov: boolean; codecovCoverageByPath: Map<string, number | null>; codecovSuccessfulResponses: number }>}
+ * @returns {Promise<{ canFetchCodecov: boolean; coverageByPath: Map<string, number | null>; successfulResponses: number }>}
  */
 async function collectCodecovCoverage(repository, branch, token) {
   const canFetchCodecov = Boolean(token && repository);
-  const codecovCoverageByPath = new Map();
-  let codecovSuccessfulResponses = 0;
+  const coverageByPath = new Map();
+  let successfulResponses = 0;
 
   if (!canFetchCodecov) {
-    return { canFetchCodecov, codecovCoverageByPath, codecovSuccessfulResponses };
+    return { canFetchCodecov, coverageByPath, successfulResponses };
   }
 
   await Promise.all(
     PACKAGE_REPORTS.map(async (report) => {
       const coverage = await fetchCodecovMainCoverage(repository, branch, report.packagePath, token);
-      if (typeof coverage === 'number') codecovSuccessfulResponses += 1;
-      codecovCoverageByPath.set(report.packagePath, coverage);
+      if (typeof coverage === 'number') successfulResponses += 1;
+      coverageByPath.set(report.packagePath, coverage);
     })
   );
 
-  return { canFetchCodecov, codecovCoverageByPath, codecovSuccessfulResponses };
+  return { canFetchCodecov, coverageByPath, successfulResponses };
 }
 
 /**
  * @param {string[]} lines
- * @param {Map<string, number | null>} codecovCoverageByPath
- * @param {boolean} canFetchCodecov
+ * @param {Map<string, { lineCell: string; branchCell: string; linePct: number | null }>} headRows
+ * @param {Map<string, number | null>} baselineByPath
  */
-function appendCoverageRows(lines, codecovCoverageByPath, canFetchCodecov) {
+function appendCoverageRows(lines, headRows, baselineByPath) {
   for (const report of PACKAGE_REPORTS) {
-    const row = getCoverageRow(path.resolve(report.file));
-    const mainLineCoverage = canFetchCodecov ? (codecovCoverageByPath.get(report.packagePath) ?? null) : null;
-    const mainLineCell = typeof mainLineCoverage === 'number' ? `${formatPercent(mainLineCoverage)}%` : 'N/A';
+    const row = headRows.get(report.label) ?? { lineCell: 'N/A', branchCell: 'N/A', linePct: null };
+    const baselineLinePct = baselineByPath.get(report.packagePath) ?? null;
+    const baselineCell = typeof baselineLinePct === 'number' ? `${formatPercent(baselineLinePct)}%` : 'N/A';
     const deltaCell =
-      typeof mainLineCoverage === 'number' && typeof row.linePct === 'number'
-        ? formatDelta(row.linePct - mainLineCoverage)
+      typeof baselineLinePct === 'number' && typeof row.linePct === 'number'
+        ? formatDelta(row.linePct - baselineLinePct)
         : 'N/A';
 
-    lines.push(`| ${report.label} | ${row.lineCell} | ${row.branchCell} | ${mainLineCell} | ${deltaCell} |`);
+    lines.push(`| ${report.label} | ${row.lineCell} | ${row.branchCell} | ${baselineCell} | ${deltaCell} |`);
   }
 }
 
-async function main() {
-  const outputPath = process.env.REPORT_FILE || process.argv[2] || DEFAULT_OUTPUT;
-  const workflow = process.env.GITHUB_WORKFLOW || 'Coverage';
-  const repository = process.env.GITHUB_REPOSITORY || '';
-  const runId = process.env.GITHUB_RUN_ID || '';
-  const resolvedRef = process.env.RESOLVED_REF || '';
-  const status = process.env.JOB_STATUS || '';
-  const codecovToken = process.env.CODECOV_API_TOKEN || '';
-  const codecovMainBranch = process.env.CODECOV_MAIN_BRANCH || 'main';
-  const { canFetchCodecov, codecovCoverageByPath, codecovSuccessfulResponses } = await collectCodecovCoverage(
-    repository,
-    codecovMainBranch,
-    codecovToken
-  );
+/**
+ * @param {Map<string, number | null>} baselineByPath
+ * @returns {boolean}
+ */
+function hasBaselineData(baselineByPath) {
+  return Array.from(baselineByPath.values()).some((value) => typeof value === 'number');
+}
 
-  const lines = [
+/**
+ * @returns {{
+ * outputPath: string;
+ * workflow: string;
+ * repository: string;
+ * runId: string;
+ * resolvedRef: string;
+ * status: string;
+ * codecovToken: string;
+ * codecovMainBranch: string;
+ * headCoverageRoot: string;
+ * baseCoverageRoot: string;
+ * baseCoverageRef: string;
+ * }}
+ */
+function getReportConfig() {
+  return {
+    outputPath: process.env.REPORT_FILE || process.argv[2] || DEFAULT_OUTPUT,
+    workflow: process.env.GITHUB_WORKFLOW || 'Coverage',
+    repository: process.env.GITHUB_REPOSITORY || '',
+    runId: process.env.GITHUB_RUN_ID || '',
+    resolvedRef: process.env.RESOLVED_REF || '',
+    status: process.env.JOB_STATUS || '',
+    codecovToken: process.env.CODECOV_API_TOKEN || '',
+    codecovMainBranch: process.env.CODECOV_MAIN_BRANCH || 'main',
+    headCoverageRoot: process.env.HEAD_COVERAGE_ROOT || process.cwd(),
+    baseCoverageRoot: process.env.BASE_COVERAGE_ROOT || '',
+    baseCoverageRef: process.env.BASE_COVERAGE_REF || ''
+  };
+}
+
+/**
+ * @param {string} baseCoverageRoot
+ * @param {string} baseCoverageRef
+ * @param {string} codecovMainBranch
+ * @returns {{ baselineByPath: Map<string, number | null>; baselineSource: string }}
+ */
+function collectLocalBaseline(baseCoverageRoot, baseCoverageRef, codecovMainBranch) {
+  const baselineByPath = new Map();
+  const defaultSource = `Codecov (${codecovMainBranch} branch)`;
+
+  if (baseCoverageRoot !== '') {
+    const baseRows = collectCoverageRows(baseCoverageRoot);
+    if (hasCoverageData(baseRows)) {
+      for (const report of PACKAGE_REPORTS) {
+        const row = baseRows.get(report.label);
+        baselineByPath.set(report.packagePath, row?.linePct ?? null);
+      }
+      const localSource = baseCoverageRef ? `Local base run (${baseCoverageRef.slice(0, 12)})` : 'Local base run';
+      return { baselineByPath, baselineSource: localSource };
+    }
+  }
+
+  return { baselineByPath, baselineSource: defaultSource };
+}
+
+/**
+ * @param {{
+ * baselineByPath: Map<string, number | null>;
+ * repository: string;
+ * codecovMainBranch: string;
+ * codecovToken: string;
+ * }} params
+ * @returns {Promise<{ baselineByPath: Map<string, number | null>; codecovCanFetch: boolean; codecovSuccessfulResponses: number }>}
+ */
+async function ensureBaselineCoverage(params) {
+  let codecovCanFetch = false;
+  let codecovSuccessfulResponses = 0;
+
+  if (hasBaselineData(params.baselineByPath) === false) {
+    const codecov = await collectCodecovCoverage(params.repository, params.codecovMainBranch, params.codecovToken);
+    codecovCanFetch = codecov.canFetchCodecov;
+    codecovSuccessfulResponses = codecov.successfulResponses;
+    for (const [packagePath, value] of codecov.coverageByPath) {
+      params.baselineByPath.set(packagePath, value);
+    }
+  }
+
+  return {
+    baselineByPath: params.baselineByPath,
+    codecovCanFetch,
+    codecovSuccessfulResponses
+  };
+}
+
+/**
+ * @param {{ workflow: string; repository: string; runId: string; resolvedRef: string; baselineSource: string }} params
+ * @returns {string[]}
+ */
+function buildReportHeader(params) {
+  return [
     '## Manual Coverage Report',
     '',
-    `- Workflow: \`${workflow}\``,
-    repository && runId ? `- Run: https://github.com/${repository}/actions/runs/${runId}` : '- Run: N/A',
-    `- Ref: \`${resolvedRef || 'N/A'}\``,
-    `- Main baseline source: \`Codecov (${codecovMainBranch} branch)\``,
+    `- Workflow: \`${params.workflow}\``,
+    params.repository && params.runId
+      ? `- Run: https://github.com/${params.repository}/actions/runs/${params.runId}`
+      : '- Run: N/A',
+    `- Ref: \`${params.resolvedRef || 'N/A'}\``,
+    `- Baseline source: \`${params.baselineSource}\``,
     '',
-    '| Package | Lines | Branches | Main line (Codecov) | Delta vs main |',
+    '| Package | Lines | Branches | Baseline line | Delta vs baseline |',
     '| --- | ---: | ---: | ---: | ---: |'
   ];
+}
 
-  appendCoverageRows(lines, codecovCoverageByPath, canFetchCodecov);
-
-  const codecovNote = getCodecovAvailabilityNote(canFetchCodecov, codecovSuccessfulResponses);
-  if (codecovNote) {
-    lines.push('', codecovNote, '');
-  } else {
-    lines.push('');
+/**
+ * @param {string} baselineSource
+ * @param {boolean} codecovCanFetch
+ * @param {number} codecovSuccessfulResponses
+ * @returns {string | null}
+ */
+function getBaselineNote(baselineSource, codecovCanFetch, codecovSuccessfulResponses) {
+  if (baselineSource.startsWith('Codecov') === false) return null;
+  if (codecovCanFetch === false) {
+    return 'ℹ️ Baseline columns are `N/A` because `CODECOV_API_TOKEN` is not configured.';
   }
-  if (status === 'success') {
+  if (codecovSuccessfulResponses === 0) {
+    return 'ℹ️ Baseline columns are `N/A` because Codecov API data was unavailable for this run.';
+  }
+  return '';
+}
+
+async function main() {
+  const config = getReportConfig();
+  const headRows = collectCoverageRows(config.headCoverageRoot);
+  const localBaseline = collectLocalBaseline(config.baseCoverageRoot, config.baseCoverageRef, config.codecovMainBranch);
+  const baselineCoverage = await ensureBaselineCoverage({
+    baselineByPath: localBaseline.baselineByPath,
+    repository: config.repository,
+    codecovMainBranch: config.codecovMainBranch,
+    codecovToken: config.codecovToken
+  });
+
+  const lines = buildReportHeader({
+    workflow: config.workflow,
+    repository: config.repository,
+    runId: config.runId,
+    resolvedRef: config.resolvedRef,
+    baselineSource: localBaseline.baselineSource
+  });
+
+  appendCoverageRows(lines, headRows, baselineCoverage.baselineByPath);
+
+  const baselineNote = getBaselineNote(
+    localBaseline.baselineSource,
+    baselineCoverage.codecovCanFetch,
+    baselineCoverage.codecovSuccessfulResponses
+  );
+  if (baselineNote === null || baselineNote === '') {
+    lines.push('');
+  } else {
+    lines.push('', baselineNote, '');
+  }
+
+  if (config.status === 'success') {
     lines.push('✅ Unit coverage workflow completed successfully.');
   } else {
     lines.push('❌ Unit coverage workflow failed. See logs in the run link above.');
   }
 
-  fs.writeFileSync(outputPath, `${lines.join('\n')}\n`, 'utf8');
+  fs.writeFileSync(config.outputPath, `${lines.join('\n')}\n`, 'utf8');
 }
 
 await main();

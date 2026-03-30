@@ -273,6 +273,9 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 7. **Push**: `git push origin feature/my-feature`
 8. **Open** a Pull Request
 
+For package changes intended for release, add a changeset in your PR:
+`pnpm changeset`
+
 ### Development
 
 ```bash
@@ -291,6 +294,14 @@ pnpm dev:demo
 
 # Generate fresh data from Google's library
 pnpm gen
+
+# Refresh README benchmark section (optional, if needed)
+pnpm readme:benchmarks
+
+# Lint & format code (if you made changes)
+pnpm lint
+pnpm lint:fix
+pnpm format
 ```
 
 ---

@@ -10,7 +10,7 @@ Drop-in Nuxt module with auto-imports, SSR support, and zero configuration.
 ## ✨ Features
 
 - 🎯 **Zero Config** — Works out of the box
-- 🔄 **Auto-imports** — Components and composables
+- 🔄 **Auto-imports** — Component, directive, and types by default
 - 🌐 **SSR Compatible** — Server-side rendering ready
 - 🎨 **Styleable** — Bring your own styles or use defaults
 - 🔧 **TypeScript** — Fully typed
@@ -36,7 +36,8 @@ export default defineNuxtConfig({
 });
 ```
 
-That's it! The component and directive are now auto-imported.
+That's it! The component, directive, and related mask types are now auto-imported.
+You can additionally enable helper/composable auto-imports via module options.
 
 ## 📖 Usage
 
@@ -129,8 +130,26 @@ export default defineNuxtConfig({
     // Register v-phone-mask directive
     directive: true, // Default: true
 
-    // Register shared helpers and types
-    helpers: true // Default: true
+    // Register mask-related TypeScript types
+    types: true, // Default: true
+
+    // Register shared helper namespace + directive helper
+    helpers: false, // Default: false
+
+    // Register usePhoneMask composable
+    composable: false // Default: false
+  }
+});
+```
+
+### Enable Helpers and Composable Auto-imports
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@desource/phone-mask-nuxt'],
+  phoneMask: {
+    helpers: true,
+    composable: true
   }
 });
 ```
@@ -243,7 +262,7 @@ export const useUserStore = defineStore('user', {
 
   actions: {
     setPhoneDigits(phone: string) {
-      this.phone = phone;
+      this.phoneDigits = phone;
     },
 
     setCountry(id: string) {
@@ -324,7 +343,7 @@ const phone = ref('');
 
 ## 🎯 Auto-imports
 
-The following are automatically imported (until disabled in nuxt.config.ts):
+By default (without extra options), Nuxt auto-imports:
 
 ### Components
 
@@ -334,22 +353,23 @@ The following are automatically imported (until disabled in nuxt.config.ts):
 
 - `vPhoneMask` — Phone mask directive
 
-### Helpers
-
-- `vPhoneMaskSetCountry` — Programmatically set country for directive
-- `PMaskHelpers` — Utility functions for phone masks like:
-  - `getFlagEmoji`
-  - `countPlaceholders`
-  - `formatDigitsWithMap`
-  - `pickMaskVariant`
-  - `removeCountryCodePrefix`
-  - And more...
-
-Read more about helpers in the [Utility Functions of @desource/phone-mask README](../phone-mask/README.md#utility-functions).
-
 ### Types
 
-All TypeScript types from `@desource/phone-mask-vue`
+- `PCountryKey`
+- `PMaskBase`, `PMaskBaseMap`
+- `PMask`, `PMaskMap`
+- `PMaskWithFlag`, `PMaskWithFlagMap`
+- `PMaskFull`, `PMaskFullMap`
+- `PMaskPhoneNumber`
+
+Enable `phoneMask.helpers: true` to auto-import:
+
+- `vPhoneMaskSetCountry` — Programmatically set country for directive
+- `PMaskHelpers` — Utility functions from `@desource/phone-mask-vue/core`
+
+Enable `phoneMask.composable: true` to auto-import:
+
+- `usePhoneMask`
 
 ## 🔄 Migration from Vue Plugin
 
@@ -378,11 +398,12 @@ No changes needed in your components!
 
 ## 📦 What's Included
 
-- `PhoneInput` component (auto-imported)
-- `vPhoneMask` directive (auto-imported)
-- Default styles (auto-imported, can be disabled)
-- TypeScript definitions (auto-imported)
-- Utility functions (auto-imported)
+- `PhoneInput` component (auto-imported by default)
+- `vPhoneMask` directive (auto-imported by default)
+- Mask-related TypeScript types (auto-imported by default)
+- Default styles (auto-imported by default, can be disabled)
+- `vPhoneMaskSetCountry` and `PMaskHelpers` (optional via `phoneMask.helpers`)
+- `usePhoneMask` (optional via `phoneMask.composable`)
 
 ## 🔗 Related
 

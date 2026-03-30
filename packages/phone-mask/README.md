@@ -12,7 +12,7 @@ Framework-agnostic phone masking library that stays up-to-date with Google's lib
 
 - 🌍 **240+ countries** with accurate masks and dialing codes
 - 🔄 **Auto-synced** from Google's libphonenumber
-- 🪶 **Tiny** — 13 KB minified, 4 KB gzipped
+- 🪶 **Tiny** — 11.2 KB minified, 5.1 KB gzipped
 - 🌳 **Tree-shakeable** — import only what you need
 - 🔧 **TypeScript** — fully typed
 - 🎯 **Zero dependencies**
@@ -304,14 +304,17 @@ pnpm gen
 ```
 
 This fetches the latest data and regenerates `data.json`.
+This updates generated metadata files used by the package (`src/data.json`, `src/data.min.js`, and `src/data-types.ts`).
 
 ## 📊 Bundle Size
 
-| Export              | Size (minified) | Gzipped |
-| ------------------- | --------------- | ------- |
-| Full library        | 13 KB           | 4 KB    |
-| MasksFullMapEn only | 8 KB            | 3 KB    |
-| Utilities only      | 2 KB            | 1 KB    |
+Measured in a real consumer bundle:
+
+| Export              | Size (minified) | Gzipped |  Brotli |
+| ------------------- | --------------: | ------: | ------: |
+| Full library        |        11.20 KB | 5.10 KB | 4.39 KB |
+| MasksFullMapEn only |         5.77 KB | 2.68 KB | 2.17 KB |
+| Utilities only      |         0.44 KB | 0.32 KB | 0.27 KB |
 
 All exports are tree-shakeable — only import what you use!
 

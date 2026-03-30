@@ -6,7 +6,9 @@ export interface ModuleOptions {
   css?: boolean; // Whether to include default CSS, default true
   component?: boolean; // Whether to register the PhoneInput component, default true
   directive?: boolean; // Whether to register the v-phone-mask directive, default true
-  helpers?: boolean; // Whether to register shared helpers and types, default true
+  types?: boolean; // Whether to include TypeScript types, default true
+  helpers?: boolean; // Whether to register shared helpers, default false
+  composable?: boolean; // Whether to include the usePhoneMask composable, default false
 }
 
 const module: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
@@ -20,7 +22,9 @@ const module: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
     css: true,
     component: true,
     directive: true,
-    helpers: true
+    types: true,
+    helpers: false,
+    composable: false
   },
   async setup(options, nuxt) {
     // Configure transpilation
@@ -32,7 +36,6 @@ const module: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
     nuxt.hook('prepare:types', ({ references }) => {
       references.push({ types: '@desource/phone-mask-nuxt' });
     });
-
     // Add runtime plugin before the router plugin
     // https://github.com/nuxt/framework/issues/9130
     nuxt.hook('modules:done', () => {
@@ -40,13 +43,20 @@ const module: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
         addPlugin(resolve(runtimeDir, 'plugin.phone-mask'));
       }
     });
-    // Add imports
+    // Add enabled imports (helpers, composable, types)
+    const shared = resolve(runtimeDir, 'shared');
     if (options.helpers) {
-      const shared = resolve(runtimeDir, 'shared');
       addImports([
         { name: 'vPhoneMaskSetCountry', from: shared },
         { name: 'PMaskHelpers', from: shared },
-        { name: 'vPhoneMask', from: shared },
+        { name: 'vPhoneMask', from: shared }
+      ]);
+    }
+    if (options.composable) {
+      addImports({ name: 'usePhoneMask', from: shared });
+    }
+    if (options.types) {
+      addImports([
         { name: 'PCountryKey', from: shared, type: true },
         { name: 'PMaskBase', from: shared, type: true },
         { name: 'PMaskBaseMap', from: shared, type: true },

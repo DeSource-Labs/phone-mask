@@ -4,9 +4,12 @@
       <header class="page-header">
         <h1>Interactive Examples</h1>
         <p>Explore real-world use cases and copy-paste code snippets</p>
-        <LiquidGlass actionable width="200">
-          <NuxtLink class="link" to="/">← Back to Home</NuxtLink>
-        </LiquidGlass>
+        <div class="page-header__actions">
+          <LiquidGlass actionable width="200">
+            <NuxtLink class="link" to="/">← Back to Home</NuxtLink>
+          </LiquidGlass>
+          <Context7Chat variant="examples" />
+        </div>
       </header>
 
       <!-- Playground -->
@@ -869,6 +872,13 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.page-header__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
 .link {
   padding: 1rem 2rem;
 }
@@ -1278,6 +1288,10 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
   }
 }
 @media (max-width: 480px) {
+  .page-header__actions {
+    flex-direction: column;
+    gap: 0.55rem;
+  }
   .code pre,
   .code-box pre {
     text-wrap: wrap;
