@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "⚡ Ultra-lightweight international phone number formatter & validator with auto-sync to Google libphonenumber. Framework-agnostic core library.",
   "keywords": [
     "phone",
