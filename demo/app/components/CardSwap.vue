@@ -296,17 +296,17 @@ onUnmounted(() => {
 }
 @media (max-width: 768px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(30%) scale(0.9);
+    transform: translateX(10%) translateY(15%) scale(0.9);
   }
 }
 @media (max-width: 480px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(25%) scale(0.75);
+    transform: translateX(10%) translateY(6%) scale(0.75);
   }
 }
 @media (max-width: 320px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(12%) scale(0.5);
+    transform: translateX(10%) translateY(5%) scale(0.65);
   }
 }
 .card-swap-card {
