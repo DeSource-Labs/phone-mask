@@ -42,7 +42,6 @@ const config: NuxtConfig = {
         {
           key: 'context7-widget',
           src: '/vendor/context7-widget.fork.js',
-          async: true,
           defer: true,
           tagPosition: 'bodyClose',
           'data-library': '/desource-labs/phone-mask',

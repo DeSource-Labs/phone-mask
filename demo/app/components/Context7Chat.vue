@@ -36,7 +36,7 @@ const triggerRef = useTemplateRef('triggerRef');
 
 const context7Ready = ref(false);
 
-let readyCheckRafId: number | null = null;
+let readyCheckRafId: NodeJS.Timeout | null = null;
 const context7ThemeStyleId = 'phone-mask-context7-theme';
 
 const context7ThemeCssBase = `
@@ -195,7 +195,7 @@ const checkContext7Ready = () => {
     Math.min(initialReadyCheckDelayMs * backoffFactor, maxReadyCheckDelayMs);
 
   context7Ready.value = false;
-  readyCheckRafId = window.setTimeout(checkContext7Ready, delay);
+  readyCheckRafId = setTimeout(checkContext7Ready, delay);
 };
 
 const toggleContext7 = () => {
@@ -210,7 +210,8 @@ const handleDocumentPointerDown = (event: PointerEvent) => {
   if (!target) return;
 
   if (triggerRef.value?.contains(target)) return;
-  if (widget.host?.contains(target)) return;
+  if (target instanceof Element && target.closest('.context7-chat__button')) return;
+  if (widget.host && event.composedPath().includes(widget.host)) return;
 
   widget.close();
 };
@@ -222,7 +223,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (readyCheckRafId !== null) {
-    window.cancelAnimationFrame(readyCheckRafId);
+    clearTimeout(readyCheckRafId);
   }
   document.removeEventListener('pointerdown', handleDocumentPointerDown, true);
 });
