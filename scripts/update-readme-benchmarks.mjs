@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
+import { getPackageExportSizes, getPackageStats } from 'package-build-stats';
 import prettier from 'prettier';
 
 const README_PATH = new URL('../README.md', import.meta.url);
@@ -36,7 +37,7 @@ const EMPTY_DATA = 'N/A';
  * @property {string | null} repositoryUrl
  * @property {number | null} minified
  * @property {number | null} gzip
- * @property {boolean} bundlephobiaAvailable
+ * @property {boolean} sizeAvailable
  * @property {string[]} phoneEngineDeps
  * @property {string[]} phoneEnginePeers
  * @property {number | null} dataOverheadGzip
@@ -81,17 +82,19 @@ const GROUPS = [
   {
     title: 'Nuxt',
     rows: [{ pkg: '@desource/phone-mask-nuxt', highlight: true }],
-    note: 'Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input modules with stable npm + Bundlephobia signals comparable to React/Vue/Svelte peers; most Nuxt apps use Vue phone input packages directly.'
+    note: 'Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input modules with stable npm + size signals comparable to React/Vue/Svelte peers; most Nuxt apps use Vue phone input packages directly.'
   }
 ];
 
 const SOURCES = {
   npmRegistry: 'https://registry.npmjs.org',
-  bundlephobia: 'https://bundlephobia.com/api/size?package=',
-  bundlephobiaExports: 'https://bundlephobia.com/api/exports-sizes?package='
+  bundlephobiaPackage: 'https://bundlephobia.com/package/',
+  packageBuildStats: 'https://www.npmjs.com/package/package-build-stats'
 };
 const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 10_000;
+const PACKAGE_STATS_CONCURRENCY = 3;
+const PACKAGE_STATS_INSTALL_TIMEOUT_MS = 120_000;
 const PHONE_ENGINE_PACKAGES = new Set([
   '@desource/phone-mask',
   'libphonenumber-js',
@@ -105,7 +108,8 @@ const PHONE_DATA_SOURCE_LABEL_OVERRIDES = {
 };
 
 /**
- * Explicit per-package overhead overrides, using Bundlephobia export-level sizes.
+ * Explicit per-package overhead overrides, using Bundlephobia-core export-level sizing
+ * via package-build-stats.
  * This is used when a package loads specific symbols from dependencies/peers indirectly
  * and raw package gzip under-reports effective runtime payload.
  * @type {Record<string, Array<{ package: string, exports: string[] }>>}
@@ -329,21 +333,91 @@ async function fetchJson(url) {
   throw lastError instanceof Error ? lastError : new Error(`Failed to fetch JSON from ${url}`);
 }
 
+/**
+ * Runs async mapping with a fixed concurrency limit.
+ * @template T, R
+ * @param {T[]} items
+ * @param {number} limit
+ * @param {(item: T, index: number) => Promise<R>} mapper
+ * @returns {Promise<R[]>}
+ */
+async function mapLimit(items, limit, mapper) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  const worker = async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+    }
+  };
+
+  const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
+  await Promise.all(workers);
+  return results;
+}
+
+/** @type {Map<string, Promise<{ minified: number | null, gzip: number | null, sizeAvailable: boolean }>>} */
+const packageSizeCache = new Map();
+
 /** @type {Map<string, Promise<Map<string, number>>>} */
-const bundlephobiaExportsCache = new Map();
+const packageExportGzipCache = new Map();
 
 /**
- * Fetches Bundlephobia export-level gzip sizes and caches results.
+ * Fetches package size metrics using package-build-stats (Bundlephobia core) and caches results.
  * @param {string} pkg
- * @returns {Promise<Map<string, number>>}
+ * @returns {Promise<{ minified: number | null, gzip: number | null, sizeAvailable: boolean }>}
  */
-function fetchBundlephobiaExportGzipMap(pkg) {
-  const cached = bundlephobiaExportsCache.get(pkg);
+function fetchPackageSizeMetrics(pkg) {
+  const cached = packageSizeCache.get(pkg);
   if (cached) return cached;
 
   const task = (async () => {
-    const encoded = encodeURIComponent(pkg);
-    const payload = await fetchJson(`${SOURCES.bundlephobiaExports}${encoded}`);
+    try {
+      const payload = await getPackageStats(pkg, {
+        client: ['pnpm'],
+        minify: true,
+        installTimeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS
+      });
+
+      const minified = Number.isFinite(payload?.size) ? payload.size : null;
+      const gzip = Number.isFinite(payload?.gzip) ? payload.gzip : null;
+      return {
+        minified,
+        gzip,
+        sizeAvailable: Number.isFinite(minified) && Number.isFinite(gzip)
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`Bundlephobia-core metrics unavailable for ${pkg}. Using N/A. (${message})`);
+      return {
+        minified: null,
+        gzip: null,
+        sizeAvailable: false
+      };
+    }
+  })();
+
+  packageSizeCache.set(pkg, task);
+  return task;
+}
+
+/**
+ * Fetches export-level gzip sizes from package-build-stats (Bundlephobia core) and caches results.
+ * @param {string} pkg
+ * @returns {Promise<Map<string, number>>}
+ */
+function fetchPackageExportGzipMap(pkg) {
+  const cached = packageExportGzipCache.get(pkg);
+  if (cached) return cached;
+
+  const task = (async () => {
+    const payload = await getPackageExportSizes(pkg, {
+      client: ['pnpm'],
+      minify: true,
+      installTimeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS
+    });
     const assets = Array.isArray(payload?.assets) ? payload.assets : [];
     const map = new Map();
 
@@ -356,11 +430,11 @@ function fetchBundlephobiaExportGzipMap(pkg) {
   })();
 
   const cachedTask = task.catch((error) => {
-    bundlephobiaExportsCache.delete(pkg);
+    packageExportGzipCache.delete(pkg);
     throw error;
   });
 
-  bundlephobiaExportsCache.set(pkg, cachedTask);
+  packageExportGzipCache.set(pkg, cachedTask);
   return cachedTask;
 }
 
@@ -371,7 +445,7 @@ function fetchBundlephobiaExportGzipMap(pkg) {
  */
 async function resolveOverrideGzip(entry) {
   try {
-    const exportMap = await fetchBundlephobiaExportGzipMap(entry.package);
+    const exportMap = await fetchPackageExportGzipMap(entry.package);
     let total = 0;
 
     for (const exportName of entry.exports) {
@@ -384,7 +458,7 @@ async function resolveOverrideGzip(entry) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn(
-      `Bundlephobia export-size metrics unavailable for ${entry.package} (${entry.exports.join(', ')}). (${message})`
+      `Bundlephobia-core export-size metrics unavailable for ${entry.package} (${entry.exports.join(', ')}). (${message})`
     );
     return null;
   }
@@ -417,35 +491,19 @@ async function fetchNpmPublishInfo(pkg) {
  * @returns {Promise<PackageMetrics>}
  */
 async function fetchPackageMetrics(pkg) {
-  const encoded = encodeURIComponent(pkg);
   const publishInfo = await fetchNpmPublishInfo(pkg);
+  const sizeMetrics = await fetchPackageSizeMetrics(pkg);
   const dependencyNames = Object.keys(publishInfo.dependencies);
   const peerDependencyNames = Object.keys(publishInfo.peerDependencies);
   const phoneEngineDeps = dependencyNames.filter((dep) => PHONE_ENGINE_PACKAGES.has(dep));
   const phoneEnginePeers = peerDependencyNames.filter((dep) => PHONE_ENGINE_PACKAGES.has(dep));
 
-  /** @type {number | null} */
-  let minified = null;
-  /** @type {number | null} */
-  let gzip = null;
-  let bundlephobiaAvailable = true;
-
-  try {
-    const bundle = await fetchJson(`${SOURCES.bundlephobia}${encoded}`);
-    minified = bundle.size ?? null;
-    gzip = bundle.gzip ?? null;
-  } catch (error) {
-    bundlephobiaAvailable = false;
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(`Bundlephobia metrics unavailable for ${pkg}. Using N/A. (${message})`);
-  }
-
   return {
     lastPublished: publishInfo.lastPublished ?? null,
     repositoryUrl: publishInfo.repositoryUrl ?? null,
-    minified,
-    gzip,
-    bundlephobiaAvailable,
+    minified: sizeMetrics.minified,
+    gzip: sizeMetrics.gzip,
+    sizeAvailable: sizeMetrics.sizeAvailable,
     phoneEngineDeps,
     phoneEnginePeers,
     dataOverheadGzip: null,
@@ -454,16 +512,16 @@ async function fetchPackageMetrics(pkg) {
 }
 
 /**
- * Resolves phone-data gzip overhead excluded from package raw Bundlephobia gzip.
+ * Resolves phone-data gzip overhead excluded from package raw gzip.
  * For known lazy peer-import patterns, uses exact export-level gzip sizes.
- * Otherwise falls back to full peer package gzip.
+ * Otherwise falls back to full peer package gzip from Bundlephobia-core sizing.
  * @param {string} pkg
  * @param {PackageMetrics} metric
  * @param {Map<string, PackageMetrics>} metrics
  * @returns {Promise<number | null>}
  */
 async function resolveDataOverheadGzip(pkg, metric, metrics) {
-  if (!metric.bundlephobiaAvailable || !Number.isFinite(metric.gzip)) return null;
+  if (!(metric.sizeAvailable && Number.isFinite(metric.gzip))) return null;
   const overrides = EXPORT_OVERHEAD_OVERRIDES[pkg] ?? [];
   if (metric.phoneEnginePeers.length === 0 && overrides.length === 0) return 0;
 
@@ -479,7 +537,7 @@ async function resolveDataOverheadGzip(pkg, metric, metrics) {
   for (const peerPkg of metric.phoneEnginePeers) {
     if (coveredPeerPkgs.has(peerPkg)) continue;
     const peerMetric = metrics.get(peerPkg);
-    if (!peerMetric || !peerMetric.bundlephobiaAvailable || !Number.isFinite(peerMetric.gzip)) {
+    if (!(peerMetric && peerMetric.sizeAvailable && Number.isFinite(peerMetric.gzip))) {
       return null;
     }
     total += peerMetric.gzip;
@@ -513,7 +571,11 @@ async function fetchMissingPhonePeerMetrics(metrics) {
 
   if (missingPeerPkgs.size === 0) return;
 
-  const fetched = await Promise.all(Array.from(missingPeerPkgs, async (pkg) => [pkg, await fetchPackageMetrics(pkg)]));
+  const fetched = await mapLimit(
+    Array.from(missingPeerPkgs),
+    PACKAGE_STATS_CONCURRENCY,
+    async (pkg) => [pkg, await fetchPackageMetrics(pkg)]
+  );
 
   for (const [pkg, metric] of fetched) {
     metrics.set(pkg, metric);
@@ -526,7 +588,11 @@ async function fetchMissingPhonePeerMetrics(metrics) {
  */
 async function collectMetrics() {
   const rows = GROUPS.flatMap((group) => group.rows);
-  const entries = await Promise.all(rows.map(async ({ pkg }) => [pkg, await fetchPackageMetrics(pkg)]));
+  const entries = await mapLimit(
+    rows,
+    PACKAGE_STATS_CONCURRENCY,
+    async ({ pkg }) => [pkg, await fetchPackageMetrics(pkg)]
+  );
   const metrics = new Map(entries);
 
   await fetchMissingPhonePeerMetrics(metrics);
@@ -553,7 +619,7 @@ function renderMetricRow(row, metric) {
     throw new Error(`Missing metrics for ${row.pkg}`);
   }
 
-  const gzipCell = metric.bundlephobiaAvailable ? formatKb(metric.gzip) : EMPTY_DATA;
+  const gzipCell = metric.sizeAvailable ? formatKb(metric.gzip) : EMPTY_DATA;
   const dataOverheadCell = Number.isFinite(metric.dataOverheadGzip) ? formatKb(metric.dataOverheadGzip) : EMPTY_DATA;
   const totalGzipCell = Number.isFinite(metric.comparableGzip) ? formatKb(metric.comparableGzip) : EMPTY_DATA;
   const phoneDataSourceCell = renderPhoneDataSource(row.pkg, metric);
@@ -675,11 +741,11 @@ function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0,
     '### 🪶 Lightest in Class',
     '',
     'Real market comparison, segmented by ecosystem and measured for what developers actually ship.',
-    `Snapshot: **${snapshotDate}** ([Bundlephobia API](${SOURCES.bundlephobia}${encodeURIComponent('@desource/phone-mask')}), [Bundlephobia Exports API](${SOURCES.bundlephobiaExports}${encodeURIComponent('libphonenumber-js')}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
+    `Snapshot: **${snapshotDate}** ([Bundlephobia](${SOURCES.bundlephobiaPackage}${encodeURIComponent('@desource/phone-mask')}), [package-build-stats](${SOURCES.packageBuildStats}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
     '',
     '*Use `Total gzip` as the primary comparison column.*',
-    '*`Gzip` is Bundlephobia raw package gzip.*',
-    '*`Data overhead` is additional phone-data gzip excluded from raw package gzip (e.g. required peer engines). When available, export-level Bundlephobia sizes are used for better precision.*',
+    '*`Gzip` is measured with Bundlephobia-core logic via `package-build-stats` (minified bundle output).*',
+    '*`Data overhead` is additional phone-data gzip excluded from raw package gzip (e.g. required peer engines). When available, export-level Bundlephobia-core sizing (via `package-build-stats`) is used for better precision.*',
     '*`Total gzip` = `Gzip` + `Data overhead`.*',
     ''
   ];
