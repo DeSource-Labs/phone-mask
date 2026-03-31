@@ -1,6 +1,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
+// Note: this script requires `package-build-stats` to be installed
+// (e.g. as a dev dependency: `pnpm add -w -D package-build-stats`).
 import { getPackageExportSizes, getPackageStats } from 'package-build-stats';
 import prettier from 'prettier';
 
