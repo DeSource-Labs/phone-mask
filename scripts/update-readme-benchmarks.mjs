@@ -1,6 +1,11 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { gzipSync } from 'node:zlib';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
+import { promisify } from 'node:util';
 // Note: this script requires `package-build-stats` to be installed
 // (e.g. as a dev dependency: `pnpm add -w -D package-build-stats`).
 import { getPackageExportSizes, getPackageStats } from 'package-build-stats';
@@ -97,12 +102,19 @@ const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 10_000;
 const PACKAGE_STATS_CONCURRENCY = 3;
 const PACKAGE_STATS_INSTALL_TIMEOUT_MS = 120_000;
+const SVELTE_FALLBACK_BUILD_TIMEOUT_MS = 180_000;
+const SVELTE_FALLBACK_VITE_VERSION = '7.3.1';
+const SVELTE_FALLBACK_PLUGIN_VERSION = '6.2.4';
+const SVELTE_FALLBACK_SVELTE_VERSION = '5.55.0';
+const SVELTE_FALLBACK_TARGETS = new Set(['svelte-tel-input']);
 const PHONE_ENGINE_PACKAGES = new Set([
   '@desource/phone-mask',
   'libphonenumber-js',
   'google-libphonenumber',
   'awesome-phonenumber'
 ]);
+
+const execFileAsync = promisify(execFile);
 
 /** @type {Record<string, string>} */
 const PHONE_DATA_SOURCE_LABEL_OVERRIDES = {
@@ -360,6 +372,105 @@ async function mapLimit(items, limit, mapper) {
   return results;
 }
 
+/**
+ * Returns true when package should use the Svelte-aware measurement fallback.
+ * @param {string} pkg
+ * @returns {boolean}
+ */
+function shouldUseSvelteFallback(pkg) {
+  return SVELTE_FALLBACK_TARGETS.has(pkg);
+}
+
+/**
+ * Measures package bundle size by building a tiny Vite app with Svelte plugin.
+ * This fallback is used for Svelte-only export maps that package-build-stats cannot parse.
+ * @param {string} pkg
+ * @returns {Promise<{ minified: number, gzip: number, sizeAvailable: true } | null>}
+ */
+async function measureSveltePackageWithVite(pkg) {
+  const tmpRoot = await mkdtemp(path.join(tmpdir(), 'phone-mask-svelte-bench-'));
+
+  try {
+    const packageJson = {
+      name: 'phone-mask-svelte-benchmark',
+      private: true,
+      version: '0.0.0',
+      type: 'module'
+    };
+
+    await writeFile(path.join(tmpRoot, 'package.json'), JSON.stringify(packageJson, null, 2));
+    await writeFile(
+      path.join(tmpRoot, 'index.html'),
+      '<!doctype html><html><body><script type="module" src="/entry.js"></script></body></html>'
+    );
+    await writeFile(path.join(tmpRoot, 'entry.js'), `import { TelInput } from '${pkg}';\nconsole.log(TelInput);\n`);
+    await writeFile(
+      path.join(tmpRoot, 'vite.config.mjs'),
+      [
+        "import { defineConfig } from 'vite';",
+        "import { svelte } from '@sveltejs/vite-plugin-svelte';",
+        '',
+        'export default defineConfig({',
+        '  plugins: [svelte()],',
+        '  build: {',
+        "    outDir: 'dist',",
+        '    emptyOutDir: true,',
+        '    minify: true,',
+        '    sourcemap: false',
+        '  }',
+        '});',
+        ''
+      ].join('\n')
+    );
+
+    const tools = [
+      `vite@${SVELTE_FALLBACK_VITE_VERSION}`,
+      `@sveltejs/vite-plugin-svelte@${SVELTE_FALLBACK_PLUGIN_VERSION}`,
+      `svelte@${SVELTE_FALLBACK_SVELTE_VERSION}`,
+      pkg
+    ];
+
+    await execFileAsync('pnpm', ['add', '-D', ...tools], {
+      cwd: tmpRoot,
+      timeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS
+    });
+
+    await execFileAsync('pnpm', ['exec', 'vite', 'build'], {
+      cwd: tmpRoot,
+      timeout: SVELTE_FALLBACK_BUILD_TIMEOUT_MS
+    });
+
+    const assetsDir = path.join(tmpRoot, 'dist', 'assets');
+    const files = await readdir(assetsDir);
+    let minified = 0;
+    let gzip = 0;
+
+    for (const fileName of files) {
+      if (!/\.(js|css)$/.test(fileName)) continue;
+      const absolutePath = path.join(assetsDir, fileName);
+      const fileContents = await readFile(absolutePath);
+      minified += fileContents.length;
+      gzip += gzipSync(fileContents, {}).length;
+    }
+
+    if (minified === 0 || gzip === 0) {
+      return null;
+    }
+
+    return {
+      minified,
+      gzip,
+      sizeAvailable: true
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Svelte fallback metrics unavailable for ${pkg}. Using N/A. (${message})`);
+    return null;
+  } finally {
+    await rm(tmpRoot, { recursive: true, force: true });
+  }
+}
+
 /** @type {Map<string, Promise<{ minified: number | null, gzip: number | null, sizeAvailable: boolean }>>} */
 const packageSizeCache = new Map();
 
@@ -391,6 +502,11 @@ function fetchPackageSizeMetrics(pkg) {
         sizeAvailable: Number.isFinite(minified) && Number.isFinite(gzip)
       };
     } catch (error) {
+      if (shouldUseSvelteFallback(pkg)) {
+        const fallback = await measureSveltePackageWithVite(pkg);
+        if (fallback) return fallback;
+      }
+
       const message = error instanceof Error ? error.message : String(error);
       console.warn(`Bundlephobia-core metrics unavailable for ${pkg}. Using N/A. (${message})`);
       return {
