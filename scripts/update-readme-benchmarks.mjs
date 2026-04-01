@@ -1,6 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
+import { inspect } from 'node:util';
 // Note: this script requires `esbuild`, `@rspack/core` & `css-loader` to be installed
 // (e.g. as a dev dependency: `pnpm add -w -D esbuild @rspack/core css-loader`).
 import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mjs';
@@ -318,7 +319,7 @@ function toLogString(value) {
   try {
     return JSON.stringify(value);
   } catch {
-    return String(value);
+    return inspect(value, { depth: 1, breakLength: 120 });
   }
 }
 

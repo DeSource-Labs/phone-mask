@@ -16,6 +16,7 @@ const SVELTE_FALLBACK_PLUGIN_VERSION = '^7.0.0';
 const SVELTE_FALLBACK_SVELTE_VERSION = '^5.0.0';
 const BUILTIN_EXTERNALS = new Set([...builtinModules, ...builtinModules.map((mod) => `node:${mod}`)]);
 const CSS_LOADER_PATH = createRequire(import.meta.url).resolve('css-loader');
+const ESCAPE_REGEX = new RegExp(String.raw`[.*+?^\${}()|[\]\\]`, 'g');
 
 /**
  * @typedef {{ installTimeout?: number }} StatsOptions
@@ -145,13 +146,31 @@ async function measureWithEsbuild(input) {
   const { installRoot, entrySource, peerDeps } = input;
   const entryFile = path.join(installRoot, 'entry.mjs');
   await writeFile(entryFile, entrySource);
+  const externalSet = createExternalSet(peerDeps);
+  const result = await runEsbuildWithRetries({
+    installRoot,
+    entryFile,
+    externalSet
+  });
+  return getEsbuildOutputMetrics(result);
+}
 
-  const externalSet = new Set([
-    ...Array.from(peerDeps),
-    ...Array.from(peerDeps).map((dep) => `${dep}/*`),
-    ...Array.from(BUILTIN_EXTERNALS)
-  ]);
+/**
+ * Creates base esbuild external set from peer deps and Node builtins.
+ * @param {Set<string>} peerDeps
+ * @returns {Set<string>}
+ */
+function createExternalSet(peerDeps) {
+  return new Set([...Array.from(peerDeps), ...Array.from(peerDeps).map((dep) => `${dep}/*`), ...BUILTIN_EXTERNALS]);
+}
 
+/**
+ * Runs esbuild and progressively externalizes unresolved imports.
+ * @param {{ installRoot: string, entryFile: string, externalSet: Set<string> }} input
+ * @returns {Promise<import('esbuild').BuildResult>}
+ */
+async function runEsbuildWithRetries(input) {
+  const { installRoot, entryFile, externalSet } = input;
   /** @type {unknown} */
   let result = null;
   /** @type {unknown} */
@@ -159,42 +178,12 @@ async function measureWithEsbuild(input) {
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     try {
-      result = await build({
-        absWorkingDir: installRoot,
-        entryPoints: [entryFile],
-        outdir: 'dist',
-        entryNames: '[name].bundle',
-        bundle: true,
-        minify: true,
-        format: 'esm',
-        platform: 'browser',
-        write: false,
-        treeShaking: true,
-        logLevel: 'silent',
-        target: ['es2020'],
-        external: Array.from(externalSet)
-      });
+      result = await buildEsbuildOnce(installRoot, entryFile, externalSet);
       break;
     } catch (error) {
       lastError = error;
       const unresolved = extractUnresolvedBareImports(error);
-      if (unresolved.size === 0) {
-        throw error;
-      }
-
-      let changed = false;
-      for (const id of unresolved) {
-        const packageName = getPackageNameFromImportId(id);
-        const values = packageName ? [id, packageName, `${packageName}/*`] : [id];
-        for (const value of values) {
-          if (!externalSet.has(value)) {
-            externalSet.add(value);
-            changed = true;
-          }
-        }
-      }
-
-      if (!changed) {
+      if (unresolved.size === 0 || !addUnresolvedToExternalSet(unresolved, externalSet)) {
         throw error;
       }
     }
@@ -204,17 +193,89 @@ async function measureWithEsbuild(input) {
     throw lastError instanceof Error ? lastError : new Error('esbuild fallback failed');
   }
 
-  if (!result.outputFiles || result.outputFiles.length === 0) return null;
+  return result;
+}
 
-  const cssOutputs = result.outputFiles.filter((file) => path.extname(file.path || '') === '.css');
-  const jsOutputs = result.outputFiles.filter((file) => path.extname(file.path || '') === '.js');
-  const mainOutput = cssOutputs[0] ?? jsOutputs[0] ?? null;
+/**
+ * Executes one esbuild bundle attempt.
+ * @param {string} installRoot
+ * @param {string} entryFile
+ * @param {Set<string>} externalSet
+ * @returns {Promise<import('esbuild').BuildResult>}
+ */
+function buildEsbuildOnce(installRoot, entryFile, externalSet) {
+  return build({
+    absWorkingDir: installRoot,
+    entryPoints: [entryFile],
+    outdir: 'dist',
+    entryNames: '[name].bundle',
+    bundle: true,
+    minify: true,
+    format: 'esm',
+    platform: 'browser',
+    write: false,
+    treeShaking: true,
+    logLevel: 'silent',
+    target: ['es2020'],
+    external: Array.from(externalSet)
+  });
+}
+
+/**
+ * Adds unresolved imports (and their package patterns) to external set.
+ * @param {Set<string>} unresolved
+ * @param {Set<string>} externalSet
+ * @returns {boolean}
+ */
+function addUnresolvedToExternalSet(unresolved, externalSet) {
+  let changed = false;
+  for (const id of unresolved) {
+    for (const candidate of getExternalCandidates(id)) {
+      if (externalSet.has(candidate)) continue;
+      externalSet.add(candidate);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+/**
+ * Returns external candidates for a given unresolved import id.
+ * @param {string} id
+ * @returns {string[]}
+ */
+function getExternalCandidates(id) {
+  const packageName = getPackageNameFromImportId(id);
+  if (!packageName) return [id];
+  return [id, packageName, `${packageName}/*`];
+}
+
+/**
+ * Converts esbuild output into size metrics.
+ * @param {import('esbuild').BuildResult} result
+ * @returns {{ size: number, gzip: number } | null}
+ */
+function getEsbuildOutputMetrics(result) {
+  if (!result.outputFiles || result.outputFiles.length === 0) return null;
+  const mainOutput = findPreferredOutputFile(result.outputFiles);
   if (!mainOutput) return null;
 
   const size = mainOutput.contents.length;
   const gzip = gzipSync(mainOutput.contents).length;
   if (size === 0 || gzip === 0) return null;
   return { size, gzip };
+}
+
+/**
+ * Chooses CSS output first, then JS output.
+ * @param {Array<{ path?: string, contents: Uint8Array }>} outputFiles
+ * @returns {{ path?: string, contents: Uint8Array } | undefined}
+ */
+function findPreferredOutputFile(outputFiles) {
+  return (
+    outputFiles.find((file) => path.extname(file.path || '') === '.css') ??
+    outputFiles.find((file) => path.extname(file.path || '') === '.js')
+  );
 }
 
 /**
@@ -253,7 +314,7 @@ function isBareImportId(id) {
  * @returns {string}
  */
 function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return value.replace(ESCAPE_REGEX, '\\$&');
 }
 
 /**
@@ -288,28 +349,38 @@ function extractUnresolvedBareImports(error) {
 function extractUnresolvedFromRspackErrors(errors) {
   const unresolved = new Set();
   for (const error of errors) {
-    const message =
-      typeof error === 'string'
-        ? error
-        : error && typeof error === 'object' && 'message' in error
-          ? String(error.message)
-          : '';
+    const message = getRspackErrorMessage(error);
     if (!message) continue;
 
-    const canNotResolveMatch = /Can't resolve '([^']+)'/.exec(message);
-    if (canNotResolveMatch) {
-      const importId = canNotResolveMatch[1];
-      if (isBareImportId(importId)) unresolved.add(importId);
-      continue;
-    }
-
-    const couldNotResolveMatch = /Could not resolve "([^"]+)"/.exec(message);
-    if (couldNotResolveMatch) {
-      const importId = couldNotResolveMatch[1];
-      if (isBareImportId(importId)) unresolved.add(importId);
-    }
+    const importId = extractRspackMissingImport(message);
+    if (importId && isBareImportId(importId)) unresolved.add(importId);
   }
   return unresolved;
+}
+
+/**
+ * Returns normalized message from rspack error object.
+ * @param {unknown} error
+ * @returns {string}
+ */
+function getRspackErrorMessage(error) {
+  if (typeof error === 'string') return error;
+  if (!error || typeof error !== 'object') return '';
+  if (!('message' in error)) return '';
+  return String(error.message);
+}
+
+/**
+ * Extracts unresolved import id from rspack message string.
+ * @param {string} message
+ * @returns {string | null}
+ */
+function extractRspackMissingImport(message) {
+  const cantResolve = /Can't resolve '([^']+)'/.exec(message);
+  if (cantResolve) return cantResolve[1];
+  const couldNotResolve = /Could not resolve "([^"]+)"/.exec(message);
+  if (couldNotResolve) return couldNotResolve[1];
+  return null;
 }
 
 /**
@@ -343,82 +414,125 @@ async function measureWithRspack(input) {
   await writeFile(entryFile, entrySource);
 
   const externalPackages = new Set(Array.from(peerDeps));
-  const externalBuiltIns = Array.from(BUILTIN_EXTERNALS);
+  const externalBuiltIns = BUILTIN_EXTERNALS;
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
-    const externalRegex =
-      externalPackages.size > 0
-        ? new RegExp(
-            `(${Array.from(externalPackages)
-              .map((dep) => `^${escapeRegex(dep)}$|^${escapeRegex(dep)}\\/`)
-              .join('|')})`
-          )
-        : null;
+    const config = createRspackConfig({
+      entryFile,
+      distDir,
+      externalRegex: createExternalPackagesRegex(externalPackages),
+      externalBuiltIns
+    });
+    const stats = await runRspackBuild(config);
+    const compilationErrors = getRspackCompilationErrors(stats);
+    if (compilationErrors.length > 0) {
+      const unresolved = extractUnresolvedFromRspackErrors(compilationErrors);
+      if (!addUnresolvedPackagesToExternalSet(unresolved, externalPackages)) {
+        throw new Error(
+          `Rspack build failed with ${compilationErrors.length} errors: ${String(compilationErrors[0]?.message || compilationErrors[0])}`
+        );
+      }
+      continue;
+    }
 
-    const config = {
-      mode: 'production',
-      devtool: false,
-      entry: { main: entryFile },
-      output: {
-        path: distDir,
-        filename: '[name].bundle.js',
-        clean: true
-      },
-      optimization: {
-        runtimeChunk: 'multiple',
-        realContentHash: false,
-        minimize: true,
-        usedExports: true,
-        sideEffects: true,
-        splitChunks: {
-          cacheGroups: {
-            styles: {
-              name: 'main',
-              test: /\.css$/,
-              chunks: 'all'
-            }
-          }
-        }
-      },
-      resolve: {
-        modules: ['node_modules'],
-        extensions: ['.web.mjs', '.mjs', '.web.js', '.js', '.json', '.css', '.sass', '.scss'],
-        mainFields: ['browser', 'module', 'main', 'style']
-      },
-      module: {
-        parser: {
-          javascript: {
-            url: false
-          }
-        },
-        rules: [
-          { type: 'javascript/auto', test: /\.mjs$/, use: [] },
-          {
+    return await pickMainAssetSize(distDir);
+  }
+
+  throw new Error('Rspack fallback failed after retries');
+}
+
+/**
+ * Creates regex to match external package ids and subpaths.
+ * @param {Set<string>} externalPackages
+ * @returns {RegExp | null}
+ */
+function createExternalPackagesRegex(externalPackages) {
+  if (externalPackages.size === 0) return null;
+  const pattern = Array.from(externalPackages)
+    .map((dep) => String.raw`^${escapeRegex(dep)}$|^${escapeRegex(dep)}\/`)
+    .join('|');
+  return new RegExp(`(${pattern})`);
+}
+
+/**
+ * Builds rspack config object for benchmark compilation.
+ * @param {{ entryFile: string, distDir: string, externalRegex: RegExp | null, externalBuiltIns: Set<string> }} input
+ * @returns {import('@rspack/core').Configuration}
+ */
+function createRspackConfig(input) {
+  const { entryFile, distDir, externalRegex, externalBuiltIns } = input;
+  return {
+    mode: 'production',
+    devtool: false,
+    entry: { main: entryFile },
+    output: {
+      path: distDir,
+      filename: '[name].bundle.js',
+      clean: true
+    },
+    optimization: {
+      runtimeChunk: 'multiple',
+      realContentHash: false,
+      minimize: true,
+      usedExports: true,
+      sideEffects: true,
+      splitChunks: {
+        cacheGroups: {
+          styles: {
+            name: 'main',
             test: /\.css$/,
-            type: 'javascript/auto',
-            use: [rspack.CssExtractRspackPlugin.loader, CSS_LOADER_PATH]
+            chunks: 'all'
           }
-        ]
-      },
-      plugins: [
-        new rspack.CssExtractRspackPlugin({
-          filename: '[name].bundle.css'
-        })
-      ],
-      externals: ({ request }, callback) => {
-        const req = request || '';
-        const isPeer = externalRegex ? externalRegex.test(req) : false;
-        const isBuiltIn = externalBuiltIns.includes(req);
-        if (isPeer || isBuiltIn) {
-          callback(undefined, `commonjs ${req}`);
-        } else {
-          callback(undefined);
         }
       }
-    };
+    },
+    resolve: {
+      modules: ['node_modules'],
+      extensions: ['.web.mjs', '.mjs', '.web.js', '.js', '.json', '.css', '.sass', '.scss'],
+      mainFields: ['browser', 'module', 'main', 'style']
+    },
+    module: {
+      parser: {
+        javascript: {
+          url: false
+        }
+      },
+      rules: [
+        { type: 'javascript/auto', test: /\.mjs$/, use: [] },
+        {
+          test: /\.css$/,
+          type: 'javascript/auto',
+          use: [rspack.CssExtractRspackPlugin.loader, CSS_LOADER_PATH]
+        }
+      ]
+    },
+    plugins: [
+      new rspack.CssExtractRspackPlugin({
+        filename: '[name].bundle.css'
+      })
+    ],
+    externals: ({ request }, callback) => {
+      const req = request || '';
+      const isPeer = externalRegex ? externalRegex.test(req) : false;
+      const isBuiltIn = externalBuiltIns.has(req);
+      if (isPeer || isBuiltIn) {
+        callback(undefined, `commonjs ${req}`);
+      } else {
+        callback(undefined);
+      }
+    }
+  };
+}
 
-    const compiler = rspack(config);
-    const stats = await new Promise((resolve, reject) => {
+/**
+ * Runs rspack build and closes compiler.
+ * @param {import('@rspack/core').Configuration} config
+ * @returns {Promise<any>}
+ */
+async function runRspackBuild(config) {
+  const compiler = rspack(config);
+  try {
+    return await new Promise((resolve, reject) => {
       compiler.run((error, result) => {
         if (error) {
           reject(error);
@@ -431,37 +545,40 @@ async function measureWithRspack(input) {
         resolve(result);
       });
     });
-
+  } finally {
     await new Promise((resolve, reject) => {
       compiler.close((error) => {
         if (error) reject(error);
         else resolve(undefined);
       });
     });
-
-    const compilationErrors = Array.isArray(stats.compilation?.errors) ? stats.compilation.errors : [];
-    if (compilationErrors.length > 0) {
-      const unresolved = extractUnresolvedFromRspackErrors(compilationErrors);
-      let changed = false;
-      for (const id of unresolved) {
-        const packageName = getPackageNameFromImportId(id);
-        if (packageName && !externalPackages.has(packageName)) {
-          externalPackages.add(packageName);
-          changed = true;
-        }
-      }
-      if (!changed) {
-        throw new Error(
-          `Rspack build failed with ${compilationErrors.length} errors: ${String(compilationErrors[0]?.message || compilationErrors[0])}`
-        );
-      }
-      continue;
-    }
-
-    return await pickMainAssetSize(distDir);
   }
+}
 
-  throw new Error('Rspack fallback failed after retries');
+/**
+ * Reads compilation errors from rspack stats.
+ * @param {any} stats
+ * @returns {Array<unknown>}
+ */
+function getRspackCompilationErrors(stats) {
+  return Array.isArray(stats?.compilation?.errors) ? stats.compilation.errors : [];
+}
+
+/**
+ * Adds unresolved package names into external package set.
+ * @param {Set<string>} unresolved
+ * @param {Set<string>} externalPackages
+ * @returns {boolean}
+ */
+function addUnresolvedPackagesToExternalSet(unresolved, externalPackages) {
+  let changed = false;
+  for (const id of unresolved) {
+    const packageName = getPackageNameFromImportId(id);
+    if (!packageName || externalPackages.has(packageName)) continue;
+    externalPackages.add(packageName);
+    changed = true;
+  }
+  return changed;
 }
 
 /**
