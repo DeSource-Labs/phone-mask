@@ -16,7 +16,7 @@ const SVELTE_FALLBACK_PLUGIN_VERSION = '^7.0.0';
 const SVELTE_FALLBACK_SVELTE_VERSION = '^5.0.0';
 const BUILTIN_EXTERNALS = new Set([...builtinModules, ...builtinModules.map((mod) => `node:${mod}`)]);
 const CSS_LOADER_PATH = createRequire(import.meta.url).resolve('css-loader');
-const ESCAPE_REGEX = new RegExp(String.raw`[.*+?^\${}()|[\]\\]`, 'g');
+const ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
 
 /**
  * @typedef {{ installTimeout?: number }} StatsOptions
@@ -314,7 +314,7 @@ function isBareImportId(id) {
  * @returns {string}
  */
 function escapeRegex(value) {
-  return value.replace(ESCAPE_REGEX, '\\$&');
+  return value.replace(ESCAPE_REGEX, String.raw`\$&`);
 }
 
 /**
