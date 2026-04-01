@@ -39,7 +39,7 @@ jobs:
 
       - name: Update README benchmark section
         run: |
-          pnpm add -w -D package-build-stats@8.2.5
+          pnpm add -w -D esbuild @rspack/core css-loader
           pnpm readme:benchmarks
           git checkout -- package.json pnpm-lock.yaml
 

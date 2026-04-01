@@ -1,9 +1,10 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
-// Note: this script requires `package-build-stats` to be installed
-// (e.g. as a dev dependency: `pnpm add -w -D package-build-stats`).
-import { getPackageExportSizes, getPackageStats } from 'package-build-stats';
+import { inspect } from 'node:util';
+// Note: this script requires `esbuild`, `@rspack/core` & `css-loader` to be installed
+// (e.g. as a dev dependency: `pnpm add -w -D esbuild @rspack/core css-loader`).
+import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mjs';
 import prettier from 'prettier';
 
 const README_PATH = new URL('../README.md', import.meta.url);
@@ -91,7 +92,8 @@ const GROUPS = [
 const SOURCES = {
   npmRegistry: 'https://registry.npmjs.org',
   bundlephobiaPackage: 'https://bundlephobia.com/package/',
-  packageBuildStats: 'https://www.npmjs.com/package/package-build-stats'
+  benchmarkScript:
+    'https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mjs'
 };
 const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 10_000;
@@ -110,8 +112,7 @@ const PHONE_DATA_SOURCE_LABEL_OVERRIDES = {
 };
 
 /**
- * Explicit per-package overhead overrides, using Bundlephobia-core export-level sizing
- * via package-build-stats.
+ * Explicit per-package overhead overrides using local export-level sizing.
  * This is used when a package loads specific symbols from dependencies/peers indirectly
  * and raw package gzip under-reports effective runtime payload.
  * @type {Record<string, Array<{ package: string, exports: string[] }>>}
@@ -302,6 +303,57 @@ function sleep(ms) {
 }
 
 /**
+ * Safely stringifies unknown values for logs.
+ * @param {unknown} value
+ * @returns {string}
+ */
+function toLogString(value) {
+  if (value instanceof Error) {
+    return `${value.name}: ${value.message}`;
+  }
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || value == null) {
+    return String(value);
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return inspect(value, { depth: 1, breakLength: 120 });
+  }
+}
+
+/**
+ * Produces detailed diagnostics from thrown values (including custom error payloads).
+ * @param {unknown} error
+ * @returns {string}
+ */
+function formatErrorDetails(error) {
+  if (!error || typeof error !== 'object') {
+    return `error=${toLogString(error)}`;
+  }
+
+  const err = /** @type {Record<string, unknown>} */ (error);
+  const parts = [`name=${toLogString(err.name)}`, `message=${toLogString(err.message)}`];
+
+  if ('originalError' in err && err.originalError != null) {
+    parts.push(`originalError=${toLogString(err.originalError)}`);
+  }
+  if ('extra' in err && err.extra != null) {
+    parts.push(`extra=${toLogString(err.extra)}`);
+  }
+  if ('cause' in err && err.cause != null) {
+    parts.push(`cause=${toLogString(err.cause)}`);
+  }
+  if ('stack' in err && typeof err.stack === 'string' && err.stack.trim()) {
+    const firstLine = err.stack.trim().split('\n')[0];
+    parts.push(`stack=${firstLine}`);
+  }
+
+  return parts.join(' | ');
+}
+
+/**
  * Fetches JSON with retries.
  * @param {string} url
  * @returns {Promise<any>}
@@ -367,7 +419,7 @@ const packageSizeCache = new Map();
 const packageExportGzipCache = new Map();
 
 /**
- * Fetches package size metrics using package-build-stats (Bundlephobia core) and caches results.
+ * Fetches package size metrics using local benchmark tooling and caches results.
  * @param {string} pkg
  * @returns {Promise<{ minified: number | null, gzip: number | null, sizeAvailable: boolean }>}
  */
@@ -377,11 +429,7 @@ function fetchPackageSizeMetrics(pkg) {
 
   const task = (async () => {
     try {
-      const payload = await getPackageStats(pkg, {
-        client: ['pnpm'],
-        minify: true,
-        installTimeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS
-      });
+      const payload = await getPackageStats(pkg, { installTimeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS });
 
       const minified = Number.isFinite(payload?.size) ? payload.size : null;
       const gzip = Number.isFinite(payload?.gzip) ? payload.gzip : null;
@@ -391,8 +439,7 @@ function fetchPackageSizeMetrics(pkg) {
         sizeAvailable: Number.isFinite(minified) && Number.isFinite(gzip)
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.warn(`Bundlephobia-core metrics unavailable for ${pkg}. Using N/A. (${message})`);
+      console.warn(`Local benchmark metrics unavailable for ${pkg}. Using N/A. ${formatErrorDetails(error)}`);
       return {
         minified: null,
         gzip: null,
@@ -406,7 +453,7 @@ function fetchPackageSizeMetrics(pkg) {
 }
 
 /**
- * Fetches export-level gzip sizes from package-build-stats (Bundlephobia core) and caches results.
+ * Fetches export-level gzip sizes from local benchmark tooling and caches results.
  * @param {string} pkg
  * @returns {Promise<Map<string, number>>}
  */
@@ -415,11 +462,7 @@ function fetchPackageExportGzipMap(pkg) {
   if (cached) return cached;
 
   const task = (async () => {
-    const payload = await getPackageExportSizes(pkg, {
-      client: ['pnpm'],
-      minify: true,
-      installTimeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS
-    });
+    const payload = await getPackageExportSizes(pkg, { installTimeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS });
     const assets = Array.isArray(payload?.assets) ? payload.assets : [];
     const map = new Map();
 
@@ -458,9 +501,8 @@ async function resolveOverrideGzip(entry) {
 
     return total;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
     console.warn(
-      `Bundlephobia-core export-size metrics unavailable for ${entry.package} (${entry.exports.join(', ')}). (${message})`
+      `Local export-size metrics unavailable for ${entry.package} (${entry.exports.join(', ')}). ${formatErrorDetails(error)}`
     );
     return null;
   }
@@ -516,7 +558,7 @@ async function fetchPackageMetrics(pkg) {
 /**
  * Resolves phone-data gzip overhead excluded from package raw gzip.
  * For known lazy peer-import patterns, uses exact export-level gzip sizes.
- * Otherwise falls back to full peer package gzip from Bundlephobia-core sizing.
+ * Otherwise falls back to full peer package gzip from local sizing.
  * @param {string} pkg
  * @param {PackageMetrics} metric
  * @param {Map<string, PackageMetrics>} metrics
@@ -573,11 +615,10 @@ async function fetchMissingPhonePeerMetrics(metrics) {
 
   if (missingPeerPkgs.size === 0) return;
 
-  const fetched = await mapLimit(
-    Array.from(missingPeerPkgs),
-    PACKAGE_STATS_CONCURRENCY,
-    async (pkg) => [pkg, await fetchPackageMetrics(pkg)]
-  );
+  const fetched = await mapLimit(Array.from(missingPeerPkgs), PACKAGE_STATS_CONCURRENCY, async (pkg) => [
+    pkg,
+    await fetchPackageMetrics(pkg)
+  ]);
 
   for (const [pkg, metric] of fetched) {
     metrics.set(pkg, metric);
@@ -590,11 +631,10 @@ async function fetchMissingPhonePeerMetrics(metrics) {
  */
 async function collectMetrics() {
   const rows = GROUPS.flatMap((group) => group.rows);
-  const entries = await mapLimit(
-    rows,
-    PACKAGE_STATS_CONCURRENCY,
-    async ({ pkg }) => [pkg, await fetchPackageMetrics(pkg)]
-  );
+  const entries = await mapLimit(rows, PACKAGE_STATS_CONCURRENCY, async ({ pkg }) => [
+    pkg,
+    await fetchPackageMetrics(pkg)
+  ]);
   const metrics = new Map(entries);
 
   await fetchMissingPhonePeerMetrics(metrics);
@@ -743,11 +783,11 @@ function renderSection(metrics, snapshotDate = new Date().toISOString().slice(0,
     '### 🪶 Lightest in Class',
     '',
     'Real market comparison, segmented by ecosystem and measured for what developers actually ship.',
-    `Snapshot: **${snapshotDate}** ([Bundlephobia](${SOURCES.bundlephobiaPackage}${encodeURIComponent('@desource/phone-mask')}), [package-build-stats](${SOURCES.packageBuildStats}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
+    `Snapshot: **${snapshotDate}** ([Benchmark script](${SOURCES.benchmarkScript}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')}), [Bundlephobia package page](${SOURCES.bundlephobiaPackage}${encodeURIComponent('@desource/phone-mask')}) for independent reference).`,
     '',
     '*Use `Total gzip` as the primary comparison column.*',
-    '*`Gzip` is measured with Bundlephobia-core logic via `package-build-stats` (minified bundle output).*',
-    '*`Data overhead` is additional phone-data gzip excluded from raw package gzip (e.g. required peer engines). When available, export-level Bundlephobia-core sizing (via `package-build-stats`) is used for better precision.*',
+    '*`Gzip` is measured locally by this repository benchmark pipeline (isolated temp install + minified bundle build).*',
+    '*`Data overhead` is additional phone-data gzip excluded from raw package gzip (e.g. required peer engines).*',
     '*`Total gzip` = `Gzip` + `Data overhead`.*',
     ''
   ];
