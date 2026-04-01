@@ -110,6 +110,91 @@ const handleChange = (nextPhone: PMaskPhoneNumber) => {
 </script>
 ```
 
+### SSR + Auto-imports in Practice
+
+`@desource/phone-mask-nuxt` is SSR-safe: the module config is evaluated on server, while the UI component is registered in client mode.
+
+```vue
+<script setup lang="ts">
+const phone = ref('');
+const valid = ref(false);
+</script>
+
+<template>
+  <!-- Auto-imported: no explicit component import required -->
+  <PhoneInput id="phone" name="phone" v-model="phone" country="US" @validation-change="valid = $event" />
+
+  <p v-if="valid">✓ Ready to submit</p>
+</template>
+```
+
+### Backend Payload (Raw Digits)
+
+```vue
+<script setup lang="ts">
+import type { PMaskPhoneNumber } from '#imports';
+
+const phoneDigits = ref('');
+
+const handlePhoneChange = async (phone: PMaskPhoneNumber) => {
+  await $fetch('/api/profile/phone', {
+    method: 'POST',
+    body: {
+      phoneDigits: phone.digits, // unformatted value for backend
+      phoneFull: phone.full // optional full number with country code
+    }
+  });
+};
+</script>
+
+<template>
+  <PhoneInput v-model="phoneDigits" country="US" @change="handlePhoneChange" />
+</template>
+```
+
+### Auto-importing Helpers + Composable
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['@desource/phone-mask-nuxt'],
+  phoneMask: {
+    // Disable auto-imported styles, component, and directive if you don't need them
+    styles: false,
+    component: false,
+    directive: false,
+    // And enable only needed auto-imports
+    helpers: true,
+    composable: true
+  }
+});
+```
+
+Then use them directly in SFCs without manual imports:
+
+```vue
+<script setup lang="ts">
+const value = ref('');
+const selectedCountry = ref('US');
+
+const { inputRef, setCountry } = usePhoneMask({
+  value,
+  onChange: (digits) => (value.value = digits),
+  country: selectedCountry
+});
+
+const setGermany = () => {
+  setCountry('DE');
+};
+</script>
+
+<template>
+  <input ref="inputRef" type="tel" />
+  <button @click="setGermany">Use Germany</button>
+  <p>Code for DE: {{ PMaskHelpers.MasksMap.DE.code }}</p>
+</template>
+```
+
 ## ⚙️ Configuration
 
 ### Module Options

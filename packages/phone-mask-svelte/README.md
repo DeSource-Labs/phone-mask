@@ -204,6 +204,98 @@ With auto-detection:
 <input use:phoneMask={{ detect: true, onChange: handleChange }} />
 ```
 
+### Send Raw Digits to Backend
+
+```svelte
+<script lang="ts">
+  import { PhoneInput, type PMaskPhoneNumber } from '@desource/phone-mask-svelte';
+
+  let digits = $state('');
+
+  async function handlePhoneChange(phone: PMaskPhoneNumber) {
+    await fetch('/api/profile/phone', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        phoneDigits: phone.digits, // unformatted value for backend
+        phoneFull: phone.full // optional full number with country code
+      })
+    });
+  }
+</script>
+
+<PhoneInput bind:value={digits} country="US" onchange={handlePhoneChange} />
+```
+
+### Dynamic Mask Updates on Country Change
+
+```svelte
+<script lang="ts">
+  import { usePhoneMask, type PCountryKey } from '@desource/phone-mask-svelte';
+
+  let selectedCountry = $state<PCountryKey>('US');
+  let digits = $state('');
+
+  const phoneMask = usePhoneMask({
+    value: () => digits,
+    onChange: (value) => (digits = value),
+    country: () => selectedCountry
+  });
+
+  function onCountrySelect(nextCountry: PCountryKey) {
+    selectedCountry = nextCountry;
+    phoneMask.setCountry(nextCountry); // updates mask immediately
+  }
+</script>
+
+<select value={selectedCountry} onchange={(e) => onCountrySelect((e.currentTarget as HTMLSelectElement).value as PCountryKey)}>
+  <option value="US">US</option>
+  <option value="GB">GB</option>
+  <option value="DE">DE</option>
+</select>
+
+<input bind:this={phoneMask.inputRef} type="tel" />
+<p>{phoneMask.fullFormatted}</p>
+<p>{phoneMask.isComplete ? 'complete' : 'incomplete'}</p>
+```
+
+### Multi-tenant: tenantId Default Country + Tenant-specific Validation Rules
+
+```svelte
+<script lang="ts">
+  import { usePhoneMask, type PCountryKey } from '@desource/phone-mask-svelte';
+
+  type TenantPolicy = {
+    defaultCountry: PCountryKey;
+    prefixRule?: RegExp;
+  };
+
+  let { tenantId }: { tenantId: string } = $props();
+
+  const TENANT_POLICIES: Record<string, TenantPolicy> = {
+    acme: { defaultCountry: 'US', prefixRule: /^(202|303)\d{7}$/ },
+    globex: { defaultCountry: 'GB', prefixRule: /^7\d{9}$/ }
+  };
+
+  const policy = $derived(TENANT_POLICIES[tenantId] ?? { defaultCountry: 'US' as const });
+  let digits = $state('');
+
+  const phoneMask = usePhoneMask({
+    value: () => digits,
+    onChange: (value) => (digits = value),
+    country: () => policy.defaultCountry
+  });
+
+  const isTenantValid = $derived(
+    phoneMask.isComplete && (policy.prefixRule ? policy.prefixRule.test(phoneMask.digits) : true)
+  );
+</script>
+
+<input bind:this={phoneMask.inputRef} type="tel" />
+<p>Default country: {policy.defaultCountry}</p>
+<p>Tenant validation: {isTenantValid ? 'pass' : 'fail'}</p>
+```
+
 ## 📖 Component API
 
 ### Props

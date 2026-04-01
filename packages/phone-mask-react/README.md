@@ -106,6 +106,117 @@ function CustomPhoneInput() {
 }
 ```
 
+### Send Raw Digits to Backend
+
+```tsx
+import { useState } from 'react';
+import { PhoneInput, type PMaskPhoneNumber } from '@desource/phone-mask-react';
+
+function CheckoutForm() {
+  const [digits, setDigits] = useState('');
+
+  const handlePhoneChange = (phone: PMaskPhoneNumber) => {
+    const payload = {
+      phoneDigits: phone.digits, // unformatted, backend-friendly
+      phoneFull: phone.full // optional full number with country code
+    };
+
+    setDigits(phone.digits);
+    void fetch('/api/profile/phone', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  };
+
+  return <PhoneInput value={digits} onChange={setDigits} country="US" onPhoneChange={handlePhoneChange} />;
+}
+```
+
+### Dynamic Mask Updates on Country Change
+
+```tsx
+import { useMemo, useState } from 'react';
+import { usePhoneMask, type CountryKey } from '@desource/phone-mask-react';
+
+function CountryAwareInput() {
+  const [digits, setDigits] = useState('');
+  const [country, setCountry] = useState<CountryKey>('US');
+
+  const {
+    ref,
+    fullFormatted,
+    isComplete,
+    setCountry: setMaskCountry
+  } = usePhoneMask({
+    value: digits,
+    onChange: setDigits,
+    country
+  });
+
+  const onCountrySelect = (next: CountryKey) => {
+    setCountry(next);
+    setMaskCountry(next); // update formatter immediately
+  };
+
+  const label = useMemo(() => (isComplete ? 'complete' : 'incomplete'), [isComplete]);
+
+  return (
+    <div>
+      <select value={country} onChange={(e) => onCountrySelect(e.target.value as CountryKey)}>
+        <option value="US">US</option>
+        <option value="GB">GB</option>
+        <option value="DE">DE</option>
+      </select>
+      <input ref={ref} type="tel" />
+      <p>{fullFormatted}</p>
+      <p>{label}</p>
+    </div>
+  );
+}
+```
+
+### Multi-tenant: tenantId Default Country + Tenant-specific Validation Rules
+
+```tsx
+import { useMemo, useState } from 'react';
+import { usePhoneMask, type CountryKey } from '@desource/phone-mask-react';
+
+type TenantPolicy = {
+  defaultCountry: CountryKey;
+  prefixRule?: RegExp;
+};
+
+const TENANT_POLICIES: Record<string, TenantPolicy> = {
+  acme: { defaultCountry: 'US', prefixRule: /^(202|303)\d{7}$/ },
+  globex: { defaultCountry: 'GB', prefixRule: /^7\d{9}$/ }
+};
+
+export function TenantPhoneInput({ tenantId }: { tenantId: string }) {
+  const policy = TENANT_POLICIES[tenantId] ?? { defaultCountry: 'US' as const };
+  const [digits, setDigits] = useState('');
+
+  const phoneMask = usePhoneMask({
+    value: digits,
+    onChange: setDigits,
+    country: policy.defaultCountry
+  });
+
+  const isTenantValid = useMemo(() => {
+    if (!phoneMask.isComplete) return false;
+    return policy.prefixRule ? policy.prefixRule.test(phoneMask.digits) : true;
+  }, [phoneMask.isComplete, phoneMask.digits, policy.prefixRule]);
+
+  return (
+    <div>
+      <input ref={phoneMask.ref} type="tel" />
+      <p>Default country: {policy.defaultCountry}</p>
+      <p>Tenant validation: {isTenantValid ? 'pass' : 'fail'}</p>
+    </div>
+  );
+}
+```
+
 ## 📖 Component API
 
 ### Props

@@ -114,9 +114,9 @@ const country = ref('US');
 const phone = ref('');
 const digits = ref('');
 
-const handleChange = (phone: PMaskPhoneNumber) => {
-  phone.value = phone.full;
-  digits.value = phone.digits;
+const handleChange = (nextPhone: PMaskPhoneNumber) => {
+  phone.value = nextPhone.full;
+  digits.value = nextPhone.digits;
 };
 </script>
 
@@ -167,6 +167,112 @@ const { inputRef, digits, full, fullFormatted, isComplete, setCountry } = usePho
     <p>Valid: {{ isComplete ? 'Yes' : 'No' }}</p>
     <button @click="setCountry('GB')">Use UK</button>
   </div>
+</template>
+```
+
+### Send Raw Digits to Backend
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { PhoneInput, type PMaskPhoneNumber } from '@desource/phone-mask-vue';
+
+const phoneDigits = ref('');
+
+const onPhoneChange = async (phone: PMaskPhoneNumber) => {
+  await $fetch('/api/profile/phone', {
+    method: 'POST',
+    body: {
+      phoneDigits: phone.digits, // unformatted value for backend
+      phoneFull: phone.full // optional full number with country code
+    }
+  });
+};
+</script>
+
+<template>
+  <PhoneInput v-model="phoneDigits" country="US" @change="onPhoneChange" />
+</template>
+```
+
+### Dynamic Mask Updates on Country Change
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { usePhoneMask, type PCountryKey } from '@desource/phone-mask-vue';
+
+const selectedCountry = ref<PCountryKey>('US');
+const digits = ref('');
+
+const { inputRef, fullFormatted, isComplete, setCountry } = usePhoneMask({
+  value: digits,
+  onChange: (value) => (digits.value = value),
+  country: selectedCountry
+});
+
+const onCountrySelect = (nextCountry: PCountryKey) => {
+  selectedCountry.value = nextCountry;
+  setCountry(nextCountry); // updates mask immediately
+};
+</script>
+
+<template>
+  <select :value="selectedCountry" @change="onCountrySelect(($event.target as HTMLSelectElement).value as PCountryKey)">
+    <option value="US">US</option>
+    <option value="GB">GB</option>
+    <option value="DE">DE</option>
+  </select>
+
+  <input ref="inputRef" type="tel" />
+  <p>{{ fullFormatted }}</p>
+  <p>{{ isComplete ? 'complete' : 'incomplete' }}</p>
+</template>
+```
+
+### Multi-tenant: tenantId Default Country + Tenant-specific Validation Rules
+
+```vue
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { usePhoneMask, type PCountryKey } from '@desource/phone-mask-vue';
+
+type TenantPolicy = {
+  defaultCountry: PCountryKey;
+  prefixRule?: RegExp;
+};
+
+const props = defineProps<{ tenantId: string }>();
+
+const TENANT_POLICIES: Record<string, TenantPolicy> = {
+  acme: { defaultCountry: 'US', prefixRule: /^(202|303)\d{7}$/ },
+  globex: { defaultCountry: 'GB', prefixRule: /^7\d{9}$/ }
+};
+
+const tenantPolicy = computed(() => TENANT_POLICIES[props.tenantId] ?? { defaultCountry: 'US' as const });
+const digits = ref('');
+
+const {
+  inputRef,
+  digits: maskDigits,
+  isComplete
+} = usePhoneMask({
+  value: digits,
+  onChange: (value) => (digits.value = value),
+  country: computed(() => tenantPolicy.value.defaultCountry)
+});
+
+const isTenantValid = computed(() => {
+  if (!isComplete.value) return false;
+  const rule = tenantPolicy.value.prefixRule;
+  return rule ? rule.test(maskDigits.value) : true;
+});
+</script>
+
+<template>
+  <input ref="inputRef" type="tel" />
+  <p>Default country: {{ tenantPolicy.defaultCountry }}</p>
+  <p>Tenant validation: {{ isTenantValid ? 'pass' : 'fail' }}</p>
 </template>
 ```
 
