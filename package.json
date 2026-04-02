@@ -61,9 +61,10 @@
   },
   "lint-staged": {
     "*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts}": [
+      "prettier --write",
       "eslint --fix"
     ],
-    "*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}": [
+    "*.{json,md}": [
       "prettier --write"
     ]
   }
