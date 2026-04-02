@@ -182,6 +182,7 @@ const phoneDigits = ref('');
 const onPhoneChange = async (phone: PMaskPhoneNumber) => {
   await $fetch('/api/profile/phone', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       phoneDigits: phone.digits, // unformatted value for backend
       phoneFull: phone.full // optional full number with country code

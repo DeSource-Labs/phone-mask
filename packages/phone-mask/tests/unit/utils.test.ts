@@ -126,6 +126,12 @@ describe('string and mask helpers', () => {
   it('removes the country code prefix', () => {
     expect(removeCountryCodePrefix('+1 ###-###-####')).toBe('###-###-####');
     expect(removeCountryCodePrefix('###-###-####')).toBe('###-###-####');
+    expect(removeCountryCodePrefix('+44 1234 567890')).toBe('1234 567890');
+    expect(removeCountryCodePrefix('+49-123-4567890')).toBe('-123-4567890');
+    expect(removeCountryCodePrefix('+55 (11) 91234-5678')).toBe('(11) 91234-5678');
+    expect(removeCountryCodePrefix('+123')).toBe('');
+    expect(removeCountryCodePrefix('+')).toBe('+');
+    expect(removeCountryCodePrefix('123-456')).toBe('123-456');
   });
 
   it('picks best variant based on typed digits count', () => {
