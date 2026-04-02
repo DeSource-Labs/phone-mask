@@ -41,7 +41,7 @@ jobs:
         run: |
           pnpm add -w -D esbuild @rspack/core css-loader
           pnpm readme:benchmarks
-          git checkout -- package.json pnpm-lock.yaml
+          git restore package.json pnpm-lock.yaml
 
       - name: Create Pull Request
         id: cpr

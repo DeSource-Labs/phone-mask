@@ -38,9 +38,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate data
-        run: |
-          pnpm gen
-          git checkout -- package.json pnpm-lock.yaml
+        run: pnpm gen
 
       - name: Create Pull Request
         id: cpr
