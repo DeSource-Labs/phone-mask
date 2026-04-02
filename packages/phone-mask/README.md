@@ -119,6 +119,150 @@ const digits = extractDigits('+1 (202) 555-1234');
 // "12025551234"
 ```
 
+### Validate Number Against Country Rules
+
+Use `createPhoneFormatter()` to validate length against a specific country's mask variants.
+
+```ts
+import {
+  MasksFullMapEn,
+  createPhoneFormatter,
+  extractDigits,
+  removeCountryCodePrefix,
+  type CountryKey
+} from '@desource/phone-mask';
+
+function validateForCountry(input: string, id: CountryKey) {
+  const country = MasksFullMapEn[id];
+  if (!country) {
+    return {
+      digits: '',
+      display: '',
+      isComplete: false
+    };
+  }
+
+  const formatter = createPhoneFormatter({ ...country, id });
+  const inputWithoutCode = removeCountryCodePrefix(input);
+  const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
+
+  return {
+    digits,
+    display: formatter.formatDisplay(digits),
+    isComplete: formatter.isComplete(digits)
+  };
+}
+
+validateForCountry('+1 (202) 555-1234', 'US');
+// { digits: "2025551234", display: "202-555-1234", isComplete: true }
+```
+
+### Raw Digits for Backend Processing
+
+Use raw digits for storage and transport. Keep formatting on the client only.
+
+```ts
+import {
+  MasksFullMapEn,
+  createPhoneFormatter,
+  extractDigits,
+  removeCountryCodePrefix,
+  type CountryKey
+} from '@desource/phone-mask';
+
+function buildPhonePayload(input: string, id: CountryKey) {
+  const country = MasksFullMapEn[id];
+  if (!country) return null;
+
+  const formatter = createPhoneFormatter({ ...country, id });
+  const inputWithoutCode = removeCountryCodePrefix(input);
+  const localDigits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
+
+  return {
+    country: id,
+    phoneDigits: localDigits, // canonical backend field
+    phoneE164: `${country.code}${localDigits}` // optional: with dialing prefix
+  };
+}
+```
+
+### Custom Regex + Metadata (Regional/Carrier Prefixes)
+
+Combine Phone Mask metadata with region-specific regex rules:
+
+```ts
+import {
+  MasksFullMapEn,
+  createPhoneFormatter,
+  extractDigits,
+  removeCountryCodePrefix,
+  type CountryKey
+} from '@desource/phone-mask';
+
+const tenantCarrierRules: Partial<Record<CountryKey, RegExp>> = {
+  BR: /^(11|21|31)\d{8,9}$/,
+  IN: /^(98|99)\d{8}$/
+};
+
+function validateWithCarrierRule(input: string, id: CountryKey): boolean {
+  const country = MasksFullMapEn[id];
+  if (!country) return false;
+
+  const formatter = createPhoneFormatter({ ...country, id });
+  const inputWithoutCode = removeCountryCodePrefix(input);
+  const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
+  const carrierRule = tenantCarrierRules[id];
+
+  if (!formatter.isComplete(digits)) return false;
+  return carrierRule ? carrierRule.test(digits) : true;
+}
+```
+
+### Multi-tenant: tenantId Default Country + Tenant-specific Validation Rules
+
+```ts
+import {
+  MasksFullMapEn,
+  createPhoneFormatter,
+  extractDigits,
+  removeCountryCodePrefix,
+  type CountryKey
+} from '@desource/phone-mask';
+
+type TenantPolicy = {
+  defaultCountry: CountryKey;
+  prefixRule?: RegExp;
+};
+
+const TENANT_POLICIES: Record<string, TenantPolicy> = {
+  acme: { defaultCountry: 'US', prefixRule: /^(202|303)\d{7}$/ },
+  globex: { defaultCountry: 'GB', prefixRule: /^7\d{9}$/ }
+};
+
+function createTenantPhoneService(tenantId: string) {
+  const policy = TENANT_POLICIES[tenantId] ?? { defaultCountry: 'US' as const };
+  const id = policy.defaultCountry;
+  const country = MasksFullMapEn[id];
+  const formatter = createPhoneFormatter({ ...country, id });
+
+  return {
+    defaultCountry: id,
+    format(input: string) {
+      const inputWithoutCode = removeCountryCodePrefix(input);
+      const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
+      return formatter.formatDisplay(digits);
+    },
+    validate(input: string) {
+      const inputWithoutCode = removeCountryCodePrefix(input);
+      const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
+      const complete = formatter.isComplete(digits);
+      const prefixOk = policy.prefixRule ? policy.prefixRule.test(digits) : true;
+      return complete && prefixOk;
+    }
+  };
+}
+```
+
 ## 📖 API Reference
 
 ### Types

@@ -92,8 +92,7 @@ const GROUPS = [
 const SOURCES = {
   npmRegistry: 'https://registry.npmjs.org',
   bundlephobiaPackage: 'https://bundlephobia.com/package/',
-  benchmarkScript:
-    'https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mjs'
+  benchmarkScript: 'https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mjs'
 };
 const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 10_000;
