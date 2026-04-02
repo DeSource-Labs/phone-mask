@@ -137,7 +137,7 @@ function CheckoutForm() {
 
 ```tsx
 import { useMemo, useState } from 'react';
-import { usePhoneMask, type CountryKey } from '@desource/phone-mask-react';
+import { usePhoneMask, type PCountryKey } from '@desource/phone-mask-react';
 
 function CountryAwareInput() {
   const [digits, setDigits] = useState('');

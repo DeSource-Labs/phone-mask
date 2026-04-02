@@ -124,10 +124,10 @@ const digits = extractDigits('+1 (202) 555-1234');
 Use `createPhoneFormatter()` to validate length against a specific country's mask variants.
 
 ```ts
-import { MasksFullMapEn, createPhoneFormatter, extractDigits, type CountryKey } from '@desource/phone-mask';
+import { MasksFullMapEn, createPhoneFormatter, extractDigits, removeCountryCodePrefix, type CountryKey } from '@desource/phone-mask';
 
-function validateForCountry(input: string, countryId: CountryKey) {
-  const country = MasksFullMapEn[countryId];
+function validateForCountry(input: string, id: CountryKey) {
+  const country = MasksFullMapEn[id];
   if (!country) {
     return {
       digits: '',
@@ -136,8 +136,9 @@ function validateForCountry(input: string, countryId: CountryKey) {
     };
   }
 
-  const formatter = createPhoneFormatter(country);
-  const digits = extractDigits(input, formatter.getMaxDigits());
+  const formatter = createPhoneFormatter({ ...country, id });
+  const inputWithoutCode = removeCountryCodePrefix(input);
+  const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
 
   return {
     digits,
@@ -155,16 +156,18 @@ validateForCountry('+1 (202) 555-1234', 'US');
 Use raw digits for storage and transport. Keep formatting on the client only.
 
 ```ts
-import { MasksFullMapEn, extractDigits, type CountryKey } from '@desource/phone-mask';
+import { MasksFullMapEn, createPhoneFormatter, extractDigits, removeCountryCodePrefix, type CountryKey } from '@desource/phone-mask';
 
-function buildPhonePayload(input: string, countryId: CountryKey) {
-  const country = MasksFullMapEn[countryId];
+function buildPhonePayload(input: string, id: CountryKey) {
+  const country = MasksFullMapEn[id];
   if (!country) return null;
 
-  const localDigits = extractDigits(input);
+  const formatter = createPhoneFormatter({ ...country, id });
+  const inputWithoutCode = removeCountryCodePrefix(input);
+  const localDigits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
 
   return {
-    country: countryId,
+    country: id,
     phoneDigits: localDigits, // canonical backend field
     phoneE164: `${country.code}${localDigits}` // optional: with dialing prefix
   };
@@ -176,20 +179,21 @@ function buildPhonePayload(input: string, countryId: CountryKey) {
 Combine Phone Mask metadata with region-specific regex rules:
 
 ```ts
-import { MasksFullMapEn, createPhoneFormatter, extractDigits, type CountryKey } from '@desource/phone-mask';
+import { MasksFullMapEn, createPhoneFormatter, extractDigits, removeCountryCodePrefix, type CountryKey } from '@desource/phone-mask';
 
 const tenantCarrierRules: Partial<Record<CountryKey, RegExp>> = {
   BR: /^(11|21|31)\d{8,9}$/,
   IN: /^(98|99)\d{8}$/
 };
 
-function validateWithCarrierRule(input: string, countryId: CountryKey): boolean {
-  const country = MasksFullMapEn[countryId];
+function validateWithCarrierRule(input: string, id: CountryKey): boolean {
+  const country = MasksFullMapEn[id];
   if (!country) return false;
 
-  const formatter = createPhoneFormatter(country);
-  const digits = extractDigits(input, formatter.getMaxDigits());
-  const carrierRule = tenantCarrierRules[countryId];
+  const formatter = createPhoneFormatter({ ...country, id });
+  const inputWithoutCode = removeCountryCodePrefix(input);
+  const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
+  const carrierRule = tenantCarrierRules[id];
 
   if (!formatter.isComplete(digits)) return false;
   return carrierRule ? carrierRule.test(digits) : true;
@@ -199,7 +203,7 @@ function validateWithCarrierRule(input: string, countryId: CountryKey): boolean 
 ### Multi-tenant: tenantId Default Country + Tenant-specific Validation Rules
 
 ```ts
-import { MasksFullMapEn, createPhoneFormatter, extractDigits, type CountryKey } from '@desource/phone-mask';
+import { MasksFullMapEn, createPhoneFormatter, extractDigits, removeCountryCodePrefix, type CountryKey } from '@desource/phone-mask';
 
 type TenantPolicy = {
   defaultCountry: CountryKey;
@@ -213,17 +217,20 @@ const TENANT_POLICIES: Record<string, TenantPolicy> = {
 
 function createTenantPhoneService(tenantId: string) {
   const policy = TENANT_POLICIES[tenantId] ?? { defaultCountry: 'US' as const };
-  const country = MasksFullMapEn[policy.defaultCountry];
-  const formatter = createPhoneFormatter(country);
+  const id = policy.defaultCountry;
+  const country = MasksFullMapEn[id];
+  const formatter = createPhoneFormatter({ ...country, id });
 
   return {
-    defaultCountry: policy.defaultCountry,
+    defaultCountry: id,
     format(input: string) {
-      const digits = extractDigits(input, formatter.getMaxDigits());
+      const inputWithoutCode = removeCountryCodePrefix(input);
+      const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
       return formatter.formatDisplay(digits);
     },
     validate(input: string) {
-      const digits = extractDigits(input, formatter.getMaxDigits());
+      const inputWithoutCode = removeCountryCodePrefix(input);
+      const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
       const complete = formatter.isComplete(digits);
       const prefixOk = policy.prefixRule ? policy.prefixRule.test(digits) : true;
       return complete && prefixOk;

@@ -160,7 +160,7 @@ export default defineNuxtConfig({
   modules: ['@desource/phone-mask-nuxt'],
   phoneMask: {
     // Disable auto-imported styles, component, and directive if you don't need them
-    styles: false,
+    css: false,
     component: false,
     directive: false,
     // And enable only needed auto-imports
