@@ -180,7 +180,7 @@ import { PhoneInput, type PMaskPhoneNumber } from '@desource/phone-mask-vue';
 const phoneDigits = ref('');
 
 const onPhoneChange = async (phone: PMaskPhoneNumber) => {
-  await $fetch('/api/profile/phone', {
+  await fetch('/api/profile/phone', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({

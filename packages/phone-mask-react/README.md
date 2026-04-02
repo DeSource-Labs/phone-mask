@@ -141,7 +141,7 @@ import { usePhoneMask, type PCountryKey } from '@desource/phone-mask-react';
 
 function CountryAwareInput() {
   const [digits, setDigits] = useState('');
-  const [country, setCountry] = useState<CountryKey>('US');
+  const [country, setCountry] = useState<PCountryKey>('US');
 
   const {
     ref,
@@ -154,7 +154,7 @@ function CountryAwareInput() {
     country
   });
 
-  const onCountrySelect = (next: CountryKey) => {
+  const onCountrySelect = (next: PCountryKey) => {
     setCountry(next);
     setMaskCountry(next); // update formatter immediately
   };
@@ -163,7 +163,7 @@ function CountryAwareInput() {
 
   return (
     <div>
-      <select value={country} onChange={(e) => onCountrySelect(e.target.value as CountryKey)}>
+      <select value={country} onChange={(e) => onCountrySelect(e.target.value as PCountryKey)}>
         <option value="US">US</option>
         <option value="GB">GB</option>
         <option value="DE">DE</option>
@@ -180,10 +180,10 @@ function CountryAwareInput() {
 
 ```tsx
 import { useMemo, useState } from 'react';
-import { usePhoneMask, type CountryKey } from '@desource/phone-mask-react';
+import { usePhoneMask, type PCountryKey } from '@desource/phone-mask-react';
 
 type TenantPolicy = {
-  defaultCountry: CountryKey;
+  defaultCountry: PCountryKey;
   prefixRule?: RegExp;
 };
 
