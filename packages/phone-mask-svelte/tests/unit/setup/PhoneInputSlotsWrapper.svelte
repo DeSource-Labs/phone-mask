@@ -24,7 +24,6 @@
   } = $props();
 
   let value = $derived.by(() => initialValue);
-
 </script>
 
 {#snippet actionsbefore()}

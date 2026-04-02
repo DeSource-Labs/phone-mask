@@ -169,10 +169,10 @@ npm install @desource/phone-mask-svelte
 
 ```svelte
 <script lang="ts">
-import { PhoneInput } from '@desource/phone-mask-svelte';
-import '@desource/phone-mask-svelte/assets/lib.css';
+  import { PhoneInput } from '@desource/phone-mask-svelte';
+  import '@desource/phone-mask-svelte/assets/lib.css';
 
-let phone = $state('');
+  let phone = $state('');
 </script>
 
 <PhoneInput bind:value={phone} country="US" />

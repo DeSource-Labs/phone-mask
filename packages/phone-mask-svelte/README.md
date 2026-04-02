@@ -248,7 +248,10 @@ With auto-detection:
   }
 </script>
 
-<select value={selectedCountry} onchange={(e) => onCountrySelect((e.currentTarget as HTMLSelectElement).value as PCountryKey)}>
+<select
+  value={selectedCountry}
+  onchange={(e) => onCountrySelect((e.currentTarget as HTMLSelectElement).value as PCountryKey)}
+>
   <option value="US">US</option>
   <option value="GB">GB</option>
   <option value="DE">DE</option>
@@ -599,10 +602,7 @@ Pass reactive state directly — the factory re-runs automatically when `selecte
   <option value="DE">🇩🇪 Germany</option>
 </select>
 
-<input
-  {@attach phoneMask({ country: selectedCountry, onChange: (p) => (phoneData = p) })}
-  placeholder="Phone number"
-/>
+<input {@attach phoneMask({ country: selectedCountry, onChange: (p) => (phoneData = p) })} placeholder="Phone number" />
 ```
 
 ## 🎬 Action API
@@ -675,10 +675,7 @@ Pass reactive `$state` inside the options object — Svelte calls `update()` aut
   <option value="DE">🇩🇪 Germany</option>
 </select>
 
-<input
-  use:phoneMask={{ country: selectedCountry, onChange: (p) => (phoneData = p) }}
-  placeholder="Phone number"
-/>
+<input use:phoneMask={{ country: selectedCountry, onChange: (p) => (phoneData = p) }} placeholder="Phone number" />
 ```
 
 ### Action vs Attachment

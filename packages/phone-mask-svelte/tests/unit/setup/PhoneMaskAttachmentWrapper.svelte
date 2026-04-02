@@ -14,4 +14,3 @@
 </script>
 
 <svelte:element this={tag} value={initialValue} {@attach phoneMask(options)} />
-
