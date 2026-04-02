@@ -124,7 +124,13 @@ const digits = extractDigits('+1 (202) 555-1234');
 Use `createPhoneFormatter()` to validate length against a specific country's mask variants.
 
 ```ts
-import { MasksFullMapEn, createPhoneFormatter, extractDigits, removeCountryCodePrefix, type CountryKey } from '@desource/phone-mask';
+import {
+  MasksFullMapEn,
+  createPhoneFormatter,
+  extractDigits,
+  removeCountryCodePrefix,
+  type CountryKey
+} from '@desource/phone-mask';
 
 function validateForCountry(input: string, id: CountryKey) {
   const country = MasksFullMapEn[id];
@@ -156,7 +162,13 @@ validateForCountry('+1 (202) 555-1234', 'US');
 Use raw digits for storage and transport. Keep formatting on the client only.
 
 ```ts
-import { MasksFullMapEn, createPhoneFormatter, extractDigits, removeCountryCodePrefix, type CountryKey } from '@desource/phone-mask';
+import {
+  MasksFullMapEn,
+  createPhoneFormatter,
+  extractDigits,
+  removeCountryCodePrefix,
+  type CountryKey
+} from '@desource/phone-mask';
 
 function buildPhonePayload(input: string, id: CountryKey) {
   const country = MasksFullMapEn[id];
@@ -179,7 +191,13 @@ function buildPhonePayload(input: string, id: CountryKey) {
 Combine Phone Mask metadata with region-specific regex rules:
 
 ```ts
-import { MasksFullMapEn, createPhoneFormatter, extractDigits, removeCountryCodePrefix, type CountryKey } from '@desource/phone-mask';
+import {
+  MasksFullMapEn,
+  createPhoneFormatter,
+  extractDigits,
+  removeCountryCodePrefix,
+  type CountryKey
+} from '@desource/phone-mask';
 
 const tenantCarrierRules: Partial<Record<CountryKey, RegExp>> = {
   BR: /^(11|21|31)\d{8,9}$/,
@@ -203,7 +221,13 @@ function validateWithCarrierRule(input: string, id: CountryKey): boolean {
 ### Multi-tenant: tenantId Default Country + Tenant-specific Validation Rules
 
 ```ts
-import { MasksFullMapEn, createPhoneFormatter, extractDigits, removeCountryCodePrefix, type CountryKey } from '@desource/phone-mask';
+import {
+  MasksFullMapEn,
+  createPhoneFormatter,
+  extractDigits,
+  removeCountryCodePrefix,
+  type CountryKey
+} from '@desource/phone-mask';
 
 type TenantPolicy = {
   defaultCountry: CountryKey;
