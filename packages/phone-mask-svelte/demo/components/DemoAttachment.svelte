@@ -1,20 +1,20 @@
 <script lang="ts">
-import { phoneMaskAttachment as phoneMask } from '../../src';
-import type { PMaskFull as MaskFull, PMaskPhoneNumber } from '../../src';
+  import { phoneMaskAttachment as phoneMask } from '../../src';
+  import type { PMaskFull as MaskFull, PMaskPhoneNumber } from '../../src';
 
-let country = $state<string>('US');
-let phoneData = $state<PMaskPhoneNumber | null>(null);
-let detectedCountry = $state<string>('');
+  let country = $state<string>('US');
+  let phoneData = $state<PMaskPhoneNumber | null>(null);
+  let detectedCountry = $state<string>('');
 
-function onChange(p: PMaskPhoneNumber) {
-  phoneData = p;
-  console.log('Attachment change:', p);
-}
+  function onChange(p: PMaskPhoneNumber) {
+    phoneData = p;
+    console.log('Attachment change:', p);
+  }
 
-function onCountryChange(c: MaskFull) {
-  detectedCountry = c.name;
-  console.log('Attachment country change:', c);
-}
+  function onCountryChange(c: MaskFull) {
+    detectedCountry = c.name;
+    console.log('Attachment country change:', c);
+  }
 </script>
 
 <section class="attachment-demo" data-testid="attachment">
@@ -45,70 +45,70 @@ function onCountryChange(c: MaskFull) {
 </section>
 
 <style>
-.attachment-demo {
-  padding: 32px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
+  .attachment-demo {
+    padding: 32px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
 
-.heading {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 20px;
-  color: #fff;
-}
+  .heading {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #fff;
+  }
 
-.controls {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
 
-.country-select {
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  font-size: 14px;
-  font-family: 'Nunito', sans-serif;
-  cursor: pointer;
-  outline: none;
-}
+  .country-select {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 14px;
+    font-family: 'Nunito', sans-serif;
+    cursor: pointer;
+    outline: none;
+  }
 
-.country-select option {
-  background: #1a1a2e;
-  color: #fff;
-}
+  .country-select option {
+    background: #1a1a2e;
+    color: #fff;
+  }
 
-.attachment-input {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  font-size: 16px;
-  font-family: 'Nunito', sans-serif;
-  outline: none;
-}
+  .attachment-input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 16px;
+    font-family: 'Nunito', sans-serif;
+    outline: none;
+  }
 
-.attachment-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
-}
+  .attachment-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
 
-.meta {
-  margin-top: 16px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  font-size: 14px;
-  display: grid;
-  gap: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
+  .meta {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    font-size: 14px;
+    display: grid;
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
 </style>

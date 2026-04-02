@@ -122,35 +122,59 @@
 
   const handleBlur = (e: FocusEvent) => onblur?.(e);
 
-  export function focus() { focusInput(); }
-  export function blur() { telEl?.blur(); }
+  export function focus() {
+    focusInput();
+  }
+  export function blur() {
+    telEl?.blur();
+  }
   export function clear() {
     value = '';
     validationHint.clearValidationHint();
     onclear?.();
   }
-  export function selectCountry(code?: string | null) { countryData.setCountry(code); }
-  export function getFullNumber() { return formatterData.full; }
-  export function getFullFormattedNumber() { return formatterData.fullFormatted; }
-  export function getDigits() { return formatterData.digits; }
-  export function isValid() { return formatterData.isComplete; }
-  export function isComplete() { return formatterData.isComplete; }
+  export function selectCountry(code?: string | null) {
+    countryData.setCountry(code);
+  }
+  export function getFullNumber() {
+    return formatterData.full;
+  }
+  export function getFullFormattedNumber() {
+    return formatterData.fullFormatted;
+  }
+  export function getDigits() {
+    return formatterData.digits;
+  }
+  export function isValid() {
+    return formatterData.isComplete;
+  }
+  export function isComplete() {
+    return formatterData.isComplete;
+  }
 
-  const handleClearClick = () => { clear(); focusInput(); };
+  const handleClearClick = () => {
+    clear();
+    focusInput();
+  };
 
   const themeData = useTheme({
-    theme: () => theme,
+    theme: () => theme
   });
 
   const rootClasses = $derived(
-    ['phone-input', `size-${size}`, themeData.themeClass,
+    [
+      'phone-input',
+      `size-${size}`,
+      themeData.themeClass,
       disabled && 'is-disabled',
       readonly && 'is-readonly',
       disableDefaultStyles && 'is-unstyled',
       withValidity && incomplete && 'is-incomplete',
       withValidity && formatterData.isComplete && 'is-complete',
       extraClass
-    ].filter(Boolean).join(' ')
+    ]
+      .filter(Boolean)
+      .join(' ')
   );
 
   const actionsCount = $derived(+showCopyButton + +showClearButton + (actionsbefore ? 1 : 0));
@@ -162,13 +186,18 @@
   }
 </script>
 
-<div bind:this={rootEl} class={rootClasses} {...restProps}
+<div
+  bind:this={rootEl}
+  class={rootClasses}
+  {...restProps}
   style:--pi-actions-count={actionsCount}
-  role="group" aria-label="Phone input with country selector">
-
+  role="group"
+  aria-label="Phone input with country selector"
+>
   <!-- Country Selector -->
   <div bind:this={selectorEl} class="pi-selector">
-    <button type="button"
+    <button
+      type="button"
       class="pi-selector-btn"
       class:no-dropdown={!selectorData.hasDropdown || readonly}
       {disabled}
@@ -176,16 +205,29 @@
       aria-label="Selected country: {countryData.country.name}"
       aria-expanded={selectorData.dropdownOpen}
       aria-haspopup={selectorData.hasDropdown ? 'listbox' : undefined}
-      onclick={selectorData.toggleDropdown}>
+      onclick={selectorData.toggleDropdown}
+    >
       <span class="pi-flag" role="img" aria-label="{countryData.country.name} flag">
         {#if flag}{@render flag(countryData.country)}{:else}{countryData.country.flag}{/if}
       </span>
       <span class="pi-code">{countryData.country.code}</span>
       {#if !inactive && selectorData.hasDropdown}
-        <svg class="pi-chevron" class:is-open={selectorData.dropdownOpen}
-          width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor"
-            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg
+          class="pi-chevron"
+          class:is-open={selectorData.dropdownOpen}
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M2.5 4.5L6 8L9.5 4.5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </svg>
       {/if}
     </button>
@@ -193,22 +235,29 @@
 
   <!-- Input -->
   <div class="pi-input-wrap">
-    <input bind:this={telEl} type="tel" inputmode="tel"
+    <input
+      bind:this={telEl}
+      type="tel"
+      inputmode="tel"
       {id}
       {name}
-      autocomplete="tel-national" autocorrect="off"
-      autocapitalize="off" spellcheck="false"
+      autocomplete="tel-national"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
       class="pi-input"
       placeholder={formatterData.displayPlaceholder}
       value={formatterData.displayValue}
-      {disabled} readonly={readonly}
+      {disabled}
+      {readonly}
       aria-invalid={incomplete}
       onbeforeinput={inputHandlers.handleBeforeInput}
       oninput={inputHandlers.handleInput}
       onkeydown={inputHandlers.handleKeydown}
       onpaste={inputHandlers.handlePaste}
       onfocus={handleFocus}
-      onblur={handleBlur} />
+      onblur={handleBlur}
+    />
 
     <!-- Actions -->
     <div class="pi-actions" role="toolbar" aria-label="Phone input actions">
@@ -217,34 +266,47 @@
       {/if}
 
       {#if showCopyButton}
-        <button type="button"
-          class="pi-btn pi-btn-copy" class:is-copied={copyData.copied}
-          aria-label={copyData.copyAriaLabel} title={copyData.copyButtonTitle}
-          onclick={copyData.onCopyClick}>
+        <button
+          type="button"
+          class="pi-btn pi-btn-copy"
+          class:is-copied={copyData.copied}
+          aria-label={copyData.copyAriaLabel}
+          title={copyData.copyButtonTitle}
+          onclick={copyData.onCopyClick}
+        >
           {#if copysvg}
             {@render copysvg(copyData.copied)}
           {:else if copyData.copied}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M6.5 11.5L3 8L4.06 6.94L6.5 9.38L11.94 3.94L13 5L6.5 11.5Z" fill="currentColor"/>
+              <path d="M6.5 11.5L3 8L4.06 6.94L6.5 9.38L11.94 3.94L13 5L6.5 11.5Z" fill="currentColor" />
             </svg>
           {:else}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM10.5 1H2.5V11H4V2.5H10.5V1Z" fill="currentColor"/>
+              <path
+                d="M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM10.5 1H2.5V11H4V2.5H10.5V1Z"
+                fill="currentColor"
+              />
             </svg>
           {/if}
         </button>
       {/if}
 
       {#if showClearButton}
-        <button type="button"
+        <button
+          type="button"
           class="pi-btn pi-btn-clear"
-          aria-label={clearButtonLabel} title={clearButtonLabel}
-          onclick={handleClearClick}>
+          aria-label={clearButtonLabel}
+          title={clearButtonLabel}
+          onclick={handleClearClick}
+        >
           {#if clearsvg}
             {@render clearsvg()}
           {:else}
             <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z" fill="currentColor"/>
+              <path
+                d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z"
+                fill="currentColor"
+              />
             </svg>
           {/if}
         </button>
@@ -255,35 +317,48 @@
 
 <!-- Dropdown — portaled to body -->
 {#if selectorData.dropdownOpen}
-  <div use:portal bind:this={dropdownEl}
+  <div
+    use:portal
+    bind:this={dropdownEl}
     class="phone-dropdown {dropdownClass} {themeData.themeClass}"
     class:is-closing={selectorData.isClosing}
     style:position="absolute"
     style:top={selectorData.dropdownStyle.top}
     style:left={selectorData.dropdownStyle.left}
     style:width={selectorData.dropdownStyle.width}
-    role="dialog" aria-modal="false" aria-label="Select country"
-    onanimationend={selectorData.handleDropdownAnimationEnd}>
+    role="dialog"
+    aria-modal="false"
+    aria-label="Select country"
+    onanimationend={selectorData.handleDropdownAnimationEnd}
+  >
     <div class="pi-search-wrap">
-      <input bind:this={searchEl} type="search" class="pi-search"
-        aria-label="Search countries" placeholder={searchPlaceholder}
+      <input
+        bind:this={searchEl}
+        type="search"
+        class="pi-search"
+        aria-label="Search countries"
+        placeholder={searchPlaceholder}
         aria-controls={listboxId}
         aria-activedescendant={activeOptionId}
         value={selectorData.search}
         onkeydown={selectorData.handleSearchKeydown}
-        oninput={selectorData.handleSearchChange} />
+        oninput={selectorData.handleSearchChange}
+      />
     </div>
     <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
       {#each selectorData.filteredCountries as c, idx (c.id)}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <li id={getOptionId(idx)} role="option"
+        <li
+          id={getOptionId(idx)}
+          role="option"
           class="pi-option"
           class:is-focused={idx === selectorData.focusedIndex}
           class:is-selected={c.id === countryData.country.id}
           aria-selected={c.id === countryData.country.id}
           title={c.name}
           onclick={() => selectorData.selectCountry(c.id)}
-          onmouseenter={() => selectorData.setFocusedIndex(idx)}>
+          onmouseenter={() => selectorData.setFocusedIndex(idx)}
+        >
           <span class="pi-flag" role="img" aria-label="{c.name} flag">
             {#if flag}{@render flag(c)}{:else}{c.flag}{/if}
           </span>
