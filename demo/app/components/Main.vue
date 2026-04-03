@@ -141,6 +141,7 @@
 
 <style scoped>
 .main {
+  position: relative;
   flex: 1;
   display: flex;
   justify-content: start;
@@ -225,6 +226,20 @@
   .card-images {
     transform: scale(0.9);
     gap: 2rem;
+  }
+}
+
+@media (max-height: 560px) {
+  .main {
+    justify-content: flex-start;
+    align-items: flex-end;
+    padding: 0 0.35rem 0 0.1rem;
+  }
+}
+
+@media (max-height: 460px) {
+  .main {
+    padding: 0 0.2rem 0 0;
   }
 }
 </style>

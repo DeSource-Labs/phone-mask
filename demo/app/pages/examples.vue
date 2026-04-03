@@ -877,7 +877,6 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 
 .page-header__actions {
   display: flex;
-  align-items: center;
   justify-content: center;
   gap: 0.7rem;
 }

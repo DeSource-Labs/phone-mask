@@ -289,29 +289,40 @@ onUnmounted(() => {
   right: 0;
   transform-origin: bottom right;
   perspective: 900px;
+  z-index: 1;
   overflow: visible;
-  transform: translateX(5%) translateY(20%) scale(1);
+  transform: translateX(5%) translateY(30%) scale(1);
   will-change: transform;
   box-sizing: border-box;
 }
 @media (max-width: 768px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(30%) scale(0.9);
+    transform: translateX(10%) translateY(40%) scale(0.9);
   }
 }
 @media (max-width: 480px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(25%) scale(0.75);
+    transform: translateX(10%) translateY(32%) scale(0.75);
   }
 }
 @media (max-width: 375px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(20%) scale(0.65);
+    transform: translateX(10%) translateY(32%) scale(0.65);
   }
 }
 @media (max-width: 320px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(12%) scale(0.5);
+    transform: translateX(10%) translateY(30%) scale(0.5);
+  }
+}
+@media (max-height: 560px) {
+  .card-swap-container {
+    transform: translateX(8%) translateY(20%) scale(0.6);
+  }
+}
+@media (max-height: 460px) {
+  .card-swap-container {
+    transform: translateX(10%) translateY(20%) scale(0.5);
   }
 }
 .card-swap-card {
