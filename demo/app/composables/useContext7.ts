@@ -124,7 +124,7 @@ const maxReadyCheckDelayMs = 5000;
 
 export function useContext7(rootRefs: Array<RootRef>) {
   let readyCheckAttempts = 0;
-  let readyCheckRafId: ReturnType<typeof setTimeout> | null = null;
+  let readyCheckTimeoutId: ReturnType<typeof setTimeout> | null = null;
   const context7Ready = ref(false);
 
   const getContext7Widget = (): Context7WidgetApi | undefined => {
@@ -175,11 +175,29 @@ export function useContext7(rootRefs: Array<RootRef>) {
     const delay = Math.min(initialReadyCheckDelayMs * backoffFactor, maxReadyCheckDelayMs);
 
     context7Ready.value = false;
-    readyCheckRafId = setTimeout(checkContext7Ready, delay);
+    readyCheckTimeoutId = setTimeout(checkContext7Ready, delay);
   };
 
   const toggleContext7 = () => {
     getContext7Widget()?.toggle();
+  };
+
+  const isTriggerElement = (target: Node) => {
+    return rootRefs.some((rootRef) => {
+      const triggerRef = rootRef.value?.triggerRef;
+      if (!triggerRef) return false;
+
+      if (triggerRef instanceof HTMLElement) {
+        return triggerRef.contains(target);
+      }
+
+      if (triggerRef?.value) {
+        const element = triggerRef.value;
+        return element instanceof HTMLElement ? element.contains(target) : false;
+      }
+
+      return false;
+    });
   };
 
   const handleDocumentPointerDown = (event: PointerEvent) => {
@@ -188,7 +206,7 @@ export function useContext7(rootRefs: Array<RootRef>) {
 
     const target = event.target as Node | null;
     if (!target) return;
-    if (rootRefs.some((rootRef) => rootRef.value?.triggerRef.value?.contains?.(target))) return;
+    if (isTriggerElement(target)) return;
     if (target instanceof Element && target.closest('.context7__button')) return;
     if (widget.host && event.composedPath().includes(widget.host)) return;
 
@@ -201,8 +219,8 @@ export function useContext7(rootRefs: Array<RootRef>) {
   });
 
   onBeforeUnmount(() => {
-    if (readyCheckRafId !== null) {
-      clearTimeout(readyCheckRafId);
+    if (readyCheckTimeoutId !== null) {
+      clearTimeout(readyCheckTimeoutId);
     }
     document.removeEventListener('pointerdown', handleDocumentPointerDown, true);
   });

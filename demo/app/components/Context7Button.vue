@@ -29,16 +29,10 @@
 </template>
 
 <script setup lang="ts">
-import type { ShallowRef } from 'vue';
-
 interface Context7ButtonProps {
   variant?: 'big' | 'medium' | 'small';
   ready?: boolean;
 }
-
-type Context7ButtonExpose = {
-  triggerRef: Readonly<ShallowRef<HTMLButtonElement | null>>;
-};
 
 withDefaults(defineProps<Context7ButtonProps>(), {
   variant: 'medium',
