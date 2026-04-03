@@ -180,6 +180,19 @@ function onSelected(lib: Library) {
     min-width: unset;
   }
   .lib-command pre {
+    font-size: 0.7rem;
+  }
+}
+@media (max-width: 375px) {
+  .lib-item {
+    font-size: 0.75rem;
+  }
+}
+@media (max-width: 320px) {
+  .lib-item {
+    font-size: 0.7rem;
+  }
+  .lib-command pre {
     font-size: 0.6rem;
   }
 }

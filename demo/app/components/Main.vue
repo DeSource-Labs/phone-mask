@@ -88,7 +88,8 @@
             <a class="animated-link card-link" :href="Links.packages" target="_blank" rel="noopener noreferrer">
               Ready-made plugins
             </a>
-            for Vue, Nuxt, React, Svelte and vanilla JS. Flexible masks, flags and locale helpers — plug & play.
+            for Vue, Nuxt, React, Svelte and vanilla JS. Need setup help? Use <strong>Ask Docs AI</strong> to get
+            copy-paste guidance from live docs in seconds.
           </div>
           <div class="card-images">
             <NuxtImg
