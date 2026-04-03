@@ -11,7 +11,7 @@
     >
       <span class="context7__label">AI</span>
     </button>
-    <LiquidGlass v-else actionable :width="variant === 'examples' ? 184 : 124">
+    <LiquidGlass v-else actionable :width="variant === 'big' ? 184 : 124">
       <button
         ref="triggerRef"
         class="context7__button"
@@ -32,7 +32,7 @@
 import type { ShallowRef } from 'vue';
 
 interface Context7ButtonProps {
-  variant?: 'footer' | 'examples' | 'small';
+  variant?: 'big' | 'medium' | 'small';
   ready?: boolean;
 }
 
@@ -41,7 +41,7 @@ type Context7ButtonExpose = {
 };
 
 withDefaults(defineProps<Context7ButtonProps>(), {
-  variant: 'footer',
+  variant: 'medium',
   ready: false
 });
 
@@ -77,7 +77,7 @@ defineExpose<Context7ButtonExpose>({
       cursor: wait;
     }
 
-    &.examples {
+    &.big {
       padding: 1rem 2rem;
     }
 

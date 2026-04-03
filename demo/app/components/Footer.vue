@@ -25,7 +25,7 @@
       <Context7Button
         ref="context7Medium"
         class="context7__medium"
-        variant="footer"
+        variant="medium"
         :ready="context7Ready"
         @toggle="toggleContext7"
       />

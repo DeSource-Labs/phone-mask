@@ -8,7 +8,7 @@
           <LiquidGlass actionable width="200">
             <NuxtLink class="link" to="/">← Back to Home</NuxtLink>
           </LiquidGlass>
-          <Context7Button ref="context7Button" variant="examples" :ready="context7Ready" @toggle="toggleContext7" />
+          <Context7Button ref="context7Button" variant="big" :ready="context7Ready" @toggle="toggleContext7" />
         </div>
       </header>
 
