@@ -8,7 +8,7 @@
           <LiquidGlass actionable width="200">
             <NuxtLink class="link" to="/">← Back to Home</NuxtLink>
           </LiquidGlass>
-          <Context7Chat variant="examples" />
+          <Context7Button ref="context7Button" variant="big" :ready="context7Ready" @toggle="toggleContext7" />
         </div>
       </header>
 
@@ -492,6 +492,9 @@
 </template>
 
 <script setup lang="ts">
+const context7Button = useTemplateRef<Context7ButtonExpose>('context7Button');
+const { context7Ready, toggleContext7 } = useContext7([context7Button]);
+
 /* eslint-disable no-useless-escape */
 // Example states
 const basicPhone = ref('');
@@ -1301,6 +1304,11 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
   }
   .demo {
     padding: 0.5rem;
+  }
+}
+@media (max-width: 320px) {
+  .theme-picker {
+    font-size: 0.75rem;
   }
 }
 </style>

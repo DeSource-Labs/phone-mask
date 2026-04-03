@@ -179,8 +179,11 @@ function onSelected(lib: Library) {
   .lib {
     min-width: unset;
   }
+  .lib-item {
+    font-size: clamp(0.7rem, 0.526rem + 0.87vw, 0.75rem);
+  }
   .lib-command pre {
-    font-size: 0.6rem;
+    font-size: clamp(0.6rem, 0.252rem + 1.74vw, 0.7rem);
   }
 }
 </style>
