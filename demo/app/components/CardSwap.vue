@@ -307,12 +307,12 @@ onUnmounted(() => {
 }
 @media (max-width: 375px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(32%) scale(0.65);
+    transform: translateX(10%) translateY(45%) scale(0.65);
   }
 }
 @media (max-width: 320px) {
   .card-swap-container {
-    transform: translateX(10%) translateY(30%) scale(0.5);
+    transform: translateX(10%) translateY(38%) scale(0.5);
   }
 }
 @media (max-height: 560px) {
