@@ -33,7 +33,7 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 ### 🪶 Lightest in Class
 
 Real market comparison, segmented by ecosystem and measured for what developers actually ship.
-Snapshot: **2026-04-01** ([Benchmark script](https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mjs), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask), [Bundlephobia package page](https://bundlephobia.com/package/%40desource%2Fphone-mask) for independent reference).
+Snapshot: **2026-04-06** ([Benchmark script](https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mjs), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask), [Bundlephobia package page](https://bundlephobia.com/package/%40desource%2Fphone-mask) for independent reference).
 
 _Use `Total gzip` as the primary comparison column._
 _`Gzip` is measured locally by this repository benchmark pipeline (isolated temp install + minified bundle build)._
