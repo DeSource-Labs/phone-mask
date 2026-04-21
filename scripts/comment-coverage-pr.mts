@@ -27,11 +27,7 @@ const headers = {
   'User-Agent': 'coverage-workflow'
 };
 
-/**
- * @param {string} url
- * @param {RequestInit} [init]
- */
-async function request(url, init) {
+async function request(url: string, init: globalThis.RequestInit): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30_000);
   const res = await fetch(url, {
@@ -47,7 +43,7 @@ async function request(url, init) {
   return res;
 }
 
-async function main() {
+async function main(): Promise<void> {
   await request(`https://api.github.com/repos/${owner}/${name}/issues/${prNumber}/comments`, {
     method: 'POST',
     body: JSON.stringify({ body })

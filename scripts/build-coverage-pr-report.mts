@@ -3,7 +3,68 @@ import path from 'node:path';
 
 const DEFAULT_OUTPUT = 'coverage-pr-report.md';
 
-const PACKAGE_REPORTS = [
+type CoverageRow = {
+  lineCell: string;
+  branchCell: string;
+  linePct: number | null;
+};
+type PackageReport = {
+  label: string;
+  file: string;
+  packagePath: string;
+};
+type LcovCounters = {
+  lf: number;
+  lh: number;
+  bf: number;
+  bh: number;
+};
+type LcovTotals = LcovCounters & {
+  linePct: number;
+  branchPct: number;
+};
+type CodecovCoverage = {
+  canFetchCodecov: boolean;
+  coverageByPath: Map<string, number | null>;
+  successfulResponses: number;
+};
+type ReportConfig = {
+  outputPath: string;
+  workflow: string;
+  repository: string;
+  runId: string;
+  resolvedRef: string;
+  status: string;
+  codecovToken: string;
+  codecovMainBranch: string;
+  headCoverageRoot: string;
+  baseCoverageRoot: string;
+  baseCoverageRef: string;
+};
+type LocalBaseline = {
+  baselineByPath: Map<string, number | null>;
+  baselineSource: string;
+};
+type BaselineCoverageParams = {
+  baselineByPath: Map<string, number | null>;
+  repository: string;
+  codecovMainBranch: string;
+  codecovToken: string;
+};
+type BaselineCoverageResult = {
+  baselineByPath: Map<string, number | null>;
+  codecovCanFetch: boolean;
+  codecovSuccessfulResponses: number;
+};
+type ReportHeaderParams = {
+  workflow: string;
+  repository: string;
+  runId: string;
+  resolvedRef: string;
+  baselineSource: string;
+};
+
+const PACKAGE_REPORTS: PackageReport[] = [
   {
     label: 'phone-mask',
     file: 'packages/phone-mask/coverage/lcov.info',
@@ -31,12 +92,7 @@ const PACKAGE_REPORTS = [
   }
 ];
 
-/**
- * @param {string} sourceFile
- * @param {string} needle
- * @returns {boolean}
- */
-function shouldIncludeSourceFile(sourceFile, needle) {
+function shouldIncludeSourceFile(sourceFile: string, needle: string): boolean {
   if (needle === '') return true;
 
   const normalized = sourceFile.replaceAll('\\', '/');
@@ -45,11 +101,7 @@ function shouldIncludeSourceFile(sourceFile, needle) {
   return inMonorepoPath || inLocalSrcPath;
 }
 
-/**
- * @param {string} line
- * @param {{ lf: number; lh: number; bf: number; bh: number }} counters
- */
-function updateLcovCounters(line, counters) {
+function updateLcovCounters(line: string, counters: LcovCounters): void {
   if (line.startsWith('LF:')) counters.lf += Number(line.slice(3)) || 0;
   if (line.startsWith('LH:')) counters.lh += Number(line.slice(3)) || 0;
   if (line.startsWith('BRF:')) counters.bf += Number(line.slice(4)) || 0;
@@ -60,11 +112,9 @@ function updateLcovCounters(line, counters) {
  * Parse LCOV totals and return line/branch coverage summary.
  * If includePath is set, only SF records under package src are counted.
  * Supports monorepo absolute paths and package-local `src/...` paths.
- * @param {string} content
- * @param {string} [includePath]
  */
-function parseLcovTotals(content, includePath) {
-  const counters = { lf: 0, lh: 0, bf: 0, bh: 0 };
+function parseLcovTotals(content: string, includePath = ''): LcovTotals {
+  const counters: LcovCounters = { lf: 0, lh: 0, bf: 0, bh: 0 };
   const needle = includePath ? includePath.replaceAll('\\', '/') : '';
   let includeCurrentRecord = needle === '';
 
@@ -83,27 +133,17 @@ function parseLcovTotals(content, includePath) {
   return { ...counters, linePct, branchPct };
 }
 
-/**
- * @param {number} value
- */
-function formatPercent(value) {
+function formatPercent(value: number): string {
   return value.toFixed(2);
 }
 
-/**
- * @param {number} value
- */
-function formatDelta(value) {
+function formatDelta(value: number): string {
   const normalized = Math.abs(value) < 0.005 ? 0 : value;
   const sign = normalized > 0 ? '+' : '';
   return `${sign}${normalized.toFixed(2)}%`;
 }
 
-/**
- * @param {string} absoluteLcovPath
- * @param {string} packagePath
- */
-function getCoverageRow(absoluteLcovPath, packagePath) {
+function getCoverageRow(absoluteLcovPath: string, packagePath: string): CoverageRow {
   if (!fs.existsSync(absoluteLcovPath)) {
     return { lineCell: 'N/A', branchCell: 'N/A', linePct: null };
   }
@@ -117,11 +157,8 @@ function getCoverageRow(absoluteLcovPath, packagePath) {
   };
 }
 
-/**
- * @param {string} rootDir
- */
-function collectCoverageRows(rootDir) {
-  const rows = new Map();
+function collectCoverageRows(rootDir: string): Map<string, CoverageRow> {
+  const rows = new Map<string, CoverageRow>();
   for (const report of PACKAGE_REPORTS) {
     const filePath = path.resolve(rootDir, report.file);
     rows.set(report.label, getCoverageRow(filePath, report.packagePath));
@@ -129,25 +166,15 @@ function collectCoverageRows(rootDir) {
   return rows;
 }
 
-/**
- * @param {Map<string, { lineCell: string; branchCell: string; linePct: number | null }>} rows
- */
-function hasCoverageData(rows) {
+function hasCoverageData(rows: Map<string, CoverageRow>): boolean {
   return Array.from(rows.values()).some((row) => typeof row.linePct === 'number');
 }
 
-/**
- * @param {unknown} payload
- * @returns {number | null}
- */
-function extractCoverageFromPayload(payload) {
+function extractCoverageFromPayload(payload: unknown): number | null {
   if (!payload || typeof payload !== 'object') return null;
+  const payloadRecord = payload as Record<string, unknown>;
 
-  /**
-   * @param {unknown} value
-   * @returns {number | null}
-   */
-  const parseCoverageValue = (value) => {
+  const parseCoverageValue = (value: unknown): number | null => {
     if (typeof value === 'number' && Number.isFinite(value)) return value;
     if (typeof value === 'string' && value.trim() !== '') {
       const parsed = Number(value);
@@ -156,22 +183,23 @@ function extractCoverageFromPayload(payload) {
     return null;
   };
 
-  const direct = /** @type {Record<string, unknown>} */ (payload).coverage;
+  const direct = payloadRecord.coverage;
   const directParsed = parseCoverageValue(direct);
   if (directParsed !== null) return directParsed;
 
-  const totals = /** @type {Record<string, unknown>} */ (payload).totals;
+  const totals = payloadRecord.totals;
   if (totals && typeof totals === 'object') {
-    const totalsCoverage = /** @type {Record<string, unknown>} */ (totals).coverage;
+    const totalsRecord = totals as Record<string, unknown>;
+    const totalsCoverage = totalsRecord.coverage;
     const totalsCoverageParsed = parseCoverageValue(totalsCoverage);
     if (totalsCoverageParsed !== null) return totalsCoverageParsed;
 
-    const totalsCompactCoverage = /** @type {Record<string, unknown>} */ (totals).c;
+    const totalsCompactCoverage = totalsRecord.c;
     const totalsCompactParsed = parseCoverageValue(totalsCompactCoverage);
     if (totalsCompactParsed !== null) return totalsCompactParsed;
   }
 
-  const results = /** @type {Record<string, unknown>} */ (payload).results;
+  const results = payloadRecord.results;
   if (Array.isArray(results)) {
     for (const item of results) {
       const nested = extractCoverageFromPayload(item);
@@ -182,14 +210,12 @@ function extractCoverageFromPayload(payload) {
   return null;
 }
 
-/**
- * @param {string} repository
- * @param {string} branch
- * @param {string} packagePath
- * @param {string} token
- * @returns {Promise<number | null>}
- */
-async function fetchCodecovMainCoverage(repository, branch, packagePath, token) {
+async function fetchCodecovMainCoverage(
+  repository: string,
+  branch: string,
+  packagePath: string,
+  token: string
+): Promise<number | null> {
   const [owner, repo] = repository.split('/');
   if (!owner || !repo) return null;
 
@@ -219,15 +245,9 @@ async function fetchCodecovMainCoverage(repository, branch, packagePath, token) 
   }
 }
 
-/**
- * @param {string} repository
- * @param {string} branch
- * @param {string} token
- * @returns {Promise<{ canFetchCodecov: boolean; coverageByPath: Map<string, number | null>; successfulResponses: number }>}
- */
-async function collectCodecovCoverage(repository, branch, token) {
+async function collectCodecovCoverage(repository: string, branch: string, token: string): Promise<CodecovCoverage> {
   const canFetchCodecov = Boolean(token && repository);
-  const coverageByPath = new Map();
+  const coverageByPath = new Map<string, number | null>();
   let successfulResponses = 0;
 
   if (!canFetchCodecov) {
@@ -245,12 +265,11 @@ async function collectCodecovCoverage(repository, branch, token) {
   return { canFetchCodecov, coverageByPath, successfulResponses };
 }
 
-/**
- * @param {string[]} lines
- * @param {Map<string, { lineCell: string; branchCell: string; linePct: number | null }>} headRows
- * @param {Map<string, number | null>} baselineByPath
- */
-function appendCoverageRows(lines, headRows, baselineByPath) {
+function appendCoverageRows(
+  lines: string[],
+  headRows: Map<string, CoverageRow>,
+  baselineByPath: Map<string, number | null>
+): void {
   for (const report of PACKAGE_REPORTS) {
     const row = headRows.get(report.label) ?? { lineCell: 'N/A', branchCell: 'N/A', linePct: null };
     const baselineLinePct = baselineByPath.get(report.packagePath) ?? null;
@@ -264,30 +283,11 @@ function appendCoverageRows(lines, headRows, baselineByPath) {
   }
 }
 
-/**
- * @param {Map<string, number | null>} baselineByPath
- * @returns {boolean}
- */
-function hasBaselineData(baselineByPath) {
+function hasBaselineData(baselineByPath: Map<string, number | null>): boolean {
   return Array.from(baselineByPath.values()).some((value) => typeof value === 'number');
 }
 
-/**
- * @returns {{
- * outputPath: string;
- * workflow: string;
- * repository: string;
- * runId: string;
- * resolvedRef: string;
- * status: string;
- * codecovToken: string;
- * codecovMainBranch: string;
- * headCoverageRoot: string;
- * baseCoverageRoot: string;
- * baseCoverageRef: string;
- * }}
- */
-function getReportConfig() {
+function getReportConfig(): ReportConfig {
   return {
     outputPath: process.env.REPORT_FILE || process.argv[2] || DEFAULT_OUTPUT,
     workflow: process.env.GITHUB_WORKFLOW || 'Coverage',
@@ -303,14 +303,12 @@ function getReportConfig() {
   };
 }
 
-/**
- * @param {string} baseCoverageRoot
- * @param {string} baseCoverageRef
- * @param {string} codecovMainBranch
- * @returns {{ baselineByPath: Map<string, number | null>; baselineSource: string }}
- */
-function collectLocalBaseline(baseCoverageRoot, baseCoverageRef, codecovMainBranch) {
-  const baselineByPath = new Map();
+function collectLocalBaseline(
+  baseCoverageRoot: string,
+  baseCoverageRef: string,
+  codecovMainBranch: string
+): LocalBaseline {
+  const baselineByPath = new Map<string, number | null>();
   const defaultSource = `Codecov (${codecovMainBranch} branch)`;
 
   if (baseCoverageRoot !== '') {
@@ -328,16 +326,7 @@ function collectLocalBaseline(baseCoverageRoot, baseCoverageRef, codecovMainBran
   return { baselineByPath, baselineSource: defaultSource };
 }
 
-/**
- * @param {{
- * baselineByPath: Map<string, number | null>;
- * repository: string;
- * codecovMainBranch: string;
- * codecovToken: string;
- * }} params
- * @returns {Promise<{ baselineByPath: Map<string, number | null>; codecovCanFetch: boolean; codecovSuccessfulResponses: number }>}
- */
-async function ensureBaselineCoverage(params) {
+async function ensureBaselineCoverage(params: BaselineCoverageParams): Promise<BaselineCoverageResult> {
   let codecovCanFetch = false;
   let codecovSuccessfulResponses = 0;
 
@@ -357,11 +346,7 @@ async function ensureBaselineCoverage(params) {
   };
 }
 
-/**
- * @param {{ workflow: string; repository: string; runId: string; resolvedRef: string; baselineSource: string }} params
- * @returns {string[]}
- */
-function buildReportHeader(params) {
+function buildReportHeader(params: ReportHeaderParams): string[] {
   return [
     '## Manual Coverage Report',
     '',
@@ -377,13 +362,11 @@ function buildReportHeader(params) {
   ];
 }
 
-/**
- * @param {string} baselineSource
- * @param {boolean} codecovCanFetch
- * @param {number} codecovSuccessfulResponses
- * @returns {string | null}
- */
-function getBaselineNote(baselineSource, codecovCanFetch, codecovSuccessfulResponses) {
+function getBaselineNote(
+  baselineSource: string,
+  codecovCanFetch: boolean,
+  codecovSuccessfulResponses: number
+): string | null {
   if (baselineSource.startsWith('Codecov') === false) return null;
   if (codecovCanFetch === false) {
     return 'ℹ️ Baseline columns are `N/A` because `CODECOV_API_TOKEN` is not configured.';
@@ -394,7 +377,7 @@ function getBaselineNote(baselineSource, codecovCanFetch, codecovSuccessfulRespo
   return '';
 }
 
-async function main() {
+async function main(): Promise<void> {
   const config = getReportConfig();
   const headRows = collectCoverageRows(config.headCoverageRoot);
   const localBaseline = collectLocalBaseline(config.baseCoverageRoot, config.baseCoverageRef, config.codecovMainBranch);

@@ -5,45 +5,87 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { gzipSync } from 'node:zlib';
-import { build } from 'esbuild';
-import { rspack } from '@rspack/core';
+import { build, type BuildResult, type OutputFile } from 'esbuild';
+import { rspack, type Configuration } from '@rspack/core';
 
-const execFileAsync = promisify(execFile);
+type ExecFileAsync = (
+  file: string,
+  args: string[],
+  options?: { cwd?: string; timeout?: number }
+) => Promise<{ stdout: string; stderr: string }>;
+type StatsOptions = {
+  installTimeout?: number;
+};
+type NormalizedStatsOptions = {
+  installTimeout: number;
+};
+type PackageStatsAsset = {
+  name?: string;
+  size?: number;
+  gzip?: number;
+};
+export type PackageStatsPayload = {
+  assets?: PackageStatsAsset[];
+  size?: number;
+  gzip?: number;
+};
+type InstallRoot = {
+  installRoot: string;
+  manifest: Record<string, unknown>;
+  peerDeps: Set<string>;
+};
+type MeasuredSize = {
+  size: number;
+  gzip: number;
+};
+type PackageMeasureInput = {
+  installRoot: string;
+  entrySource: string;
+  peerDeps: Set<string>;
+};
+type EsbuildRetryInput = {
+  installRoot: string;
+  entryFile: string;
+  externalSet: Set<string>;
+};
+type PreferredOutputFile = Pick<OutputFile, 'path' | 'contents'>;
+type RspackConfigInput = {
+  entryFile: string;
+  distDir: string;
+  externalRegex: RegExp | null;
+  externalBuiltIns: Set<string>;
+};
+type RspackExternalContext = {
+  request?: string;
+};
+type RspackStatsLike = {
+  compilation?: {
+    errors?: unknown[];
+  };
+};
+type SvelteMeasureInput = {
+  pkg: string;
+  installTimeout: number;
+  entrySource: string;
+};
+
+const execFileAsync = promisify(execFile) as ExecFileAsync;
 const DEFAULT_INSTALL_TIMEOUT_MS = 120_000;
 const SVELTE_BUILD_TIMEOUT_MS = 180_000;
 const SVELTE_FALLBACK_VITE_VERSION = '^8.0.0';
 const SVELTE_FALLBACK_PLUGIN_VERSION = '^7.0.0';
 const SVELTE_FALLBACK_SVELTE_VERSION = '^5.0.0';
-const BUILTIN_EXTERNALS = new Set([...builtinModules, ...builtinModules.map((mod) => `node:${mod}`)]);
+const BUILTIN_EXTERNALS = new Set<string>([...builtinModules, ...builtinModules.map((mod) => `node:${mod}`)]);
 const CSS_LOADER_PATH = createRequire(import.meta.url).resolve('css-loader');
 const ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
 
-/**
- * @typedef {{ installTimeout?: number }} StatsOptions
- */
-
-/**
- * @typedef {{ assets?: Array<{ name?: string, size?: number, gzip?: number }>, size?: number, gzip?: number }} PackageStatsPayload
- */
-
-/**
- * Normalizes options to the subset we support.
- * @param {StatsOptions | undefined} options
- * @returns {{ installTimeout: number }}
- */
-function normalizeOptions(options) {
-  const installTimeout = Number.isFinite(options?.installTimeout)
-    ? Number(options.installTimeout)
-    : DEFAULT_INSTALL_TIMEOUT_MS;
+function normalizeOptions(options: StatsOptions | undefined): NormalizedStatsOptions {
+  const rawInstallTimeout = options?.installTimeout;
+  const installTimeout = Number.isFinite(rawInstallTimeout) ? Number(rawInstallTimeout) : DEFAULT_INSTALL_TIMEOUT_MS;
   return { installTimeout };
 }
 
-/**
- * Removes a temporary directory with retries to avoid transient filesystem races.
- * @param {string} dirPath
- * @returns {Promise<void>}
- */
-async function removeDirSafe(dirPath) {
+async function removeDirSafe(dirPath: string): Promise<void> {
   await rm(dirPath, {
     recursive: true,
     force: true,
@@ -52,35 +94,17 @@ async function removeDirSafe(dirPath) {
   });
 }
 
-/**
- * Returns package.json path inside node_modules for a package spec.
- * @param {string} installRoot
- * @param {string} pkg
- * @returns {string}
- */
-function getInstalledManifestPath(installRoot, pkg) {
+function getInstalledManifestPath(installRoot: string, pkg: string): string {
   return path.join(installRoot, 'node_modules', ...pkg.split('/'), 'package.json');
 }
 
-/**
- * Reads installed package manifest.
- * @param {string} installRoot
- * @param {string} pkg
- * @returns {Promise<Record<string, unknown>>}
- */
-async function readInstalledManifest(installRoot, pkg) {
+async function readInstalledManifest(installRoot: string, pkg: string): Promise<Record<string, unknown>> {
   const manifestPath = getInstalledManifestPath(installRoot, pkg);
   const raw = await readFile(manifestPath, 'utf8');
-  return /** @type {Record<string, unknown>} */ (JSON.parse(raw));
+  return JSON.parse(raw) as Record<string, unknown>;
 }
 
-/**
- * Installs package (and optionally peers) inside temp project.
- * @param {string} pkg
- * @param {{ installTimeout: number }} options
- * @returns {Promise<{ installRoot: string, manifest: Record<string, unknown>, peerDeps: Set<string> }>}
- */
-async function createInstallRoot(pkg, options) {
+async function createInstallRoot(pkg: string, options: NormalizedStatsOptions): Promise<InstallRoot> {
   const installRoot = await mkdtemp(path.join(tmpdir(), 'phone-mask-stats-'));
   const manifest = {
     name: 'phone-mask-stats-temp',
@@ -100,7 +124,7 @@ async function createInstallRoot(pkg, options) {
     pkgManifest.peerDependencies && typeof pkgManifest.peerDependencies === 'object'
       ? pkgManifest.peerDependencies
       : {};
-  const peerDeps = new Set(Object.keys(peerDepsObject));
+  const peerDeps = new Set<string>(Object.keys(peerDepsObject));
 
   // Install peers to avoid module-resolution failures during export discovery/build.
   if (peerDeps.size > 0) {
@@ -117,17 +141,15 @@ async function createInstallRoot(pkg, options) {
   return { installRoot, manifest: pkgManifest, peerDeps };
 }
 
-/**
- * Detects whether root export is Svelte-only.
- * @param {Record<string, unknown>} manifest
- * @returns {boolean}
- */
-function hasSvelteOnlyRootExport(manifest) {
+function hasSvelteOnlyRootExport(manifest: Record<string, unknown>): boolean {
   const exportsField = manifest.exports;
   if (!exportsField || typeof exportsField !== 'object' || Array.isArray(exportsField)) return false;
 
+  const exportsRecord = exportsField as Record<string, unknown>;
   const rootExport =
-    '.' in exportsField && exportsField['.'] && typeof exportsField['.'] === 'object' ? exportsField['.'] : null;
+    '.' in exportsRecord && exportsRecord['.'] && typeof exportsRecord['.'] === 'object'
+      ? (exportsRecord['.'] as Record<string, unknown>)
+      : null;
   if (!rootExport || Array.isArray(rootExport)) return false;
 
   const hasSvelte = typeof rootExport.svelte === 'string';
@@ -137,12 +159,7 @@ function hasSvelteOnlyRootExport(manifest) {
   return hasSvelte && !hasImport && !hasDefault && !hasRequire;
 }
 
-/**
- * Measures bundle output from esbuild for a given entry source.
- * @param {{ installRoot: string, entrySource: string, peerDeps: Set<string> }} input
- * @returns {Promise<{ size: number, gzip: number } | null>}
- */
-async function measureWithEsbuild(input) {
+async function measureWithEsbuild(input: PackageMeasureInput): Promise<MeasuredSize | null> {
   const { installRoot, entrySource, peerDeps } = input;
   const entryFile = path.join(installRoot, 'entry.mjs');
   await writeFile(entryFile, entrySource);
@@ -155,26 +172,14 @@ async function measureWithEsbuild(input) {
   return getEsbuildOutputMetrics(result);
 }
 
-/**
- * Creates base esbuild external set from peer deps and Node builtins.
- * @param {Set<string>} peerDeps
- * @returns {Set<string>}
- */
-function createExternalSet(peerDeps) {
+function createExternalSet(peerDeps: Set<string>): Set<string> {
   return new Set([...Array.from(peerDeps), ...Array.from(peerDeps).map((dep) => `${dep}/*`), ...BUILTIN_EXTERNALS]);
 }
 
-/**
- * Runs esbuild and progressively externalizes unresolved imports.
- * @param {{ installRoot: string, entryFile: string, externalSet: Set<string> }} input
- * @returns {Promise<import('esbuild').BuildResult>}
- */
-async function runEsbuildWithRetries(input) {
+async function runEsbuildWithRetries(input: EsbuildRetryInput): Promise<BuildResult> {
   const { installRoot, entryFile, externalSet } = input;
-  /** @type {unknown} */
-  let result = null;
-  /** @type {unknown} */
-  let lastError = null;
+  let result: BuildResult | null = null;
+  let lastError: unknown = null;
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     try {
@@ -196,14 +201,7 @@ async function runEsbuildWithRetries(input) {
   return result;
 }
 
-/**
- * Executes one esbuild bundle attempt.
- * @param {string} installRoot
- * @param {string} entryFile
- * @param {Set<string>} externalSet
- * @returns {Promise<import('esbuild').BuildResult>}
- */
-function buildEsbuildOnce(installRoot, entryFile, externalSet) {
+function buildEsbuildOnce(installRoot: string, entryFile: string, externalSet: Set<string>): Promise<BuildResult> {
   return build({
     absWorkingDir: installRoot,
     entryPoints: [entryFile],
@@ -221,13 +219,7 @@ function buildEsbuildOnce(installRoot, entryFile, externalSet) {
   });
 }
 
-/**
- * Adds unresolved imports (and their package patterns) to external set.
- * @param {Set<string>} unresolved
- * @param {Set<string>} externalSet
- * @returns {boolean}
- */
-function addUnresolvedToExternalSet(unresolved, externalSet) {
+function addUnresolvedToExternalSet(unresolved: Set<string>, externalSet: Set<string>): boolean {
   let changed = false;
   for (const id of unresolved) {
     for (const candidate of getExternalCandidates(id)) {
@@ -239,23 +231,13 @@ function addUnresolvedToExternalSet(unresolved, externalSet) {
   return changed;
 }
 
-/**
- * Returns external candidates for a given unresolved import id.
- * @param {string} id
- * @returns {string[]}
- */
-function getExternalCandidates(id) {
+function getExternalCandidates(id: string): string[] {
   const packageName = getPackageNameFromImportId(id);
   if (!packageName) return [id];
   return [id, packageName, `${packageName}/*`];
 }
 
-/**
- * Converts esbuild output into size metrics.
- * @param {import('esbuild').BuildResult} result
- * @returns {{ size: number, gzip: number } | null}
- */
-function getEsbuildOutputMetrics(result) {
+function getEsbuildOutputMetrics(result: BuildResult): MeasuredSize | null {
   if (!result.outputFiles || result.outputFiles.length === 0) return null;
   const mainOutput = findPreferredOutputFile(result.outputFiles);
   if (!mainOutput) return null;
@@ -266,25 +248,14 @@ function getEsbuildOutputMetrics(result) {
   return { size, gzip };
 }
 
-/**
- * Chooses CSS output first, then JS output.
- * @param {Array<{ path?: string, contents: Uint8Array }>} outputFiles
- * @returns {{ path?: string, contents: Uint8Array } | undefined}
- */
-function findPreferredOutputFile(outputFiles) {
+function findPreferredOutputFile(outputFiles: OutputFile[]): PreferredOutputFile | undefined {
   return (
     outputFiles.find((file) => path.extname(file.path || '') === '.css') ??
     outputFiles.find((file) => path.extname(file.path || '') === '.js')
   );
 }
 
-/**
- * Returns package name from bare import id.
- * Examples: "react/jsx-runtime" -> "react", "@nuxt/kit/foo" -> "@nuxt/kit".
- * @param {string} id
- * @returns {string | null}
- */
-function getPackageNameFromImportId(id) {
+function getPackageNameFromImportId(id: string): string | null {
   if (!id) return null;
   const clean = id.split('?')[0].split('#')[0];
   if (!isBareImportId(clean)) return null;
@@ -296,34 +267,19 @@ function getPackageNameFromImportId(id) {
   return clean.split('/')[0];
 }
 
-/**
- * Checks whether import id is a bare package specifier.
- * @param {string} id
- * @returns {boolean}
- */
-function isBareImportId(id) {
+function isBareImportId(id: string): boolean {
   if (!id) return false;
   if (id.startsWith('.') || id.startsWith('/') || id.startsWith('node:')) return false;
   if (/^[A-Za-z]:[\\/]/.test(id)) return false;
   return true;
 }
 
-/**
- * Escapes regex meta chars in a string.
- * @param {string} value
- * @returns {string}
- */
-function escapeRegex(value) {
+function escapeRegex(value: string): string {
   return value.replace(ESCAPE_REGEX, String.raw`\$&`);
 }
 
-/**
- * Extracts unresolved bare imports from esbuild error shape.
- * @param {unknown} error
- * @returns {Set<string>}
- */
-function extractUnresolvedBareImports(error) {
-  const unresolved = new Set();
+function extractUnresolvedBareImports(error: unknown): Set<string> {
+  const unresolved = new Set<string>();
   if (!error || typeof error !== 'object') return unresolved;
   const maybeErrors = 'errors' in error ? error.errors : null;
   if (!Array.isArray(maybeErrors)) return unresolved;
@@ -341,13 +297,8 @@ function extractUnresolvedBareImports(error) {
   return unresolved;
 }
 
-/**
- * Extracts unresolved bare imports from rspack compilation errors.
- * @param {Array<unknown>} errors
- * @returns {Set<string>}
- */
-function extractUnresolvedFromRspackErrors(errors) {
-  const unresolved = new Set();
+function extractUnresolvedFromRspackErrors(errors: unknown[]): Set<string> {
+  const unresolved = new Set<string>();
   for (const error of errors) {
     const message = getRspackErrorMessage(error);
     if (!message) continue;
@@ -358,24 +309,14 @@ function extractUnresolvedFromRspackErrors(errors) {
   return unresolved;
 }
 
-/**
- * Returns normalized message from rspack error object.
- * @param {unknown} error
- * @returns {string}
- */
-function getRspackErrorMessage(error) {
+function getRspackErrorMessage(error: unknown): string {
   if (typeof error === 'string') return error;
   if (!error || typeof error !== 'object') return '';
   if (!('message' in error)) return '';
   return String(error.message);
 }
 
-/**
- * Extracts unresolved import id from rspack message string.
- * @param {string} message
- * @returns {string | null}
- */
-function extractRspackMissingImport(message) {
+function extractRspackMissingImport(message: string): string | null {
   const cantResolve = /Can't resolve '([^']+)'/.exec(message);
   if (cantResolve) return cantResolve[1];
   const couldNotResolve = /Could not resolve "([^"]+)"/.exec(message);
@@ -383,12 +324,7 @@ function extractRspackMissingImport(message) {
   return null;
 }
 
-/**
- * Chooses main built asset (css preferred) and returns size/gzip.
- * @param {string} distDir
- * @returns {Promise<{ size: number, gzip: number } | null>}
- */
-async function pickMainAssetSize(distDir) {
+async function pickMainAssetSize(distDir: string): Promise<MeasuredSize | null> {
   const files = await readdir(distDir);
   const cssFile = files.find((name) => name === 'main.bundle.css') ?? null;
   const jsFile = files.find((name) => name === 'main.bundle.js') ?? null;
@@ -402,18 +338,13 @@ async function pickMainAssetSize(distDir) {
   return { size, gzip };
 }
 
-/**
- * Builds package via rspack with missing-dependency externalization retries.
- * @param {{ installRoot: string, entrySource: string, peerDeps: Set<string> }} input
- * @returns {Promise<{ size: number, gzip: number } | null>}
- */
-async function measureWithRspack(input) {
+async function measureWithRspack(input: PackageMeasureInput): Promise<MeasuredSize | null> {
   const { installRoot, entrySource, peerDeps } = input;
   const entryFile = path.join(installRoot, 'entry.mjs');
   const distDir = path.join(installRoot, 'dist');
   await writeFile(entryFile, entrySource);
 
-  const externalPackages = new Set(Array.from(peerDeps));
+  const externalPackages = new Set<string>(Array.from(peerDeps));
   const externalBuiltIns = BUILTIN_EXTERNALS;
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -429,7 +360,7 @@ async function measureWithRspack(input) {
       const unresolved = extractUnresolvedFromRspackErrors(compilationErrors);
       if (!addUnresolvedPackagesToExternalSet(unresolved, externalPackages)) {
         throw new Error(
-          `Rspack build failed with ${compilationErrors.length} errors: ${String(compilationErrors[0]?.message || compilationErrors[0])}`
+          `Rspack build failed with ${compilationErrors.length} errors: ${getRspackErrorMessage(compilationErrors[0]) || String(compilationErrors[0])}`
         );
       }
       continue;
@@ -441,12 +372,7 @@ async function measureWithRspack(input) {
   throw new Error('Rspack fallback failed after retries');
 }
 
-/**
- * Creates regex to match external package ids and subpaths.
- * @param {Set<string>} externalPackages
- * @returns {RegExp | null}
- */
-function createExternalPackagesRegex(externalPackages) {
+function createExternalPackagesRegex(externalPackages: Set<string>): RegExp | null {
   if (externalPackages.size === 0) return null;
   const pattern = Array.from(externalPackages)
     .map((dep) => String.raw`^${escapeRegex(dep)}$|^${escapeRegex(dep)}\/`)
@@ -454,12 +380,7 @@ function createExternalPackagesRegex(externalPackages) {
   return new RegExp(`(${pattern})`);
 }
 
-/**
- * Builds rspack config object for benchmark compilation.
- * @param {{ entryFile: string, distDir: string, externalRegex: RegExp | null, externalBuiltIns: Set<string> }} input
- * @returns {import('@rspack/core').Configuration}
- */
-function createRspackConfig(input) {
+function createRspackConfig(input: RspackConfigInput): Configuration {
   const { entryFile, distDir, externalRegex, externalBuiltIns } = input;
   return {
     mode: 'production',
@@ -511,28 +432,19 @@ function createRspackConfig(input) {
         filename: '[name].bundle.css'
       })
     ],
-    externals: ({ request }, callback) => {
+    externals: ({ request }: RspackExternalContext): string | undefined => {
       const req = request || '';
       const isPeer = externalRegex ? externalRegex.test(req) : false;
       const isBuiltIn = externalBuiltIns.has(req);
-      if (isPeer || isBuiltIn) {
-        callback(undefined, `commonjs ${req}`);
-      } else {
-        callback(undefined);
-      }
+      return isPeer || isBuiltIn ? `commonjs ${req}` : undefined;
     }
   };
 }
 
-/**
- * Runs rspack build and closes compiler.
- * @param {import('@rspack/core').Configuration} config
- * @returns {Promise<any>}
- */
-async function runRspackBuild(config) {
+async function runRspackBuild(config: Configuration): Promise<RspackStatsLike> {
   const compiler = rspack(config);
   try {
-    return await new Promise((resolve, reject) => {
+    return await new Promise<RspackStatsLike>((resolve, reject) => {
       compiler.run((error, result) => {
         if (error) {
           reject(error);
@@ -542,35 +454,26 @@ async function runRspackBuild(config) {
           reject(new Error('Rspack returned empty stats'));
           return;
         }
-        resolve(result);
+        resolve(result as RspackStatsLike);
       });
     });
   } finally {
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       compiler.close((error) => {
         if (error) reject(error);
-        else resolve(undefined);
+        else resolve();
       });
     });
   }
 }
 
-/**
- * Reads compilation errors from rspack stats.
- * @param {any} stats
- * @returns {Array<unknown>}
- */
-function getRspackCompilationErrors(stats) {
-  return Array.isArray(stats?.compilation?.errors) ? stats.compilation.errors : [];
+function getRspackCompilationErrors(stats: unknown): unknown[] {
+  if (!stats || typeof stats !== 'object') return [];
+  const statsRecord = stats as RspackStatsLike;
+  return Array.isArray(statsRecord.compilation?.errors) ? statsRecord.compilation.errors : [];
 }
 
-/**
- * Adds unresolved package names into external package set.
- * @param {Set<string>} unresolved
- * @param {Set<string>} externalPackages
- * @returns {boolean}
- */
-function addUnresolvedPackagesToExternalSet(unresolved, externalPackages) {
+function addUnresolvedPackagesToExternalSet(unresolved: Set<string>, externalPackages: Set<string>): boolean {
   let changed = false;
   for (const id of unresolved) {
     const packageName = getPackageNameFromImportId(id);
@@ -581,12 +484,7 @@ function addUnresolvedPackagesToExternalSet(unresolved, externalPackages) {
   return changed;
 }
 
-/**
- * Svelte fallback measurement for Svelte-only export maps.
- * @param {{ pkg: string, installTimeout: number, entrySource: string }} input
- * @returns {Promise<{ size: number, gzip: number } | null>}
- */
-async function measureWithSvelteVite(input) {
+async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<MeasuredSize | null> {
   const { pkg, installTimeout, entrySource } = input;
   const tmpRoot = await mkdtemp(path.join(tmpdir(), 'phone-mask-svelte-stats-'));
 
@@ -660,13 +558,7 @@ async function measureWithSvelteVite(input) {
   }
 }
 
-/**
- * Measures package import size via local fallback.
- * @param {string} pkg
- * @param {{ installTimeout: number }} options
- * @returns {Promise<{ size: number, gzip: number } | null>}
- */
-async function measurePackageFallback(pkg, options) {
+async function measurePackageFallback(pkg: string, options: NormalizedStatsOptions): Promise<MeasuredSize | null> {
   const { installRoot, manifest, peerDeps } = await createInstallRoot(pkg, options);
   try {
     const entrySource = `import * as benchmarkPackage from ${JSON.stringify(pkg)};\nconsole.log(Object.keys(benchmarkPackage).length);\n`;
@@ -689,14 +581,7 @@ async function measurePackageFallback(pkg, options) {
   }
 }
 
-/**
- * Attempts to discover exported symbol names for per-export sizing.
- * @param {string} pkg
- * @param {string} installRoot
- * @param {number} installTimeout
- * @returns {Promise<string[]>}
- */
-async function discoverExportNames(pkg, installRoot, installTimeout) {
+async function discoverExportNames(pkg: string, installRoot: string, installTimeout: number): Promise<string[]> {
   try {
     const script = `import * as mod from ${JSON.stringify(pkg)}; console.log(JSON.stringify(Object.keys(mod)));`;
     const { stdout } = await execFileAsync('node', ['--input-type=module', '-e', script], {
@@ -717,13 +602,7 @@ async function discoverExportNames(pkg, installRoot, installTimeout) {
   }
 }
 
-/**
- * Measures export-level sizes via local fallback.
- * @param {string} pkg
- * @param {{ installTimeout: number }} options
- * @returns {Promise<PackageStatsPayload>}
- */
-async function measureExportSizesFallback(pkg, options) {
+async function measureExportSizesFallback(pkg: string, options: NormalizedStatsOptions): Promise<PackageStatsPayload> {
   const { installRoot, manifest, peerDeps } = await createInstallRoot(pkg, options);
   try {
     if (hasSvelteOnlyRootExport(manifest)) {
@@ -735,8 +614,7 @@ async function measureExportSizesFallback(pkg, options) {
       return { assets: [] };
     }
 
-    /** @type {Array<{ name: string, size: number, gzip: number }>} */
-    const assets = [];
+    const assets: PackageStatsAsset[] = [];
 
     for (const exportName of exportNames) {
       const entrySource = `import { ${exportName} as benchmarkExport } from ${JSON.stringify(pkg)};\nconsole.log(benchmarkExport);\n`;
@@ -760,15 +638,7 @@ async function measureExportSizesFallback(pkg, options) {
   }
 }
 
-/**
- * Gets package stats.
- * Stable replacement for package-build-stats getPackageStats
- *
- * @param {string} pkg
- * @param {StatsOptions} [options]
- * @returns {Promise<PackageStatsPayload>}
- */
-export async function getPackageStats(pkg, options = {}) {
+export async function getPackageStats(pkg: string, options: StatsOptions = {}): Promise<PackageStatsPayload> {
   const normalized = normalizeOptions(options);
   const measured = await measurePackageFallback(pkg, normalized);
   if (!measured) {
@@ -780,15 +650,7 @@ export async function getPackageStats(pkg, options = {}) {
   };
 }
 
-/**
- * Gets export-level stats.
- * Stable replacement for package-build-stats getPackageExportSizes
- *
- * @param {string} pkg
- * @param {StatsOptions} [options]
- * @returns {Promise<PackageStatsPayload>}
- */
-export async function getPackageExportSizes(pkg, options = {}) {
+export async function getPackageExportSizes(pkg: string, options: StatsOptions = {}): Promise<PackageStatsPayload> {
   const normalized = normalizeOptions(options);
   return await measureExportSizesFallback(pkg, normalized);
 }

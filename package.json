@@ -19,7 +19,7 @@
     "changeset:version": "changeset version && pnpm install --lockfile-only",
     "changeset:publish": "pnpm build && changeset publish",
     "release": "pnpm changeset:version && pnpm changeset:publish",
-    "readme:benchmarks": "node scripts/update-readme-benchmarks.mjs",
+    "readme:benchmarks": "node scripts/update-readme-benchmarks.mts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
@@ -31,6 +31,9 @@
     "prepare": "husky"
   },
   "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.30.0",
