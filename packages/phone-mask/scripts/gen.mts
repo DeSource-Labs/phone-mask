@@ -125,12 +125,64 @@ function decodeXmlEntities(value: string): string {
     .replaceAll('&amp;', '&');
 }
 
+function isAsciiWhitespace(char: string): boolean {
+  return char === ' ' || char === '\n' || char === '\r' || char === '\t';
+}
+
+function skipAsciiWhitespace(value: string, offset: number): number {
+  let current = offset;
+  while (current < value.length && isAsciiWhitespace(value[current])) current += 1;
+  return current;
+}
+
+function isXmlAttributeNameStart(char: string): boolean {
+  const code = char.charCodeAt(0);
+  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || char === '_';
+}
+
+function isXmlAttributeNameChar(char: string): boolean {
+  const code = char.charCodeAt(0);
+  return isXmlAttributeNameStart(char) || (code >= 48 && code <= 57) || char === ':' || char === '.' || char === '-';
+}
+
 function parseAttributes(raw: string): XmlAttributes {
   const attrs: XmlAttributes = {};
-  const re = /([A-Za-z_][\w:.-]*)="([^"]*)"/g;
-  for (const match of raw.matchAll(re)) {
-    attrs[match[1]] = decodeXmlEntities(match[2]);
+
+  let offset = 0;
+  while (offset < raw.length) {
+    offset = skipAsciiWhitespace(raw, offset);
+    if (offset >= raw.length) break;
+
+    if (!isXmlAttributeNameStart(raw[offset])) {
+      offset += 1;
+      continue;
+    }
+
+    const nameStart = offset;
+    offset += 1;
+    while (offset < raw.length && isXmlAttributeNameChar(raw[offset])) offset += 1;
+
+    const name = raw.slice(nameStart, offset);
+    const equalsOffset = skipAsciiWhitespace(raw, offset);
+    if (raw[equalsOffset] !== '=') {
+      offset = Math.max(equalsOffset, offset + 1);
+      continue;
+    }
+
+    const quoteOffset = skipAsciiWhitespace(raw, equalsOffset + 1);
+    if (raw[quoteOffset] !== '"') {
+      offset = Math.max(quoteOffset, equalsOffset + 1);
+      continue;
+    }
+
+    const valueStart = quoteOffset + 1;
+    const valueEnd = raw.indexOf('"', valueStart);
+    if (valueEnd === -1) break;
+
+    attrs[name] = decodeXmlEntities(raw.slice(valueStart, valueEnd));
+    offset = valueEnd + 1;
   }
+
   return attrs;
 }
 

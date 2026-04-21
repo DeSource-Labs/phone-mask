@@ -49,7 +49,6 @@ type EsbuildRetryInput = {
   externalSet: Set<string>;
 };
 type PreferredOutputFile = Pick<OutputFile, 'path' | 'contents'>;
-type RspackMeasureInput = PackageMeasureInput;
 type RspackConfigInput = {
   entryFile: string;
   distDir: string;
@@ -180,7 +179,7 @@ function createExternalSet(peerDeps: Set<string>): Set<string> {
 async function runEsbuildWithRetries(input: EsbuildRetryInput): Promise<BuildResult> {
   const { installRoot, entryFile, externalSet } = input;
   let result: BuildResult | null = null;
-  let lastError = null;
+  let lastError: unknown = null;
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
     try {
@@ -339,7 +338,7 @@ async function pickMainAssetSize(distDir: string): Promise<MeasuredSize | null> 
   return { size, gzip };
 }
 
-async function measureWithRspack(input: RspackMeasureInput): Promise<MeasuredSize | null> {
+async function measureWithRspack(input: PackageMeasureInput): Promise<MeasuredSize | null> {
   const { installRoot, entrySource, peerDeps } = input;
   const entryFile = path.join(installRoot, 'entry.mjs');
   const distDir = path.join(installRoot, 'dist');

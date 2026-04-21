@@ -277,7 +277,7 @@ function formatErrorDetails(error: unknown): string {
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
-  let lastError = null;
+  let lastError: unknown = null;
 
   for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
     try {
