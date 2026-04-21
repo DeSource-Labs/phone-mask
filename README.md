@@ -33,7 +33,7 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 ### 🪶 Lightest in Class
 
 Real market comparison, segmented by ecosystem and measured for what developers actually ship.
-Snapshot: **2026-04-20** ([Benchmark script](https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mts), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask), [Bundlephobia package page](https://bundlephobia.com/package/%40desource%2Fphone-mask) for independent reference).
+Snapshot: **2026-04-21** ([Benchmark script](https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mts), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask), [Bundlephobia package page](https://bundlephobia.com/package/%40desource%2Fphone-mask) for independent reference).
 
 _Use `Total gzip` as the primary comparison column._
 _`Gzip` is measured locally by this repository benchmark pipeline (isolated temp install + minified bundle build)._
@@ -81,7 +81,7 @@ Best choice in Vue: **@desource/phone-mask-vue** (10.5 KB).
 | Package                                                                                                                                            | Last published | Phone data source                                                                | Data overhead |    Gzip | Total gzip |
 | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------: | -------------------------------------------------------------------------------- | ------------: | ------: | ---------: |
 | [**@desource/phone-mask-svelte**](https://www.npmjs.com/package/@desource/phone-mask-svelte) · [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-30 | [@desource/phone-mask](https://www.npmjs.com/package/@desource/phone-mask) (dep) |        0.0 KB | 11.0 KB |    11.0 KB |
-| [svelte-tel-input](https://www.npmjs.com/package/svelte-tel-input) · [Repo](https://github.com/gyurielf/svelte-tel-input)                          |     2026-03-26 | [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) (dep)       |        0.0 KB | 77.7 KB |    77.7 KB |
+| [svelte-tel-input](https://www.npmjs.com/package/svelte-tel-input) · [Repo](https://github.com/gyurielf/svelte-tel-input)                          |     2026-04-21 | [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) (dep)       |        0.0 KB | 77.9 KB |    77.9 KB |
 
 Best choice in Svelte: **@desource/phone-mask-svelte** (11.0 KB).
 
@@ -89,9 +89,9 @@ Best choice in Svelte: **@desource/phone-mask-svelte** (11.0 KB).
 
 | Package                                                                                                                                        | Last published | Phone data source                                                                                     | Data overhead |   Gzip | Total gzip |
 | ---------------------------------------------------------------------------------------------------------------------------------------------- | -------------: | ----------------------------------------------------------------------------------------------------- | ------------: | -----: | ---------: |
-| [**@desource/phone-mask-nuxt**](https://www.npmjs.com/package/@desource/phone-mask-nuxt) · [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-30 | [@desource/phone-mask-vue](https://www.npmjs.com/package/@desource/phone-mask-vue) (runtime: install) |       10.2 KB | 0.8 KB |    11.0 KB |
+| [**@desource/phone-mask-nuxt**](https://www.npmjs.com/package/@desource/phone-mask-nuxt) · [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-03-30 | [@desource/phone-mask-vue](https://www.npmjs.com/package/@desource/phone-mask-vue) (runtime: install) |       10.2 KB | 0.7 KB |    10.9 KB |
 
-Best choice in Nuxt: **@desource/phone-mask-nuxt** (11.0 KB).
+Best choice in Nuxt: **@desource/phone-mask-nuxt** (10.9 KB).
 
 Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input modules with stable npm + size signals comparable to React/Vue/Svelte peers; most Nuxt apps use Vue phone input packages directly.
 
