@@ -37,21 +37,57 @@ const EXAMPLE_TYPES = [
   'voip',
   'personalNumber',
   'pager'
-];
+] as const;
 
-function readNullTerminatedAscii(buffer) {
+type ExampleType = (typeof EXAMPLE_TYPES)[number];
+type XmlAttributes = Record<string, string>;
+type NumberFormat = {
+  pattern: string;
+  format: string;
+  intlFormat: string | null;
+  leadingDigits: string[];
+};
+type ExamplesByType = Partial<Record<ExampleType, string>>;
+type Territory = {
+  id: string;
+  countryCode: string;
+  isMainCountryForCode: boolean;
+  formats: NumberFormat[];
+  examplesByType: ExamplesByType;
+};
+type MaskMapping = Record<string, string | string[]>;
+type ParsedMaskEntity = {
+  code: string;
+  mask: string;
+};
+type MinifiedData = {
+  masks: string[];
+  countries: Record<string, string>;
+};
+type SerializableJsValue =
+  | string
+  | number
+  | boolean
+  | null
+  | SerializableJsValue[]
+  | { [key: string]: SerializableJsValue };
+type GitHubRelease = {
+  tag_name?: unknown;
+};
+
+function readNullTerminatedAscii(buffer: Buffer): string {
   const index = buffer.indexOf(0);
   const end = index === -1 ? buffer.length : index;
   return buffer.subarray(0, end).toString('utf8');
 }
 
-function parseTarOctal(octalStr) {
+function parseTarOctal(octalStr: string): number {
   const clean = octalStr.replaceAll('\0', '').trim();
   if (!clean) return 0;
   return Number.parseInt(clean, 8);
 }
 
-function extractFileFromTarGz(archiveBuffer, filePathSuffix) {
+function extractFileFromTarGz(archiveBuffer: Buffer, filePathSuffix: string): string {
   const tarBuffer = zlib.gunzipSync(archiveBuffer);
   let offset = 0;
 
@@ -80,7 +116,7 @@ function extractFileFromTarGz(archiveBuffer, filePathSuffix) {
   throw new Error(`Failed to locate file in archive with suffix: ${filePathSuffix}`);
 }
 
-function decodeXmlEntities(value) {
+function decodeXmlEntities(value: string): string {
   return value
     .replaceAll('&lt;', '<')
     .replaceAll('&gt;', '>')
@@ -89,8 +125,8 @@ function decodeXmlEntities(value) {
     .replaceAll('&amp;', '&');
 }
 
-function parseAttributes(raw) {
-  const attrs = {};
+function parseAttributes(raw: string): XmlAttributes {
+  const attrs: XmlAttributes = {};
   const re = /([A-Za-z_][\w:.-]*)="([^"]*)"/g;
   for (const match of raw.matchAll(re)) {
     attrs[match[1]] = decodeXmlEntities(match[2]);
@@ -98,24 +134,24 @@ function parseAttributes(raw) {
   return attrs;
 }
 
-function tagText(block, tagName) {
+function tagText(block: string, tagName: string): string | null {
   const re = new RegExp(String.raw`<${tagName}\b[^>]*>([\s\S]*?)<\/${tagName}>`);
   const match = re.exec(block);
   if (!match) return null;
   return decodeXmlEntities(match[1].trim());
 }
 
-function normalizeRegexText(value) {
+function normalizeRegexText(value: string): string {
   return value.replaceAll(/\s+/g, '');
 }
 
-function extractDigits(value) {
+function extractDigits(value: string): string {
   return value.replaceAll(/\D/g, '');
 }
 
-function uniquePreserveOrder(items) {
-  const seen = new Set();
-  const out = [];
+function uniquePreserveOrder(items: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
   for (const item of items) {
     if (!item || seen.has(item)) continue;
     seen.add(item);
@@ -124,11 +160,11 @@ function uniquePreserveOrder(items) {
   return out;
 }
 
-function parseNumberFormats(territoryBlock) {
+function parseNumberFormats(territoryBlock: string): NumberFormat[] {
   const availableFormats = /<availableFormats\b[^>]*>([\s\S]*?)<\/availableFormats>/.exec(territoryBlock)?.[1];
   if (!availableFormats) return [];
 
-  const formats = [];
+  const formats: NumberFormat[] = [];
   const numberFormatRe = /<numberFormat\b([^>]*)>([\s\S]*?)<\/numberFormat>/g;
 
   for (const match of availableFormats.matchAll(numberFormatRe)) {
@@ -144,7 +180,7 @@ function parseNumberFormats(territoryBlock) {
     if (!format) continue;
 
     const intlFormat = tagText(body, 'intlFormat');
-    const leadingDigits = [];
+    const leadingDigits: string[] = [];
     for (const ldMatch of body.matchAll(/<leadingDigits\b[^>]*>([\s\S]*?)<\/leadingDigits>/g)) {
       leadingDigits.push(normalizeRegexText(decodeXmlEntities(ldMatch[1].trim())));
     }
@@ -160,8 +196,8 @@ function parseNumberFormats(territoryBlock) {
   return formats;
 }
 
-function collectExampleDigitsByType(territoryBlock) {
-  const examplesByType = {};
+function collectExampleDigitsByType(territoryBlock: string): ExamplesByType {
+  const examplesByType: ExamplesByType = {};
 
   for (const typeName of EXAMPLE_TYPES) {
     const sectionRe = new RegExp(String.raw`<${typeName}\b[^>]*>([\s\S]*?)<\/${typeName}>`);
@@ -178,7 +214,7 @@ function collectExampleDigitsByType(territoryBlock) {
   return examplesByType;
 }
 
-function matchesLeadingDigits(number, leadingDigits) {
+function matchesLeadingDigits(number: string, leadingDigits: string[]): boolean {
   if (!leadingDigits || leadingDigits.length === 0) return true;
 
   // libphonenumber uses progressively more specific leading-digits patterns;
@@ -192,7 +228,7 @@ function matchesLeadingDigits(number, leadingDigits) {
   }
 }
 
-function formatNationalNumber(number, formats) {
+function formatNationalNumber(number: string, formats: NumberFormat[]): string {
   for (const entry of formats) {
     if (!matchesLeadingDigits(number, entry.leadingDigits)) continue;
 
@@ -215,11 +251,16 @@ function formatNationalNumber(number, formats) {
   return number;
 }
 
-function maskNationalNumber(nationalFormatted) {
+function maskNationalNumber(nationalFormatted: string): string {
   return nationalFormatted.replaceAll(/\d/g, '#').replaceAll(/\s+/g, ' ').trim();
 }
 
-function pushMaskForExample(countryCode, formats, exampleDigits, acc) {
+function pushMaskForExample(
+  countryCode: string,
+  formats: NumberFormat[],
+  exampleDigits: string | null | undefined,
+  acc: string[]
+): void {
   if (!exampleDigits) return;
   const formattedNational = formatNationalNumber(exampleDigits, formats);
   const maskedNational = maskNationalNumber(formattedNational);
@@ -227,8 +268,8 @@ function pushMaskForExample(countryCode, formats, exampleDigits, acc) {
   acc.push(`+${countryCode} ${maskedNational}`.trim());
 }
 
-function buildRegionMasks(countryCode, formats, examplesByType) {
-  const masks = [];
+function buildRegionMasks(countryCode: string, formats: NumberFormat[], examplesByType: ExamplesByType): string[] {
+  const masks: string[] = [];
 
   // Mirror FIXED_LINE_OR_MOBILE intent from old implementation:
   // prefer fixed-line example, fallback to mobile.
@@ -246,8 +287,8 @@ function buildRegionMasks(countryCode, formats, examplesByType) {
   return uniquePreserveOrder(masks);
 }
 
-function parseTerritories(xml) {
-  const territories = [];
+function parseTerritories(xml: string): Territory[] {
+  const territories: Territory[] = [];
   const territoryRe = /<territory\b([^>]*)>([\s\S]*?)<\/territory>/g;
 
   for (const match of xml.matchAll(territoryRe)) {
@@ -274,8 +315,8 @@ function parseTerritories(xml) {
   return territories;
 }
 
-function buildMainRegionByCode(territories) {
-  const mainRegionByCode = new Map();
+function buildMainRegionByCode(territories: Territory[]): Map<string, string> {
+  const mainRegionByCode = new Map<string, string>();
 
   for (const territory of territories) {
     if (territory.isMainCountryForCode) {
@@ -291,7 +332,11 @@ function buildMainRegionByCode(territories) {
   return mainRegionByCode;
 }
 
-function getEffectiveFormats(territory, territoryById, mainRegionByCode) {
+function getEffectiveFormats(
+  territory: Territory,
+  territoryById: Map<string, Territory>,
+  mainRegionByCode: Map<string, string>
+): NumberFormat[] {
   if (territory.formats.length > 0) return territory.formats;
 
   const mainRegionId = mainRegionByCode.get(territory.countryCode);
@@ -303,8 +348,12 @@ function getEffectiveFormats(territory, territoryById, mainRegionByCode) {
   return territory.formats;
 }
 
-function buildMapping(territories, territoryById, mainRegionByCode) {
-  const mapping = {};
+function buildMapping(
+  territories: Territory[],
+  territoryById: Map<string, Territory>,
+  mainRegionByCode: Map<string, string>
+): MaskMapping {
+  const mapping: MaskMapping = {};
 
   for (const territory of territories) {
     const effectiveFormats = getEffectiveFormats(territory, territoryById, mainRegionByCode);
@@ -316,12 +365,12 @@ function buildMapping(territories, territoryById, mainRegionByCode) {
   return mapping;
 }
 
-function sortMappingByCountryCode(mapping) {
+function sortMappingByCountryCode(mapping: MaskMapping): MaskMapping {
   const sortedEntries = Object.entries(mapping).sort((a, b) => a[0].localeCompare(b[0], 'en'));
   return Object.fromEntries(sortedEntries);
 }
 
-function parseMetadataXmlToMasks(xml) {
+function parseMetadataXmlToMasks(xml: string): MaskMapping {
   const territories = parseTerritories(xml);
   const territoryById = new Map(territories.map((territory) => [territory.id, territory]));
   const mainRegionByCode = buildMainRegionByCode(territories);
@@ -329,7 +378,7 @@ function parseMetadataXmlToMasks(xml) {
   return sortMappingByCountryCode(mapping);
 }
 
-function parseMaskEntity(maskEntity) {
+function parseMaskEntity(maskEntity: string): ParsedMaskEntity {
   const splitAt = maskEntity.indexOf(' ');
   if (splitAt <= 1 || !maskEntity.startsWith('+') || splitAt === maskEntity.length - 1) {
     throw new Error(`Invalid mask entity, expected "+<code> <mask>": ${maskEntity}`);
@@ -340,9 +389,9 @@ function parseMaskEntity(maskEntity) {
   return { code, mask };
 }
 
-function buildMinifiedData(mapping) {
+function buildMinifiedData(mapping: MaskMapping): MinifiedData {
   const countryEntries = Object.entries(mapping).sort((a, b) => a[0].localeCompare(b[0], 'en'));
-  const maskFrequency = new Map();
+  const maskFrequency = new Map<string, number>();
 
   for (const [, maskEntity] of countryEntries) {
     const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
@@ -356,8 +405,8 @@ function buildMinifiedData(mapping) {
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'en'))
     .map(([mask]) => mask);
 
-  const maskIndex = new Map(masks.map((mask, idx) => [mask, idx]));
-  const countries = {};
+  const maskIndex = new Map<string, number>(masks.map((mask, idx) => [mask, idx]));
+  const countries: Record<string, string> = {};
 
   for (const [country, maskEntity] of countryEntries) {
     const items = Array.isArray(maskEntity) ? maskEntity : [maskEntity];
@@ -382,7 +431,7 @@ function buildMinifiedData(mapping) {
   return { masks, countries };
 }
 
-function escapeJsString(value) {
+function escapeJsString(value: string): string {
   return `'${value
     .replaceAll('\\', '\\\\')
     .replaceAll("'", ESCAPED_SINGLE_QUOTE)
@@ -391,11 +440,11 @@ function escapeJsString(value) {
     .replaceAll('\t', ESCAPED_TAB)}'`;
 }
 
-function serializeJsKey(key) {
+function serializeJsKey(key: string): string {
   return JS_IDENTIFIER_RE.test(key) ? key : escapeJsString(key);
 }
 
-function serializeJsValue(value) {
+function serializeJsValue(value: SerializableJsValue): string {
   if (typeof value === 'string') return escapeJsString(value);
   if (value === null) return 'null';
   if (typeof value === 'number' || typeof value === 'boolean') return String(value);
@@ -413,7 +462,7 @@ function serializeJsValue(value) {
   throw new Error(`Unsupported value type for JS serialization: ${String(value)}`);
 }
 
-async function fetchJson(url) {
+async function fetchJson<T>(url: string | URL): Promise<T> {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(30_000),
     headers: {
@@ -426,10 +475,10 @@ async function fetchJson(url) {
     throw new Error(`HTTP ${response.status} while fetching release metadata`);
   }
 
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
-async function fetchArrayBuffer(url) {
+async function fetchArrayBuffer(url: string | URL): Promise<ArrayBuffer> {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(60_000),
     headers: {
@@ -444,14 +493,9 @@ async function fetchArrayBuffer(url) {
   return response.arrayBuffer();
 }
 
-/**
- * GitHub release metadata is external input. Only vX.Y.Z tags are accepted
- * before the value is used as a path segment in the trusted archive URL.
- *
- * @param {string} value
- * @returns {string}
- */
-function validateReleaseTag(value) {
+// GitHub release metadata is external input. Only vX.Y.Z tags are accepted
+// before the value is used as a path segment in the trusted archive URL.
+function validateReleaseTag(value: unknown): string {
   if (!value || typeof value !== 'string') {
     throw new Error('Failed to resolve latest libphonenumber release tag');
   }
@@ -464,11 +508,11 @@ function validateReleaseTag(value) {
   return tag;
 }
 
-function releaseArchiveUrl(validatedTag) {
+function releaseArchiveUrl(validatedTag: string): URL {
   return new URL(`/google/libphonenumber/archive/refs/tags/${encodeURIComponent(validatedTag)}.tar.gz`, GITHUB_ORIGIN);
 }
 
-function writeOutputs(mapping) {
+function writeOutputs(mapping: MaskMapping): void {
   const outDir = path.join(PACKAGE_ROOT, 'src');
   fs.mkdirSync(outDir, { recursive: true });
 
@@ -494,13 +538,13 @@ function writeOutputs(mapping) {
   console.info(`Wrote ${typesPath}`);
 }
 
-async function main() {
-  const latestRelease = await fetchJson(GITHUB_RELEASE_LATEST_API);
+async function main(): Promise<void> {
+  const latestRelease = await fetchJson<GitHubRelease>(GITHUB_RELEASE_LATEST_API);
   const validatedTag = validateReleaseTag(latestRelease?.tag_name);
   const archiveUrl = releaseArchiveUrl(validatedTag);
 
-  console.info(`Using libphonenumber release: ${validatedTag}`);
-  console.info(`Downloading: ${archiveUrl}`);
+  console.info('Using latest validated libphonenumber release:', validatedTag);
+  console.info('Downloading libphonenumber release archive:', archiveUrl.href);
 
   const archiveBuffer = Buffer.from(await fetchArrayBuffer(archiveUrl));
   const metadataXml = extractFileFromTarGz(archiveBuffer, METADATA_PATH_SUFFIX);

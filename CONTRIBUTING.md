@@ -162,7 +162,7 @@ phone-mask/
 │   │   │   ├── utils.ts
 │   │   │   └── index.ts
 │   │   ├── scripts/
-│   │   │   └── gen.js           # Metadata generator (Google libphonenumber release artifacts)
+│   │   │   └── gen.mts          # Metadata generator (Google libphonenumber release artifacts)
 │   │   └── tests/
 │   │       └── unit/
 │
@@ -188,9 +188,9 @@ phone-mask/
 │       └── e2e/
 │
 ├── scripts/
-│   ├── update-readme-benchmarks.mjs
-│   ├── build-coverage-pr-report.mjs
-│   └── comment-coverage-pr.mjs
+│   ├── update-readme-benchmarks.mts
+│   ├── build-coverage-pr-report.mts
+│   └── comment-coverage-pr.mts
 
 ├── demo/                        # Nuxt playground/demo app
 │   ├── app/

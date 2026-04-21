@@ -110,7 +110,7 @@ jobs:
           HEAD_COVERAGE_ROOT: ${{ github.workspace }}
           BASE_COVERAGE_ROOT: ${{ steps.baseline-worktree.outputs.path }}
           BASE_COVERAGE_REF: ${{ steps.resolve-base.outputs.base_sha }}
-        run: node ./scripts/build-coverage-pr-report.mjs
+        run: node ./scripts/build-coverage-pr-report.mts
 
       - name: Comment coverage report to PR
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' && hashFiles('coverage-pr-report.md') != '' }}
@@ -118,7 +118,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.inputs.pr_number }}
           REPO: ${{ github.repository }}
-        run: node ./scripts/comment-coverage-pr.mjs
+        run: node ./scripts/comment-coverage-pr.mts
 
       - name: Upload coverage reports to Codecov
         if: ${{ github.event_name == 'push' }}

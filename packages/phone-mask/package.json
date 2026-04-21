@@ -65,7 +65,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run --config vitest.config.ts",
     "test:unit:coverage": "vitest run --config vitest.config.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
-    "gen": "node scripts/gen.js"
+    "gen": "node scripts/gen.mts"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.0"
