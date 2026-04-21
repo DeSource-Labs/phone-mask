@@ -1,9 +1,9 @@
 /// <reference types="vitest/globals" />
 import { testIndexImports } from '@common/tests/unit/index';
-import { install } from '../../src/index';
-import defaultExport from '../../src/index';
 import * as indexModule from '../../src/index';
 import * as coreModule from '../../src/core';
+
+const { default: defaultExport, install } = indexModule;
 
 testIndexImports({
   suiteName: 'vue',

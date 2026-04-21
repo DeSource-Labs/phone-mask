@@ -19,7 +19,8 @@ import { fileURLToPath } from 'node:url';
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const GITHUB_RELEASE_LATEST_API = 'https://api.github.com/repos/google/libphonenumber/releases/latest';
-const RELEASE_ARCHIVE_URL = (tag) => `https://github.com/google/libphonenumber/archive/refs/tags/${tag}.tar.gz`;
+const GITHUB_ORIGIN = 'https://github.com';
+const LIBPHONENUMBER_RELEASE_TAG_RE = /^v\d+\.\d+\.\d+$/;
 const METADATA_PATH_SUFFIX = '/resources/PhoneNumberMetadata.xml';
 const JS_IDENTIFIER_RE = /^[A-Za-z_$][0-9A-Za-z_$]*$/;
 const ESCAPED_SINGLE_QUOTE = String.raw`\'`;
@@ -422,7 +423,7 @@ async function fetchJson(url) {
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} for ${url}`);
+    throw new Error(`HTTP ${response.status} while fetching release metadata`);
   }
 
   return response.json();
@@ -437,10 +438,34 @@ async function fetchArrayBuffer(url) {
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status} for ${url}`);
+    throw new Error(`HTTP ${response.status} while downloading release archive`);
   }
 
   return response.arrayBuffer();
+}
+
+/**
+ * GitHub release metadata is external input. Only vX.Y.Z tags are accepted
+ * before the value is used as a path segment in the trusted archive URL.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+function validateReleaseTag(value) {
+  if (!value || typeof value !== 'string') {
+    throw new Error('Failed to resolve latest libphonenumber release tag');
+  }
+
+  const tag = value.trim();
+  if (!LIBPHONENUMBER_RELEASE_TAG_RE.test(tag)) {
+    throw new Error('Unexpected libphonenumber release tag format');
+  }
+
+  return tag;
+}
+
+function releaseArchiveUrl(validatedTag) {
+  return new URL(`/google/libphonenumber/archive/refs/tags/${encodeURIComponent(validatedTag)}.tar.gz`, GITHUB_ORIGIN);
 }
 
 function writeOutputs(mapping) {
@@ -471,13 +496,10 @@ function writeOutputs(mapping) {
 
 async function main() {
   const latestRelease = await fetchJson(GITHUB_RELEASE_LATEST_API);
-  const tag = latestRelease?.tag_name;
-  if (!tag || typeof tag !== 'string') {
-    throw new Error('Failed to resolve latest libphonenumber release tag');
-  }
+  const validatedTag = validateReleaseTag(latestRelease?.tag_name);
+  const archiveUrl = releaseArchiveUrl(validatedTag);
 
-  const archiveUrl = RELEASE_ARCHIVE_URL(tag);
-  console.info(`Using libphonenumber release: ${tag}`);
+  console.info(`Using libphonenumber release: ${validatedTag}`);
   console.info(`Downloading: ${archiveUrl}`);
 
   const archiveBuffer = Buffer.from(await fetchArrayBuffer(archiveUrl));
@@ -493,7 +515,7 @@ async function main() {
 
 try {
   await main();
-} catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
+} catch {
+  console.error('Failed to generate phone mask data');
   process.exit(1);
 }
