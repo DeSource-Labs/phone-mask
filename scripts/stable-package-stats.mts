@@ -13,11 +13,16 @@ type ExecFileAsync = (
   args: string[],
   options?: { cwd?: string; timeout?: number }
 ) => Promise<{ stdout: string; stderr: string }>;
+type InstallOverrides = Record<string, string>;
 type StatsOptions = {
   installTimeout?: number;
+  installSpec?: string;
+  installOverrides?: InstallOverrides;
 };
 type NormalizedStatsOptions = {
   installTimeout: number;
+  installSpec?: string;
+  installOverrides?: InstallOverrides;
 };
 type PackageStatsAsset = {
   name?: string;
@@ -65,8 +70,19 @@ type RspackStatsLike = {
 };
 type SvelteMeasureInput = {
   pkg: string;
+  installSpec?: string;
+  installOverrides?: InstallOverrides;
   installTimeout: number;
   entrySource: string;
+};
+type TempInstallManifest = {
+  name: string;
+  private: true;
+  version: string;
+  type: 'module';
+  pnpm?: {
+    overrides: InstallOverrides;
+  };
 };
 
 const execFileAsync = promisify(execFile) as ExecFileAsync;
@@ -82,7 +98,29 @@ const ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
 function normalizeOptions(options: StatsOptions | undefined): NormalizedStatsOptions {
   const rawInstallTimeout = options?.installTimeout;
   const installTimeout = Number.isFinite(rawInstallTimeout) ? Number(rawInstallTimeout) : DEFAULT_INSTALL_TIMEOUT_MS;
-  return { installTimeout };
+  const installSpec = typeof options?.installSpec === 'string' && options.installSpec ? options.installSpec : undefined;
+  const installOverrides =
+    options?.installOverrides && Object.keys(options.installOverrides).length > 0
+      ? options.installOverrides
+      : undefined;
+  return { installTimeout, installSpec, installOverrides };
+}
+
+function createTempInstallManifest(installOverrides: InstallOverrides | undefined): TempInstallManifest {
+  const manifest: TempInstallManifest = {
+    name: 'phone-mask-stats-temp',
+    private: true,
+    version: '0.0.0',
+    type: 'module'
+  };
+
+  if (installOverrides) {
+    manifest.pnpm = {
+      overrides: installOverrides
+    };
+  }
+
+  return manifest;
 }
 
 async function removeDirSafe(dirPath: string): Promise<void> {
@@ -106,15 +144,11 @@ async function readInstalledManifest(installRoot: string, pkg: string): Promise<
 
 async function createInstallRoot(pkg: string, options: NormalizedStatsOptions): Promise<InstallRoot> {
   const installRoot = await mkdtemp(path.join(tmpdir(), 'phone-mask-stats-'));
-  const manifest = {
-    name: 'phone-mask-stats-temp',
-    private: true,
-    version: '0.0.0',
-    type: 'module'
-  };
+  const dependencySpec = options.installSpec ?? pkg;
+  const manifest = createTempInstallManifest(options.installOverrides);
 
   await writeFile(path.join(installRoot, 'package.json'), JSON.stringify(manifest, null, 2));
-  await execFileAsync('pnpm', ['add', '-D', '--ignore-scripts', '--save-exact', pkg], {
+  await execFileAsync('pnpm', ['add', '-D', '--ignore-scripts', '--save-exact', dependencySpec], {
     cwd: installRoot,
     timeout: options.installTimeout
   });
@@ -485,16 +519,13 @@ function addUnresolvedPackagesToExternalSet(unresolved: Set<string>, externalPac
 }
 
 async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<MeasuredSize | null> {
-  const { pkg, installTimeout, entrySource } = input;
+  const { pkg, installSpec, installOverrides, installTimeout, entrySource } = input;
   const tmpRoot = await mkdtemp(path.join(tmpdir(), 'phone-mask-svelte-stats-'));
+  const dependencySpec = installSpec ?? pkg;
 
   try {
-    const packageJson = {
-      name: 'phone-mask-svelte-stats',
-      private: true,
-      version: '0.0.0',
-      type: 'module'
-    };
+    const packageJson = createTempInstallManifest(installOverrides);
+    packageJson.name = 'phone-mask-svelte-stats';
 
     await writeFile(path.join(tmpRoot, 'package.json'), JSON.stringify(packageJson, null, 2));
     await writeFile(
@@ -529,7 +560,7 @@ async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<Measure
         `vite@${SVELTE_FALLBACK_VITE_VERSION}`,
         `@sveltejs/vite-plugin-svelte@${SVELTE_FALLBACK_PLUGIN_VERSION}`,
         `svelte@${SVELTE_FALLBACK_SVELTE_VERSION}`,
-        pkg
+        dependencySpec
       ],
       { cwd: tmpRoot, timeout: installTimeout }
     );
@@ -566,6 +597,8 @@ async function measurePackageFallback(pkg: string, options: NormalizedStatsOptio
     if (hasSvelteOnlyRootExport(manifest)) {
       return await measureWithSvelteVite({
         pkg,
+        installSpec: options.installSpec,
+        installOverrides: options.installOverrides,
         installTimeout: options.installTimeout,
         entrySource
       });
