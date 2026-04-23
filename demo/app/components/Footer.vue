@@ -43,6 +43,7 @@ const { context7Ready, toggleContext7 } = useContext7([context7Small, context7Me
 
 <style scoped lang="scss">
 .footer {
+  z-index: 1;
   padding: 0.5rem 2rem;
   display: flex;
   align-items: center;
@@ -55,7 +56,6 @@ const { context7Ready, toggleContext7 } = useContext7([context7Small, context7Me
 
   &__center {
     display: flex;
-    align-items: center;
     gap: 0.6rem;
   }
 
@@ -95,6 +95,22 @@ const { context7Ready, toggleContext7 } = useContext7([context7Small, context7Me
     :deep(.context7__small) {
       display: flex;
     }
+  }
+}
+
+@media (max-height: 560px) {
+  .footer {
+    padding: 0.25rem 0.5rem;
+    gap: 0.5rem;
+
+    &__socials {
+      padding: 0.55rem;
+      gap: 0.4rem;
+    }
+  }
+
+  .legal {
+    display: none;
   }
 }
 </style>

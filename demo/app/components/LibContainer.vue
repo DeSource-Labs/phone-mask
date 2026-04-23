@@ -89,6 +89,8 @@ function onSelected(lib: Library) {
 
 <style scoped lang="scss">
 .lib {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -184,6 +186,30 @@ function onSelected(lib: Library) {
   }
   .lib-command pre {
     font-size: clamp(0.6rem, 0.252rem + 1.74vw, 0.7rem);
+  }
+}
+@media (max-height: 560px) {
+  .lib {
+    min-width: min(360px, 48vw);
+    gap: 0.75rem;
+  }
+
+  .lib-container {
+    gap: 0.75rem;
+  }
+
+  .lib-command pre {
+    font-size: clamp(0.68rem, 1.6vw, 0.82rem);
+  }
+}
+@media (max-height: 460px) {
+  .lib {
+    min-width: min(330px, 46vw);
+  }
+
+  .lib-item {
+    padding: 0.45rem 0.75rem;
+    font-size: clamp(0.68rem, 1.4vw, 0.76rem);
   }
 }
 </style>

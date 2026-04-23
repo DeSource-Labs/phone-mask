@@ -110,4 +110,36 @@ watch(
     grid-area: h1;
   }
 }
+
+@media (max-height: 560px) {
+  .header {
+    margin-top: 0.35rem;
+    margin-bottom: 0.85rem;
+    gap: 0.25rem;
+  }
+
+  .header__title h1 {
+    font-size: clamp(2.2rem, 5.5vw, 3.5rem);
+  }
+
+  .header__subtitle {
+    font-size: clamp(1.5rem, 2.8vw, 2rem);
+  }
+
+  .examples,
+  .stars {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-height: 460px) {
+  .header {
+    margin-top: 0.25rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .header__subtitle {
+    display: none;
+  }
+}
 </style>
