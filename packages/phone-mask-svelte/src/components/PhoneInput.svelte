@@ -50,7 +50,7 @@
   let liveEl = $state<HTMLDivElement | null>(null);
   let dropdownEl = $state<HTMLDivElement | null>(null);
   let searchEl = $state<HTMLInputElement | null>(null);
-  let selectorEl = $state<HTMLDivElement | null>(null);
+  let selectorEl = $state<HTMLButtonElement | null>(null);
 
   // --- Composables (keep as objects to preserve reactive getter chains) ---
   const countryData = useCountry({
@@ -99,6 +99,8 @@
     dropdownId = Math.random().toString(36).slice(2, 10);
   });
   const listboxId = $derived(`pi-options-${dropdownId}`);
+  const popoverId = $derived(`pi-dropdown-${dropdownId}`);
+  const anchorName = $derived(`--pi-anchor-${dropdownId}`);
   const getOptionId = (idx: number) => `pi-option-${dropdownId}-${idx}`;
   const activeOptionId = $derived(
     selectorData.dropdownOpen && selectorData.filteredCountries[selectorData.focusedIndex]
@@ -178,12 +180,8 @@
   );
 
   const actionsCount = $derived(+showCopyButton + +showClearButton + (actionsbefore ? 1 : 0));
-
-  // Portal action — appends dropdown to document.body
-  function portal(node: HTMLElement) {
-    document.body.appendChild(node);
-    return { destroy: () => node.remove() };
-  }
+  const canOpenDropdown = $derived(selectorData.hasDropdown && !inactive);
+  const renderDropdown = $derived(selectorData.hasDropdown && (!inactive || selectorData.dropdownOpen));
 </script>
 
 <div
@@ -191,27 +189,32 @@
   class={rootClasses}
   {...restProps}
   style:--pi-actions-count={actionsCount}
+  style:anchor-name={anchorName}
   role="group"
   aria-label="Phone input with country selector"
 >
   <!-- Country Selector -->
-  <div bind:this={selectorEl} class="pi-selector">
+  <div class="pi-selector">
     <button
+      bind:this={selectorEl}
       type="button"
       class="pi-selector-btn"
-      class:no-dropdown={!selectorData.hasDropdown || readonly}
+      class:no-dropdown={!canOpenDropdown}
       {disabled}
-      tabindex={inactive || !selectorData.hasDropdown ? -1 : undefined}
+      tabindex={canOpenDropdown ? undefined : -1}
       aria-label="Selected country: {countryData.country.name}"
-      aria-expanded={selectorData.dropdownOpen}
-      aria-haspopup={selectorData.hasDropdown ? 'listbox' : undefined}
+      aria-expanded={canOpenDropdown && selectorData.dropdownOpen}
+      aria-haspopup={canOpenDropdown ? 'listbox' : undefined}
+      aria-controls={canOpenDropdown ? popoverId : undefined}
+      onpointerdown={selectorData.handleSelectorPointerDown}
+      onkeydown={selectorData.handleSelectorKeydown}
       onclick={selectorData.toggleDropdown}
     >
       <span class="pi-flag" role="img" aria-label="{countryData.country.name} flag">
         {#if flag}{@render flag(countryData.country)}{:else}{countryData.country.flag}{/if}
       </span>
       <span class="pi-code">{countryData.country.code}</span>
-      {#if !inactive && selectorData.hasDropdown}
+      {#if canOpenDropdown}
         <svg
           class="pi-chevron"
           class:is-open={selectorData.dropdownOpen}
@@ -315,60 +318,59 @@
   </div>
 </div>
 
-<!-- Dropdown — portaled to body -->
-{#if selectorData.dropdownOpen}
+<!-- Dropdown -->
+{#if renderDropdown}
   <div
-    use:portal
+    id={popoverId}
     bind:this={dropdownEl}
+    popover="auto"
     class="phone-dropdown {dropdownClass} {themeData.themeClass}"
-    class:is-closing={selectorData.isClosing}
-    style:position="absolute"
-    style:top={selectorData.dropdownStyle.top}
-    style:left={selectorData.dropdownStyle.left}
-    style:width={selectorData.dropdownStyle.width}
+    style:position-anchor={anchorName}
     role="dialog"
     aria-modal="false"
     aria-label="Select country"
-    onanimationend={selectorData.handleDropdownAnimationEnd}
   >
-    <div class="pi-search-wrap">
-      <input
-        bind:this={searchEl}
-        type="search"
-        class="pi-search"
-        aria-label="Search countries"
-        placeholder={searchPlaceholder}
-        aria-controls={listboxId}
-        aria-activedescendant={activeOptionId}
-        value={selectorData.search}
-        onkeydown={selectorData.handleSearchKeydown}
-        oninput={selectorData.handleSearchChange}
-      />
-    </div>
-    <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
-      {#each selectorData.filteredCountries as c, idx (c.id)}
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <li
-          id={getOptionId(idx)}
-          role="option"
-          class="pi-option"
-          class:is-focused={idx === selectorData.focusedIndex}
-          class:is-selected={c.id === countryData.country.id}
-          aria-selected={c.id === countryData.country.id}
-          title={c.name}
-          onclick={() => selectorData.selectCountry(c.id)}
-          onmouseenter={() => selectorData.setFocusedIndex(idx)}
-        >
-          <span class="pi-flag" role="img" aria-label="{c.name} flag">
-            {#if flag}{@render flag(c)}{:else}{c.flag}{/if}
-          </span>
-          <span class="pi-opt-name">{c.name}</span>
-          <span class="pi-opt-code">{c.code}</span>
-        </li>
-      {:else}
-        <li class="pi-empty">{noResultsText}</li>
-      {/each}
-    </ul>
+    {#if selectorData.dropdownOpen}
+      <div class="pi-search-wrap">
+        <input
+          bind:this={searchEl}
+          id="pi-search"
+          type="search"
+          class="pi-search"
+          aria-label="Search countries"
+          placeholder={searchPlaceholder}
+          aria-controls={listboxId}
+          aria-activedescendant={activeOptionId}
+          value={selectorData.search}
+          onkeydown={selectorData.handleSearchKeydown}
+          oninput={selectorData.handleSearchChange}
+        />
+      </div>
+      <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
+        {#each selectorData.filteredCountries as c, idx (c.id)}
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <li
+            id={getOptionId(idx)}
+            role="option"
+            class="pi-option"
+            class:is-focused={idx === selectorData.focusedIndex}
+            class:is-selected={c.id === countryData.country.id}
+            aria-selected={c.id === countryData.country.id}
+            title={c.name}
+            onclick={() => selectorData.selectCountry(c.id)}
+            onmouseenter={() => selectorData.setFocusedIndex(idx)}
+          >
+            <span class="pi-flag" role="img" aria-label="{c.name} flag">
+              {#if flag}{@render flag(c)}{:else}{c.flag}{/if}
+            </span>
+            <span class="pi-opt-name">{c.name}</span>
+            <span class="pi-opt-code">{c.code}</span>
+          </li>
+        {:else}
+          <li class="pi-empty">{noResultsText}</li>
+        {/each}
+      </ul>
+    {/if}
   </div>
 {/if}
 
