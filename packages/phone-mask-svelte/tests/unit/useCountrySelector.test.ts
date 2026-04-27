@@ -4,6 +4,9 @@ import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/us
 import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { createState, tools, withSetup } from './setup/tools.svelte';
 import { createRect } from '@common/tests/unit/setup/domRect';
+import { attachLightDismiss } from '@common/tests/unit/setup/popover';
+
+type CountrySelectorResult = ReturnType<typeof useCountrySelector>;
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
@@ -11,8 +14,8 @@ function setup(options: SetupOptions = {}) {
   const inactiveGetter = inactive === undefined ? undefined : () => inactive;
 
   const rootEl = document.createElement('div');
-  let dropdownEl: HTMLDivElement | null = null;
-  let selectorEl: HTMLDivElement | null = null;
+  const dropdownEl = document.createElement('div');
+  const selectorEl = document.createElement('button');
 
   const searchEl = document.createElement('input');
   vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
@@ -20,7 +23,10 @@ function setup(options: SetupOptions = {}) {
   const onSelectCountry = vi.fn();
   const onAfterSelect = vi.fn();
 
-  const { result, unmount } = withSetup(() =>
+  document.body.append(rootEl, dropdownEl, selectorEl);
+  const cleanupLightDismiss = attachLightDismiss(dropdownEl, selectorEl);
+
+  const { result: rawResult, unmount } = withSetup(() =>
     useCountrySelector({
       rootRef: () => rootEl,
       dropdownRef: () => dropdownEl,
@@ -34,10 +40,29 @@ function setup(options: SetupOptions = {}) {
     })
   );
 
+  const result = new Proxy(rawResult as CountrySelectorResult, {
+    get(target, key, receiver) {
+      if (key === 'openDropdown') {
+        return () => {
+          target.handleSelectorKeydown({ key: 'Enter' } as never);
+          target.openDropdown();
+        };
+      }
+
+      return Reflect.get(target, key, receiver);
+    }
+  });
+
   return {
     result,
-    simulateCloseComplete: () => result.handleDropdownAnimationEnd(),
-    unmount,
+    simulateCloseComplete: () => {},
+    unmount: () => {
+      cleanupLightDismiss();
+      rootEl.remove();
+      dropdownEl.remove();
+      selectorEl.remove();
+      unmount();
+    },
     onSelectCountry,
     onAfterSelect,
     searchEl
@@ -48,12 +73,14 @@ testUseCountrySelector(setup, tools);
 
 function setupWithDom(initialCountryOption?: string) {
   const countryOptionState = createState<string | undefined>(initialCountryOption);
+  const inactiveState = createState(false);
 
   const rootEl = document.createElement('div');
   const rootState = createState<HTMLDivElement | null>(rootEl);
   const rootRectSpy = vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
 
   const dropdownEl = document.createElement('div');
+  const dropdownState = createState<HTMLDivElement | null>(dropdownEl);
   const list = document.createElement('ul');
   const optionA = document.createElement('li');
   const optionB = document.createElement('li');
@@ -71,19 +98,22 @@ function setupWithDom(initialCountryOption?: string) {
   });
 
   const searchEl = document.createElement('input');
-  vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
-  const selectorEl = document.createElement('div');
+  const searchFocusSpy = vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const selectorEl = document.createElement('button');
+  const selectorState = createState<HTMLButtonElement | null>(selectorEl);
 
   document.body.append(rootEl, dropdownEl, selectorEl);
+  const cleanupLightDismiss = attachLightDismiss(dropdownEl, selectorEl);
 
   const { result, unmount } = withSetup(() =>
     useCountrySelector({
       rootRef: () => rootState.value,
-      dropdownRef: () => dropdownEl,
+      dropdownRef: () => dropdownState.value,
       searchRef: () => searchEl,
-      selectorRef: () => selectorEl,
+      selectorRef: () => selectorState.value,
       locale: () => 'en',
       countryOption: () => countryOptionState.value,
+      inactive: () => inactiveState.value,
       onSelectCountry: vi.fn()
     })
   );
@@ -91,6 +121,7 @@ function setupWithDom(initialCountryOption?: string) {
   return {
     result,
     unmount: () => {
+      cleanupLightDismiss();
       rootEl.remove();
       dropdownEl.remove();
       selectorEl.remove();
@@ -103,6 +134,7 @@ function setupWithDom(initialCountryOption?: string) {
     listRectSpy,
     optionARectSpy,
     optionBRectSpy,
+    searchFocusSpy,
     dropdownTarget: dropdownEl,
     selectorTarget: selectorEl,
     flushAsync: async () => {
@@ -112,12 +144,18 @@ function setupWithDom(initialCountryOption?: string) {
     setCountryOptionFixed: () => {
       countryOptionState.value = 'US';
     },
+    setInactive: () => {
+      inactiveState.value = true;
+    },
     setRootUnavailable: () => {
       rootState.value = null;
       globalThis.dispatchEvent(new Event('resize'));
     },
-    completeClose: () => {
-      result.handleDropdownAnimationEnd();
+    setDropdownUnavailable: () => {
+      dropdownState.value = null;
+    },
+    setSelectorUnavailable: () => {
+      selectorState.value = null;
     }
   };
 }

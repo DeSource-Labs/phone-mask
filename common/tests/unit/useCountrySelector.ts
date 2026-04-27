@@ -28,9 +28,7 @@ export interface CountrySelectorSetupResult {
     handleSearchKeydown: (e: any) => void;
   };
   /**
-   * Vue: no-op — close is immediate.
-   * React: calls handleDropdownAnimationEnd to complete the close animation.
-   * Must be called in a separate act() after closeDropdown/selectCountry/Escape.
+   * No-op for native popover implementations; kept for older animation-based implementations.
    */
   simulateCloseComplete: () => void;
   unmount: () => void;
@@ -117,9 +115,42 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
           vi.useRealTimers();
         }
       });
+
+      it('does nothing when inactive', async () => {
+        const { result, unmount } = setup({ inactive: true });
+
+        await act(async () => {
+          result.openDropdown();
+        });
+
+        expect(toValue(result.dropdownOpen)).toBe(false);
+        unmount();
+      });
+
+      it('does nothing when hasDropdown is false', async () => {
+        const { result, unmount } = setup({ countryOption: 'US' });
+
+        await act(async () => {
+          result.openDropdown();
+        });
+
+        expect(toValue(result.dropdownOpen)).toBe(false);
+        unmount();
+      });
     });
 
     describe('closeDropdown', () => {
+      it('does nothing when already closed', async () => {
+        const { result, unmount } = setup();
+
+        await act(async () => {
+          result.closeDropdown();
+        });
+
+        expect(toValue(result.dropdownOpen)).toBe(false);
+        unmount();
+      });
+
       it('closes the dropdown', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
@@ -463,6 +494,32 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         unmount();
       });
 
+      it('Enter does nothing when no focused country exists', async () => {
+        const { result, onSelectCountry, unmount } = setup();
+
+        await act(async () => {
+          result.handleSearchChange({ target: { value: 'zzzz-no-country' } });
+        });
+
+        await act(async () => {
+          result.handleSearchKeydown({ key: 'Enter', preventDefault: vi.fn() });
+        });
+
+        expect(onSelectCountry).not.toHaveBeenCalled();
+        unmount();
+      });
+
+      it('ignores unrelated keys', async () => {
+        const { result, unmount } = setup();
+
+        await act(async () => {
+          result.handleSearchKeydown({ key: 'Tab', preventDefault: vi.fn() });
+        });
+
+        expect(toValue(result.focusedIndex)).toBe(0);
+        unmount();
+      });
+
       it('Escape closes the dropdown', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
@@ -471,7 +528,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         });
 
         await act(async () => {
-          result.handleSearchKeydown({ key: 'Escape', preventDefault: vi.fn() });
+          globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
         });
 
         await act(async () => {

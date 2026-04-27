@@ -193,6 +193,27 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       unmount();
     });
 
+    it('uses pointer-open focus behavior for mouse users', async () => {
+      const { unmount } = await setup({
+        value: '2025550123',
+        detect: false
+      });
+
+      const selectorButton = screen.getByRole('button', { name: /Selected country:/i });
+
+      await fireEvent.pointerDown(selectorButton, { pointerType: 'mouse' });
+      await fireEvent.click(selectorButton);
+
+      const searchInput = await waitFor(() => {
+        const input = document.body.querySelector('.pi-search') as HTMLInputElement | null;
+        expect(input).not.toBeNull();
+        return input!;
+      });
+
+      await waitFor(() => expect(document.activeElement).toBe(searchInput));
+      unmount();
+    });
+
     it('applies explicit input id and name for form/autofill integration', async () => {
       const { unmount } = await setup({
         detect: false,
@@ -302,6 +323,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       expect(selectorButton?.className).toContain('no-dropdown');
       expect(selectorButton?.disabled).toBe(true);
       expect(selectorButton?.getAttribute('tabindex')).toBe('-1');
+      expect(document.body.querySelector('.phone-dropdown')).toBeNull();
 
       // Disabled inputs hide actionable buttons regardless of value.
       expect(container.querySelector('.pi-btn-copy')).toBeNull();

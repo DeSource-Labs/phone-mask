@@ -18,6 +18,7 @@ export interface TestTools {
   };
   fireEvent: {
     click(element: Element): FireEventReturn;
+    pointerDown(element: Element, options: { pointerType: string }): FireEventReturn;
     mouseEnter(element: Element): FireEventReturn;
     input(element: Element, options: { target: { value: string } }): FireEventReturn;
     /** `update` is **Vue only** method that should be used instead of `input` */

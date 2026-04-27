@@ -20,7 +20,14 @@ class TestToggleEvent extends Event {
   }
 }
 
-const OPEN_ATTR = 'data-popover-open';
+export const OPEN_ATTR = 'data-popover-open';
+
+const openPopovers: HTMLElement[] = [];
+
+function removeOpenPopover(popover: HTMLElement) {
+  const index = openPopovers.indexOf(popover);
+  if (index !== -1) openPopovers.splice(index, 1);
+}
 
 if (!('ToggleEvent' in globalThis)) {
   Object.defineProperty(globalThis, 'ToggleEvent', {
@@ -44,6 +51,7 @@ if (!('showPopover' in HTMLElement.prototype)) {
         })
       );
       this.setAttribute(OPEN_ATTR, '');
+      openPopovers.push(this);
       this.dispatchEvent(
         new TestToggleEvent('toggle', {
           oldState: 'closed',
@@ -70,6 +78,7 @@ if (!('hidePopover' in HTMLElement.prototype)) {
         })
       );
       this.removeAttribute(OPEN_ATTR);
+      removeOpenPopover(this);
       this.dispatchEvent(
         new TestToggleEvent('toggle', {
           oldState: 'open',
@@ -81,7 +90,35 @@ if (!('hidePopover' in HTMLElement.prototype)) {
   });
 }
 
+globalThis.addEventListener(
+  'keydown',
+  (event) => {
+    if ((event as KeyboardEvent).key !== 'Escape') return;
+
+    openPopovers.at(-1)?.hidePopover();
+  },
+  true
+);
+
+export function attachLightDismiss(dropdownEl: HTMLElement, selectorEl: HTMLElement) {
+  const onWindowClick = (event: Event) => {
+    if (!dropdownEl.hasAttribute(OPEN_ATTR)) return;
+
+    const target = event.target;
+    if (target instanceof Node && (dropdownEl.contains(target) || selectorEl.contains(target))) return;
+
+    dropdownEl.hidePopover();
+  };
+
+  globalThis.addEventListener('click', onWindowClick, true);
+
+  return () => {
+    globalThis.removeEventListener('click', onWindowClick, true);
+  };
+}
+
 afterEach(() => {
+  openPopovers.splice(0);
   document.querySelectorAll(`[${OPEN_ATTR}]`).forEach((el) => {
     el.removeAttribute(OPEN_ATTR);
   });

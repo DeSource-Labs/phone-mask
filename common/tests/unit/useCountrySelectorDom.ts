@@ -6,17 +6,19 @@ import { createRect } from './setup/domRect';
 export interface CountrySelectorDomSetupResult {
   result: {
     dropdownOpen: MaybeRef<boolean>;
-    isClosing?: MaybeRef<boolean>;
-    dropdownStyle?: MaybeRef<{
-      top?: string | number;
-      left?: string | number;
-      width?: string | number;
-    }>;
+    search: MaybeRef<string>;
+    focusedIndex: MaybeRef<number>;
     openDropdown: () => void;
+    toggleDropdown: () => void;
     setFocusedIndex: (index: number) => void;
-    handleDropdownAnimationEnd?: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleSearchChange: (e: any) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleSearchKeydown: (e: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleSelectorPointerDown: (e: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleSelectorKeydown: (e: any) => void;
   };
   unmount: () => void;
   scrollToSpy: Mock;
@@ -25,10 +27,13 @@ export interface CountrySelectorDomSetupResult {
   optionBRectSpy: { mockReturnValue: (value: DOMRect) => unknown };
   rootRectSpy?: { mockReturnValue: (value: DOMRect) => unknown };
   list?: HTMLElement;
+  searchFocusSpy: Mock;
   flushAsync: () => Promise<void>;
   setCountryOptionFixed?: () => void | Promise<void>;
+  setInactive?: () => void | Promise<void>;
   setRootUnavailable?: () => void | Promise<void>;
-  completeClose?: () => void;
+  setDropdownUnavailable?: () => void | Promise<void>;
+  setSelectorUnavailable?: () => void | Promise<void>;
   dropdownTarget: HTMLElement;
   selectorTarget: HTMLElement;
 }
@@ -40,6 +45,19 @@ export function testUseCountrySelectorDomBehavior(
   { act, toValue }: TestTools
 ): void {
   describe('useCountrySelector DOM behavior', () => {
+    let originalInnerHeight = globalThis.innerHeight;
+
+    beforeEach(() => {
+      originalInnerHeight = globalThis.innerHeight;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(globalThis, 'innerHeight', {
+        value: originalInnerHeight,
+        configurable: true
+      });
+    });
+
     it('scrolls focused option into view when navigating down', async () => {
       const ctx = setupWithDom();
 
@@ -94,6 +112,96 @@ export function testUseCountrySelectorDomBehavior(
       ctx.unmount();
     });
 
+    it('opens the native popover and writes the option max height', async () => {
+      const ctx = setupWithDom();
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+
+      expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(true);
+      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
+      ctx.unmount();
+    });
+
+    it('does not open when dropdown or selector refs are unavailable', async () => {
+      const missingDropdown = setupWithDom();
+      if (!missingDropdown.setDropdownUnavailable) {
+        missingDropdown.unmount();
+        return;
+      }
+
+      await act(async () => {
+        await missingDropdown.setDropdownUnavailable?.();
+        missingDropdown.result.openDropdown();
+      });
+
+      expect(toValue(missingDropdown.result.dropdownOpen)).toBe(false);
+      expect(missingDropdown.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
+      missingDropdown.unmount();
+
+      const missingSelector = setupWithDom();
+      if (!missingSelector.setSelectorUnavailable) {
+        missingSelector.unmount();
+        return;
+      }
+
+      await act(async () => {
+        await missingSelector.setSelectorUnavailable?.();
+        missingSelector.result.openDropdown();
+      });
+
+      expect(toValue(missingSelector.result.dropdownOpen)).toBe(false);
+      expect(missingSelector.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
+      missingSelector.unmount();
+    });
+
+    it('limits option height to the largest available viewport side', async () => {
+      const ctx = setupWithDom();
+      if (!ctx.rootRectSpy) {
+        ctx.unmount();
+        return;
+      }
+
+      Object.defineProperty(globalThis, 'innerHeight', {
+        value: 200,
+        configurable: true
+      });
+      ctx.rootRectSpy.mockReturnValue(createRect(150, 180, 5, 120));
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+
+      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('78px');
+      ctx.unmount();
+    });
+
+    it('recomputes option height on resize while open', async () => {
+      const ctx = setupWithDom();
+      if (!ctx.rootRectSpy) {
+        ctx.unmount();
+        return;
+      }
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+
+      ctx.rootRectSpy.mockReturnValue(createRect(150, 180, 5, 200));
+      Object.defineProperty(globalThis, 'innerHeight', {
+        value: 200,
+        configurable: true
+      });
+
+      await act(async () => {
+        globalThis.dispatchEvent(new Event('resize'));
+      });
+
+      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('78px');
+      ctx.unmount();
+    });
+
     it('closes when country option becomes fixed while open', async () => {
       const ctx = setupWithDom();
       if (!ctx.setCountryOptionFixed) {
@@ -111,108 +219,166 @@ export function testUseCountrySelectorDomBehavior(
       });
       await ctx.flushAsync();
 
-      await act(async () => {
-        ctx.completeClose?.();
-      });
-
       expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+      expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
       ctx.unmount();
     });
 
-    it('does not close when clicking inside dropdown', async () => {
+    it('closes when the selector becomes inactive while open', async () => {
       const ctx = setupWithDom();
-      expect(ctx.dropdownTarget).toBeDefined();
-
-      await act(async () => {
-        ctx.result.openDropdown();
-      });
-
-      await act(async () => {
-        ctx.dropdownTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      });
-      await ctx.flushAsync();
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      ctx.unmount();
-    });
-
-    it('does not close when clicking on selector trigger area', async () => {
-      const ctx = setupWithDom();
-      expect(ctx.selectorTarget).toBeDefined();
-
-      await act(async () => {
-        ctx.result.openDropdown();
-      });
-
-      await act(async () => {
-        ctx.selectorTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      });
-      await ctx.flushAsync();
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      ctx.unmount();
-    });
-
-    it('handles click listener events with null target safely', async () => {
-      const addListenerSpy = vi.spyOn(globalThis, 'addEventListener');
-      const ctx = setupWithDom();
-
-      try {
-        await act(async () => {
-          ctx.result.openDropdown();
-        });
-
-        const clickListener = addListenerSpy.mock.calls.find(([type]) => type === 'click')?.[1];
-        expect(clickListener).toBeTypeOf('function');
-
-        expect(() => {
-          (clickListener as EventListener)({ target: null } as unknown as Event);
-        }).not.toThrow();
-        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      } finally {
-        addListenerSpy.mockRestore();
-        ctx.unmount();
-      }
-    });
-
-    it('ignores scroll reposition events coming from inside dropdown', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.list || !ctx.rootRectSpy || ctx.result.dropdownStyle === undefined) {
+      if (!ctx.setInactive) {
         ctx.unmount();
         return;
       }
 
-      expect(ctx.list).toBeDefined();
-      expect(ctx.rootRectSpy).toBeDefined();
-      expect(ctx.result.dropdownStyle).toBeDefined();
-
       await act(async () => {
         ctx.result.openDropdown();
       });
-      expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
-
-      ctx.rootRectSpy.mockReturnValue(createRect(100, 140, 5, 200));
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
 
       await act(async () => {
-        ctx.list!.dispatchEvent(new Event('scroll'));
+        ctx.setInactive?.();
       });
       await ctx.flushAsync();
 
-      // Style should remain unchanged because internal scroll events are ignored.
-      expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
-      expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
+      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+      expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
       ctx.unmount();
     });
 
-    it('safely ignores resize positioning when root ref is unavailable', async () => {
+    it('keeps the search unfocused on touch open', async () => {
       const ctx = setupWithDom();
-      expect(ctx.setRootUnavailable).toBeDefined();
-      expect(ctx.result.dropdownStyle).toBeDefined();
+
+      await act(async () => {
+        ctx.result.handleSelectorPointerDown({ pointerType: 'touch' });
+        ctx.result.toggleDropdown();
+      });
+      await ctx.flushAsync();
+
+      expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
+      ctx.unmount();
+    });
+
+    it('focuses the search input on mouse open', async () => {
+      const ctx = setupWithDom();
+
+      await act(async () => {
+        ctx.result.handleSelectorPointerDown({ pointerType: 'mouse' });
+        ctx.result.toggleDropdown();
+      });
+      await ctx.flushAsync();
+
+      expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+      ctx.unmount();
+    });
+
+    it('focuses the search input on keyboard open', async () => {
+      const ctx = setupWithDom();
+
+      await act(async () => {
+        ctx.result.handleSelectorKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
+      });
+      await ctx.flushAsync();
+
+      expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      ctx.unmount();
+    });
+
+    it('ignores unrelated selector keys', async () => {
+      const ctx = setupWithDom();
+
+      await act(async () => {
+        ctx.result.handleSelectorKeydown({ key: 'Tab', preventDefault: vi.fn() });
+      });
+      await ctx.flushAsync();
+
+      expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
+      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+      ctx.unmount();
+    });
+
+    it('focuses the search input when ArrowDown is pressed while already open', async () => {
+      const ctx = setupWithDom();
 
       await act(async () => {
         ctx.result.openDropdown();
       });
-      expect(toValue(ctx.result.dropdownStyle!).width).toBe('120px');
+      await ctx.flushAsync();
+      ctx.searchFocusSpy.mockClear();
+
+      await act(async () => {
+        ctx.result.handleSelectorKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
+      });
+      await ctx.flushAsync();
+
+      expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      ctx.unmount();
+    });
+
+    it('preserves keyboard focus behavior when Space primes the selector before opening', async () => {
+      const ctx = setupWithDom();
+
+      await act(async () => {
+        ctx.result.handleSelectorKeydown({ key: ' ', preventDefault: vi.fn() });
+        ctx.result.toggleDropdown();
+      });
+      await ctx.flushAsync();
+
+      expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      ctx.unmount();
+    });
+
+    it('updates state when the popover closes externally', async () => {
+      const ctx = setupWithDom();
+
+      await act(async () => {
+        ctx.result.handleSelectorKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
+      });
+      await ctx.flushAsync();
+
+      await act(async () => {
+        ctx.result.handleSearchChange({ target: { value: 'uni' } });
+        ctx.dropdownTarget.hidePopover();
+      });
+
+      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+      expect(toValue(ctx.result.search)).toBe('');
+      expect(toValue(ctx.result.focusedIndex)).toBe(0);
+      ctx.unmount();
+    });
+
+    it('falls back to current state when a toggle event has no newState', async () => {
+      const ctx = setupWithDom();
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+
+      await act(async () => {
+        ctx.dropdownTarget.dispatchEvent(new Event('toggle'));
+      });
+
+      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+
+      await act(async () => {
+        ctx.dropdownTarget.dispatchEvent(new Event('toggle'));
+      });
+
+      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      ctx.unmount();
+    });
+
+    it('safely ignores resize updates when the root ref becomes unavailable', async () => {
+      const ctx = setupWithDom();
+      expect(ctx.setRootUnavailable).toBeDefined();
+
+      await act(async () => {
+        ctx.result.openDropdown();
+      });
+      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
 
       await act(async () => {
         await ctx.setRootUnavailable!();
@@ -220,30 +386,7 @@ export function testUseCountrySelectorDomBehavior(
       await ctx.flushAsync();
 
       expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      expect(toValue(ctx.result.dropdownStyle!).width).toBe('120px');
-      ctx.unmount();
-    });
-
-    it('ignores animation end when dropdown is not closing', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.result.handleDropdownAnimationEnd) {
-        ctx.unmount(); // Test not applicable if animation end handler is not implemented (vue)
-        return;
-      }
-      await act(async () => {
-        ctx.result.openDropdown();
-      });
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-
-      await act(async () => {
-        ctx.result.handleDropdownAnimationEnd?.();
-      });
-
-      // Should remain open because isClosing was never set
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      if (ctx.result.isClosing !== undefined) {
-        expect(toValue(ctx.result.isClosing)).toBe(false);
-      }
+      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
       ctx.unmount();
     });
   });

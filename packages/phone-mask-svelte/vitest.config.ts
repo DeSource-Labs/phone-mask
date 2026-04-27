@@ -14,6 +14,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['../../common/tests/unit/setup/popover.ts'],
     include: ['tests/unit/**/*.{test,spec}.{ts,tsx}'],
     coverage: {
       include: ['src/**/*.{ts,tsx,svelte,js}'],

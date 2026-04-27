@@ -175,6 +175,12 @@ function setupWithDom(initialCountryOption?: string, initialInactive = false) {
     setRootUnavailable: () => {
       rootRef.current = null;
       globalThis.dispatchEvent(new Event('resize'));
+    },
+    setDropdownUnavailable: () => {
+      dropdownRef.current = null;
+    },
+    setSelectorUnavailable: () => {
+      selectorRef.current = null;
     }
   };
 }
@@ -261,6 +267,30 @@ describe('useCountrySelector DOM behavior (React)', () => {
     expect(ctx.dropdownTarget.dataset.side).toBeUndefined();
     expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
     ctx.unmount();
+  });
+
+  it('does not open when dropdown or selector refs are unavailable', async () => {
+    const missingDropdown = setupWithDom();
+
+    await tools.act(async () => {
+      missingDropdown.setDropdownUnavailable();
+      missingDropdown.result.openDropdown();
+    });
+
+    expect(tools.toValue(missingDropdown.result.dropdownOpen)).toBe(false);
+    expect(missingDropdown.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
+    missingDropdown.unmount();
+
+    const missingSelector = setupWithDom();
+
+    await tools.act(async () => {
+      missingSelector.setSelectorUnavailable();
+      missingSelector.result.openDropdown();
+    });
+
+    expect(tools.toValue(missingSelector.result.dropdownOpen)).toBe(false);
+    expect(missingSelector.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
+    missingSelector.unmount();
   });
 
   it('limits option height to the largest available viewport side', async () => {
@@ -373,6 +403,52 @@ describe('useCountrySelector DOM behavior (React)', () => {
     ctx.unmount();
   });
 
+  it('ignores unrelated selector keys', async () => {
+    const ctx = setupWithDom();
+
+    await tools.act(async () => {
+      ctx.result.handleSelectorKeydown({ key: 'Tab', preventDefault: vi.fn() });
+    });
+    await ctx.flushAsync();
+
+    expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
+    expect(tools.toValue(ctx.result.dropdownOpen)).toBe(false);
+    ctx.unmount();
+  });
+
+  it('focuses the search input when ArrowDown is pressed while already open', async () => {
+    const ctx = setupWithDom();
+
+    await tools.act(async () => {
+      ctx.result.openDropdown();
+    });
+    await ctx.flushAsync();
+    ctx.searchFocusSpy.mockClear();
+
+    await tools.act(async () => {
+      ctx.result.handleSelectorKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
+    });
+    await ctx.flushAsync();
+
+    expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+    expect(tools.toValue(ctx.result.dropdownOpen)).toBe(true);
+    ctx.unmount();
+  });
+
+  it('preserves keyboard focus behavior when Space primes the selector before opening', async () => {
+    const ctx = setupWithDom();
+
+    await tools.act(async () => {
+      ctx.result.handleSelectorKeydown({ key: ' ', preventDefault: vi.fn() });
+      ctx.result.toggleDropdown();
+    });
+    await ctx.flushAsync();
+
+    expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+    expect(tools.toValue(ctx.result.dropdownOpen)).toBe(true);
+    ctx.unmount();
+  });
+
   it('updates state when the popover closes externally', async () => {
     const ctx = setupWithDom();
 
@@ -389,6 +465,27 @@ describe('useCountrySelector DOM behavior (React)', () => {
     expect(tools.toValue(ctx.result.dropdownOpen)).toBe(false);
     expect(tools.toValue(ctx.result.search)).toBe('');
     expect(tools.toValue(ctx.result.focusedIndex)).toBe(0);
+    ctx.unmount();
+  });
+
+  it('falls back to current state when a toggle event has no newState', async () => {
+    const ctx = setupWithDom();
+
+    await tools.act(async () => {
+      ctx.result.openDropdown();
+    });
+
+    await tools.act(async () => {
+      ctx.dropdownTarget.dispatchEvent(new Event('toggle'));
+    });
+
+    expect(tools.toValue(ctx.result.dropdownOpen)).toBe(false);
+
+    await tools.act(async () => {
+      ctx.dropdownTarget.dispatchEvent(new Event('toggle'));
+    });
+
+    expect(tools.toValue(ctx.result.dropdownOpen)).toBe(true);
     ctx.unmount();
   });
 
