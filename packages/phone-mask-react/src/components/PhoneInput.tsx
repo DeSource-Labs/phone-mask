@@ -351,6 +351,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
               <div className="pi-search-wrap">
                 <input
                   ref={searchRef}
+                  id="pi-search"
                   type="search"
                   className="pi-search"
                   aria-label="Search countries"

@@ -151,12 +151,9 @@ export function useCountrySelector({
       } else if (e.key === 'Enter' && filteredCountries[focusedIndex]) {
         e.preventDefault();
         selectCountry(filteredCountries[focusedIndex]!.id);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        closeDropdown();
       }
     },
-    [filteredCountries, focusedIndex, selectCountry, closeDropdown, scrollFocusedIntoView]
+    [filteredCountries, focusedIndex, selectCountry, scrollFocusedIntoView]
   );
 
   const handleSelectorPointerDown = useCallback((e: React.PointerEvent) => {
