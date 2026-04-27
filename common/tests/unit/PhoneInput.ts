@@ -52,7 +52,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
   };
 
   const openDropdownAndGetSearchInput = async () => {
-    await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
+    await fireEvent.keyDown(screen.getByRole('button', { name: /Selected country:/i }), { key: 'ArrowDown' });
 
     await waitFor(() => {
       expect(document.body.querySelectorAll('.pi-option').length).toBeGreaterThan(0);
@@ -214,13 +214,12 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       });
 
       const searchInput = await openDropdownAndGetSearchInput();
-      expect(document.body.querySelector('.phone-dropdown')).not.toBeNull();
+      expect(document.body.querySelector('.phone-dropdown[data-popover-open]')).not.toBeNull();
 
       await fireEvent.keyDown(searchInput, { key: 'Escape' });
 
       await waitFor(() => {
-        const dropdown = document.body.querySelector('.phone-dropdown');
-        expect(dropdown === null || dropdown.className.includes('is-closing')).toBe(true);
+        expect(document.body.querySelector('.phone-dropdown[data-popover-open]')).toBeNull();
       });
 
       unmount();
