@@ -1,22 +1,27 @@
 <template>
   <div
     ref="rootRef"
+    v-bind="$attrs"
     aria-label="Phone input with country selector"
     role="group"
     :class="rootClasses"
     :style="rootStyles"
   >
     <!-- Country Selector -->
-    <div ref="selectorRef" class="pi-selector">
+    <div class="pi-selector">
       <button
+        ref="selectorRef"
         type="button"
         class="pi-selector-btn"
-        :class="{ 'no-dropdown': !hasDropdown || readonly }"
+        :class="{ 'no-dropdown': !canOpenDropdown }"
         :disabled="disabled"
-        :tabindex="inactive || !hasDropdown ? -1 : undefined"
+        :tabindex="canOpenDropdown ? undefined : -1"
         :aria-label="`Selected country: ${country.name}`"
-        :aria-expanded="dropdownOpen"
-        :aria-haspopup="hasDropdown ? 'listbox' : undefined"
+        :aria-expanded="canOpenDropdown && dropdownOpen"
+        :aria-haspopup="canOpenDropdown ? 'listbox' : undefined"
+        :aria-controls="canOpenDropdown ? popoverId : undefined"
+        @pointerdown="handleSelectorPointerDown"
+        @keydown="handleSelectorKeydown"
         @click="toggleDropdown"
       >
         <span class="pi-flag" role="img" :aria-label="`${country.name} flag`">
@@ -24,7 +29,7 @@
         </span>
         <span class="pi-code">{{ country.code }}</span>
         <svg
-          v-if="!inactive && hasDropdown"
+          v-if="canOpenDropdown"
           :class="['pi-chevron', { 'is-open': dropdownOpen }]"
           width="12"
           height="12"
@@ -119,67 +124,68 @@
       </div>
     </div>
 
-    <!-- Country Dropdown -->
-    <Teleport to="body">
-      <Transition name="dropdown">
-        <div
-          v-if="dropdownOpen"
-          ref="dropdownRef"
-          class="phone-dropdown"
-          :class="[dropdownClass, themeClass]"
-          role="dialog"
-          aria-modal="false"
-          aria-label="Select country"
-          :style="dropdownStyle"
-        >
-          <div class="pi-search-wrap">
-            <input
-              ref="searchRef"
-              :value="search"
-              type="search"
-              class="pi-search"
-              aria-label="Search countries"
-              :aria-controls="listboxId"
-              :aria-activedescendant="activeOptionId"
-              :placeholder="searchPlaceholder"
-              @keydown="handleSearchKeydown"
-              @input="handleSearchChange"
-            />
-          </div>
-          <ul :id="listboxId" class="pi-options" role="listbox" tabindex="-1">
-            <li
-              v-for="(c, idx) in filteredCountries"
-              :id="getOptionId(idx)"
-              :key="c.id"
-              role="option"
-              :class="[
-                'pi-option',
-                {
-                  'is-focused': idx === focusedIndex,
-                  'is-selected': c.id === country.id
-                }
-              ]"
-              :aria-selected="c.id === country.id"
-              :title="c.name"
-              @click="selectCountry(c.id)"
-              @mouseenter="setFocusedIndex(idx)"
-            >
-              <span class="pi-flag" role="img" :aria-label="`${c.name} flag`">
-                <slot name="flag" :country="c">{{ c.flag }}</slot>
-              </span>
-              <span class="pi-opt-name">{{ c.name }}</span>
-              <span class="pi-opt-code">{{ c.code }}</span>
-            </li>
-            <li v-if="filteredCountries.length === 0" class="pi-empty">
-              {{ noResultsText }}
-            </li>
-          </ul>
-        </div>
-      </Transition>
-    </Teleport>
-
     <!-- Screen reader announcements -->
     <div ref="liveRef" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <!-- Country Dropdown -->
+  <div
+    v-if="renderDropdown"
+    :id="popoverId"
+    ref="dropdownRef"
+    popover="auto"
+    class="phone-dropdown"
+    :class="[dropdownClass, themeClass]"
+    role="dialog"
+    aria-modal="false"
+    aria-label="Select country"
+    :style="dropdownStyles"
+  >
+    <template v-if="dropdownOpen">
+      <div class="pi-search-wrap">
+        <input
+          id="pi-search"
+          ref="searchRef"
+          :value="search"
+          type="search"
+          class="pi-search"
+          aria-label="Search countries"
+          :aria-controls="listboxId"
+          :aria-activedescendant="activeOptionId"
+          :placeholder="searchPlaceholder"
+          @keydown="handleSearchKeydown"
+          @input="handleSearchChange"
+        />
+      </div>
+      <ul :id="listboxId" class="pi-options" role="listbox" tabindex="-1">
+        <li
+          v-for="(c, idx) in filteredCountries"
+          :id="getOptionId(idx)"
+          :key="c.id"
+          role="option"
+          :class="[
+            'pi-option',
+            {
+              'is-focused': idx === focusedIndex,
+              'is-selected': c.id === country.id
+            }
+          ]"
+          :aria-selected="c.id === country.id"
+          :title="c.name"
+          @click="selectCountry(c.id)"
+          @mouseenter="setFocusedIndex(idx)"
+        >
+          <span class="pi-flag" role="img" :aria-label="`${c.name} flag`">
+            <slot name="flag" :country="c">{{ c.flag }}</slot>
+          </span>
+          <span class="pi-opt-name">{{ c.name }}</span>
+          <span class="pi-opt-code">{{ c.code }}</span>
+        </li>
+        <li v-if="filteredCountries.length === 0" class="pi-empty">
+          {{ noResultsText }}
+        </li>
+      </ul>
+    </template>
   </div>
 </template>
 
@@ -194,6 +200,8 @@ import { useCountrySelector } from '../composables/internal/useCountrySelector';
 import { useCopyAction } from '../composables/internal/useCopyAction';
 import { useTheme } from '../composables/internal/useTheme';
 import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots, PhoneNumber } from '../types';
+
+defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(defineProps<PhoneInputProps>(), {
   detect: true,
@@ -252,9 +260,11 @@ const telRef = useTemplateRef('telRef');
 const liveRef = useTemplateRef('liveRef');
 const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const searchRef = useTemplateRef<HTMLInputElement>('searchRef');
-const selectorRef = useTemplateRef<HTMLDivElement>('selectorRef');
+const selectorRef = useTemplateRef<HTMLButtonElement>('selectorRef');
 /** Generate unique IDs for ARIA attributes; use useId once we stop supporting Vue < 3.5.0 */
 const dropdownId = getCurrentInstance()?.uid ?? 0;
+const popoverId = `pi-dropdown-${dropdownId}`;
+const anchorName = `--pi-anchor-${dropdownId}`;
 const listboxId = `pi-options-${dropdownId}`;
 const getOptionId = (idx: number) => `pi-option-${dropdownId}-${idx}`;
 
@@ -275,7 +285,6 @@ const {
   dropdownOpen,
   search,
   focusedIndex,
-  dropdownStyle,
   filteredCountries,
   hasDropdown,
   closeDropdown,
@@ -283,7 +292,9 @@ const {
   selectCountry,
   setFocusedIndex,
   handleSearchChange,
-  handleSearchKeydown
+  handleSearchKeydown,
+  handleSelectorPointerDown,
+  handleSelectorKeydown
 } = useCountrySelector({
   rootRef,
   dropdownRef,
@@ -299,6 +310,8 @@ const {
 const activeOptionId = computed(() =>
   dropdownOpen.value && filteredCountries.value[focusedIndex.value] ? getOptionId(focusedIndex.value) : undefined
 );
+const canOpenDropdown = computed(() => hasDropdown.value && !inactive.value);
+const renderDropdown = computed(() => hasDropdown.value && (!inactive.value || dropdownOpen.value));
 
 const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
   formatter,
@@ -356,9 +369,15 @@ const rootClasses = computed(() => [
   }
 ]);
 
-const rootStyles = computed<CSSProperties>(() => ({
-  '--pi-actions-count': +showCopyButton.value + +showClearButton.value + (slots['actions-before'] ? 1 : 0)
-}));
+const rootStyles = computed(
+  () =>
+    ({
+      '--pi-actions-count': +showCopyButton.value + +showClearButton.value + (slots['actions-before'] ? 1 : 0),
+      anchorName
+    }) as CSSProperties
+);
+
+const dropdownStyles = computed(() => ({ positionAnchor: anchorName }) as CSSProperties);
 </script>
 
 <style lang="scss">
@@ -443,7 +462,7 @@ const rootStyles = computed<CSSProperties>(() => ({
 </style>
 
 <style scoped lang="scss">
-// Root (dropdown shares some variables because of teleport)
+// Root (dropdown shares theme variables)
 .phone-input,
 .phone-dropdown {
   font-size: var(--pi-font-size);
@@ -648,11 +667,39 @@ const rootStyles = computed<CSSProperties>(() => ({
 
 // Dropdown
 .phone-dropdown {
-  position: absolute;
-  z-index: 9999;
-  max-width: 400px;
+  position: fixed;
+  position-anchor: auto;
+  inset: auto;
+  top: calc(anchor(bottom) + 8px);
+  left: anchor(left);
+  margin: 0;
+  width: anchor-size(width, 0px);
+  max-width: calc(100vw - 16px);
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--pi-shadow-lg);
   overflow: hidden;
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    overlay 180ms allow-discrete,
+    display 180ms allow-discrete;
+  position-try-fallbacks: flip-block;
+  transform-origin: top center;
+
+  &:popover-open {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  @starting-style {
+    &:popover-open {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
 }
 
 .pi-search-wrap {
@@ -675,7 +722,9 @@ const rootStyles = computed<CSSProperties>(() => ({
 }
 
 .pi-options {
-  max-height: 300px;
+  max-height: var(--pi-dropdown-max-height, 300px);
+  min-height: 0;
+  flex: 1 1 auto;
   overflow-y: auto;
   padding: 4px 0;
   margin: 0;
@@ -764,19 +813,6 @@ const rootStyles = computed<CSSProperties>(() => ({
   transform: scale(0.8);
 }
 
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition:
-    opacity 200ms cubic-bezier(0.4, 0, 0.2, 1),
-    transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
 // Screen reader only
 .sr-only {
   position: absolute;
@@ -799,12 +835,6 @@ const rootStyles = computed<CSSProperties>(() => ({
 
   .size-compact {
     --pi-actions-size: 20px;
-  }
-
-  .phone-dropdown {
-    left: 0;
-    right: 0;
-    max-width: none;
   }
 }
 
