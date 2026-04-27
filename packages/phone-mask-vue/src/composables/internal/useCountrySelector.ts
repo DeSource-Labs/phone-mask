@@ -1,18 +1,26 @@
-import { ref, computed, watch, onBeforeUnmount, shallowRef, toValue, nextTick } from 'vue';
-import type { MaybeRefOrGetter, ShallowRef, CSSProperties } from 'vue';
+import { ref, computed, watch, toValue, nextTick, type MaybeRefOrGetter, type ShallowRef } from 'vue';
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
+
+type PopoverElement = HTMLDivElement & {
+  showPopover(options?: { source?: HTMLElement }): void;
+  hidePopover(): void;
+};
 
 interface UseCountrySelectorOptions {
   rootRef: ShallowRef<HTMLDivElement | null>;
-  dropdownRef: ShallowRef<HTMLDivElement | null>;
+  dropdownRef: ShallowRef<PopoverElement | null>;
   searchRef: ShallowRef<HTMLInputElement | null>;
-  selectorRef: ShallowRef<HTMLDivElement | null>;
+  selectorRef: ShallowRef<HTMLButtonElement | null>;
   locale: MaybeRefOrGetter<string>;
   onSelectCountry: (code: CountryKey) => void;
   countryOption?: MaybeRefOrGetter<string | undefined>;
   inactive?: MaybeRefOrGetter<boolean | undefined>;
   onAfterSelect?: () => void;
 }
+
+const DROPDOWN_HEIGHT = 300;
+const VIEWPORT_GAP = 16;
+const SEARCH_HEIGHT = 56;
 
 export function useCountrySelector({
   rootRef,
@@ -27,8 +35,8 @@ export function useCountrySelector({
 }: UseCountrySelectorOptions) {
   const search = ref('');
   const dropdownOpen = ref(false);
-  const dropdownStyle = shallowRef<CSSProperties>({});
   const focusedIndex = ref(0);
+  let openByKeyboard = false;
 
   const countries = computed(() => MasksFull(toValue(locale)));
   const filteredCountries = computed(() => filterCountries(countries.value, search.value));
@@ -42,14 +50,42 @@ export function useCountrySelector({
     nextTick(() => searchRef.value?.focus({ preventScroll: true }));
   };
 
+  const resetDropdownState = () => {
+    search.value = '';
+    setFocusedIndex(0);
+    openByKeyboard = false;
+  };
+
+  const updateMaxHeight = () => {
+    const rootEl = rootRef.value;
+    const dropdownEl = dropdownRef.value;
+    if (!rootEl || !dropdownEl) return;
+
+    const rect = rootEl.getBoundingClientRect();
+    const viewportHeight = globalThis.visualViewport?.height ?? globalThis.innerHeight;
+    const searchHeight = (dropdownEl.firstElementChild as HTMLElement | null)?.offsetHeight || SEARCH_HEIGHT;
+    const spaceBelow = viewportHeight - rect.bottom - VIEWPORT_GAP - searchHeight;
+    const spaceAbove = rect.top - VIEWPORT_GAP - searchHeight;
+    const maxHeight = Math.min(DROPDOWN_HEIGHT, Math.max(spaceBelow, spaceAbove));
+
+    dropdownEl.style.setProperty('--pi-dropdown-max-height', `${Math.max(0, Math.floor(maxHeight))}px`);
+  };
+
   const closeDropdown = () => {
-    dropdownOpen.value = false;
+    if (!dropdownOpen.value) return;
+    dropdownRef.value?.hidePopover();
   };
 
   const openDropdown = () => {
-    dropdownOpen.value = true;
+    if (toValue(inactive) || !hasDropdown.value || dropdownOpen.value) return;
+
+    const dropdownEl = dropdownRef.value;
+    const selectorEl = selectorRef.value;
+    if (!dropdownEl || !selectorEl) return;
+
+    updateMaxHeight();
+    dropdownEl.showPopover({ source: selectorEl });
     setFocusedIndex(0);
-    focusSearch();
   };
 
   const toggleDropdown = () => {
@@ -64,37 +100,13 @@ export function useCountrySelector({
   const selectCountry = (code: CountryKey) => {
     onSelectCountry(code);
     closeDropdown();
-    search.value = '';
-    setFocusedIndex(0);
+    resetDropdownState();
     onAfterSelect?.();
   };
 
   const handleSearchChange = (e: Event) => {
     search.value = (e.target as HTMLInputElement).value;
     setFocusedIndex(0);
-  };
-
-  const onDocClick = (ev: Event) => {
-    const target = ev.target as Node | null;
-    const dropdownEl = dropdownRef.value;
-    const selectorEl = selectorRef.value;
-    if (!target) return;
-    if (dropdownEl?.contains(target)) return;
-    if (selectorEl?.contains(target)) return;
-    closeDropdown();
-  };
-
-  const positionDropdown = (e?: Event | UIEvent) => {
-    if (e?.type === 'scroll' && e.target && dropdownRef.value?.contains(e.target as Node)) return;
-    if (!rootRef.value) return;
-
-    const rect = rootRef.value.getBoundingClientRect();
-
-    dropdownStyle.value = {
-      top: `${rect.bottom + globalThis.scrollY + 8}px`,
-      left: `${rect.left + globalThis.scrollX}px`,
-      width: `${rect.width}px`
-    };
   };
 
   const scrollFocusedIntoView = () => {
@@ -132,43 +144,83 @@ export function useCountrySelector({
     } else if (e.key === 'Enter' && filteredCountries.value[focusedIndex.value]) {
       e.preventDefault();
       selectCountry(filteredCountries.value[focusedIndex.value]!.id);
-    } else if (e.key === 'Escape') {
-      closeDropdown();
     }
   };
 
-  const removeListeners = () => {
-    globalThis.removeEventListener('resize', positionDropdown);
-    globalThis.removeEventListener('scroll', positionDropdown, true);
-    globalThis.removeEventListener('click', onDocClick, true);
+  const handleSelectorPointerDown = (e: PointerEvent) => {
+    openByKeyboard = e.pointerType === 'mouse';
   };
 
-  watch(hasDropdown, (dropdownExists) => {
-    if (!dropdownExists && dropdownOpen.value) {
-      closeDropdown();
-    }
-  });
-
-  watch(dropdownOpen, (isOpen) => {
-    if (!isOpen) {
-      removeListeners();
+  const handleSelectorKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      openByKeyboard = true;
       return;
     }
 
-    positionDropdown();
-    globalThis.addEventListener('resize', positionDropdown);
-    globalThis.addEventListener('scroll', positionDropdown, true);
-    globalThis.addEventListener('click', onDocClick, true);
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      openByKeyboard = true;
+
+      if (!dropdownOpen.value) {
+        openDropdown();
+      } else {
+        focusSearch();
+      }
+    }
+  };
+
+  watch(
+    [dropdownRef, dropdownOpen, hasDropdown, () => toValue(inactive)],
+    (_, __, onCleanup) => {
+      const dropdownEl = dropdownRef.value;
+      if (!dropdownEl) return;
+
+      const handleToggle = (event: ToggleEvent) => {
+        const nextState = event.newState ?? (dropdownOpen.value ? 'closed' : 'open');
+        const isOpen = nextState === 'open';
+
+        dropdownOpen.value = isOpen;
+
+        if (isOpen) {
+          if (openByKeyboard) focusSearch();
+          return;
+        }
+
+        resetDropdownState();
+      };
+
+      dropdownEl.addEventListener('toggle', handleToggle);
+
+      onCleanup(() => {
+        dropdownEl.removeEventListener('toggle', handleToggle);
+      });
+    },
+    { immediate: true }
+  );
+
+  watch([hasDropdown, () => toValue(inactive)], ([dropdownExists, isInactive]) => {
+    if ((isInactive || !dropdownExists) && dropdownOpen.value) {
+      closeDropdown();
+    }
   });
 
-  onBeforeUnmount(removeListeners);
+  watch(dropdownOpen, (isOpen, _, onCleanup) => {
+    if (!isOpen) return;
+
+    globalThis.addEventListener('resize', updateMaxHeight);
+    globalThis.visualViewport?.addEventListener('resize', updateMaxHeight);
+
+    onCleanup(() => {
+      globalThis.removeEventListener('resize', updateMaxHeight);
+      globalThis.visualViewport?.removeEventListener('resize', updateMaxHeight);
+    });
+  });
 
   return {
     // State
     dropdownOpen,
     search,
     focusedIndex,
-    dropdownStyle,
     // Derived
     filteredCountries,
     hasDropdown,
@@ -179,6 +231,8 @@ export function useCountrySelector({
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
-    handleSearchKeydown
+    handleSearchKeydown,
+    handleSelectorPointerDown,
+    handleSelectorKeydown
   };
 }
