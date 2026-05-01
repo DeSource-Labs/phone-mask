@@ -1,5 +1,12 @@
 # @desource/phone-mask
 
+## 1.3.1
+
+### Patch Changes
+
+- Core Upgrades:
+  - Sync country masks with google-libphonenumber (🇸🇰 Slovakia updates)
+
 ## 1.3.0
 
 ### Minor Changes
