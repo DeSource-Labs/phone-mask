@@ -100,6 +100,30 @@ globalThis.addEventListener(
   true
 );
 
+globalThis.addEventListener('click', (event) => {
+  if (event.defaultPrevented) return;
+
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+
+  const invoker = target.closest<HTMLElement>('[popovertarget]');
+  const popoverId = invoker?.getAttribute('popovertarget');
+  if (!invoker || !popoverId) return;
+
+  const popover = document.getElementById(popoverId);
+  if (!popover) return;
+
+  const action = invoker.getAttribute('popovertargetaction') ?? 'toggle';
+  if (action === 'hide' || (action === 'toggle' && popover.dataset.popoverOpen !== undefined)) {
+    popover.hidePopover();
+    return;
+  }
+
+  if (action === 'show' || action === 'toggle') {
+    popover.showPopover({ source: invoker });
+  }
+});
+
 export function attachLightDismiss(dropdownEl: HTMLElement, selectorEl: HTMLElement) {
   const onWindowClick = (event: Event) => {
     if (!dropdownEl.hasAttribute(OPEN_ATTR)) return;

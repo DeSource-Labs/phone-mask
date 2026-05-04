@@ -214,6 +214,29 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       unmount();
     });
 
+    it('uses the native popover target to toggle selector clicks', async () => {
+      const { unmount } = await setup({
+        value: '2025550123',
+        detect: false
+      });
+
+      const selectorButton = screen.getByRole('button', { name: /Selected country:/i });
+      const popoverId = selectorButton.getAttribute('popovertarget');
+      expect(popoverId).toBeTruthy();
+      expect(selectorButton.getAttribute('popovertargetaction')).toBe('toggle');
+
+      const dropdown = document.getElementById(popoverId!);
+      expect(dropdown).not.toBeNull();
+
+      await fireEvent.click(selectorButton);
+      await waitFor(() => expect(dropdown!.dataset.popoverOpen).toBe(''));
+
+      await fireEvent.click(selectorButton);
+      await waitFor(() => expect(dropdown!.dataset.popoverOpen).toBeUndefined());
+
+      unmount();
+    });
+
     it('applies explicit input id and name for form/autofill integration', async () => {
       const { unmount } = await setup({
         detect: false,

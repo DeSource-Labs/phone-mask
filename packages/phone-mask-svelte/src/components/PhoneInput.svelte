@@ -206,9 +206,10 @@
       aria-expanded={canOpenDropdown && selectorData.dropdownOpen}
       aria-haspopup={canOpenDropdown ? 'listbox' : undefined}
       aria-controls={canOpenDropdown ? popoverId : undefined}
+      popovertarget={canOpenDropdown ? popoverId : undefined}
+      popovertargetaction={canOpenDropdown ? 'toggle' : undefined}
       onpointerdown={selectorData.handleSelectorPointerDown}
       onkeydown={selectorData.handleSelectorKeydown}
-      onclick={selectorData.toggleDropdown}
     >
       <span class="pi-flag" role="img" aria-label="{countryData.country.name} flag">
         {#if flag}{@render flag(countryData.country)}{:else}{countryData.country.flag}{/if}

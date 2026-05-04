@@ -20,9 +20,10 @@
         :aria-expanded="canOpenDropdown && dropdownOpen"
         :aria-haspopup="canOpenDropdown ? 'listbox' : undefined"
         :aria-controls="canOpenDropdown ? popoverId : undefined"
+        :popovertarget="canOpenDropdown ? popoverId : undefined"
+        :popovertargetaction="canOpenDropdown ? 'toggle' : undefined"
         @pointerdown="handleSelectorPointerDown"
         @keydown="handleSelectorKeydown"
-        @click="toggleDropdown"
       >
         <span class="pi-flag" role="img" :aria-label="`${country.name} flag`">
           <slot name="flag" :country="country">{{ country.flag }}</slot>
@@ -288,7 +289,6 @@ const {
   filteredCountries,
   hasDropdown,
   closeDropdown,
-  toggleDropdown,
   selectCountry,
   setFocusedIndex,
   handleSearchChange,

@@ -122,7 +122,6 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     filteredCountries,
     hasDropdown,
     closeDropdown,
-    toggleDropdown,
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
@@ -226,9 +225,10 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             aria-expanded={canOpenDropdown && dropdownOpen}
             aria-haspopup={canOpenDropdown ? 'listbox' : undefined}
             aria-controls={canOpenDropdown ? popoverId : undefined}
+            popoverTarget={canOpenDropdown ? popoverId : undefined}
+            popoverTargetAction={canOpenDropdown ? 'toggle' : undefined}
             onPointerDown={handleSelectorPointerDown}
             onKeyDown={handleSelectorKeydown}
-            onClick={toggleDropdown}
           >
             <span className="pi-flag" role="img" aria-label={`${country.name} flag`}>
               {renderFlag ? renderFlag(country) : country.flag}

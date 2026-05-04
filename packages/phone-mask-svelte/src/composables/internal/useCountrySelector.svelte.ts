@@ -83,7 +83,6 @@ export function useCountrySelector({
     const selectorEl = selectorRef();
     if (!dropdownEl || !selectorEl) return;
 
-    updateMaxHeight();
     dropdownEl.showPopover({ source: selectorEl });
     setFocusedIndex(0);
   };
@@ -173,6 +172,11 @@ export function useCountrySelector({
     const dropdownEl = dropdownRef();
     if (!dropdownEl) return;
 
+    const handleBeforeToggle = (event: ToggleEvent) => {
+      const nextState = event.newState ?? (dropdownOpen ? 'closed' : 'open');
+      if (nextState === 'open') updateMaxHeight();
+    };
+
     const handleToggle = (event: ToggleEvent) => {
       const nextState = event.newState ?? (dropdownOpen ? 'closed' : 'open');
       const isOpen = nextState === 'open';
@@ -187,9 +191,11 @@ export function useCountrySelector({
       resetDropdownState();
     };
 
+    dropdownEl.addEventListener('beforetoggle', handleBeforeToggle);
     dropdownEl.addEventListener('toggle', handleToggle);
 
     return () => {
+      dropdownEl.removeEventListener('beforetoggle', handleBeforeToggle);
       dropdownEl.removeEventListener('toggle', handleToggle);
     };
   });

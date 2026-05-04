@@ -76,10 +76,9 @@ export function useCountrySelector({
     const selectorEl = selectorRef.current;
     if (!dropdownEl || !selectorEl) return;
 
-    updateMaxHeight();
     dropdownEl.showPopover({ source: selectorEl });
     setFocusedIndex(0);
-  }, [dropdownOpen, dropdownRef, hasDropdown, inactive, selectorRef, updateMaxHeight]);
+  }, [dropdownOpen, dropdownRef, hasDropdown, inactive, selectorRef]);
 
   const toggleDropdown = useCallback(() => {
     if (inactive || !hasDropdown) return;
@@ -185,10 +184,14 @@ export function useCountrySelector({
     const dropdownEl = dropdownRef.current;
     if (!dropdownEl) return;
 
+    const handleBeforeToggle = (event: ToggleEvent) => {
+      const nextState = event.newState ?? (dropdownOpen ? 'closed' : 'open');
+      if (nextState === 'open') updateMaxHeight();
+    };
+
     const handleToggle = (event: ToggleEvent) => {
       const nextState = event.newState ?? (dropdownOpen ? 'closed' : 'open');
       const isOpen = nextState === 'open';
-
       setDropdownOpen(isOpen);
 
       if (isOpen) {
@@ -201,12 +204,14 @@ export function useCountrySelector({
       resetDropdownState();
     };
 
+    dropdownEl.addEventListener('beforetoggle', handleBeforeToggle);
     dropdownEl.addEventListener('toggle', handleToggle);
 
     return () => {
+      dropdownEl.removeEventListener('beforetoggle', handleBeforeToggle);
       dropdownEl.removeEventListener('toggle', handleToggle);
     };
-  }, [dropdownOpen, dropdownRef, hasDropdown, inactive, resetDropdownState, searchRef]);
+  }, [dropdownOpen, dropdownRef, resetDropdownState, searchRef, updateMaxHeight]);
 
   useEffect(() => {
     if ((inactive || !hasDropdown) && dropdownOpen) {

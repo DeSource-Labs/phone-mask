@@ -83,7 +83,6 @@ export function useCountrySelector({
     const selectorEl = selectorRef.value;
     if (!dropdownEl || !selectorEl) return;
 
-    updateMaxHeight();
     dropdownEl.showPopover({ source: selectorEl });
     setFocusedIndex(0);
   };
@@ -170,10 +169,14 @@ export function useCountrySelector({
   };
 
   watch(
-    [dropdownRef, dropdownOpen, hasDropdown, () => toValue(inactive)],
-    (_, __, onCleanup) => {
-      const dropdownEl = dropdownRef.value;
+    dropdownRef,
+    (dropdownEl, _, onCleanup) => {
       if (!dropdownEl) return;
+
+      const handleBeforeToggle = (event: ToggleEvent) => {
+        const nextState = event.newState ?? (dropdownOpen.value ? 'closed' : 'open');
+        if (nextState === 'open') updateMaxHeight();
+      };
 
       const handleToggle = (event: ToggleEvent) => {
         const nextState = event.newState ?? (dropdownOpen.value ? 'closed' : 'open');
@@ -189,9 +192,11 @@ export function useCountrySelector({
         resetDropdownState();
       };
 
+      dropdownEl.addEventListener('beforetoggle', handleBeforeToggle);
       dropdownEl.addEventListener('toggle', handleToggle);
 
       onCleanup(() => {
+        dropdownEl.removeEventListener('beforetoggle', handleBeforeToggle);
         dropdownEl.removeEventListener('toggle', handleToggle);
       });
     },
