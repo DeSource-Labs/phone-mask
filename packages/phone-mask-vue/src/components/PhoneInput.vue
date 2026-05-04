@@ -681,11 +681,12 @@ const dropdownStyles = computed(() => ({ positionAnchor: anchorName }) as CSSPro
   overflow: hidden;
   opacity: 0;
   transform: scale(0.98);
+  will-change: opacity, transform;
   transition:
-    opacity 180ms cubic-bezier(0.4, 0, 0.2, 1),
-    transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
-    overlay 180ms allow-discrete,
-    display 180ms allow-discrete;
+    opacity 160ms cubic-bezier(0.4, 0, 0.2, 1) 16ms,
+    transform 160ms cubic-bezier(0.4, 0, 0.2, 1) 16ms,
+    overlay 176ms allow-discrete,
+    display 176ms allow-discrete;
   position-try-fallbacks: flip-block;
   transform-origin: top center;
 
