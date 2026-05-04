@@ -40,6 +40,64 @@ export interface CountrySelectorSetupResult {
 
 export type SetupFn = (options?: SetupOptions) => CountrySelectorSetupResult;
 
+type KeyboardOpenCountrySelectorResult = CountrySelectorSetupResult['result'] & {
+  handleSelectorKeydown: (event: never) => void;
+};
+
+export function createCountrySelectorSetupResult(
+  setupResult: Omit<CountrySelectorSetupResult, 'simulateCloseComplete' | 'unmount'> & {
+    cleanup: () => void;
+    unmount: () => void;
+    simulateCloseComplete?: () => void;
+  }
+): CountrySelectorSetupResult {
+  const { cleanup, unmount, ...result } = setupResult;
+
+  return {
+    ...result,
+    simulateCloseComplete: setupResult.simulateCloseComplete ?? (() => {}),
+    unmount: () => {
+      cleanup();
+      unmount();
+    }
+  };
+}
+
+export function withKeyboardOpenProxy<T extends KeyboardOpenCountrySelectorResult>(target: T): T {
+  return new Proxy(target, {
+    get(source, key, receiver) {
+      if (key === 'openDropdown') {
+        return () => {
+          source.handleSelectorKeydown({
+            key: 'Enter'
+          } as never);
+          source.openDropdown();
+        };
+      }
+
+      return Reflect.get(source, key, receiver);
+    }
+  });
+}
+
+export function createKeyboardOpenCountrySelectorSetupResult(
+  rawResult: KeyboardOpenCountrySelectorResult,
+  cleanup: () => void,
+  unmount: () => void,
+  onSelectCountry: Mock,
+  onAfterSelect: Mock,
+  searchEl: HTMLInputElement
+): CountrySelectorSetupResult {
+  return createCountrySelectorSetupResult({
+    result: withKeyboardOpenProxy(rawResult),
+    cleanup,
+    unmount,
+    onSelectCountry,
+    onAfterSelect,
+    searchEl
+  });
+}
+
 export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestTools): void {
   describe('useCountrySelector', () => {
     describe('initial state', () => {

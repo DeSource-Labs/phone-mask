@@ -1,32 +1,28 @@
 /// <reference types="vitest/globals" />
 import { useCountrySelector } from '@src/hooks/internal/useCountrySelector';
-import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
+import {
+  createKeyboardOpenCountrySelectorSetupResult,
+  testUseCountrySelector,
+  type SetupOptions
+} from '@common/tests/unit/useCountrySelector';
 import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { tools, renderHookWithProxy } from './setup/tools';
-import { createRect } from '@common/tests/unit/setup/domRect';
-import { attachLightDismiss } from '@common/tests/unit/setup/popover';
-
-type CountrySelectorResult = ReturnType<typeof useCountrySelector>;
+import {
+  createCountrySelectorDomSetupResult,
+  createCountrySelectorDomFixture
+} from '@common/tests/unit/setup/countrySelectorDom';
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
 
-  const rootEl = document.createElement('div');
-  const rootRef = { current: rootEl };
-  const dropdownEl = document.createElement('div');
-  const dropdownRef = { current: dropdownEl };
-  const selectorEl = document.createElement('button');
-  const selectorRef = { current: selectorEl };
-
-  const searchEl = document.createElement('input');
-  const searchRef = { current: searchEl };
-  vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const dom = createCountrySelectorDomFixture();
+  const rootRef = { current: dom.rootEl };
+  const dropdownRef = { current: dom.dropdownEl };
+  const searchRef = { current: dom.searchEl };
+  const selectorRef = { current: dom.selectorEl };
 
   const onSelectCountry = vi.fn();
   const onAfterSelect = vi.fn();
-
-  document.body.append(rootEl, dropdownEl, selectorEl);
-  const cleanupLightDismiss = attachLightDismiss(dropdownEl, selectorEl);
 
   const hook = renderHookWithProxy(() =>
     useCountrySelector({
@@ -42,33 +38,14 @@ function setup(options: SetupOptions = {}) {
     })
   );
 
-  const result = new Proxy(hook.result as CountrySelectorResult, {
-    get(target, key, receiver) {
-      if (key === 'openDropdown') {
-        return () => {
-          target.handleSelectorKeydown({ key: 'Enter' } as never);
-          target.openDropdown();
-        };
-      }
-
-      return Reflect.get(target, key, receiver);
-    }
-  });
-
-  return {
-    result,
-    simulateCloseComplete: () => {},
-    unmount: () => {
-      cleanupLightDismiss();
-      rootEl.remove();
-      dropdownEl.remove();
-      selectorEl.remove();
-      hook.unmount();
-    },
+  return createKeyboardOpenCountrySelectorSetupResult(
+    hook.result,
+    dom.cleanup,
+    hook.unmount,
     onSelectCountry,
     onAfterSelect,
-    searchEl
-  };
+    dom.searchEl
+  );
 }
 
 afterEach(() => {
@@ -79,45 +56,20 @@ afterEach(() => {
 testUseCountrySelector(setup, tools);
 
 function setupWithDom(initialCountryOption?: string, initialInactive = false) {
-  const rootEl = document.createElement('div');
-  const rootRectSpy = vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
-  const rootRef: { current: HTMLDivElement | null } = { current: rootEl };
-  const dropdownEl = document.createElement('div');
-  const dropdownRef = { current: dropdownEl };
-  const list = document.createElement('ul');
-  list.className = 'pi-options';
-  const optionA = document.createElement('li');
-  const optionB = document.createElement('li');
-  list.append(optionA, optionB);
-  dropdownEl.append(document.createElement('div'), list);
-
-  const listRectSpy = vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(createRect(0, 20));
-  const optionARectSpy = vi.spyOn(optionA, 'getBoundingClientRect').mockReturnValue(createRect(0, 10));
-  const optionBRectSpy = vi.spyOn(optionB, 'getBoundingClientRect').mockReturnValue(createRect(24, 44));
-
-  const scrollToSpy = vi.fn();
-  Object.defineProperty(list, 'scrollTo', {
-    value: scrollToSpy,
-    configurable: true
-  });
-
-  const searchEl = document.createElement('input');
-  const searchFocusSpy = vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
-  const searchRef = { current: searchEl };
-  const selectorEl = document.createElement('button');
-  const selectorRef = { current: selectorEl };
+  const dom = createCountrySelectorDomFixture();
+  const rootRef: { current: HTMLDivElement | null } = { current: dom.rootEl };
+  const dropdownRef: { current: HTMLDivElement | null } = { current: dom.dropdownEl };
+  const selectorRef: { current: HTMLButtonElement | null } = { current: dom.selectorEl };
+  const searchRef = { current: dom.searchEl };
   const onSelectCountry = vi.fn();
-
-  document.body.append(rootEl, dropdownEl, selectorEl);
-  const cleanupLightDismiss = attachLightDismiss(dropdownEl, selectorEl);
 
   const { result, rerender, unmount } = renderHookWithProxy(
     ({ countryOption, inactive }: { countryOption?: string; inactive?: boolean }) =>
       useCountrySelector({
         rootRef,
         dropdownRef,
-        searchRef,
         selectorRef,
+        searchRef,
         locale: 'en',
         countryOption,
         inactive,
@@ -126,27 +78,10 @@ function setupWithDom(initialCountryOption?: string, initialInactive = false) {
     { initialProps: { countryOption: initialCountryOption, inactive: initialInactive } }
   );
 
-  return {
+  return createCountrySelectorDomSetupResult(dom, unmount, {
     result,
     rerender,
-    unmount: () => {
-      cleanupLightDismiss();
-      rootEl.remove();
-      dropdownEl.remove();
-      selectorEl.remove();
-      unmount();
-    },
-    scrollToSpy,
-    listRectSpy,
-    optionARectSpy,
-    optionBRectSpy,
-    rootRectSpy,
-    searchFocusSpy,
-    searchEl,
-    list,
     rootRef,
-    dropdownTarget: dropdownEl,
-    selectorTarget: selectorEl,
     flushAsync: async () => {
       vi.runAllTimers();
     },
@@ -166,7 +101,7 @@ function setupWithDom(initialCountryOption?: string, initialInactive = false) {
     setSelectorUnavailable: () => {
       selectorRef.current = null;
     }
-  };
+  });
 }
 
 describe('useCountrySelector DOM behavior (React)', () => {

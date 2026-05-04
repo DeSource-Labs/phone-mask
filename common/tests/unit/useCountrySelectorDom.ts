@@ -58,336 +58,247 @@ export function testUseCountrySelectorDomBehavior(
       });
     });
 
-    it('scrolls focused option into view when navigating down', async () => {
+    const withDom = async (run: (ctx: CountrySelectorDomSetupResult) => Promise<void>) => {
       const ctx = setupWithDom();
+      try {
+        await run(ctx);
+      } finally {
+        ctx.unmount();
+      }
+    };
 
-      await act(async () => {
+    const openDropdown = (ctx: CountrySelectorDomSetupResult) =>
+      act(async () => {
         ctx.result.openDropdown();
       });
 
+    const pressSearchKey = async (ctx: CountrySelectorDomSetupResult, key: string) => {
       await act(async () => {
-        ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
+        ctx.result.handleSearchKeydown({ key, preventDefault: vi.fn() });
       });
       await ctx.flushAsync();
+    };
 
-      expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: 24, behavior: 'smooth' });
-      ctx.unmount();
+    const pressSelectorKey = async (ctx: CountrySelectorDomSetupResult, key: string) => {
+      await act(async () => {
+        ctx.result.handleSelectorKeydown({ key, preventDefault: vi.fn() });
+      });
+      await ctx.flushAsync();
+    };
+
+    const expectPopoverClosed = (ctx: CountrySelectorDomSetupResult) => {
+      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+      expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
+    };
+
+    const setCompactViewport = (ctx: CountrySelectorDomSetupResult, width = 120) => {
+      Object.defineProperty(globalThis, 'innerHeight', {
+        value: 200,
+        configurable: true
+      });
+      ctx.rootRectSpy?.mockReturnValue(createRect(150, 180, 5, width));
+    };
+
+    it('scrolls focused option into view when navigating down', async () => {
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        await pressSearchKey(ctx, 'ArrowDown');
+        expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: 24, behavior: 'smooth' });
+      });
     });
 
     it('scrolls focused option into view when navigating up', async () => {
-      const ctx = setupWithDom();
-      ctx.listRectSpy.mockReturnValue(createRect(0, 20));
-      ctx.optionARectSpy.mockReturnValue(createRect(-10, 0));
-      ctx.optionBRectSpy.mockReturnValue(createRect(24, 44));
+      await withDom(async (ctx) => {
+        ctx.listRectSpy.mockReturnValue(createRect(0, 20));
+        ctx.optionARectSpy.mockReturnValue(createRect(-10, 0));
+        ctx.optionBRectSpy.mockReturnValue(createRect(24, 44));
 
-      await act(async () => {
-        ctx.result.openDropdown();
-        ctx.result.setFocusedIndex(1);
+        await act(async () => {
+          ctx.result.openDropdown();
+          ctx.result.setFocusedIndex(1);
+        });
+        await pressSearchKey(ctx, 'ArrowUp');
+
+        expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: -10, behavior: 'smooth' });
       });
-
-      await act(async () => {
-        ctx.result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() });
-      });
-      await ctx.flushAsync();
-
-      expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: -10, behavior: 'smooth' });
-      ctx.unmount();
     });
 
     it('does not scroll when focused option is already visible', async () => {
-      const ctx = setupWithDom();
-      ctx.listRectSpy.mockReturnValue(createRect(0, 40));
-      ctx.optionBRectSpy.mockReturnValue(createRect(10, 20));
+      await withDom(async (ctx) => {
+        ctx.listRectSpy.mockReturnValue(createRect(0, 40));
+        ctx.optionBRectSpy.mockReturnValue(createRect(10, 20));
 
-      await act(async () => {
-        ctx.result.openDropdown();
+        await openDropdown(ctx);
+        await pressSearchKey(ctx, 'ArrowDown');
+
+        expect(ctx.scrollToSpy).not.toHaveBeenCalled();
       });
-
-      await act(async () => {
-        ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
-      });
-      await ctx.flushAsync();
-
-      expect(ctx.scrollToSpy).not.toHaveBeenCalled();
-      ctx.unmount();
     });
 
     it('opens the native popover and writes the option max height', async () => {
-      const ctx = setupWithDom();
-
-      await act(async () => {
-        ctx.result.openDropdown();
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(true);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
       });
-
-      expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(true);
-      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
-      ctx.unmount();
     });
 
-    it('does not open when dropdown or selector refs are unavailable', async () => {
-      const missingDropdown = setupWithDom();
-      if (!missingDropdown.setDropdownUnavailable) {
-        missingDropdown.unmount();
-        return;
-      }
+    it.each([
+      ['dropdown', 'setDropdownUnavailable'],
+      ['selector', 'setSelectorUnavailable']
+    ] as const)('does not open when %s ref is unavailable', async (_, setterKey) => {
+      await withDom(async (ctx) => {
+        await act(async () => {
+          await ctx[setterKey]?.();
+          ctx.result.openDropdown();
+        });
 
-      await act(async () => {
-        await missingDropdown.setDropdownUnavailable?.();
-        missingDropdown.result.openDropdown();
+        expectPopoverClosed(ctx);
       });
-
-      expect(toValue(missingDropdown.result.dropdownOpen)).toBe(false);
-      expect(missingDropdown.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
-      missingDropdown.unmount();
-
-      const missingSelector = setupWithDom();
-      if (!missingSelector.setSelectorUnavailable) {
-        missingSelector.unmount();
-        return;
-      }
-
-      await act(async () => {
-        await missingSelector.setSelectorUnavailable?.();
-        missingSelector.result.openDropdown();
-      });
-
-      expect(toValue(missingSelector.result.dropdownOpen)).toBe(false);
-      expect(missingSelector.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
-      missingSelector.unmount();
     });
 
     it('limits option height to the largest available viewport side', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.rootRectSpy) {
-        ctx.unmount();
-        return;
-      }
-
-      Object.defineProperty(globalThis, 'innerHeight', {
-        value: 200,
-        configurable: true
+      await withDom(async (ctx) => {
+        setCompactViewport(ctx);
+        await openDropdown(ctx);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('78px');
       });
-      ctx.rootRectSpy.mockReturnValue(createRect(150, 180, 5, 120));
-
-      await act(async () => {
-        ctx.result.openDropdown();
-      });
-
-      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('78px');
-      ctx.unmount();
     });
 
     it('recomputes option height on resize while open', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.rootRectSpy) {
-        ctx.unmount();
-        return;
-      }
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        setCompactViewport(ctx, 200);
 
-      await act(async () => {
-        ctx.result.openDropdown();
+        await act(async () => {
+          globalThis.dispatchEvent(new Event('resize'));
+        });
+
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('78px');
       });
-
-      ctx.rootRectSpy.mockReturnValue(createRect(150, 180, 5, 200));
-      Object.defineProperty(globalThis, 'innerHeight', {
-        value: 200,
-        configurable: true
-      });
-
-      await act(async () => {
-        globalThis.dispatchEvent(new Event('resize'));
-      });
-
-      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('78px');
-      ctx.unmount();
     });
 
-    it('closes when country option becomes fixed while open', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.setCountryOptionFixed) {
-        ctx.unmount();
-        return;
-      }
+    it.each([
+      ['country option becomes fixed', 'setCountryOptionFixed'],
+      ['selector becomes inactive', 'setInactive']
+    ] as const)('closes when %s while open', async (_, setterKey) => {
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
 
-      await act(async () => {
-        ctx.result.openDropdown();
+        await act(async () => {
+          await ctx[setterKey]?.();
+        });
+        await ctx.flushAsync();
+
+        expectPopoverClosed(ctx);
       });
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-
-      await act(async () => {
-        ctx.setCountryOptionFixed?.();
-      });
-      await ctx.flushAsync();
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
-      expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
-      ctx.unmount();
     });
 
-    it('closes when the selector becomes inactive while open', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.setInactive) {
-        ctx.unmount();
-        return;
-      }
+    it.each([
+      ['touch', false],
+      ['mouse', true]
+    ] as const)('uses %s pointer focus behavior', async (pointerType, shouldFocus) => {
+      await withDom(async (ctx) => {
+        await act(async () => {
+          ctx.result.handleSelectorPointerDown({ pointerType });
+          ctx.result.toggleDropdown();
+        });
+        await ctx.flushAsync();
 
-      await act(async () => {
-        ctx.result.openDropdown();
+        if (shouldFocus) {
+          expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+        } else {
+          expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
+        }
       });
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-
-      await act(async () => {
-        ctx.setInactive?.();
-      });
-      await ctx.flushAsync();
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
-      expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
-      ctx.unmount();
-    });
-
-    it('keeps the search unfocused on touch open', async () => {
-      const ctx = setupWithDom();
-
-      await act(async () => {
-        ctx.result.handleSelectorPointerDown({ pointerType: 'touch' });
-        ctx.result.toggleDropdown();
-      });
-      await ctx.flushAsync();
-
-      expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
-      ctx.unmount();
-    });
-
-    it('focuses the search input on mouse open', async () => {
-      const ctx = setupWithDom();
-
-      await act(async () => {
-        ctx.result.handleSelectorPointerDown({ pointerType: 'mouse' });
-        ctx.result.toggleDropdown();
-      });
-      await ctx.flushAsync();
-
-      expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
-      ctx.unmount();
     });
 
     it('focuses the search input on keyboard open', async () => {
-      const ctx = setupWithDom();
-
-      await act(async () => {
-        ctx.result.handleSelectorKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
+      await withDom(async (ctx) => {
+        await pressSelectorKey(ctx, 'ArrowDown');
+        expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
       });
-      await ctx.flushAsync();
-
-      expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      ctx.unmount();
     });
 
     it('ignores unrelated selector keys', async () => {
-      const ctx = setupWithDom();
-
-      await act(async () => {
-        ctx.result.handleSelectorKeydown({ key: 'Tab', preventDefault: vi.fn() });
+      await withDom(async (ctx) => {
+        await pressSelectorKey(ctx, 'Tab');
+        expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(false);
       });
-      await ctx.flushAsync();
-
-      expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
-      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
-      ctx.unmount();
     });
 
     it('focuses the search input when ArrowDown is pressed while already open', async () => {
-      const ctx = setupWithDom();
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        await ctx.flushAsync();
+        ctx.searchFocusSpy.mockClear();
 
-      await act(async () => {
-        ctx.result.openDropdown();
+        await pressSelectorKey(ctx, 'ArrowDown');
+
+        expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
       });
-      await ctx.flushAsync();
-      ctx.searchFocusSpy.mockClear();
-
-      await act(async () => {
-        ctx.result.handleSelectorKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
-      });
-      await ctx.flushAsync();
-
-      expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      ctx.unmount();
     });
 
     it('preserves keyboard focus behavior when Space primes the selector before opening', async () => {
-      const ctx = setupWithDom();
+      await withDom(async (ctx) => {
+        await act(async () => {
+          ctx.result.handleSelectorKeydown({ key: ' ', preventDefault: vi.fn() });
+          ctx.result.toggleDropdown();
+        });
+        await ctx.flushAsync();
 
-      await act(async () => {
-        ctx.result.handleSelectorKeydown({ key: ' ', preventDefault: vi.fn() });
-        ctx.result.toggleDropdown();
+        expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
       });
-      await ctx.flushAsync();
-
-      expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      ctx.unmount();
     });
 
     it('updates state when the popover closes externally', async () => {
-      const ctx = setupWithDom();
+      await withDom(async (ctx) => {
+        await pressSelectorKey(ctx, 'ArrowDown');
 
-      await act(async () => {
-        ctx.result.handleSelectorKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
+        await act(async () => {
+          ctx.result.handleSearchChange({ target: { value: 'uni' } });
+          ctx.dropdownTarget.hidePopover();
+        });
+
+        expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+        expect(toValue(ctx.result.search)).toBe('');
+        expect(toValue(ctx.result.focusedIndex)).toBe(0);
       });
-      await ctx.flushAsync();
-
-      await act(async () => {
-        ctx.result.handleSearchChange({ target: { value: 'uni' } });
-        ctx.dropdownTarget.hidePopover();
-      });
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
-      expect(toValue(ctx.result.search)).toBe('');
-      expect(toValue(ctx.result.focusedIndex)).toBe(0);
-      ctx.unmount();
     });
 
     it('falls back to current state when a toggle event has no newState', async () => {
-      const ctx = setupWithDom();
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
 
-      await act(async () => {
-        ctx.result.openDropdown();
+        for (const expected of [false, true]) {
+          await act(async () => {
+            ctx.dropdownTarget.dispatchEvent(new Event('toggle'));
+          });
+          expect(toValue(ctx.result.dropdownOpen)).toBe(expected);
+        }
       });
-
-      await act(async () => {
-        ctx.dropdownTarget.dispatchEvent(new Event('toggle'));
-      });
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
-
-      await act(async () => {
-        ctx.dropdownTarget.dispatchEvent(new Event('toggle'));
-      });
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      ctx.unmount();
     });
 
     it('safely ignores resize updates when the root ref becomes unavailable', async () => {
-      const ctx = setupWithDom();
-      expect(ctx.setRootUnavailable).toBeDefined();
+      await withDom(async (ctx) => {
+        expect(ctx.setRootUnavailable).toBeDefined();
 
-      await act(async () => {
-        ctx.result.openDropdown();
+        await openDropdown(ctx);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
+
+        await act(async () => {
+          await ctx.setRootUnavailable!();
+        });
+        await ctx.flushAsync();
+
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
       });
-      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
-
-      await act(async () => {
-        await ctx.setRootUnavailable!();
-      });
-      await ctx.flushAsync();
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
-      ctx.unmount();
     });
   });
 }
