@@ -171,10 +171,10 @@ export function useCountrySelector({
         e.preventDefault();
         openByKeyboardRef.current = true;
 
-        if (!dropdownOpen) {
-          openDropdown();
-        } else {
+        if (dropdownOpen) {
           setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
+        } else {
+          openDropdown();
         }
       }
     },

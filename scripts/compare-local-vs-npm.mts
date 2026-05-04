@@ -196,6 +196,12 @@ function normalizeDeps(deps: Record<string, unknown> | undefined): DependencyMap
   return normalized;
 }
 
+function normalizeVersion(version: unknown): string {
+  if (typeof version === 'string') return version;
+  if (typeof version === 'number' && Number.isFinite(version)) return String(version);
+  return '0.0.0';
+}
+
 function formatKb(value: number | null | undefined): string {
   return isFiniteNumber(value) ? `${(value / 1024).toFixed(1)} KB` : 'N/A';
 }
@@ -220,12 +226,12 @@ async function loadWorkspacePackages(): Promise<Map<string, WorkspacePackage>> {
     const pkgPath = path.join(PACKAGES_DIR, entry.name, 'package.json');
     try {
       const pkg = await readJson<Record<string, unknown>>(pkgPath);
-      const name = typeof pkg.name === 'string' ? pkg.name : null;
-      if (!name || !name.startsWith('@desource/phone-mask')) continue;
+      const name = typeof pkg.name === 'string' ? pkg.name : undefined;
+      if (!name?.startsWith('@desource/phone-mask')) continue;
 
       list.push({
         name,
-        version: typeof pkg.version === 'string' ? pkg.version : String(pkg.version ?? '0.0.0'),
+        version: normalizeVersion(pkg.version),
         dir: path.join(PACKAGES_DIR, entry.name),
         dependencies: normalizeDeps(isRecord(pkg.dependencies) ? pkg.dependencies : undefined),
         peerDependencies: normalizeDeps(isRecord(pkg.peerDependencies) ? pkg.peerDependencies : undefined)

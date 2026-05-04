@@ -161,10 +161,10 @@ export function useCountrySelector({
       e.preventDefault();
       openByKeyboard = true;
 
-      if (!dropdownOpen) {
-        openDropdown();
-      } else {
+      if (dropdownOpen) {
         focusSearch();
+      } else {
+        openDropdown();
       }
     }
   };

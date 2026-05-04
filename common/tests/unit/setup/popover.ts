@@ -93,7 +93,7 @@ if (!('hidePopover' in HTMLElement.prototype)) {
 globalThis.addEventListener(
   'keydown',
   (event) => {
-    if ((event as KeyboardEvent).key !== 'Escape') return;
+    if (event.key !== 'Escape') return;
 
     openPopovers.at(-1)?.hidePopover();
   },

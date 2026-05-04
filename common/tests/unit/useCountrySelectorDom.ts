@@ -88,7 +88,7 @@ export function testUseCountrySelectorDomBehavior(
 
     const expectPopoverClosed = (ctx: CountrySelectorDomSetupResult) => {
       expect(toValue(ctx.result.dropdownOpen)).toBe(false);
-      expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(false);
+      expect(ctx.dropdownTarget.dataset.popoverOpen).toBeUndefined();
     };
 
     const setCompactViewport = (ctx: CountrySelectorDomSetupResult, width = 120) => {
@@ -138,7 +138,7 @@ export function testUseCountrySelectorDomBehavior(
     it('opens the native popover and writes the option max height', async () => {
       await withDom(async (ctx) => {
         await openDropdown(ctx);
-        expect(ctx.dropdownTarget.hasAttribute('data-popover-open')).toBe(true);
+        expect(ctx.dropdownTarget.dataset.popoverOpen).toBe('');
         expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
       });
     });
