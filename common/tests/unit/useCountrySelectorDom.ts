@@ -86,9 +86,8 @@ export function testUseCountrySelectorDomBehavior(
       await ctx.flushAsync();
     };
 
-    const expectPopoverClosed = (ctx: CountrySelectorDomSetupResult) => {
+    const expectDropdownClosed = (ctx: CountrySelectorDomSetupResult) => {
       expect(toValue(ctx.result.dropdownOpen)).toBe(false);
-      expect(ctx.dropdownTarget.dataset.popoverOpen).toBeUndefined();
     };
 
     const setCompactViewport = (ctx: CountrySelectorDomSetupResult, width = 120) => {
@@ -135,11 +134,15 @@ export function testUseCountrySelectorDomBehavior(
       });
     });
 
-    it('opens the native popover and writes the option max height', async () => {
+    it('opens the dropdown and writes fixed positioning styles', async () => {
       await withDom(async (ctx) => {
         await openDropdown(ctx);
-        expect(ctx.dropdownTarget.dataset.popoverOpen).toBe('');
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-top')).toBe('38px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-left')).toBe('8px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-width')).toBe('120px');
         expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
+        expect(ctx.dropdownTarget.dataset.placement).toBe('bottom');
       });
     });
 
@@ -153,7 +156,7 @@ export function testUseCountrySelectorDomBehavior(
           ctx.result.openDropdown();
         });
 
-        expectPopoverClosed(ctx);
+        expectDropdownClosed(ctx);
       });
     });
 
@@ -161,7 +164,8 @@ export function testUseCountrySelectorDomBehavior(
       await withDom(async (ctx) => {
         setCompactViewport(ctx);
         await openDropdown(ctx);
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('78px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('86px');
+        expect(ctx.dropdownTarget.dataset.placement).toBe('top');
       });
     });
 
@@ -174,7 +178,7 @@ export function testUseCountrySelectorDomBehavior(
           globalThis.dispatchEvent(new Event('resize'));
         });
 
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('78px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('86px');
       });
     });
 
@@ -191,7 +195,7 @@ export function testUseCountrySelectorDomBehavior(
         });
         await ctx.flushAsync();
 
-        expectPopoverClosed(ctx);
+        expectDropdownClosed(ctx);
       });
     });
 
@@ -256,31 +260,20 @@ export function testUseCountrySelectorDomBehavior(
       });
     });
 
-    it('updates state when the popover closes externally', async () => {
+    it('resets state when Escape closes the dropdown', async () => {
       await withDom(async (ctx) => {
         await pressSelectorKey(ctx, 'ArrowDown');
 
         await act(async () => {
           ctx.result.handleSearchChange({ target: { value: 'uni' } });
-          ctx.dropdownTarget.hidePopover();
+          ctx.result.setFocusedIndex(2);
+          globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
         });
+        await ctx.flushAsync();
 
-        expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+        expectDropdownClosed(ctx);
         expect(toValue(ctx.result.search)).toBe('');
         expect(toValue(ctx.result.focusedIndex)).toBe(0);
-      });
-    });
-
-    it('falls back to current state when a toggle event has no newState', async () => {
-      await withDom(async (ctx) => {
-        await openDropdown(ctx);
-
-        for (const expected of [false, true]) {
-          await act(async () => {
-            ctx.dropdownTarget.dispatchEvent(new Event('toggle'));
-          });
-          expect(toValue(ctx.result.dropdownOpen)).toBe(expected);
-        }
       });
     });
 

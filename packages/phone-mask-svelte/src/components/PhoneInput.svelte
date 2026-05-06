@@ -99,8 +99,7 @@
     dropdownId = Math.random().toString(36).slice(2, 10);
   });
   const listboxId = $derived(`pi-options-${dropdownId}`);
-  const popoverId = $derived(`pi-dropdown-${dropdownId}`);
-  const anchorName = $derived(`--pi-anchor-${dropdownId}`);
+  const dropdownElementId = $derived(`pi-dropdown-${dropdownId}`);
   const getOptionId = (idx: number) => `pi-option-${dropdownId}-${idx}`;
   const activeOptionId = $derived(
     selectorData.dropdownOpen && selectorData.filteredCountries[selectorData.focusedIndex]
@@ -182,6 +181,11 @@
   const actionsCount = $derived(+showCopyButton + +showClearButton + (actionsbefore ? 1 : 0));
   const canOpenDropdown = $derived(selectorData.hasDropdown && !inactive);
   const renderDropdown = $derived(selectorData.hasDropdown && (!inactive || selectorData.dropdownOpen));
+
+  const portalToBody = (node: HTMLElement) => {
+    document.body.appendChild(node);
+    return { destroy: () => node.remove() };
+  };
 </script>
 
 <div
@@ -189,7 +193,6 @@
   class={rootClasses}
   {...restProps}
   style:--pi-actions-count={actionsCount}
-  style:anchor-name={anchorName}
   role="group"
   aria-label="Phone input with country selector"
 >
@@ -205,11 +208,10 @@
       aria-label="Selected country: {countryData.country.name}"
       aria-expanded={canOpenDropdown && selectorData.dropdownOpen}
       aria-haspopup={canOpenDropdown ? 'listbox' : undefined}
-      aria-controls={canOpenDropdown ? popoverId : undefined}
-      popovertarget={canOpenDropdown ? popoverId : undefined}
-      popovertargetaction={canOpenDropdown ? 'toggle' : undefined}
+      aria-controls={canOpenDropdown ? dropdownElementId : undefined}
       onpointerdown={selectorData.handleSelectorPointerDown}
       onkeydown={selectorData.handleSelectorKeydown}
+      onclick={selectorData.toggleDropdown}
     >
       <span class="pi-flag" role="img" aria-label="{countryData.country.name} flag">
         {#if flag}{@render flag(countryData.country)}{:else}{countryData.country.flag}{/if}
@@ -322,11 +324,11 @@
 <!-- Dropdown -->
 {#if renderDropdown}
   <div
-    id={popoverId}
+    id={dropdownElementId}
     bind:this={dropdownEl}
-    popover="auto"
+    use:portalToBody
     class="phone-dropdown {dropdownClass} {themeData.themeClass}"
-    style:position-anchor={anchorName}
+    class:is-open={selectorData.dropdownOpen}
     role="dialog"
     aria-modal="false"
     aria-label="Select country"

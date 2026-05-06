@@ -214,25 +214,26 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       unmount();
     });
 
-    it('uses the native popover target to toggle selector clicks', async () => {
+    it('uses controlled state to toggle selector clicks', async () => {
       const { unmount } = await setup({
         value: '2025550123',
         detect: false
       });
 
       const selectorButton = screen.getByRole('button', { name: /Selected country:/i });
-      const popoverId = selectorButton.getAttribute('popovertarget');
-      expect(popoverId).toBeTruthy();
-      expect(selectorButton.getAttribute('popovertargetaction')).toBe('toggle');
+      const dropdownId = selectorButton.getAttribute('aria-controls');
+      expect(dropdownId).toBeTruthy();
+      expect(selectorButton.hasAttribute('popovertarget')).toBe(false);
 
-      const dropdown = document.getElementById(popoverId!);
+      const dropdown = document.getElementById(dropdownId!);
       expect(dropdown).not.toBeNull();
+      expect(dropdown!.parentElement).toBe(document.body);
 
       await fireEvent.click(selectorButton);
-      await waitFor(() => expect(dropdown!.dataset.popoverOpen).toBe(''));
+      await waitFor(() => expect(dropdown!.className).toContain('is-open'));
 
       await fireEvent.click(selectorButton);
-      await waitFor(() => expect(dropdown!.dataset.popoverOpen).toBeUndefined());
+      await waitFor(() => expect(dropdown!.className).not.toContain('is-open'));
 
       unmount();
     });
@@ -258,12 +259,12 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       });
 
       const searchInput = await openDropdownAndGetSearchInput();
-      expect(document.body.querySelector('.phone-dropdown[data-popover-open]')).not.toBeNull();
+      expect(document.body.querySelector('.phone-dropdown.is-open')).not.toBeNull();
 
       await fireEvent.keyDown(searchInput, { key: 'Escape' });
 
       await waitFor(() => {
-        expect(document.body.querySelector('.phone-dropdown[data-popover-open]')).toBeNull();
+        expect(document.body.querySelector('.phone-dropdown.is-open')).toBeNull();
       });
 
       unmount();

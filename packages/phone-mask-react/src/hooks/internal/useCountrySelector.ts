@@ -2,14 +2,9 @@ import React, { useState, useCallback, useMemo, useEffect, useRef, type RefObjec
 
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
 
-type PopoverElement = HTMLDivElement & {
-  showPopover(options?: { source?: HTMLElement }): void;
-  hidePopover(): void;
-};
-
 interface UseCountrySelectOptions {
   rootRef: RefObject<HTMLDivElement | null>;
-  dropdownRef: RefObject<PopoverElement | null>;
+  dropdownRef: RefObject<HTMLDivElement | null>;
   searchRef: RefObject<HTMLInputElement | null>;
   selectorRef: RefObject<HTMLButtonElement | null>;
   locale: string;
@@ -20,7 +15,7 @@ interface UseCountrySelectOptions {
 }
 
 const DROPDOWN_HEIGHT = 300;
-const VIEWPORT_GAP = 16;
+const VIEWPORT_GAP = 8;
 const SEARCH_HEIGHT = 56;
 
 export function useCountrySelector({
@@ -48,26 +43,45 @@ export function useCountrySelector({
     openByKeyboardRef.current = false;
   }, []);
 
-  const updateMaxHeight = useCallback(() => {
+  const updateDropdownPosition = useCallback(() => {
     const rootEl = rootRef.current;
     const dropdownEl = dropdownRef.current;
     if (!rootEl || !dropdownEl) return;
 
     const rect = rootEl.getBoundingClientRect();
-    const viewportHeight = globalThis.visualViewport?.height ?? globalThis.innerHeight;
-    const searchHeight = (dropdownEl.firstElementChild as HTMLElement | null)?.offsetHeight || SEARCH_HEIGHT;
-    const spaceBelow = viewportHeight - rect.bottom - VIEWPORT_GAP - searchHeight;
-    const spaceAbove = rect.top - VIEWPORT_GAP - searchHeight;
+    const viewport = globalThis.visualViewport;
+    const viewportTop = viewport?.offsetTop ?? 0;
+    const viewportLeft = viewport?.offsetLeft ?? 0;
+    const viewportHeight = viewport?.height ?? globalThis.innerHeight;
+    const viewportWidth = viewport?.width ?? globalThis.innerWidth;
+    const searchHeight = SEARCH_HEIGHT;
+    const spaceBelow = viewportTop + viewportHeight - rect.bottom - VIEWPORT_GAP - searchHeight;
+    const spaceAbove = rect.top - viewportTop - VIEWPORT_GAP - searchHeight;
     const maxHeight = Math.min(DROPDOWN_HEIGHT, Math.max(spaceBelow, spaceAbove));
+    const opensAbove = spaceAbove > spaceBelow && spaceBelow < DROPDOWN_HEIGHT;
+    const width = Math.floor(rect.width);
+    const left = Math.max(
+      viewportLeft + VIEWPORT_GAP,
+      Math.min(rect.left, viewportLeft + viewportWidth - width - VIEWPORT_GAP)
+    );
+    const top = opensAbove
+      ? Math.max(
+          viewportTop + VIEWPORT_GAP,
+          rect.top - Math.max(0, Math.floor(maxHeight)) - searchHeight - VIEWPORT_GAP
+        )
+      : rect.bottom + VIEWPORT_GAP;
 
+    dropdownEl.style.setProperty('--pi-dropdown-top', `${Math.floor(top)}px`);
+    dropdownEl.style.setProperty('--pi-dropdown-left', `${Math.floor(left)}px`);
+    dropdownEl.style.setProperty('--pi-dropdown-width', `${width}px`);
     dropdownEl.style.setProperty('--pi-dropdown-max-height', `${Math.max(0, Math.floor(maxHeight))}px`);
+    dropdownEl.dataset.placement = opensAbove ? 'top' : 'bottom';
   }, [dropdownRef, rootRef]);
 
   const closeDropdown = useCallback(() => {
-    if (!dropdownOpen) return;
-
-    dropdownRef.current?.hidePopover();
-  }, [dropdownOpen, dropdownRef]);
+    setDropdownOpen(false);
+    resetDropdownState();
+  }, [resetDropdownState]);
 
   const openDropdown = useCallback(() => {
     if (inactive || !hasDropdown || dropdownOpen) return;
@@ -76,9 +90,10 @@ export function useCountrySelector({
     const selectorEl = selectorRef.current;
     if (!dropdownEl || !selectorEl) return;
 
-    dropdownEl.showPopover({ source: selectorEl });
+    updateDropdownPosition();
     setFocusedIndex(0);
-  }, [dropdownOpen, dropdownRef, hasDropdown, inactive, selectorRef]);
+    setDropdownOpen(true);
+  }, [dropdownOpen, dropdownRef, hasDropdown, inactive, selectorRef, updateDropdownPosition]);
 
   const toggleDropdown = useCallback(() => {
     if (inactive || !hasDropdown) return;
@@ -93,10 +108,9 @@ export function useCountrySelector({
     (code: CountryKey) => {
       onSelectCountry(code);
       closeDropdown();
-      resetDropdownState();
       onAfterSelect?.();
     },
-    [onSelectCountry, closeDropdown, onAfterSelect, resetDropdownState]
+    [onSelectCountry, closeDropdown, onAfterSelect]
   );
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,9 +164,11 @@ export function useCountrySelector({
       } else if (e.key === 'Enter' && filteredCountries[focusedIndex]) {
         e.preventDefault();
         selectCountry(filteredCountries[focusedIndex]!.id);
+      } else if (e.key === 'Escape') {
+        closeDropdown();
       }
     },
-    [filteredCountries, focusedIndex, selectCountry, scrollFocusedIntoView]
+    [filteredCountries, focusedIndex, selectCountry, closeDropdown, scrollFocusedIntoView]
   );
 
   const handleSelectorPointerDown = useCallback((e: React.PointerEvent) => {
@@ -181,39 +197,6 @@ export function useCountrySelector({
   );
 
   useEffect(() => {
-    const dropdownEl = dropdownRef.current;
-    if (!dropdownEl) return;
-
-    const handleBeforeToggle = (event: ToggleEvent) => {
-      const nextState = event.newState ?? (dropdownOpen ? 'closed' : 'open');
-      if (nextState === 'open') updateMaxHeight();
-    };
-
-    const handleToggle = (event: ToggleEvent) => {
-      const nextState = event.newState ?? (dropdownOpen ? 'closed' : 'open');
-      const isOpen = nextState === 'open';
-      setDropdownOpen(isOpen);
-
-      if (isOpen) {
-        if (openByKeyboardRef.current) {
-          setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
-        }
-        return;
-      }
-
-      resetDropdownState();
-    };
-
-    dropdownEl.addEventListener('beforetoggle', handleBeforeToggle);
-    dropdownEl.addEventListener('toggle', handleToggle);
-
-    return () => {
-      dropdownEl.removeEventListener('beforetoggle', handleBeforeToggle);
-      dropdownEl.removeEventListener('toggle', handleToggle);
-    };
-  }, [dropdownOpen, dropdownRef, resetDropdownState, searchRef, updateMaxHeight]);
-
-  useEffect(() => {
     if ((inactive || !hasDropdown) && dropdownOpen) {
       closeDropdown();
     }
@@ -222,14 +205,42 @@ export function useCountrySelector({
   useEffect(() => {
     if (!dropdownOpen) return;
 
-    globalThis.addEventListener('resize', updateMaxHeight);
-    globalThis.visualViewport?.addEventListener('resize', updateMaxHeight);
+    updateDropdownPosition();
+    if (openByKeyboardRef.current) {
+      setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
+    }
+
+    const handleOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      const dropdownEl = dropdownRef.current;
+      const selectorEl = selectorRef.current;
+      if (target instanceof Node && (dropdownEl?.contains(target) || selectorEl?.contains(target))) return;
+      closeDropdown();
+    };
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeDropdown();
+    };
+    const handleScroll = (event: Event) => {
+      if (event.target instanceof Node && dropdownRef.current?.contains(event.target)) return;
+      updateDropdownPosition();
+    };
+
+    globalThis.addEventListener('pointerdown', handleOutsidePointer, true);
+    globalThis.addEventListener('keydown', handleKeydown);
+    globalThis.addEventListener('resize', updateDropdownPosition);
+    globalThis.addEventListener('scroll', handleScroll, true);
+    globalThis.visualViewport?.addEventListener('resize', updateDropdownPosition);
+    globalThis.visualViewport?.addEventListener('scroll', updateDropdownPosition);
 
     return () => {
-      globalThis.removeEventListener('resize', updateMaxHeight);
-      globalThis.visualViewport?.removeEventListener('resize', updateMaxHeight);
+      globalThis.removeEventListener('pointerdown', handleOutsidePointer, true);
+      globalThis.removeEventListener('keydown', handleKeydown);
+      globalThis.removeEventListener('resize', updateDropdownPosition);
+      globalThis.removeEventListener('scroll', handleScroll, true);
+      globalThis.visualViewport?.removeEventListener('resize', updateDropdownPosition);
+      globalThis.visualViewport?.removeEventListener('scroll', updateDropdownPosition);
     };
-  }, [dropdownOpen, updateMaxHeight]);
+  }, [dropdownOpen, closeDropdown, dropdownRef, selectorRef, searchRef, updateDropdownPosition]);
 
   return {
     // State

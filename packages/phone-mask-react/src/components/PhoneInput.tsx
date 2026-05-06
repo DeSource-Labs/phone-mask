@@ -7,6 +7,7 @@ import React, {
   type CSSProperties,
   type ForwardedRef
 } from 'react';
+import { createPortal } from 'react-dom';
 import { useFormatter } from '../hooks/internal/useFormatter';
 import { useCountry } from '../hooks/internal/useCountry';
 import { useValidationHint } from '../hooks/internal/useValidationHint';
@@ -122,6 +123,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     filteredCountries,
     hasDropdown,
     closeDropdown,
+    toggleDropdown,
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
@@ -195,8 +197,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     .join(' ');
 
   const actionsCount = +showCopyButton + +showClearButton + (renderActionsBefore ? 1 : 0);
-  const popoverId = `pi-dropdown-${dropdownId}`;
-  const anchorName = `--pi-anchor-${dropdownId}`;
+  const dropdownElementId = `pi-dropdown-${dropdownId}`;
   const listboxId = `pi-options-${dropdownId}`;
   const optionIdPrefix = `pi-option-${dropdownId}`;
   const canOpenDropdown = hasDropdown && !inactive;
@@ -209,7 +210,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
       <div
         ref={rootRef}
         className={rootClasses}
-        style={{ '--pi-actions-count': actionsCount, anchorName } as CSSProperties}
+        style={{ '--pi-actions-count': actionsCount } as CSSProperties}
         role="group"
         aria-label="Phone input with country selector"
       >
@@ -224,11 +225,10 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             aria-label={`Selected country: ${country.name}`}
             aria-expanded={canOpenDropdown && dropdownOpen}
             aria-haspopup={canOpenDropdown ? 'listbox' : undefined}
-            aria-controls={canOpenDropdown ? popoverId : undefined}
-            popoverTarget={canOpenDropdown ? popoverId : undefined}
-            popoverTargetAction={canOpenDropdown ? 'toggle' : undefined}
+            aria-controls={canOpenDropdown ? dropdownElementId : undefined}
             onPointerDown={handleSelectorPointerDown}
             onKeyDown={handleSelectorKeydown}
+            onClick={toggleDropdown}
           >
             <span className="pi-flag" role="img" aria-label={`${country.name} flag`}>
               {renderFlag ? renderFlag(country) : country.flag}
@@ -335,64 +335,65 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
       </div>
 
       {/* Dropdown */}
-      {renderDropdown && (
-        <div
-          id={popoverId}
-          ref={dropdownRef}
-          popover="auto"
-          className={`phone-dropdown ${dropdownClass} ${themeClass}`}
-          style={{ positionAnchor: anchorName } as CSSProperties}
-          role="dialog"
-          aria-modal="false"
-          aria-label="Select country"
-        >
-          {dropdownOpen && (
-            <>
-              <div className="pi-search-wrap">
-                <input
-                  ref={searchRef}
-                  id="pi-search"
-                  type="search"
-                  className="pi-search"
-                  aria-label="Search countries"
-                  aria-controls={listboxId}
-                  aria-activedescendant={activeOptionId}
-                  placeholder={searchPlaceholder}
-                  value={search}
-                  onChange={handleSearchChange}
-                  onKeyDown={handleSearchKeydown}
-                />
-              </div>
-              <ul id={listboxId} className="pi-options" role="listbox" tabIndex={-1}>
-                {filteredCountries.length > 0 ? (
-                  filteredCountries.map((c, idx) => (
-                    <li
-                      key={c.id}
-                      id={`${optionIdPrefix}-${idx}`}
-                      role="option"
-                      className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
-                        c.id === country.id ? 'is-selected' : ''
-                      }`}
-                      aria-selected={c.id === country.id}
-                      title={c.name}
-                      onClick={() => selectCountry(c.id)}
-                      onMouseEnter={() => setFocusedIndex(idx)}
-                    >
-                      <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
-                        {renderFlag ? renderFlag(c) : c.flag}
-                      </span>
-                      <span className="pi-opt-name">{c.name}</span>
-                      <span className="pi-opt-code">{c.code}</span>
-                    </li>
-                  ))
-                ) : (
-                  <li className="pi-empty">{noResultsText}</li>
-                )}
-              </ul>
-            </>
-          )}
-        </div>
-      )}
+      {typeof document !== 'undefined' &&
+        renderDropdown &&
+        createPortal(
+          <div
+            id={dropdownElementId}
+            ref={dropdownRef}
+            className={`phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass}`}
+            role="dialog"
+            aria-modal="false"
+            aria-label="Select country"
+          >
+            {dropdownOpen && (
+              <>
+                <div className="pi-search-wrap">
+                  <input
+                    ref={searchRef}
+                    id="pi-search"
+                    type="search"
+                    className="pi-search"
+                    aria-label="Search countries"
+                    aria-controls={listboxId}
+                    aria-activedescendant={activeOptionId}
+                    placeholder={searchPlaceholder}
+                    value={search}
+                    onChange={handleSearchChange}
+                    onKeyDown={handleSearchKeydown}
+                  />
+                </div>
+                <ul id={listboxId} className="pi-options" role="listbox" tabIndex={-1}>
+                  {filteredCountries.length > 0 ? (
+                    filteredCountries.map((c, idx) => (
+                      <li
+                        key={c.id}
+                        id={`${optionIdPrefix}-${idx}`}
+                        role="option"
+                        className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
+                          c.id === country.id ? 'is-selected' : ''
+                        }`}
+                        aria-selected={c.id === country.id}
+                        title={c.name}
+                        onClick={() => selectCountry(c.id)}
+                        onMouseEnter={() => setFocusedIndex(idx)}
+                      >
+                        <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
+                          {renderFlag ? renderFlag(c) : c.flag}
+                        </span>
+                        <span className="pi-opt-name">{c.name}</span>
+                        <span className="pi-opt-code">{c.code}</span>
+                      </li>
+                    ))
+                  ) : (
+                    <li className="pi-empty">{noResultsText}</li>
+                  )}
+                </ul>
+              </>
+            )}
+          </div>,
+          document.body
+        )}
 
       {/* Screen reader announcements */}
       <div ref={liveRef} className="sr-only" role="status" aria-live="polite" aria-atomic="true" />

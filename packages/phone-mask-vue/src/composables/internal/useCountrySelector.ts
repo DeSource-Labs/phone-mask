@@ -1,14 +1,9 @@
 import { ref, computed, watch, toValue, nextTick, type MaybeRefOrGetter, type ShallowRef } from 'vue';
 import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
 
-type PopoverElement = HTMLDivElement & {
-  showPopover(options?: { source?: HTMLElement }): void;
-  hidePopover(): void;
-};
-
 interface UseCountrySelectorOptions {
   rootRef: ShallowRef<HTMLDivElement | null>;
-  dropdownRef: ShallowRef<PopoverElement | null>;
+  dropdownRef: ShallowRef<HTMLDivElement | null>;
   searchRef: ShallowRef<HTMLInputElement | null>;
   selectorRef: ShallowRef<HTMLButtonElement | null>;
   locale: MaybeRefOrGetter<string>;
@@ -19,7 +14,7 @@ interface UseCountrySelectorOptions {
 }
 
 const DROPDOWN_HEIGHT = 300;
-const VIEWPORT_GAP = 16;
+const VIEWPORT_GAP = 8;
 const SEARCH_HEIGHT = 56;
 
 export function useCountrySelector({
@@ -56,24 +51,44 @@ export function useCountrySelector({
     openByKeyboard = false;
   };
 
-  const updateMaxHeight = () => {
+  const updateDropdownPosition = () => {
     const rootEl = rootRef.value;
     const dropdownEl = dropdownRef.value;
     if (!rootEl || !dropdownEl) return;
 
     const rect = rootEl.getBoundingClientRect();
-    const viewportHeight = globalThis.visualViewport?.height ?? globalThis.innerHeight;
-    const searchHeight = (dropdownEl.firstElementChild as HTMLElement | null)?.offsetHeight || SEARCH_HEIGHT;
-    const spaceBelow = viewportHeight - rect.bottom - VIEWPORT_GAP - searchHeight;
-    const spaceAbove = rect.top - VIEWPORT_GAP - searchHeight;
+    const viewport = globalThis.visualViewport;
+    const viewportTop = viewport?.offsetTop ?? 0;
+    const viewportLeft = viewport?.offsetLeft ?? 0;
+    const viewportHeight = viewport?.height ?? globalThis.innerHeight;
+    const viewportWidth = viewport?.width ?? globalThis.innerWidth;
+    const searchHeight = SEARCH_HEIGHT;
+    const spaceBelow = viewportTop + viewportHeight - rect.bottom - VIEWPORT_GAP - searchHeight;
+    const spaceAbove = rect.top - viewportTop - VIEWPORT_GAP - searchHeight;
     const maxHeight = Math.min(DROPDOWN_HEIGHT, Math.max(spaceBelow, spaceAbove));
+    const opensAbove = spaceAbove > spaceBelow && spaceBelow < DROPDOWN_HEIGHT;
+    const width = Math.floor(rect.width);
+    const left = Math.max(
+      viewportLeft + VIEWPORT_GAP,
+      Math.min(rect.left, viewportLeft + viewportWidth - width - VIEWPORT_GAP)
+    );
+    const top = opensAbove
+      ? Math.max(
+          viewportTop + VIEWPORT_GAP,
+          rect.top - Math.max(0, Math.floor(maxHeight)) - searchHeight - VIEWPORT_GAP
+        )
+      : rect.bottom + VIEWPORT_GAP;
 
+    dropdownEl.style.setProperty('--pi-dropdown-top', `${Math.floor(top)}px`);
+    dropdownEl.style.setProperty('--pi-dropdown-left', `${Math.floor(left)}px`);
+    dropdownEl.style.setProperty('--pi-dropdown-width', `${width}px`);
     dropdownEl.style.setProperty('--pi-dropdown-max-height', `${Math.max(0, Math.floor(maxHeight))}px`);
+    dropdownEl.dataset.placement = opensAbove ? 'top' : 'bottom';
   };
 
   const closeDropdown = () => {
-    if (!dropdownOpen.value) return;
-    dropdownRef.value?.hidePopover();
+    dropdownOpen.value = false;
+    resetDropdownState();
   };
 
   const openDropdown = () => {
@@ -83,8 +98,9 @@ export function useCountrySelector({
     const selectorEl = selectorRef.value;
     if (!dropdownEl || !selectorEl) return;
 
-    dropdownEl.showPopover({ source: selectorEl });
+    updateDropdownPosition();
     setFocusedIndex(0);
+    dropdownOpen.value = true;
   };
 
   const toggleDropdown = () => {
@@ -99,7 +115,6 @@ export function useCountrySelector({
   const selectCountry = (code: CountryKey) => {
     onSelectCountry(code);
     closeDropdown();
-    resetDropdownState();
     onAfterSelect?.();
   };
 
@@ -143,6 +158,8 @@ export function useCountrySelector({
     } else if (e.key === 'Enter' && filteredCountries.value[focusedIndex.value]) {
       e.preventDefault();
       selectCountry(filteredCountries.value[focusedIndex.value]!.id);
+    } else if (e.key === 'Escape') {
+      closeDropdown();
     }
   };
 
@@ -168,41 +185,6 @@ export function useCountrySelector({
     }
   };
 
-  watch(
-    dropdownRef,
-    (dropdownEl, _, onCleanup) => {
-      if (!dropdownEl) return;
-
-      const handleBeforeToggle = (event: ToggleEvent) => {
-        const nextState = event.newState ?? (dropdownOpen.value ? 'closed' : 'open');
-        if (nextState === 'open') updateMaxHeight();
-      };
-
-      const handleToggle = (event: ToggleEvent) => {
-        const nextState = event.newState ?? (dropdownOpen.value ? 'closed' : 'open');
-        const isOpen = nextState === 'open';
-
-        dropdownOpen.value = isOpen;
-
-        if (isOpen) {
-          if (openByKeyboard) focusSearch();
-          return;
-        }
-
-        resetDropdownState();
-      };
-
-      dropdownEl.addEventListener('beforetoggle', handleBeforeToggle);
-      dropdownEl.addEventListener('toggle', handleToggle);
-
-      onCleanup(() => {
-        dropdownEl.removeEventListener('beforetoggle', handleBeforeToggle);
-        dropdownEl.removeEventListener('toggle', handleToggle);
-      });
-    },
-    { immediate: true }
-  );
-
   watch([hasDropdown, () => toValue(inactive)], ([dropdownExists, isInactive]) => {
     if ((isInactive || !dropdownExists) && dropdownOpen.value) {
       closeDropdown();
@@ -212,12 +194,38 @@ export function useCountrySelector({
   watch(dropdownOpen, (isOpen, _, onCleanup) => {
     if (!isOpen) return;
 
-    globalThis.addEventListener('resize', updateMaxHeight);
-    globalThis.visualViewport?.addEventListener('resize', updateMaxHeight);
+    updateDropdownPosition();
+    if (openByKeyboard) focusSearch();
+
+    const handleOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      const dropdownEl = dropdownRef.value;
+      const selectorEl = selectorRef.value;
+      if (target instanceof Node && (dropdownEl?.contains(target) || selectorEl?.contains(target))) return;
+      closeDropdown();
+    };
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeDropdown();
+    };
+    const handleScroll = (event: Event) => {
+      if (event.target instanceof Node && dropdownRef.value?.contains(event.target)) return;
+      updateDropdownPosition();
+    };
+
+    globalThis.addEventListener('pointerdown', handleOutsidePointer, true);
+    globalThis.addEventListener('keydown', handleKeydown);
+    globalThis.addEventListener('resize', updateDropdownPosition);
+    globalThis.addEventListener('scroll', handleScroll, true);
+    globalThis.visualViewport?.addEventListener('resize', updateDropdownPosition);
+    globalThis.visualViewport?.addEventListener('scroll', updateDropdownPosition);
 
     onCleanup(() => {
-      globalThis.removeEventListener('resize', updateMaxHeight);
-      globalThis.visualViewport?.removeEventListener('resize', updateMaxHeight);
+      globalThis.removeEventListener('pointerdown', handleOutsidePointer, true);
+      globalThis.removeEventListener('keydown', handleKeydown);
+      globalThis.removeEventListener('resize', updateDropdownPosition);
+      globalThis.removeEventListener('scroll', handleScroll, true);
+      globalThis.visualViewport?.removeEventListener('resize', updateDropdownPosition);
+      globalThis.visualViewport?.removeEventListener('scroll', updateDropdownPosition);
     });
   });
 

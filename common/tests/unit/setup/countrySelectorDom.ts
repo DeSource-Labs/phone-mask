@@ -2,7 +2,6 @@
 import type { Mock } from 'vitest';
 
 import { createRect } from './domRect';
-import { attachLightDismiss } from './popover';
 
 type RectSpy = { mockReturnValue: (value: DOMRect) => unknown };
 
@@ -59,7 +58,6 @@ export function createCountrySelectorDomFixture(): CountrySelectorDomFixture {
   const selectorEl = document.createElement('button');
 
   document.body.append(rootEl, dropdownEl, selectorEl);
-  const cleanupLightDismiss = attachLightDismiss(dropdownEl, selectorEl);
 
   return {
     rootEl,
@@ -74,7 +72,6 @@ export function createCountrySelectorDomFixture(): CountrySelectorDomFixture {
     scrollToSpy,
     searchFocusSpy,
     cleanup: () => {
-      cleanupLightDismiss();
       rootEl.remove();
       dropdownEl.remove();
       selectorEl.remove();

@@ -27,9 +27,7 @@ export interface CountrySelectorSetupResult {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleSearchKeydown: (e: any) => void;
   };
-  /**
-   * No-op for native popover implementations; kept for older animation-based implementations.
-   */
+  /** No-op unless the implementation has a deferred close animation. */
   simulateCloseComplete: () => void;
   unmount: () => void;
   onSelectCountry: Mock;
@@ -164,6 +162,9 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
 
           await act(async () => {
             result.openDropdown();
+          });
+
+          await act(async () => {
             vi.runAllTimers();
           });
 
@@ -445,7 +446,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         expect(toValue(result.dropdownOpen)).toBe(true);
 
         await act(async () => {
-          globalThis.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          globalThis.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
         });
 
         await act(async () => {

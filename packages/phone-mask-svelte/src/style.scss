@@ -223,7 +223,9 @@
       caret-color: var(--pi-fg);
       -webkit-box-shadow: 0 0 0 1000px var(--pi-bg) inset;
       box-shadow: 0 0 0 1000px var(--pi-bg) inset;
-      transition: background-color 9999s ease-out, color 9999s ease-out;
+      transition:
+        background-color 9999s ease-out,
+        color 9999s ease-out;
     }
     &:-moz-autofill {
       -moz-text-fill-color: var(--pi-fg);
@@ -282,38 +284,37 @@
 // Dropdown styles
 .phone-dropdown {
   position: fixed;
-  position-anchor: auto;
-  inset: auto;
-  top: calc(anchor(bottom) + 8px);
-  left: anchor(left);
+  top: var(--pi-dropdown-top, 0);
+  left: var(--pi-dropdown-left, 0);
   margin: 0;
-  width: anchor-size(width, 0px);
+  width: var(--pi-dropdown-width, 0);
   max-width: calc(100vw - 16px);
   display: flex;
   flex-direction: column;
   box-shadow: var(--pi-shadow-lg);
   overflow: hidden;
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   transform: scale(0.98);
-  will-change: opacity, transform;
-  transition:
-    opacity 160ms cubic-bezier(0.4, 0, 0.2, 1) 16ms,
-    transform 160ms cubic-bezier(0.4, 0, 0.2, 1) 16ms,
-    overlay 176ms allow-discrete,
-    display 176ms allow-discrete;
-  position-try-fallbacks: flip-block;
   transform-origin: top center;
+  will-change: opacity, transform;
+  z-index: 1000;
+  transition:
+    opacity 160ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 160ms cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0s linear 160ms;
 
-  &:popover-open {
+  &.is-open {
     opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
     transform: scale(1);
+    transition-delay: 0s;
   }
 
-  @starting-style {
-    &:popover-open {
-      opacity: 0;
-      transform: scale(0.98);
-    }
+  &[data-placement='top'] {
+    transform-origin: bottom center;
   }
 
   .pi-search-wrap {
@@ -439,7 +440,6 @@
   .size-compact {
     --pi-actions-size: 20px;
   }
-
 }
 
 // Reduced motion
