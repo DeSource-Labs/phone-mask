@@ -1,4 +1,4 @@
-import { useMemo, useCallback, type RefObject } from 'react';
+import { useCallback, type RefObject } from 'react';
 import { useClipboard } from '../utility/useClipboard';
 import { useTimer } from '../utility/useTimer';
 
@@ -14,8 +14,8 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
   const liveTimer = useTimer();
   const { copied, copy } = useClipboard(DELAY);
 
-  const copyAriaLabel = useMemo(() => (copied ? 'Copied' : `Copy ${fullFormatted}`), [copied, fullFormatted]);
-  const copyButtonTitle = useMemo(() => (copied ? 'Copied' : 'Copy phone number'), [copied]);
+  const copyAriaLabel = copied ? 'Copied' : `Copy ${fullFormatted}`;
+  const copyButtonTitle = copied ? 'Copied' : 'Copy phone number';
 
   const announceToScreenReader = useCallback(
     (message: string) => {

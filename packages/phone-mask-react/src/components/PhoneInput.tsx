@@ -204,6 +204,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   const renderDropdown = hasDropdown && (!inactive || dropdownOpen);
   const activeOptionId =
     dropdownOpen && filteredCountries[focusedIndex] ? `${optionIdPrefix}-${focusedIndex}` : undefined;
+  const portalRoot = globalThis.document?.body;
 
   return (
     <>
@@ -335,7 +336,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
       </div>
 
       {/* Dropdown */}
-      {typeof document !== 'undefined' &&
+      {portalRoot &&
         renderDropdown &&
         createPortal(
           <div
@@ -343,7 +344,6 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             ref={dropdownRef}
             className={`phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass}`}
             role="dialog"
-            aria-modal="false"
             aria-label="Select country"
           >
             {dropdownOpen && (
@@ -392,7 +392,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
               </>
             )}
           </div>,
-          document.body
+          portalRoot
         )}
 
       {/* Screen reader announcements */}
