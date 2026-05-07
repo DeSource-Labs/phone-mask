@@ -21,10 +21,8 @@ export interface CountrySelectorDomSetupResult {
     handleSelectorKeydown: (e: any) => void;
   };
   unmount: () => void;
-  scrollToSpy: Mock;
-  listRectSpy: { mockReturnValue: (value: DOMRect) => unknown };
-  optionARectSpy: { mockReturnValue: (value: DOMRect) => unknown };
-  optionBRectSpy: { mockReturnValue: (value: DOMRect) => unknown };
+  optionAScrollIntoViewSpy: Mock;
+  optionBScrollIntoViewSpy: Mock;
   rootRectSpy?: { mockReturnValue: (value: DOMRect) => unknown };
   list?: HTMLElement;
   searchFocusSpy: Mock;
@@ -102,35 +100,19 @@ export function testUseCountrySelectorDomBehavior(
       await withDom(async (ctx) => {
         await openDropdown(ctx);
         await pressSearchKey(ctx, 'ArrowDown');
-        expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: 24, behavior: 'smooth' });
+        expect(ctx.optionBScrollIntoViewSpy).toHaveBeenCalledWith({ block: 'nearest' });
       });
     });
 
     it('scrolls focused option into view when navigating up', async () => {
       await withDom(async (ctx) => {
-        ctx.listRectSpy.mockReturnValue(createRect(0, 20));
-        ctx.optionARectSpy.mockReturnValue(createRect(-10, 0));
-        ctx.optionBRectSpy.mockReturnValue(createRect(24, 44));
-
         await act(async () => {
           ctx.result.openDropdown();
           ctx.result.setFocusedIndex(1);
         });
         await pressSearchKey(ctx, 'ArrowUp');
 
-        expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: -10, behavior: 'smooth' });
-      });
-    });
-
-    it('does not scroll when focused option is already visible', async () => {
-      await withDom(async (ctx) => {
-        ctx.listRectSpy.mockReturnValue(createRect(0, 40));
-        ctx.optionBRectSpy.mockReturnValue(createRect(10, 20));
-
-        await openDropdown(ctx);
-        await pressSearchKey(ctx, 'ArrowDown');
-
-        expect(ctx.scrollToSpy).not.toHaveBeenCalled();
+        expect(ctx.optionAScrollIntoViewSpy).toHaveBeenCalledWith({ block: 'nearest' });
       });
     });
 
@@ -138,10 +120,10 @@ export function testUseCountrySelectorDomBehavior(
       await withDom(async (ctx) => {
         await openDropdown(ctx);
         expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-top')).toBe('38px');
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-left')).toBe('8px');
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-width')).toBe('120px');
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-top')).toBe('38px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-left')).toBe('8px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-width')).toBe('120px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('300px');
         expect(ctx.dropdownTarget.dataset.placement).toBe('bottom');
       });
     });
@@ -164,7 +146,7 @@ export function testUseCountrySelectorDomBehavior(
       await withDom(async (ctx) => {
         setCompactViewport(ctx);
         await openDropdown(ctx);
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('86px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('86px');
         expect(ctx.dropdownTarget.dataset.placement).toBe('top');
       });
     });
@@ -178,7 +160,7 @@ export function testUseCountrySelectorDomBehavior(
           globalThis.dispatchEvent(new Event('resize'));
         });
 
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('86px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('86px');
       });
     });
 
@@ -282,7 +264,7 @@ export function testUseCountrySelectorDomBehavior(
         expect(ctx.setRootUnavailable).toBeDefined();
 
         await openDropdown(ctx);
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('300px');
 
         await act(async () => {
           await ctx.setRootUnavailable!();
@@ -290,7 +272,7 @@ export function testUseCountrySelectorDomBehavior(
         await ctx.flushAsync();
 
         expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dropdown-max-height')).toBe('300px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('300px');
       });
     });
   });

@@ -12,10 +12,8 @@ export interface CountrySelectorDomFixture {
   searchEl: HTMLInputElement;
   selectorEl: HTMLButtonElement;
   rootRectSpy: RectSpy;
-  listRectSpy: RectSpy;
-  optionARectSpy: RectSpy;
-  optionBRectSpy: RectSpy;
-  scrollToSpy: Mock;
+  optionAScrollIntoViewSpy: Mock;
+  optionBScrollIntoViewSpy: Mock;
   searchFocusSpy: Mock;
   cleanup: () => void;
 }
@@ -23,10 +21,8 @@ export interface CountrySelectorDomFixture {
 export interface CountrySelectorDomFixtureFields {
   list: HTMLUListElement;
   rootRectSpy: RectSpy;
-  listRectSpy: RectSpy;
-  optionARectSpy: RectSpy;
-  optionBRectSpy: RectSpy;
-  scrollToSpy: Mock;
+  optionAScrollIntoViewSpy: Mock;
+  optionBScrollIntoViewSpy: Mock;
   searchFocusSpy: Mock;
   dropdownTarget: HTMLDivElement;
   selectorTarget: HTMLButtonElement;
@@ -44,12 +40,14 @@ export function createCountrySelectorDomFixture(): CountrySelectorDomFixture {
   list.append(optionA, optionB);
   dropdownEl.append(document.createElement('div'), list);
 
-  const listRectSpy = vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(createRect(0, 20));
-  const optionARectSpy = vi.spyOn(optionA, 'getBoundingClientRect').mockReturnValue(createRect(0, 10));
-  const optionBRectSpy = vi.spyOn(optionB, 'getBoundingClientRect').mockReturnValue(createRect(24, 44));
-  const scrollToSpy = vi.fn() as Mock;
-  Object.defineProperty(list, 'scrollTo', {
-    value: scrollToSpy,
+  const optionAScrollIntoViewSpy = vi.fn() as Mock;
+  const optionBScrollIntoViewSpy = vi.fn() as Mock;
+  Object.defineProperty(optionA, 'scrollIntoView', {
+    value: optionAScrollIntoViewSpy,
+    configurable: true
+  });
+  Object.defineProperty(optionB, 'scrollIntoView', {
+    value: optionBScrollIntoViewSpy,
     configurable: true
   });
 
@@ -66,10 +64,8 @@ export function createCountrySelectorDomFixture(): CountrySelectorDomFixture {
     searchEl,
     selectorEl,
     rootRectSpy,
-    listRectSpy,
-    optionARectSpy,
-    optionBRectSpy,
-    scrollToSpy,
+    optionAScrollIntoViewSpy,
+    optionBScrollIntoViewSpy,
     searchFocusSpy,
     cleanup: () => {
       rootEl.remove();
@@ -83,10 +79,8 @@ export function getCountrySelectorDomFixtureFields(dom: CountrySelectorDomFixtur
   return {
     list: dom.list,
     rootRectSpy: dom.rootRectSpy,
-    listRectSpy: dom.listRectSpy,
-    optionARectSpy: dom.optionARectSpy,
-    optionBRectSpy: dom.optionBRectSpy,
-    scrollToSpy: dom.scrollToSpy,
+    optionAScrollIntoViewSpy: dom.optionAScrollIntoViewSpy,
+    optionBScrollIntoViewSpy: dom.optionBScrollIntoViewSpy,
     searchFocusSpy: dom.searchFocusSpy,
     dropdownTarget: dom.dropdownEl,
     selectorTarget: dom.selectorEl

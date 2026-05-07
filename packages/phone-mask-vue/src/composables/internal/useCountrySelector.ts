@@ -1,6 +1,14 @@
 import { ref, computed, watch, toValue, nextTick, type MaybeRefOrGetter, type ShallowRef } from 'vue';
 import { MasksFull, type CountryKey } from '@desource/phone-mask';
-import { filterCountries } from '@desource/phone-mask/kit';
+import {
+  bindCountryDropdownListeners,
+  filterCountries,
+  handleCountryButtonKeydown,
+  handleCountrySearchKeydown,
+  isMousePointer,
+  positionCountryDropdown,
+  scrollCountryOptionIntoView
+} from '@desource/phone-mask/kit';
 
 interface UseCountrySelectorOptions {
   rootRef: ShallowRef<HTMLDivElement | null>;
@@ -13,10 +21,6 @@ interface UseCountrySelectorOptions {
   inactive?: MaybeRefOrGetter<boolean | undefined>;
   onAfterSelect?: () => void;
 }
-
-const DROPDOWN_HEIGHT = 300;
-const VIEWPORT_GAP = 8;
-const SEARCH_HEIGHT = 56;
 
 export function useCountrySelector({
   rootRef,
@@ -38,8 +42,8 @@ export function useCountrySelector({
   const filteredCountries = computed(() => filterCountries(countries.value, search.value));
   const hasDropdown = computed(() => !toValue(countryOption) && countries.value.length > 1);
 
-  const setFocusedIndex = (index: number) => {
-    focusedIndex.value = index;
+  const setFocusedIndex = (index: number | ((index: number) => number)) => {
+    focusedIndex.value = typeof index === 'function' ? index(focusedIndex.value) : index;
   };
 
   const focusSearch = () => {
@@ -53,38 +57,7 @@ export function useCountrySelector({
   };
 
   const updateDropdownPosition = () => {
-    const rootEl = rootRef.value;
-    const dropdownEl = dropdownRef.value;
-    if (!rootEl || !dropdownEl) return;
-
-    const rect = rootEl.getBoundingClientRect();
-    const viewport = globalThis.visualViewport;
-    const viewportTop = viewport?.offsetTop ?? 0;
-    const viewportLeft = viewport?.offsetLeft ?? 0;
-    const viewportHeight = viewport?.height ?? globalThis.innerHeight;
-    const viewportWidth = viewport?.width ?? globalThis.innerWidth;
-    const searchHeight = SEARCH_HEIGHT;
-    const spaceBelow = viewportTop + viewportHeight - rect.bottom - VIEWPORT_GAP - searchHeight;
-    const spaceAbove = rect.top - viewportTop - VIEWPORT_GAP - searchHeight;
-    const maxHeight = Math.min(DROPDOWN_HEIGHT, Math.max(spaceBelow, spaceAbove));
-    const opensAbove = spaceAbove > spaceBelow && spaceBelow < DROPDOWN_HEIGHT;
-    const width = Math.floor(rect.width);
-    const left = Math.max(
-      viewportLeft + VIEWPORT_GAP,
-      Math.min(rect.left, viewportLeft + viewportWidth - width - VIEWPORT_GAP)
-    );
-    const top = opensAbove
-      ? Math.max(
-          viewportTop + VIEWPORT_GAP,
-          rect.top - Math.max(0, Math.floor(maxHeight)) - searchHeight - VIEWPORT_GAP
-        )
-      : rect.bottom + VIEWPORT_GAP;
-
-    dropdownEl.style.setProperty('--pi-dropdown-top', `${Math.floor(top)}px`);
-    dropdownEl.style.setProperty('--pi-dropdown-left', `${Math.floor(left)}px`);
-    dropdownEl.style.setProperty('--pi-dropdown-width', `${width}px`);
-    dropdownEl.style.setProperty('--pi-dropdown-max-height', `${Math.max(0, Math.floor(maxHeight))}px`);
-    dropdownEl.dataset.placement = opensAbove ? 'top' : 'bottom';
+    positionCountryDropdown(rootRef.value, dropdownRef.value);
   };
 
   const closeDropdown = () => {
@@ -124,66 +97,36 @@ export function useCountrySelector({
     setFocusedIndex(0);
   };
 
-  const scrollFocusedIntoView = () => {
-    nextTick(() => {
-      const list = dropdownRef.value?.lastElementChild;
-      const option = list?.children[focusedIndex.value];
-      if (!list || !option) return;
-
-      const listRect = list.getBoundingClientRect();
-      const optionRect = option.getBoundingClientRect();
-
-      let scrollAmount = 0;
-
-      if (optionRect.top < listRect.top) {
-        scrollAmount = list.scrollTop - (listRect.top - optionRect.top);
-      } else if (optionRect.bottom > listRect.bottom) {
-        scrollAmount = list.scrollTop + (optionRect.bottom - listRect.bottom);
-      } else {
-        return;
-      }
-
-      list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
-    });
+  const scrollFocusedIntoView = (index: number) => {
+    nextTick(() => scrollCountryOptionIntoView(dropdownRef.value, index));
   };
 
   const handleSearchKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setFocusedIndex(Math.min(focusedIndex.value + 1, filteredCountries.value.length - 1));
-      scrollFocusedIntoView();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setFocusedIndex(Math.max(focusedIndex.value - 1, 0));
-      scrollFocusedIntoView();
-    } else if (e.key === 'Enter' && filteredCountries.value[focusedIndex.value]) {
-      e.preventDefault();
-      selectCountry(filteredCountries.value[focusedIndex.value]!.id);
-    } else if (e.key === 'Escape') {
-      closeDropdown();
-    }
+    handleCountrySearchKeydown(
+      e,
+      focusedIndex.value,
+      filteredCountries.value,
+      setFocusedIndex,
+      scrollFocusedIntoView,
+      (country) => selectCountry(country.id),
+      closeDropdown
+    );
   };
 
   const handleSelectorPointerDown = (e: PointerEvent) => {
-    openByKeyboard = e.pointerType === 'mouse';
+    openByKeyboard = isMousePointer(e);
   };
 
   const handleSelectorKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      openByKeyboard = true;
-      return;
-    }
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      openByKeyboard = true;
-
-      if (dropdownOpen.value) {
-        focusSearch();
-      } else {
-        openDropdown();
-      }
-    }
+    handleCountryButtonKeydown(
+      e,
+      dropdownOpen.value,
+      () => {
+        openByKeyboard = true;
+      },
+      focusSearch,
+      openDropdown
+    );
   };
 
   watch([hasDropdown, () => toValue(inactive)], ([dropdownExists, isInactive]) => {
@@ -198,36 +141,14 @@ export function useCountrySelector({
     updateDropdownPosition();
     if (openByKeyboard) focusSearch();
 
-    const handleOutsidePointer = (event: PointerEvent) => {
-      const target = event.target;
-      const dropdownEl = dropdownRef.value;
-      const selectorEl = selectorRef.value;
-      if (target instanceof Node && (dropdownEl?.contains(target) || selectorEl?.contains(target))) return;
-      closeDropdown();
-    };
-    const handleKeydown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeDropdown();
-    };
-    const handleScroll = (event: Event) => {
-      if (event.target instanceof Node && dropdownRef.value?.contains(event.target)) return;
-      updateDropdownPosition();
-    };
-
-    globalThis.addEventListener('pointerdown', handleOutsidePointer, true);
-    globalThis.addEventListener('keydown', handleKeydown);
-    globalThis.addEventListener('resize', updateDropdownPosition);
-    globalThis.addEventListener('scroll', handleScroll, true);
-    globalThis.visualViewport?.addEventListener('resize', updateDropdownPosition);
-    globalThis.visualViewport?.addEventListener('scroll', updateDropdownPosition);
-
-    onCleanup(() => {
-      globalThis.removeEventListener('pointerdown', handleOutsidePointer, true);
-      globalThis.removeEventListener('keydown', handleKeydown);
-      globalThis.removeEventListener('resize', updateDropdownPosition);
-      globalThis.removeEventListener('scroll', handleScroll, true);
-      globalThis.visualViewport?.removeEventListener('resize', updateDropdownPosition);
-      globalThis.visualViewport?.removeEventListener('scroll', updateDropdownPosition);
-    });
+    onCleanup(
+      bindCountryDropdownListeners(
+        () => dropdownRef.value,
+        () => selectorRef.value,
+        closeDropdown,
+        updateDropdownPosition
+      )
+    );
   });
 
   return {

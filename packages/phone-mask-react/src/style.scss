@@ -283,10 +283,10 @@
 
 .phone-dropdown {
   position: fixed;
-  top: var(--pi-dropdown-top, 0);
-  left: var(--pi-dropdown-left, 0);
+  top: var(--pi-dd-top, 0);
+  left: var(--pi-dd-left, 0);
   margin: 0;
-  width: var(--pi-dropdown-width, 0);
+  width: var(--pi-dd-width, 0);
   max-width: calc(100vw - 16px);
   display: flex;
   flex-direction: column;
@@ -336,7 +336,7 @@
   }
 
   .pi-options {
-    max-height: var(--pi-dropdown-max-height, 300px);
+    max-height: var(--pi-dd-max-height, 300px);
     min-height: 0;
     flex: 1 1 auto;
     overflow-y: auto;
