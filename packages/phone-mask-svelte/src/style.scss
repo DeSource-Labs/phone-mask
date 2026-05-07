@@ -300,17 +300,16 @@
   transform-origin: top center;
   will-change: opacity, transform;
   z-index: 1000;
-  transition:
-    opacity 160ms cubic-bezier(0.4, 0, 0.2, 1),
-    transform 160ms cubic-bezier(0.4, 0, 0.2, 1),
-    visibility 0s linear 160ms;
+  transition: none;
 
   &.is-open {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transform: scale(1);
-    transition-delay: 0s;
+    transition:
+      opacity 160ms cubic-bezier(0.4, 0, 0.2, 1),
+      transform 160ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &[data-placement='top'] {
@@ -325,7 +324,7 @@
   .pi-search {
     width: 100%;
     padding: 8px 12px;
-    font-size: 0.875em;
+    font-size: 16px;
     border: 1px solid var(--pi-border);
     border-radius: calc(var(--pi-radius) - 2px);
     background: var(--pi-bg);

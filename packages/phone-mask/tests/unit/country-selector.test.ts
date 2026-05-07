@@ -48,8 +48,25 @@ describe('country selector DOM helpers', () => {
 
     positionCountryDropdown(root, dropdown);
 
-    expect(dropdown.style.getPropertyValue('--pi-dd-max-height')).toBe('86px');
+    expect(dropdown.style.getPropertyValue('--pi-dd-top')).toBe('8px');
+    expect(dropdown.style.getPropertyValue('--pi-dd-max-height')).toBe('78px');
     expect(dropdown.dataset.placement).toBe('top');
+  });
+
+  it('keeps the viewport gap when the dropdown opens below in a compact viewport', () => {
+    const root = document.createElement('div');
+    const dropdown = document.createElement('div');
+    Object.defineProperty(globalThis, 'innerHeight', {
+      value: 200,
+      configurable: true
+    });
+    vi.spyOn(root, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
+
+    positionCountryDropdown(root, dropdown);
+
+    expect(dropdown.style.getPropertyValue('--pi-dd-top')).toBe('38px');
+    expect(dropdown.style.getPropertyValue('--pi-dd-max-height')).toBe('98px');
+    expect(dropdown.dataset.placement).toBe('bottom');
   });
 
   it('scrolls the focused option into the nearest visible area', () => {

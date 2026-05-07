@@ -27,11 +27,11 @@ export function positionCountryDropdown(rootEl: Element | null, dropdownEl: HTML
   const viewportLeft = viewport?.offsetLeft ?? 0;
   const viewportHeight = viewport?.height ?? globalThis.innerHeight;
   const viewportWidth = viewport?.width ?? globalThis.innerWidth;
-  const spaceBelow = viewportTop + viewportHeight - rect.bottom - VIEWPORT_GAP - SEARCH_HEIGHT;
-  const spaceAbove = rect.top - viewportTop - VIEWPORT_GAP - SEARCH_HEIGHT;
+  const spaceBelow = Math.max(0, viewportTop + viewportHeight - rect.bottom - VIEWPORT_GAP * 2 - SEARCH_HEIGHT);
+  const spaceAbove = Math.max(0, rect.top - viewportTop - VIEWPORT_GAP * 2 - SEARCH_HEIGHT);
   const maxHeight = Math.min(DROPDOWN_HEIGHT, Math.max(spaceBelow, spaceAbove));
   const opensAbove = spaceAbove > spaceBelow && spaceBelow < DROPDOWN_HEIGHT;
-  const width = Math.floor(rect.width);
+  const width = Math.min(Math.floor(rect.width), Math.max(0, Math.floor(viewportWidth - VIEWPORT_GAP * 2)));
   const left = Math.max(
     viewportLeft + VIEWPORT_GAP,
     Math.min(rect.left, viewportLeft + viewportWidth - width - VIEWPORT_GAP)

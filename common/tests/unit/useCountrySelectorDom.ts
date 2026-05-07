@@ -146,7 +146,7 @@ export function testUseCountrySelectorDomBehavior(
       await withDom(async (ctx) => {
         setCompactViewport(ctx);
         await openDropdown(ctx);
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('86px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('78px');
         expect(ctx.dropdownTarget.dataset.placement).toBe('top');
       });
     });
@@ -160,7 +160,7 @@ export function testUseCountrySelectorDomBehavior(
           globalThis.dispatchEvent(new Event('resize'));
         });
 
-        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('86px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('78px');
       });
     });
 
