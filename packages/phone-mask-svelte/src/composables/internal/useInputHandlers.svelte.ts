@@ -6,7 +6,7 @@ import {
   processPaste,
   setCaret,
   type FormatterHelpers
-} from '@desource/phone-mask';
+} from '@desource/phone-mask/kit';
 
 export interface UseInputHandlersOptions {
   formatter: () => FormatterHelpers;

@@ -49,14 +49,14 @@
                 loading="lazy"
               />
             </span>
-            <p class="card-title h3">Tiny & fast — 5.1 KB</p>
+            <p class="card-title h3">Tiny & fast — 2.9 KB</p>
           </div>
           <div class="card-body secondary p4">
             <a class="animated-link card-link" :href="NpmLinks.typescript" target="_blank" rel="noopener noreferrer">
               Extremely small
             </a>
-            footprint (11.2 KB / 5.1 KB gzip). Optimized for performance on web and mobile — no bloat. Import only what
-            you need, and it'll be even smaller by tree-shaking.
+            footprint (6.1 KB / 2.9 KB gzip / 2.3 KB brotli). Optimized for performance on web and mobile — no bloat.
+            Import only what you need, and it'll be even smaller by tree-shaking.
           </div>
           <NuxtImg
             class="card-image img-npm"

@@ -1,12 +1,12 @@
 import { ref, computed, watchEffect, toValue, type MaybeRefOrGetter, type ComputedRef } from 'vue';
+import type { MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
   getCountry,
   parseCountryCode,
   detectByGeoIp,
-  detectCountryFromLocale,
-  type MaskFull
-} from '@desource/phone-mask';
+  detectCountryFromLocale
+} from '@desource/phone-mask/kit';
 
 export interface UseCountryOptions {
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */

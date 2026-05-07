@@ -1,4 +1,5 @@
-import { extractDigits, createPhoneFormatter, type MaskFull, type FormatterHelpers } from '@desource/phone-mask';
+import type { MaskFull } from '@desource/phone-mask';
+import { extractDigits, createPhoneFormatter, type FormatterHelpers } from '@desource/phone-mask/kit';
 import type { PhoneNumber } from '../../types';
 
 export interface UseFormatterOptions {

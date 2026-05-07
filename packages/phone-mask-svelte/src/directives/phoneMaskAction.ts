@@ -11,7 +11,7 @@ import {
   processKeydown,
   processPaste,
   createPhoneFormatter
-} from '@desource/phone-mask';
+} from '@desource/phone-mask/kit';
 
 import type { PhoneMaskBindingOptions, PhoneMaskBindingState, PhoneMaskBindingElement } from '../types';
 

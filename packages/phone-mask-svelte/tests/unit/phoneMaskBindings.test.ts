@@ -7,15 +7,15 @@ import PhoneMaskAttachmentWrapper from './setup/PhoneMaskAttachmentWrapper.svelt
 import PhoneMaskActionWrapper from './setup/PhoneMaskActionWrapper.svelte';
 import { tools, flushPromises } from './setup/tools.svelte';
 
-vi.mock('@desource/phone-mask', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@desource/phone-mask')>();
+vi.mock('@desource/phone-mask/kit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@desource/phone-mask/kit')>();
   return {
     ...actual,
     detectByGeoIp: vi.fn().mockResolvedValue(null)
   };
 });
 
-import { detectByGeoIp } from '@desource/phone-mask';
+import { detectByGeoIp } from '@desource/phone-mask/kit';
 
 type Wrapper = typeof PhoneMaskActionWrapper | typeof PhoneMaskAttachmentWrapper;
 

@@ -65,7 +65,7 @@ Composable mode (for custom input implementations in case even directive doesn't
 import { usePhoneMask } from '@desource/phone-mask-vue';
 ```
 
-Core helpers (direct re-exports from `@desource/phone-mask`):
+Core kit utilities and mask data re-exported from the core package subpaths:
 
 ```ts
 import { getFlagEmoji, formatDigitsWithMap } from '@desource/phone-mask-vue/core';
@@ -789,8 +789,8 @@ const form = reactive({
 ├── dist/
 │   ├── index.mjs           # Main ESM entry
 │   ├── index.cjs           # Main CommonJS entry
-│   ├── core.mjs            # Core helpers subpath (@desource/phone-mask-vue/core)
-│   ├── core.cjs            # Core helpers CJS subpath
+│   ├── core.mjs            # Core kit utilities and mask data subpath
+│   ├── core.cjs            # Core kit utilities and mask data CJS subpath
 │   ├── phone-mask-vue.css  # Component styles
 │   └── types/              # TypeScript declarations
 ├── README.md               # This file

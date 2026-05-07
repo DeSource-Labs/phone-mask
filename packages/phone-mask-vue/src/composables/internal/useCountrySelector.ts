@@ -1,5 +1,6 @@
 import { ref, computed, watch, toValue, nextTick, type MaybeRefOrGetter, type ShallowRef } from 'vue';
-import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
+import { MasksFull, type CountryKey } from '@desource/phone-mask';
+import { filterCountries } from '@desource/phone-mask/kit';
 
 interface UseCountrySelectorOptions {
   rootRef: ShallowRef<HTMLDivElement | null>;

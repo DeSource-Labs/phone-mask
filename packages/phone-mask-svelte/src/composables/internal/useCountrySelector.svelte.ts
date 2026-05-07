@@ -1,5 +1,6 @@
 import { tick } from 'svelte';
-import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
+import { MasksFull, type CountryKey } from '@desource/phone-mask';
+import { filterCountries } from '@desource/phone-mask/kit';
 
 interface UseCountrySelectorOptions {
   rootRef: () => HTMLDivElement | null;

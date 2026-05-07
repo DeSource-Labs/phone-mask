@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { createPhoneFormatter, getCountry } from '@desource/phone-mask';
+import { createPhoneFormatter, getCountry } from '@desource/phone-mask/kit';
 import { useInputHandlers } from '@src/composables/internal/useInputHandlers.svelte';
 import { testUseInputHandlers, type SetupOptions } from '@common/tests/unit/useInputHandlers';
 import { tools, withSetup, createState } from './setup/tools.svelte';

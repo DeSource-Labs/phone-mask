@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef, type RefObject } from 'react';
 
-import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
+import { MasksFull, type CountryKey } from '@desource/phone-mask';
+import { filterCountries } from '@desource/phone-mask/kit';
 
 interface UseCountrySelectOptions {
   rootRef: RefObject<HTMLDivElement | null>;
