@@ -60,7 +60,7 @@ export function bindCountryDropdownListeners(
   const handleKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       closeDropdown();
-      (getSelectorElement() as HTMLElement).focus();
+      (getSelectorElement() as HTMLElement | undefined)?.focus();
     }
   };
   const handleScroll = (event: Event) => {
