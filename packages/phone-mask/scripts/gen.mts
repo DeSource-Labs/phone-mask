@@ -271,7 +271,7 @@ function matchesLeadingDigits(number: string, leadingDigits: string[]): boolean 
 
   // libphonenumber uses progressively more specific leading-digits patterns;
   // the last one is the strictest selector for final formatting choice.
-  const strictest = leadingDigits[leadingDigits.length - 1];
+  const strictest = leadingDigits.at(-1);
   try {
     const re = new RegExp(`^(?:${strictest})`);
     return re.test(number);
