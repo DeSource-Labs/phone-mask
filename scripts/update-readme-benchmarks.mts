@@ -122,7 +122,11 @@ const PHONE_ENGINE_PACKAGES = new Set([
 const PHONE_DATA_SOURCE_LABEL_OVERRIDES: Record<string, string> = {
   'react-international-phone': 'None'
 };
-const PACKAGES_WITHOUT_PHONE_DATA_SOURCE = new Set(Object.keys(PHONE_DATA_SOURCE_LABEL_OVERRIDES));
+const PACKAGES_WITHOUT_PHONE_DATA_SOURCE = new Set(
+  Object.entries(PHONE_DATA_SOURCE_LABEL_OVERRIDES)
+    .filter(([, label]) => label === 'None')
+    .map(([pkg]) => pkg)
+);
 
 const EXPORT_OVERHEAD_OVERRIDES: Record<string, ExportOverheadOverride[]> = {
   'vue-tel-input': [{ package: 'libphonenumber-js', exports: ['parsePhoneNumberFromString'] }],
