@@ -109,6 +109,31 @@ describe('country selector DOM helpers', () => {
 
     expect(closeDropdown).toHaveBeenCalledOnce();
   });
+
+  it('handles escape and page scroll listeners while ignoring dropdown scroll', () => {
+    const dropdown = document.createElement('div');
+    const dropdownChild = document.createElement('div');
+    const selector = document.createElement('button');
+    const closeDropdown = vi.fn();
+    const updateDropdownPosition = vi.fn();
+    dropdown.append(dropdownChild);
+
+    const cleanup = bindCountryDropdownListeners(
+      () => dropdown,
+      () => selector,
+      closeDropdown,
+      updateDropdownPosition
+    );
+
+    dropdownChild.dispatchEvent(new Event('scroll', { bubbles: true }));
+    globalThis.dispatchEvent(new Event('scroll'));
+    globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    expect(updateDropdownPosition).toHaveBeenCalledOnce();
+    expect(closeDropdown).toHaveBeenCalledOnce();
+
+    cleanup();
+  });
 });
 
 describe('country selector keyboard helpers', () => {
@@ -147,6 +172,42 @@ describe('country selector keyboard helpers', () => {
     expect(selectItem).toHaveBeenCalledWith({ id: 'DE' });
   });
 
+  it('moves to the previous search result and closes from search keyboard input', () => {
+    const event = { key: 'ArrowUp', preventDefault: vi.fn() };
+    const setFocusedIndex = vi.fn();
+    const scrollFocusedIntoView = vi.fn();
+    const selectItem = vi.fn();
+    const closeDropdown = vi.fn();
+
+    handleCountrySearchKeydown(
+      event,
+      1,
+      [{ id: 'US' }, { id: 'DE' }],
+      setFocusedIndex,
+      scrollFocusedIntoView,
+      selectItem,
+      closeDropdown
+    );
+
+    const updateFocusedIndex = setFocusedIndex.mock.calls[0]![0] as (index: number) => number;
+
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(updateFocusedIndex(1)).toBe(0);
+    expect(scrollFocusedIntoView).toHaveBeenCalledWith(0);
+
+    handleCountrySearchKeydown(
+      { key: 'Escape', preventDefault: vi.fn() },
+      0,
+      [{ id: 'US' }],
+      setFocusedIndex,
+      scrollFocusedIntoView,
+      selectItem,
+      closeDropdown
+    );
+
+    expect(closeDropdown).toHaveBeenCalledOnce();
+  });
+
   it('tracks pointer and selector keyboard focus intent', () => {
     const event = { key: 'ArrowDown', preventDefault: vi.fn() };
     const setOpenByKeyboard = vi.fn();
@@ -162,5 +223,34 @@ describe('country selector keyboard helpers', () => {
     expect(setOpenByKeyboard).toHaveBeenCalledOnce();
     expect(focusSearch).toHaveBeenCalledOnce();
     expect(openDropdown).not.toHaveBeenCalled();
+  });
+
+  it('opens the dropdown from selector keyboard activation', () => {
+    const setOpenByKeyboard = vi.fn();
+    const focusSearch = vi.fn();
+    const openDropdown = vi.fn();
+
+    handleCountryButtonKeydown(
+      { key: 'Enter', preventDefault: vi.fn() },
+      false,
+      setOpenByKeyboard,
+      focusSearch,
+      openDropdown
+    );
+
+    expect(setOpenByKeyboard).toHaveBeenCalledOnce();
+    expect(focusSearch).not.toHaveBeenCalled();
+    expect(openDropdown).not.toHaveBeenCalled();
+
+    handleCountryButtonKeydown(
+      { key: 'ArrowDown', preventDefault: vi.fn() },
+      false,
+      setOpenByKeyboard,
+      focusSearch,
+      openDropdown
+    );
+
+    expect(setOpenByKeyboard).toHaveBeenCalledTimes(2);
+    expect(openDropdown).toHaveBeenCalledOnce();
   });
 });
