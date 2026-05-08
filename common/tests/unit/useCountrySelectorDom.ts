@@ -6,29 +6,32 @@ import { createRect } from './setup/domRect';
 export interface CountrySelectorDomSetupResult {
   result: {
     dropdownOpen: MaybeRef<boolean>;
-    isClosing?: MaybeRef<boolean>;
-    dropdownStyle?: MaybeRef<{
-      top?: string | number;
-      left?: string | number;
-      width?: string | number;
-    }>;
+    search: MaybeRef<string>;
+    focusedIndex: MaybeRef<number>;
     openDropdown: () => void;
+    toggleDropdown: () => void;
     setFocusedIndex: (index: number) => void;
-    handleDropdownAnimationEnd?: () => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleSearchChange: (e: any) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleSearchKeydown: (e: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleSelectorPointerDown: (e: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    handleSelectorKeydown: (e: any) => void;
   };
   unmount: () => void;
-  scrollToSpy: Mock;
-  listRectSpy: { mockReturnValue: (value: DOMRect) => unknown };
-  optionARectSpy: { mockReturnValue: (value: DOMRect) => unknown };
-  optionBRectSpy: { mockReturnValue: (value: DOMRect) => unknown };
+  optionAScrollIntoViewSpy: Mock;
+  optionBScrollIntoViewSpy: Mock;
   rootRectSpy?: { mockReturnValue: (value: DOMRect) => unknown };
   list?: HTMLElement;
+  searchFocusSpy: Mock;
   flushAsync: () => Promise<void>;
   setCountryOptionFixed?: () => void | Promise<void>;
+  setInactive?: () => void | Promise<void>;
   setRootUnavailable?: () => void | Promise<void>;
-  completeClose?: () => void;
+  setDropdownUnavailable?: () => void | Promise<void>;
+  setSelectorUnavailable?: () => void | Promise<void>;
   dropdownTarget: HTMLElement;
   selectorTarget: HTMLElement;
 }
@@ -40,211 +43,237 @@ export function testUseCountrySelectorDomBehavior(
   { act, toValue }: TestTools
 ): void {
   describe('useCountrySelector DOM behavior', () => {
-    it('scrolls focused option into view when navigating down', async () => {
-      const ctx = setupWithDom();
+    let originalInnerHeight = globalThis.innerHeight;
 
-      await act(async () => {
+    beforeEach(() => {
+      originalInnerHeight = globalThis.innerHeight;
+    });
+
+    afterEach(() => {
+      Object.defineProperty(globalThis, 'innerHeight', {
+        value: originalInnerHeight,
+        configurable: true
+      });
+    });
+
+    const withDom = async (run: (ctx: CountrySelectorDomSetupResult) => Promise<void>) => {
+      const ctx = setupWithDom();
+      try {
+        await run(ctx);
+      } finally {
+        ctx.unmount();
+      }
+    };
+
+    const openDropdown = (ctx: CountrySelectorDomSetupResult) =>
+      act(async () => {
         ctx.result.openDropdown();
       });
 
+    const pressSearchKey = async (ctx: CountrySelectorDomSetupResult, key: string) => {
       await act(async () => {
-        ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
+        ctx.result.handleSearchKeydown({ key, preventDefault: vi.fn() });
       });
       await ctx.flushAsync();
+    };
 
-      expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: 24, behavior: 'smooth' });
-      ctx.unmount();
+    const pressSelectorKey = async (ctx: CountrySelectorDomSetupResult, key: string) => {
+      await act(async () => {
+        ctx.result.handleSelectorKeydown({ key, preventDefault: vi.fn() });
+      });
+      await ctx.flushAsync();
+    };
+
+    const expectDropdownClosed = (ctx: CountrySelectorDomSetupResult) => {
+      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
+    };
+
+    const setCompactViewport = (ctx: CountrySelectorDomSetupResult, width = 120) => {
+      Object.defineProperty(globalThis, 'innerHeight', {
+        value: 200,
+        configurable: true
+      });
+      ctx.rootRectSpy?.mockReturnValue(createRect(150, 180, 5, width));
+    };
+
+    it('scrolls focused option into view when navigating down', async () => {
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        await pressSearchKey(ctx, 'ArrowDown');
+        expect(ctx.optionBScrollIntoViewSpy).toHaveBeenCalledWith({ block: 'nearest' });
+      });
     });
 
     it('scrolls focused option into view when navigating up', async () => {
-      const ctx = setupWithDom();
-      ctx.listRectSpy.mockReturnValue(createRect(0, 20));
-      ctx.optionARectSpy.mockReturnValue(createRect(-10, 0));
-      ctx.optionBRectSpy.mockReturnValue(createRect(24, 44));
-
-      await act(async () => {
-        ctx.result.openDropdown();
-        ctx.result.setFocusedIndex(1);
-      });
-
-      await act(async () => {
-        ctx.result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() });
-      });
-      await ctx.flushAsync();
-
-      expect(ctx.scrollToSpy).toHaveBeenCalledWith({ top: -10, behavior: 'smooth' });
-      ctx.unmount();
-    });
-
-    it('does not scroll when focused option is already visible', async () => {
-      const ctx = setupWithDom();
-      ctx.listRectSpy.mockReturnValue(createRect(0, 40));
-      ctx.optionBRectSpy.mockReturnValue(createRect(10, 20));
-
-      await act(async () => {
-        ctx.result.openDropdown();
-      });
-
-      await act(async () => {
-        ctx.result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
-      });
-      await ctx.flushAsync();
-
-      expect(ctx.scrollToSpy).not.toHaveBeenCalled();
-      ctx.unmount();
-    });
-
-    it('closes when country option becomes fixed while open', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.setCountryOptionFixed) {
-        ctx.unmount();
-        return;
-      }
-
-      await act(async () => {
-        ctx.result.openDropdown();
-      });
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-
-      await act(async () => {
-        ctx.setCountryOptionFixed?.();
-      });
-      await ctx.flushAsync();
-
-      await act(async () => {
-        ctx.completeClose?.();
-      });
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(false);
-      ctx.unmount();
-    });
-
-    it('does not close when clicking inside dropdown', async () => {
-      const ctx = setupWithDom();
-      expect(ctx.dropdownTarget).toBeDefined();
-
-      await act(async () => {
-        ctx.result.openDropdown();
-      });
-
-      await act(async () => {
-        ctx.dropdownTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      });
-      await ctx.flushAsync();
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      ctx.unmount();
-    });
-
-    it('does not close when clicking on selector trigger area', async () => {
-      const ctx = setupWithDom();
-      expect(ctx.selectorTarget).toBeDefined();
-
-      await act(async () => {
-        ctx.result.openDropdown();
-      });
-
-      await act(async () => {
-        ctx.selectorTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-      });
-      await ctx.flushAsync();
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      ctx.unmount();
-    });
-
-    it('handles click listener events with null target safely', async () => {
-      const addListenerSpy = vi.spyOn(globalThis, 'addEventListener');
-      const ctx = setupWithDom();
-
-      try {
+      await withDom(async (ctx) => {
         await act(async () => {
+          ctx.result.openDropdown();
+          ctx.result.setFocusedIndex(1);
+        });
+        await pressSearchKey(ctx, 'ArrowUp');
+
+        expect(ctx.optionAScrollIntoViewSpy).toHaveBeenCalledWith({ block: 'nearest' });
+      });
+    });
+
+    it('opens the dropdown and writes fixed positioning styles', async () => {
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-top')).toBe('38px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-left')).toBe('8px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-width')).toBe('120px');
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('300px');
+        expect(ctx.dropdownTarget.dataset.placement).toBe('bottom');
+      });
+    });
+
+    it.each([
+      ['dropdown', 'setDropdownUnavailable'],
+      ['selector', 'setSelectorUnavailable']
+    ] as const)('does not open when %s ref is unavailable', async (_, setterKey) => {
+      await withDom(async (ctx) => {
+        await act(async () => {
+          await ctx[setterKey]?.();
           ctx.result.openDropdown();
         });
 
-        const clickListener = addListenerSpy.mock.calls.find(([type]) => type === 'click')?.[1];
-        expect(clickListener).toBeTypeOf('function');
+        expectDropdownClosed(ctx);
+      });
+    });
 
-        expect(() => {
-          (clickListener as EventListener)({ target: null } as unknown as Event);
-        }).not.toThrow();
+    it('limits option height to the largest available viewport side', async () => {
+      await withDom(async (ctx) => {
+        setCompactViewport(ctx);
+        await openDropdown(ctx);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('78px');
+        expect(ctx.dropdownTarget.dataset.placement).toBe('top');
+      });
+    });
+
+    it('recomputes option height on resize while open', async () => {
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        setCompactViewport(ctx, 200);
+
+        await act(async () => {
+          globalThis.dispatchEvent(new Event('resize'));
+        });
+
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('78px');
+      });
+    });
+
+    it.each([
+      ['country option becomes fixed', 'setCountryOptionFixed'],
+      ['selector becomes inactive', 'setInactive']
+    ] as const)('closes when %s while open', async (_, setterKey) => {
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
         expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      } finally {
-        addListenerSpy.mockRestore();
-        ctx.unmount();
-      }
+
+        await act(async () => {
+          await ctx[setterKey]?.();
+        });
+        await ctx.flushAsync();
+
+        expectDropdownClosed(ctx);
+      });
     });
 
-    it('ignores scroll reposition events coming from inside dropdown', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.list || !ctx.rootRectSpy || ctx.result.dropdownStyle === undefined) {
-        ctx.unmount();
-        return;
-      }
+    it.each([
+      ['touch', false],
+      ['mouse', true]
+    ] as const)('uses %s pointer focus behavior', async (pointerType, shouldFocus) => {
+      await withDom(async (ctx) => {
+        await act(async () => {
+          ctx.result.handleSelectorPointerDown({ pointerType });
+          ctx.result.toggleDropdown();
+        });
+        await ctx.flushAsync();
 
-      expect(ctx.list).toBeDefined();
-      expect(ctx.rootRectSpy).toBeDefined();
-      expect(ctx.result.dropdownStyle).toBeDefined();
-
-      await act(async () => {
-        ctx.result.openDropdown();
+        if (shouldFocus) {
+          expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+        } else {
+          expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
+        }
       });
-      expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
-
-      ctx.rootRectSpy.mockReturnValue(createRect(100, 140, 5, 200));
-
-      await act(async () => {
-        ctx.list!.dispatchEvent(new Event('scroll'));
-      });
-      await ctx.flushAsync();
-
-      // Style should remain unchanged because internal scroll events are ignored.
-      expect(toValue(ctx.result.dropdownStyle).top).toBe('38px');
-      expect(toValue(ctx.result.dropdownStyle).width).toBe('120px');
-      ctx.unmount();
     });
 
-    it('safely ignores resize positioning when root ref is unavailable', async () => {
-      const ctx = setupWithDom();
-      expect(ctx.setRootUnavailable).toBeDefined();
-      expect(ctx.result.dropdownStyle).toBeDefined();
-
-      await act(async () => {
-        ctx.result.openDropdown();
+    it('focuses the search input on keyboard open', async () => {
+      await withDom(async (ctx) => {
+        await pressSelectorKey(ctx, 'ArrowDown');
+        expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
       });
-      expect(toValue(ctx.result.dropdownStyle!).width).toBe('120px');
-
-      await act(async () => {
-        await ctx.setRootUnavailable!();
-      });
-      await ctx.flushAsync();
-
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      expect(toValue(ctx.result.dropdownStyle!).width).toBe('120px');
-      ctx.unmount();
     });
 
-    it('ignores animation end when dropdown is not closing', async () => {
-      const ctx = setupWithDom();
-      if (!ctx.result.handleDropdownAnimationEnd) {
-        ctx.unmount(); // Test not applicable if animation end handler is not implemented (vue)
-        return;
-      }
-      await act(async () => {
-        ctx.result.openDropdown();
+    it('ignores unrelated selector keys', async () => {
+      await withDom(async (ctx) => {
+        await pressSelectorKey(ctx, 'Tab');
+        expect(ctx.searchFocusSpy).not.toHaveBeenCalled();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(false);
       });
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+    });
 
-      await act(async () => {
-        ctx.result.handleDropdownAnimationEnd?.();
+    it('focuses the search input when ArrowDown is pressed while already open', async () => {
+      await withDom(async (ctx) => {
+        await openDropdown(ctx);
+        await ctx.flushAsync();
+        ctx.searchFocusSpy.mockClear();
+
+        await pressSelectorKey(ctx, 'ArrowDown');
+
+        expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
       });
+    });
 
-      // Should remain open because isClosing was never set
-      expect(toValue(ctx.result.dropdownOpen)).toBe(true);
-      if (ctx.result.isClosing !== undefined) {
-        expect(toValue(ctx.result.isClosing)).toBe(false);
-      }
-      ctx.unmount();
+    it('preserves keyboard focus behavior when Space primes the selector before opening', async () => {
+      await withDom(async (ctx) => {
+        await act(async () => {
+          ctx.result.handleSelectorKeydown({ key: ' ', preventDefault: vi.fn() });
+          ctx.result.toggleDropdown();
+        });
+        await ctx.flushAsync();
+
+        expect(ctx.searchFocusSpy).toHaveBeenCalledOnce();
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+      });
+    });
+
+    it('resets state when Escape closes the dropdown', async () => {
+      await withDom(async (ctx) => {
+        await pressSelectorKey(ctx, 'ArrowDown');
+
+        await act(async () => {
+          ctx.result.handleSearchChange({ target: { value: 'uni' } });
+          ctx.result.setFocusedIndex(2);
+          globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        });
+        await ctx.flushAsync();
+
+        expectDropdownClosed(ctx);
+        expect(toValue(ctx.result.search)).toBe('');
+        expect(toValue(ctx.result.focusedIndex)).toBe(0);
+      });
+    });
+
+    it('safely ignores resize updates when the root ref becomes unavailable', async () => {
+      await withDom(async (ctx) => {
+        expect(ctx.setRootUnavailable).toBeDefined();
+
+        await openDropdown(ctx);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('300px');
+
+        await act(async () => {
+          await ctx.setRootUnavailable!();
+        });
+        await ctx.flushAsync();
+
+        expect(toValue(ctx.result.dropdownOpen)).toBe(true);
+        expect(ctx.dropdownTarget.style.getPropertyValue('--pi-dd-max-height')).toBe('300px');
+      });
     });
   });
 }

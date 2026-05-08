@@ -1,5 +1,6 @@
 import type { MaybeRefOrGetter, ShallowRef, ComputedRef } from 'vue';
-import type { MaskFull, CountryKey, FormatterHelpers } from '@desource/phone-mask';
+import type { MaskFull, CountryKey } from '@desource/phone-mask';
+import type { FormatterHelpers } from '@desource/phone-mask/kit';
 
 export type Size = 'compact' | 'normal' | 'large';
 export type Theme = 'auto' | 'light' | 'dark';

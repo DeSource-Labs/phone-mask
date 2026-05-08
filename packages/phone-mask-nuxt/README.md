@@ -450,7 +450,7 @@ By default (without extra options), Nuxt auto-imports:
 Enable `phoneMask.helpers: true` to auto-import:
 
 - `vPhoneMaskSetCountry` — Programmatically set country for directive
-- `PMaskHelpers` — Utility functions from `@desource/phone-mask-vue/core`
+- `PMaskHelpers` — Core kit utilities and mask data from `@desource/phone-mask-vue/core`
 
 Enable `phoneMask.composable: true` to auto-import:
 

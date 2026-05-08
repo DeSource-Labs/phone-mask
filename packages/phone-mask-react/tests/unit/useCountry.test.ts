@@ -1,12 +1,12 @@
 /// <reference types="vitest/globals" />
 import type { Mock } from 'vitest';
-import { detectByGeoIp, detectCountryFromLocale } from '@desource/phone-mask';
+import { detectByGeoIp, detectCountryFromLocale } from '@desource/phone-mask/kit';
 import { useCountry } from '@src/hooks/internal/useCountry';
 import { testUseCountry, type CountrySetupOptions } from '@common/tests/unit/useCountry';
 import { tools, renderHookWithProxy } from './setup/tools';
 
-vi.mock('@desource/phone-mask', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@desource/phone-mask')>();
+vi.mock('@desource/phone-mask/kit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@desource/phone-mask/kit')>();
   return {
     ...actual,
     detectByGeoIp: vi.fn(),

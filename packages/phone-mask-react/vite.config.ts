@@ -18,11 +18,12 @@ export default defineConfig({
       }
     },
     rolldownOptions: {
-      external: ['@desource/phone-mask', 'react', 'react-dom', 'react/jsx-runtime'],
+      external: ['@desource/phone-mask', '@desource/phone-mask/kit', 'react', 'react-dom', 'react/jsx-runtime'],
       output: {
         exports: 'named',
         globals: {
           '@desource/phone-mask': 'phoneMask',
+          '@desource/phone-mask/kit': 'phoneMaskKit',
           react: 'React',
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': 'jsxRuntime'

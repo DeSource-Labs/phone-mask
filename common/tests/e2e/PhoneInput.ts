@@ -96,7 +96,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
           await expect(chevron).toBeAttached();
           await expect(dropdownBtn).not.toHaveClass(/no-dropdown/);
           await dropdownBtn.click();
-          await expect(dropdownMenu).toBeAttached();
+          await expect(dropdownMenu).toBeVisible();
         };
 
         const assertDropdownAbsent = async (): Promise<void> => {
@@ -467,7 +467,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
 
         test('country dropdown can be opened with detect=true', async () => {
           await dropdownBtn.click();
-          await expect(dropdownMenu).toBeAttached();
+          await expect(dropdownMenu).toBeVisible();
         });
 
         test('unchecking detect still shows chevron (detect=false does not disable dropdown)', async () => {
@@ -484,7 +484,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
         test('country dropdown can be opened with detect=false', async () => {
           await detectControl.uncheck();
           await dropdownBtn.click();
-          await expect(dropdownMenu).toBeAttached();
+          await expect(dropdownMenu).toBeVisible();
         });
 
         test('re-checking detect restores normal state with chevron present', async () => {
@@ -498,7 +498,7 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
         test('locale=en-US shows country names in English', async () => {
           await localeSelect.selectOption('en-US');
           await dropdownBtn.click();
-          await expect(dropdownMenu).toBeAttached();
+          await expect(dropdownMenu).toBeVisible();
           await expect(
             dropdownMenu.locator(DROPDOWN_OPTION_SELECTOR).getByText('Germany', { exact: false })
           ).toBeAttached();

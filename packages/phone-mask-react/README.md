@@ -49,7 +49,7 @@ Hook mode:
 import { usePhoneMask } from '@desource/phone-mask-react';
 ```
 
-Core helpers (direct re-exports from `@desource/phone-mask`):
+Core kit utilities and mask data re-exported from the core package subpaths:
 
 ```ts
 import { getFlagEmoji, formatDigitsWithMap } from '@desource/phone-mask-react/core';
@@ -577,8 +577,8 @@ function Example() {
 ├── dist/
 │   ├── index.mjs               # Main ESM entry
 │   ├── index.cjs               # Main CommonJS entry
-│   ├── core.mjs                # Core helpers subpath (@desource/phone-mask-react/core)
-│   ├── core.cjs                # Core helpers CJS subpath
+│   ├── core.mjs                # Core kit utilities and mask data subpath
+│   ├── core.cjs                # Core kit utilities and mask data CJS subpath
 │   ├── phone-mask-react.css    # Component styles
 │   └── types/                  # TypeScript declarations
 ├── README.md                   # This file

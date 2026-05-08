@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { Theme } from '../../types';
 
@@ -9,13 +9,11 @@ interface UseThemeOptions {
 export function useTheme({ theme }: UseThemeOptions) {
   const [systemDark, setSystemDark] = useState(false);
 
-  const themeClass = useMemo(() => {
-    if (theme === 'auto') {
-      return systemDark ? 'theme-dark' : 'theme-light';
-    }
+  let themeClass = `theme-${theme}`;
 
-    return `theme-${theme}`;
-  }, [theme, systemDark]);
+  if (theme === 'auto') {
+    themeClass = systemDark ? 'theme-dark' : 'theme-light';
+  }
 
   // Track system color scheme reactively so theme:'auto' responds to OS changes at runtime
   useEffect(() => {

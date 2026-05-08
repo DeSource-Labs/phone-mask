@@ -1,25 +1,30 @@
 /// <reference types="vitest/globals" />
 import { useCountrySelector } from '@src/hooks/internal/useCountrySelector';
-import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
+import {
+  createKeyboardOpenCountrySelectorSetupResult,
+  testUseCountrySelector,
+  type SetupOptions
+} from '@common/tests/unit/useCountrySelector';
 import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { tools, renderHookWithProxy } from './setup/tools';
-import { createRect } from '@common/tests/unit/setup/domRect';
+import {
+  createCountrySelectorDomSetupResult,
+  createCountrySelectorDomFixture
+} from '@common/tests/unit/setup/countrySelectorDom';
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
 
-  const rootRef = { current: document.createElement('div') };
-  const dropdownRef = { current: null };
-  const selectorRef = { current: null };
-
-  const searchEl = document.createElement('input');
-  const searchRef = { current: searchEl };
-  vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const dom = createCountrySelectorDomFixture();
+  const rootRef = { current: dom.rootEl };
+  const dropdownRef = { current: dom.dropdownEl };
+  const searchRef = { current: dom.searchEl };
+  const selectorRef = { current: dom.selectorEl };
 
   const onSelectCountry = vi.fn();
   const onAfterSelect = vi.fn();
 
-  const { result, unmount } = renderHookWithProxy(() =>
+  const hook = renderHookWithProxy(() =>
     useCountrySelector({
       rootRef,
       dropdownRef,
@@ -33,9 +38,14 @@ function setup(options: SetupOptions = {}) {
     })
   );
 
-  const simulateCloseComplete = () => result.handleDropdownAnimationEnd();
-
-  return { result, simulateCloseComplete, unmount, onSelectCountry, onAfterSelect, searchEl };
+  return createKeyboardOpenCountrySelectorSetupResult(
+    hook.result,
+    dom.cleanup,
+    hook.unmount,
+    onSelectCountry,
+    onAfterSelect,
+    dom.searchEl
+  );
 }
 
 afterEach(() => {
@@ -45,92 +55,68 @@ afterEach(() => {
 
 testUseCountrySelector(setup, tools);
 
-function setupWithDom(initialCountryOption?: string) {
-  const rootEl = document.createElement('div');
-  const rootRectSpy = vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
-  const rootRef: { current: HTMLDivElement | null } = { current: rootEl };
-
-  const dropdownEl = document.createElement('div');
-  const dropdownRef = { current: dropdownEl };
-  const list = document.createElement('ul');
-  const optionA = document.createElement('li');
-  const optionB = document.createElement('li');
-  list.append(optionA, optionB);
-  dropdownEl.append(document.createElement('div'), list);
-
-  const listRectSpy = vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(createRect(0, 20));
-  const optionARectSpy = vi.spyOn(optionA, 'getBoundingClientRect').mockReturnValue(createRect(0, 10));
-  const optionBRectSpy = vi.spyOn(optionB, 'getBoundingClientRect').mockReturnValue(createRect(24, 44));
-
-  const scrollToSpy = vi.fn();
-  Object.defineProperty(list, 'scrollTo', {
-    value: scrollToSpy,
-    configurable: true
-  });
-
-  const searchEl = document.createElement('input');
-  vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
-  const searchRef = { current: searchEl };
-  const selectorEl = document.createElement('div');
-  const selectorRef = { current: selectorEl };
+function setupWithDom(initialCountryOption?: string, initialInactive = false) {
+  const dom = createCountrySelectorDomFixture();
+  const rootRef: { current: HTMLDivElement | null } = { current: dom.rootEl };
+  const dropdownRef: { current: HTMLDivElement | null } = { current: dom.dropdownEl };
+  const selectorRef: { current: HTMLButtonElement | null } = { current: dom.selectorEl };
+  const searchRef = { current: dom.searchEl };
   const onSelectCountry = vi.fn();
 
-  document.body.append(rootEl, dropdownEl, selectorEl);
-
   const { result, rerender, unmount } = renderHookWithProxy(
-    ({ countryOption }: { countryOption?: string }) =>
+    ({ countryOption, inactive }: { countryOption?: string; inactive?: boolean }) =>
       useCountrySelector({
         rootRef,
         dropdownRef,
-        searchRef,
         selectorRef,
+        searchRef,
         locale: 'en',
         countryOption,
+        inactive,
         onSelectCountry
       }),
-    { initialProps: { countryOption: initialCountryOption } }
+    { initialProps: { countryOption: initialCountryOption, inactive: initialInactive } }
   );
 
-  return {
+  return createCountrySelectorDomSetupResult(dom, unmount, {
     result,
     rerender,
-    unmount: () => {
-      rootEl.remove();
-      dropdownEl.remove();
-      selectorEl.remove();
-      unmount();
-    },
-    scrollToSpy,
-    listRectSpy,
-    optionARectSpy,
-    optionBRectSpy,
-    rootRectSpy,
-    list,
     rootRef,
-    dropdownTarget: dropdownEl,
-    selectorTarget: selectorEl,
     flushAsync: async () => {
       vi.runAllTimers();
     },
     setCountryOptionFixed: () => {
-      rerender({ countryOption: 'US' });
+      rerender({ countryOption: 'US', inactive: initialInactive });
+    },
+    setInactive: () => {
+      rerender({ countryOption: initialCountryOption, inactive: true });
     },
     setRootUnavailable: () => {
       rootRef.current = null;
       globalThis.dispatchEvent(new Event('resize'));
     },
-    completeClose: () => {
-      result.handleDropdownAnimationEnd();
+    setDropdownUnavailable: () => {
+      dropdownRef.current = null;
+    },
+    setSelectorUnavailable: () => {
+      selectorRef.current = null;
     }
-  };
+  });
 }
 
 describe('useCountrySelector DOM behavior (React)', () => {
+  let originalInnerHeight = globalThis.innerHeight;
+
   beforeEach(() => {
     vi.useFakeTimers();
+    originalInnerHeight = globalThis.innerHeight;
   });
 
   afterEach(() => {
+    Object.defineProperty(globalThis, 'innerHeight', {
+      value: originalInnerHeight,
+      configurable: true
+    });
     vi.clearAllTimers();
     vi.useRealTimers();
   });

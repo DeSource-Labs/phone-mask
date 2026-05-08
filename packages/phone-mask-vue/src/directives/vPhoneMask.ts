@@ -12,7 +12,7 @@ import {
   processKeydown,
   processPaste,
   createPhoneFormatter
-} from '@desource/phone-mask';
+} from '@desource/phone-mask/kit';
 import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
 
 function parseParams(params: string | PMaskDirectiveOptions | undefined): PMaskDirectiveOptions {

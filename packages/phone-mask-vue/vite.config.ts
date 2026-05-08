@@ -18,11 +18,12 @@ export default defineConfig({
       }
     },
     rolldownOptions: {
-      external: ['@desource/phone-mask', 'vue'],
+      external: ['@desource/phone-mask', '@desource/phone-mask/kit', 'vue'],
       output: {
         exports: 'named',
         globals: {
           '@desource/phone-mask': 'phoneMask',
+          '@desource/phone-mask/kit': 'phoneMaskKit',
           vue: 'Vue'
         },
         minify: true

@@ -1,84 +1,67 @@
 /// <reference types="vitest/globals" />
 import { nextTick, ref, shallowRef } from 'vue';
 import { useCountrySelector } from '@src/composables/internal/useCountrySelector';
-import { testUseCountrySelector, type SetupOptions } from '@common/tests/unit/useCountrySelector';
+import {
+  createKeyboardOpenCountrySelectorSetupResult,
+  testUseCountrySelector,
+  type SetupOptions
+} from '@common/tests/unit/useCountrySelector';
 import { testUseCountrySelectorDomBehavior } from '@common/tests/unit/useCountrySelectorDom';
 import { tools, withSetup } from './setup/tools';
-import { createRect } from '@common/tests/unit/setup/domRect';
+import {
+  createCountrySelectorDomSetupResult,
+  createCountrySelectorDomFixture
+} from '@common/tests/unit/setup/countrySelectorDom';
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
 
-  const rootRef = shallowRef<HTMLDivElement | null>(null);
-  const dropdownRef = shallowRef<HTMLDivElement | null>(null);
-  const selectorRef = shallowRef<HTMLDivElement | null>(null);
+  const dom = createCountrySelectorDomFixture();
+  const rootRef = shallowRef<HTMLDivElement | null>(dom.rootEl);
+  const dropdownRef = shallowRef<HTMLDivElement | null>(dom.dropdownEl);
+  const searchRef = shallowRef<HTMLInputElement | null>(dom.searchEl);
+  const selectorRef = shallowRef<HTMLButtonElement | null>(dom.selectorEl);
 
-  const searchEl = document.createElement('input');
-  const searchRef = shallowRef<HTMLInputElement | null>(searchEl);
-  vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
+  const onCountrySelect = vi.fn();
+  const afterSelect = vi.fn();
 
-  const onSelectCountry = vi.fn();
-  const onAfterSelect = vi.fn();
-
-  const { result, unmount } = withSetup(() =>
+  const { result: rawResult, unmount } = withSetup(() =>
     useCountrySelector({
       rootRef,
       dropdownRef,
       searchRef,
       selectorRef,
       locale: 'en',
-      onSelectCountry,
-      onAfterSelect,
       countryOption,
-      inactive
+      inactive,
+      onSelectCountry: onCountrySelect,
+      onAfterSelect: afterSelect
     })
   );
 
-  return {
-    result,
-    simulateCloseComplete: () => {}, // Vue closes immediately — no animation to complete
+  const resultSource = rawResult;
+
+  return createKeyboardOpenCountrySelectorSetupResult(
+    resultSource,
+    dom.cleanup,
     unmount,
-    onSelectCountry,
-    onAfterSelect,
-    searchEl
-  };
+    onCountrySelect,
+    afterSelect,
+    dom.searchEl
+  );
 }
 
 testUseCountrySelector(setup, tools);
 
 function setupWithDom(initialCountryOption?: string) {
   const countryOption = ref<string | undefined>(initialCountryOption);
+  const inactive = ref(false);
+  const dom = createCountrySelectorDomFixture();
 
-  const rootEl = document.createElement('div');
-  const rootRectSpy = vi.spyOn(rootEl, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
-
-  const dropdownEl = document.createElement('div');
-  const list = document.createElement('ul');
-  const optionA = document.createElement('li');
-  const optionB = document.createElement('li');
-  list.append(optionA, optionB);
-  dropdownEl.append(document.createElement('div'), list);
-
-  const listRectSpy = vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(createRect(0, 20));
-  const optionARectSpy = vi.spyOn(optionA, 'getBoundingClientRect').mockReturnValue(createRect(0, 10));
-  const optionBRectSpy = vi.spyOn(optionB, 'getBoundingClientRect').mockReturnValue(createRect(24, 44));
-
-  const scrollToSpy = vi.fn();
-  Object.defineProperty(list, 'scrollTo', {
-    value: scrollToSpy,
-    configurable: true
-  });
-
-  const searchEl = document.createElement('input');
-  vi.spyOn(searchEl, 'focus').mockImplementation(() => {});
-  const selectorEl = document.createElement('div');
-
-  document.body.append(rootEl, dropdownEl, selectorEl);
-
-  const rootRef = shallowRef<HTMLDivElement | null>(rootEl);
-  const dropdownRef = shallowRef(dropdownEl);
-  const searchRef = shallowRef(searchEl);
-  const selectorRef = shallowRef(selectorEl);
+  const rootRef = shallowRef<HTMLDivElement | null>(dom.rootEl);
+  const dropdownRef = shallowRef<HTMLDivElement | null>(dom.dropdownEl);
+  const searchRef = shallowRef(dom.searchEl);
+  const selectorRef = shallowRef<HTMLButtonElement | null>(dom.selectorEl);
 
   const { result, unmount } = withSetup(() =>
     useCountrySelector({
@@ -86,41 +69,37 @@ function setupWithDom(initialCountryOption?: string) {
       dropdownRef,
       searchRef,
       selectorRef,
-      locale: 'en',
+      onSelectCountry: vi.fn(),
       countryOption,
-      onSelectCountry: vi.fn()
+      inactive,
+      locale: 'en'
     })
   );
 
-  return {
+  return createCountrySelectorDomSetupResult(dom, unmount, {
     result,
-    unmount: () => {
-      rootEl.remove();
-      dropdownEl.remove();
-      selectorEl.remove();
-      unmount();
-    },
     countryOption,
-    list,
-    rootRectSpy,
-    listRectSpy,
-    optionARectSpy,
-    optionBRectSpy,
-    scrollToSpy,
-    dropdownTarget: dropdownEl,
-    selectorTarget: selectorEl,
     flushAsync: async () => {
       await nextTick();
+      await Promise.resolve();
     },
     setCountryOptionFixed: () => {
       countryOption.value = 'US';
+    },
+    setInactive: () => {
+      inactive.value = true;
     },
     setRootUnavailable: () => {
       rootRef.value = null;
       globalThis.dispatchEvent(new Event('resize'));
     },
-    completeClose: () => {}
-  };
+    setDropdownUnavailable: () => {
+      dropdownRef.value = null;
+    },
+    setSelectorUnavailable: () => {
+      selectorRef.value = null;
+    }
+  });
 }
 
 describe('useCountrySelector DOM behavior (Vue)', () => {

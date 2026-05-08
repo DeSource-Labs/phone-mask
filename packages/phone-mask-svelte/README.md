@@ -49,7 +49,7 @@ Composable mode:
 import { usePhoneMask } from '@desource/phone-mask-svelte';
 ```
 
-Core helpers (direct re-exports from `@desource/phone-mask`):
+Core kit utilities and mask data re-exported from the core package subpaths:
 
 ```ts
 import { getFlagEmoji, formatDigitsWithMap } from '@desource/phone-mask-svelte/core';
@@ -887,8 +887,8 @@ Or with CSS:
 ├── dist/
 │   ├── index.mjs              # Main ESM/Svelte entry
 │   ├── index.cjs              # Main CommonJS entry
-│   ├── core.mjs               # Core helpers subpath (@desource/phone-mask-svelte/core)
-│   ├── core.cjs               # Core helpers CJS subpath
+│   ├── core.mjs               # Core kit utilities and mask data subpath
+│   ├── core.cjs               # Core kit utilities and mask data CJS subpath
 │   ├── phone-mask-svelte.css  # Component styles
 │   └── types/                 # TypeScript declaration files
 ├── README.md                  # This file

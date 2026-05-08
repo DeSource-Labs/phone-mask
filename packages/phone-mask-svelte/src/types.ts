@@ -1,4 +1,5 @@
-import type { MaskFull, CountryKey, FormatterHelpers } from '@desource/phone-mask';
+import type { MaskFull, CountryKey } from '@desource/phone-mask';
+import type { FormatterHelpers } from '@desource/phone-mask/kit';
 import type { Snippet } from 'svelte';
 
 /** Size preset for the component */

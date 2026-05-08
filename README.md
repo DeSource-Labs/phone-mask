@@ -210,7 +210,8 @@ npm install @desource/phone-mask
 ```
 
 ```ts
-import { MasksFullMapEn, formatDigitsWithMap } from '@desource/phone-mask';
+import { MasksFullMapEn } from '@desource/phone-mask';
+import { formatDigitsWithMap } from '@desource/phone-mask/kit';
 
 const mask = MasksFullMapEn.US.mask[0]; // "###-###-####"
 const formatted = formatDigitsWithMap(mask, '2025551234').display;

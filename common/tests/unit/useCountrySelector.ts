@@ -27,11 +27,7 @@ export interface CountrySelectorSetupResult {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleSearchKeydown: (e: any) => void;
   };
-  /**
-   * Vue: no-op — close is immediate.
-   * React: calls handleDropdownAnimationEnd to complete the close animation.
-   * Must be called in a separate act() after closeDropdown/selectCountry/Escape.
-   */
+  /** No-op unless the implementation has a deferred close animation. */
   simulateCloseComplete: () => void;
   unmount: () => void;
   onSelectCountry: Mock;
@@ -41,6 +37,64 @@ export interface CountrySelectorSetupResult {
 }
 
 export type SetupFn = (options?: SetupOptions) => CountrySelectorSetupResult;
+
+type KeyboardOpenCountrySelectorResult = CountrySelectorSetupResult['result'] & {
+  handleSelectorKeydown: (event: never) => void;
+};
+
+export function createCountrySelectorSetupResult(
+  setupResult: Omit<CountrySelectorSetupResult, 'simulateCloseComplete' | 'unmount'> & {
+    cleanup: () => void;
+    unmount: () => void;
+    simulateCloseComplete?: () => void;
+  }
+): CountrySelectorSetupResult {
+  const { cleanup, unmount, ...result } = setupResult;
+
+  return {
+    ...result,
+    simulateCloseComplete: setupResult.simulateCloseComplete ?? (() => {}),
+    unmount: () => {
+      cleanup();
+      unmount();
+    }
+  };
+}
+
+export function withKeyboardOpenProxy<T extends KeyboardOpenCountrySelectorResult>(target: T): T {
+  return new Proxy(target, {
+    get(source, key, receiver) {
+      if (key === 'openDropdown') {
+        return () => {
+          source.handleSelectorKeydown({
+            key: 'Enter'
+          } as never);
+          source.openDropdown();
+        };
+      }
+
+      return Reflect.get(source, key, receiver);
+    }
+  });
+}
+
+export function createKeyboardOpenCountrySelectorSetupResult(
+  rawResult: KeyboardOpenCountrySelectorResult,
+  cleanup: () => void,
+  unmount: () => void,
+  onSelectCountry: Mock,
+  onAfterSelect: Mock,
+  searchEl: HTMLInputElement
+): CountrySelectorSetupResult {
+  return createCountrySelectorSetupResult({
+    result: withKeyboardOpenProxy(rawResult),
+    cleanup,
+    unmount,
+    onSelectCountry,
+    onAfterSelect,
+    searchEl
+  });
+}
 
 export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestTools): void {
   describe('useCountrySelector', () => {
@@ -108,6 +162,9 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
 
           await act(async () => {
             result.openDropdown();
+          });
+
+          await act(async () => {
             vi.runAllTimers();
           });
 
@@ -117,9 +174,42 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
           vi.useRealTimers();
         }
       });
+
+      it('does nothing when inactive', async () => {
+        const { result, unmount } = setup({ inactive: true });
+
+        await act(async () => {
+          result.openDropdown();
+        });
+
+        expect(toValue(result.dropdownOpen)).toBe(false);
+        unmount();
+      });
+
+      it('does nothing when hasDropdown is false', async () => {
+        const { result, unmount } = setup({ countryOption: 'US' });
+
+        await act(async () => {
+          result.openDropdown();
+        });
+
+        expect(toValue(result.dropdownOpen)).toBe(false);
+        unmount();
+      });
     });
 
     describe('closeDropdown', () => {
+      it('does nothing when already closed', async () => {
+        const { result, unmount } = setup();
+
+        await act(async () => {
+          result.closeDropdown();
+        });
+
+        expect(toValue(result.dropdownOpen)).toBe(false);
+        unmount();
+      });
+
       it('closes the dropdown', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
@@ -356,7 +446,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         expect(toValue(result.dropdownOpen)).toBe(true);
 
         await act(async () => {
-          globalThis.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+          globalThis.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
         });
 
         await act(async () => {
@@ -463,6 +553,32 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         unmount();
       });
 
+      it('Enter does nothing when no focused country exists', async () => {
+        const { result, onSelectCountry, unmount } = setup();
+
+        await act(async () => {
+          result.handleSearchChange({ target: { value: 'zzzz-no-country' } });
+        });
+
+        await act(async () => {
+          result.handleSearchKeydown({ key: 'Enter', preventDefault: vi.fn() });
+        });
+
+        expect(onSelectCountry).not.toHaveBeenCalled();
+        unmount();
+      });
+
+      it('ignores unrelated keys', async () => {
+        const { result, unmount } = setup();
+
+        await act(async () => {
+          result.handleSearchKeydown({ key: 'Tab', preventDefault: vi.fn() });
+        });
+
+        expect(toValue(result.focusedIndex)).toBe(0);
+        unmount();
+      });
+
       it('Escape closes the dropdown', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
@@ -471,7 +587,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         });
 
         await act(async () => {
-          result.handleSearchKeydown({ key: 'Escape', preventDefault: vi.fn() });
+          globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
         });
 
         await act(async () => {

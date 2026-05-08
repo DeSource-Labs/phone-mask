@@ -12,7 +12,7 @@ Framework-agnostic phone masking library that stays up-to-date with Google's lib
 
 - 🌍 **240+ countries** with accurate masks and dialing codes
 - 🔄 **Auto-synced** from Google's libphonenumber
-- 🪶 **Tiny** — 11.2 KB minified, 5.1 KB gzipped
+- 🪶 **Tiny** — root entry is 6.1 KB minified, 2.9 KB gzipped, 2.3 KB brotli
 - 🌳 **Tree-shakeable** — import only what you need
 - 🔧 **TypeScript** — fully typed
 - 🎯 **Zero dependencies**
@@ -27,12 +27,22 @@ yarn add @desource/phone-mask
 pnpm add @desource/phone-mask
 ```
 
+## Import Paths
+
+The root entry contains country metadata and mask data. Formatter, input handling, detection, and utility helpers live in the `kit` subpath.
+
+```ts
+import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
+import { createPhoneFormatter, formatDigitsWithMap } from '@desource/phone-mask/kit';
+```
+
 ## 🚀 Quick Start
 
 ### Basic Formatting
 
 ```ts
-import { MasksBaseMap, MasksMap, formatDigitsWithMap } from '@desource/phone-mask';
+import { MasksBaseMap, MasksMap } from '@desource/phone-mask';
+import { formatDigitsWithMap } from '@desource/phone-mask/kit';
 
 // Get US mask with country code prefix
 const prefixUsMask = MasksBaseMap.US;
@@ -99,7 +109,7 @@ console.log(frenchMap.US.name); // "États-Unis"
 ### Utility Functions
 
 ```ts
-import { countPlaceholders, removeCountryCodePrefix, pickMaskVariant, extractDigits } from '@desource/phone-mask';
+import { countPlaceholders, removeCountryCodePrefix, pickMaskVariant, extractDigits } from '@desource/phone-mask/kit';
 
 // Count placeholder digits
 const count = countPlaceholders('+1 ###-###-####');
@@ -124,13 +134,8 @@ const digits = extractDigits('+1 (202) 555-1234');
 Use `createPhoneFormatter()` to validate length against a specific country's mask variants.
 
 ```ts
-import {
-  MasksFullMapEn,
-  createPhoneFormatter,
-  extractDigits,
-  removeCountryCodePrefix,
-  type CountryKey
-} from '@desource/phone-mask';
+import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
+import { createPhoneFormatter, extractDigits, removeCountryCodePrefix } from '@desource/phone-mask/kit';
 
 function validateForCountry(input: string, id: CountryKey) {
   const country = MasksFullMapEn[id];
@@ -162,13 +167,8 @@ validateForCountry('+1 (202) 555-1234', 'US');
 Use raw digits for storage and transport. Keep formatting on the client only.
 
 ```ts
-import {
-  MasksFullMapEn,
-  createPhoneFormatter,
-  extractDigits,
-  removeCountryCodePrefix,
-  type CountryKey
-} from '@desource/phone-mask';
+import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
+import { createPhoneFormatter, extractDigits, removeCountryCodePrefix } from '@desource/phone-mask/kit';
 
 function buildPhonePayload(input: string, id: CountryKey) {
   const country = MasksFullMapEn[id];
@@ -191,13 +191,8 @@ function buildPhonePayload(input: string, id: CountryKey) {
 Combine Phone Mask metadata with region-specific regex rules:
 
 ```ts
-import {
-  MasksFullMapEn,
-  createPhoneFormatter,
-  extractDigits,
-  removeCountryCodePrefix,
-  type CountryKey
-} from '@desource/phone-mask';
+import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
+import { createPhoneFormatter, extractDigits, removeCountryCodePrefix } from '@desource/phone-mask/kit';
 
 const tenantCarrierRules: Partial<Record<CountryKey, RegExp>> = {
   BR: /^(11|21|31)\d{8,9}$/,
@@ -221,13 +216,8 @@ function validateWithCarrierRule(input: string, id: CountryKey): boolean {
 ### Multi-tenant: tenantId Default Country + Tenant-specific Validation Rules
 
 ```ts
-import {
-  MasksFullMapEn,
-  createPhoneFormatter,
-  extractDigits,
-  removeCountryCodePrefix,
-  type CountryKey
-} from '@desource/phone-mask';
+import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
+import { createPhoneFormatter, extractDigits, removeCountryCodePrefix } from '@desource/phone-mask/kit';
 
 type TenantPolicy = {
   defaultCountry: CountryKey;
@@ -291,7 +281,9 @@ type MaskWithFlagMap = Record<CountryKey, Omit<MaskWithFlag, 'id'>>;
 type MaskFullMap = Record<CountryKey, Omit<MaskFull, 'id'>>;
 ```
 
-### Core Exports
+### Root Entry Exports
+
+Import mask data and country types from `@desource/phone-mask`.
 
 #### `MasksBaseMap` & `MasksBase`
 
@@ -343,7 +335,17 @@ function MasksFull(locale: string): MaskFull[];
 
 **Supported locales**: `en`, `de`, `fr`, `es`, `it`, `pt`, `ru`, `zh`, `ja`, `ko`, and more.
 
-#### Utility Functions
+#### `getFlagEmoji(countryCode: CountryKey)`
+
+Get flag emoji for country code:
+
+```ts
+function getFlagEmoji(countryCode: CountryKey): string;
+```
+
+### Kit Subpath Exports
+
+Import formatter, input handling, detection, and utility helpers from `@desource/phone-mask/kit`.
 
 ```ts
 // Count # placeholders in mask
@@ -360,9 +362,6 @@ function extractDigits(value: string, maxLength?: number): string;
 
 // Format digits according to template
 function formatDigitsWithMap(value: string, digits: string): { display: string; map: number[] };
-
-// Get flag emoji for country code
-function getFlagEmoji(countryCode: CountryKey): string;
 ```
 
 ## 🎯 Use Cases
@@ -370,7 +369,8 @@ function getFlagEmoji(countryCode: CountryKey): string;
 ### Custom Input Formatting
 
 ```ts
-import { MasksFullMapEn, formatDigitsWithMap, extractDigits } from '@desource/phone-mask';
+import { MasksFullMapEn } from '@desource/phone-mask';
+import { formatDigitsWithMap, extractDigits } from '@desource/phone-mask/kit';
 
 function formatPhoneInput(value: string, countryCode: string = 'US') {
   const country = MasksFullMapEn[countryCode];
@@ -390,7 +390,8 @@ const formatted = formatPhoneInput('2025551234', 'US');
 ### Phone Number Validation
 
 ```ts
-import { MasksFullMapEn, countPlaceholders } from '@desource/phone-mask';
+import { MasksFullMapEn } from '@desource/phone-mask';
+import { countPlaceholders } from '@desource/phone-mask/kit';
 
 function isValidPhoneLength(digits: string, country: string): boolean {
   const masks = MasksFullMapEn[country]?.mask;
@@ -452,15 +453,19 @@ This updates generated metadata files used by the package (`src/data.json`, `src
 
 ## 📊 Bundle Size
 
-Measured in a real consumer bundle:
+Measured by bundling the packed package in a real consumer build with tree-shaking enabled:
 
-| Export              | Size (minified) | Gzipped |  Brotli |
-| ------------------- | --------------: | ------: | ------: |
-| Full library        |        11.20 KB | 5.10 KB | 4.39 KB |
-| MasksFullMapEn only |         5.77 KB | 2.68 KB | 2.17 KB |
-| Utilities only      |         0.44 KB | 0.32 KB | 0.27 KB |
+| Consumer import                                                   | Size (minified) | Gzipped |  Brotli |
+| ----------------------------------------------------------------- | --------------: | ------: | ------: |
+| `import * as PhoneMask from '@desource/phone-mask'`               |         6.09 KB | 2.86 KB | 2.30 KB |
+| `import { MasksFullMapEn } from '@desource/phone-mask'`           |         5.75 KB | 2.67 KB | 2.13 KB |
+| `import * as Kit from '@desource/phone-mask/kit'`                 |        13.28 KB | 5.83 KB | 4.90 KB |
+| `import { createPhoneFormatter } from '@desource/phone-mask/kit'` |         1.03 KB | 0.59 KB | 0.53 KB |
+| `import { formatDigitsWithMap } from '@desource/phone-mask/kit'`  |         0.25 KB | 0.21 KB | 0.18 KB |
+| `import { extractDigits } from '@desource/phone-mask/kit'`        |         0.08 KB | 0.10 KB | 0.08 KB |
+| `import { getCountry } from '@desource/phone-mask/kit'`           |         5.84 KB | 2.72 KB | 2.18 KB |
 
-All exports are tree-shakeable — only import what you use!
+The root entry contains country metadata and mask data. Use `@desource/phone-mask/kit` when you need formatter, input handling, detection, or utility helpers. Data-dependent helpers such as `getCountry` include mask data; pure formatter and input helpers tree-shake to small standalone bundles.
 
 ## 🔗 Related Packages
 

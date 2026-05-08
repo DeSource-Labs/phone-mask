@@ -18,11 +18,12 @@ export default defineConfig({
       }
     },
     rolldownOptions: {
-      external: ['@desource/phone-mask', 'svelte', /^svelte\//],
+      external: ['@desource/phone-mask', '@desource/phone-mask/kit', 'svelte', /^svelte\//],
       output: {
         exports: 'named',
         globals: {
           '@desource/phone-mask': 'phoneMask',
+          '@desource/phone-mask/kit': 'phoneMaskKit',
           svelte: 'Svelte'
         },
         minify: true

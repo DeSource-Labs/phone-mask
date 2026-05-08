@@ -1,12 +1,19 @@
-import { ref, computed, watch, onBeforeUnmount, shallowRef, toValue, nextTick } from 'vue';
-import type { MaybeRefOrGetter, ShallowRef, CSSProperties } from 'vue';
-import { MasksFull, filterCountries, type CountryKey } from '@desource/phone-mask';
+import { ref, computed, watch, toValue, nextTick, type MaybeRefOrGetter, type ShallowRef } from 'vue';
+import { MasksFull, type CountryKey } from '@desource/phone-mask';
+import {
+  bindCountryDropdownListeners,
+  filterCountries,
+  handleCountryButtonKeydown,
+  handleCountrySearchKeydown,
+  positionCountryDropdown,
+  scrollCountryOptionIntoView
+} from '@desource/phone-mask/kit';
 
 interface UseCountrySelectorOptions {
   rootRef: ShallowRef<HTMLDivElement | null>;
   dropdownRef: ShallowRef<HTMLDivElement | null>;
   searchRef: ShallowRef<HTMLInputElement | null>;
-  selectorRef: ShallowRef<HTMLDivElement | null>;
+  selectorRef: ShallowRef<HTMLButtonElement | null>;
   locale: MaybeRefOrGetter<string>;
   onSelectCountry: (code: CountryKey) => void;
   countryOption?: MaybeRefOrGetter<string | undefined>;
@@ -27,29 +34,46 @@ export function useCountrySelector({
 }: UseCountrySelectorOptions) {
   const search = ref('');
   const dropdownOpen = ref(false);
-  const dropdownStyle = shallowRef<CSSProperties>({});
   const focusedIndex = ref(0);
+  let openByKeyboard = false;
 
   const countries = computed(() => MasksFull(toValue(locale)));
   const filteredCountries = computed(() => filterCountries(countries.value, search.value));
   const hasDropdown = computed(() => !toValue(countryOption) && countries.value.length > 1);
 
-  const setFocusedIndex = (index: number) => {
-    focusedIndex.value = index;
+  const setFocusedIndex = (index: number | ((index: number) => number)) => {
+    focusedIndex.value = typeof index === 'function' ? index(focusedIndex.value) : index;
   };
 
   const focusSearch = () => {
     nextTick(() => searchRef.value?.focus({ preventScroll: true }));
   };
 
+  const resetDropdownState = () => {
+    search.value = '';
+    setFocusedIndex(0);
+    openByKeyboard = false;
+  };
+
+  const updateDropdownPosition = () => {
+    positionCountryDropdown(rootRef.value, dropdownRef.value);
+  };
+
   const closeDropdown = () => {
     dropdownOpen.value = false;
+    resetDropdownState();
   };
 
   const openDropdown = () => {
-    dropdownOpen.value = true;
+    if (toValue(inactive) || !hasDropdown.value || dropdownOpen.value) return;
+
+    const dropdownEl = dropdownRef.value;
+    const selectorEl = selectorRef.value;
+    if (!dropdownEl || !selectorEl) return;
+
+    updateDropdownPosition();
     setFocusedIndex(0);
-    focusSearch();
+    dropdownOpen.value = true;
   };
 
   const toggleDropdown = () => {
@@ -64,8 +88,6 @@ export function useCountrySelector({
   const selectCountry = (code: CountryKey) => {
     onSelectCountry(code);
     closeDropdown();
-    search.value = '';
-    setFocusedIndex(0);
     onAfterSelect?.();
   };
 
@@ -74,101 +96,64 @@ export function useCountrySelector({
     setFocusedIndex(0);
   };
 
-  const onDocClick = (ev: Event) => {
-    const target = ev.target as Node | null;
-    const dropdownEl = dropdownRef.value;
-    const selectorEl = selectorRef.value;
-    if (!target) return;
-    if (dropdownEl?.contains(target)) return;
-    if (selectorEl?.contains(target)) return;
-    closeDropdown();
-  };
-
-  const positionDropdown = (e?: Event | UIEvent) => {
-    if (e?.type === 'scroll' && e.target && dropdownRef.value?.contains(e.target as Node)) return;
-    if (!rootRef.value) return;
-
-    const rect = rootRef.value.getBoundingClientRect();
-
-    dropdownStyle.value = {
-      top: `${rect.bottom + globalThis.scrollY + 8}px`,
-      left: `${rect.left + globalThis.scrollX}px`,
-      width: `${rect.width}px`
-    };
-  };
-
-  const scrollFocusedIntoView = () => {
-    nextTick(() => {
-      const list = dropdownRef.value?.lastElementChild;
-      const option = list?.children[focusedIndex.value];
-      if (!list || !option) return;
-
-      const listRect = list.getBoundingClientRect();
-      const optionRect = option.getBoundingClientRect();
-
-      let scrollAmount = 0;
-
-      if (optionRect.top < listRect.top) {
-        scrollAmount = list.scrollTop - (listRect.top - optionRect.top);
-      } else if (optionRect.bottom > listRect.bottom) {
-        scrollAmount = list.scrollTop + (optionRect.bottom - listRect.bottom);
-      } else {
-        return;
-      }
-
-      list.scrollTo({ top: scrollAmount, behavior: 'smooth' });
-    });
+  const scrollFocusedIntoView = (index: number) => {
+    nextTick(() => scrollCountryOptionIntoView(dropdownRef.value, index));
   };
 
   const handleSearchKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setFocusedIndex(Math.min(focusedIndex.value + 1, filteredCountries.value.length - 1));
-      scrollFocusedIntoView();
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setFocusedIndex(Math.max(focusedIndex.value - 1, 0));
-      scrollFocusedIntoView();
-    } else if (e.key === 'Enter' && filteredCountries.value[focusedIndex.value]) {
-      e.preventDefault();
-      selectCountry(filteredCountries.value[focusedIndex.value]!.id);
-    } else if (e.key === 'Escape') {
-      closeDropdown();
-    }
+    handleCountrySearchKeydown(
+      e,
+      focusedIndex.value,
+      filteredCountries.value,
+      setFocusedIndex,
+      scrollFocusedIntoView,
+      (country) => selectCountry(country.id)
+    );
   };
 
-  const removeListeners = () => {
-    globalThis.removeEventListener('resize', positionDropdown);
-    globalThis.removeEventListener('scroll', positionDropdown, true);
-    globalThis.removeEventListener('click', onDocClick, true);
+  const handleSelectorPointerDown = (e: PointerEvent) => {
+    openByKeyboard = e.pointerType === 'mouse';
   };
 
-  watch(hasDropdown, (dropdownExists) => {
-    if (!dropdownExists && dropdownOpen.value) {
+  const handleSelectorKeydown = (e: KeyboardEvent) => {
+    handleCountryButtonKeydown(
+      e,
+      dropdownOpen.value,
+      () => {
+        openByKeyboard = true;
+      },
+      focusSearch,
+      openDropdown
+    );
+  };
+
+  watch([hasDropdown, () => toValue(inactive)], ([dropdownExists, isInactive]) => {
+    if ((isInactive || !dropdownExists) && dropdownOpen.value) {
       closeDropdown();
     }
   });
 
-  watch(dropdownOpen, (isOpen) => {
-    if (!isOpen) {
-      removeListeners();
-      return;
-    }
+  watch(dropdownOpen, (isOpen, _, onCleanup) => {
+    if (!isOpen) return;
 
-    positionDropdown();
-    globalThis.addEventListener('resize', positionDropdown);
-    globalThis.addEventListener('scroll', positionDropdown, true);
-    globalThis.addEventListener('click', onDocClick, true);
+    updateDropdownPosition();
+    if (openByKeyboard) focusSearch();
+
+    onCleanup(
+      bindCountryDropdownListeners(
+        () => dropdownRef.value,
+        () => selectorRef.value,
+        closeDropdown,
+        updateDropdownPosition
+      )
+    );
   });
-
-  onBeforeUnmount(removeListeners);
 
   return {
     // State
     dropdownOpen,
     search,
     focusedIndex,
-    dropdownStyle,
     // Derived
     filteredCountries,
     hasDropdown,
@@ -179,6 +164,8 @@ export function useCountrySelector({
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
-    handleSearchKeydown
+    handleSearchKeydown,
+    handleSelectorPointerDown,
+    handleSelectorKeydown
   };
 }

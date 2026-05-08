@@ -6,7 +6,7 @@ import {
   processPaste,
   setCaret,
   type FormatterHelpers
-} from '@desource/phone-mask';
+} from '@desource/phone-mask/kit';
 
 export interface UseInputHandlersOptions {
   formatter: FormatterHelpers;
@@ -45,7 +45,7 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
         if (!el) return;
         const pos = formatter.getCaretPosition(digitIndex);
         setCaret(el, pos);
-      }, 0);
+      });
     },
     [formatter]
   );
