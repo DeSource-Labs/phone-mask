@@ -80,10 +80,7 @@ describe('locale helpers', () => {
     const brokenLocale = () => {
       throw new Error('Intl.Locale unavailable');
     };
-    vi.stubGlobal('Intl', {
-      ...Intl,
-      Locale: brokenLocale as unknown as typeof Intl.Locale
-    } as unknown as typeof Intl);
+    vi.stubGlobal('Intl', { ...Intl, Locale: brokenLocale });
 
     expect(detectCountryFromLocale()).toBe('CA');
   });

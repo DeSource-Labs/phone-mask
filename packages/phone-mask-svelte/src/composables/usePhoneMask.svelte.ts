@@ -49,15 +49,15 @@ export function usePhoneMask(options: UsePhoneMaskOptions) {
     if (!el) return;
     el.setAttribute('type', 'tel');
     el.setAttribute('inputmode', 'tel');
-    el.addEventListener('beforeinput', handleBeforeInput as EventListener);
+    el.addEventListener('beforeinput', handleBeforeInput);
     el.addEventListener('input', handleInput);
-    el.addEventListener('keydown', handleKeydown as EventListener);
-    el.addEventListener('paste', handlePaste as EventListener);
+    el.addEventListener('keydown', handleKeydown);
+    el.addEventListener('paste', handlePaste);
     return () => {
-      el.removeEventListener('beforeinput', handleBeforeInput as EventListener);
+      el.removeEventListener('beforeinput', handleBeforeInput);
       el.removeEventListener('input', handleInput);
-      el.removeEventListener('keydown', handleKeydown as EventListener);
-      el.removeEventListener('paste', handlePaste as EventListener);
+      el.removeEventListener('keydown', handleKeydown);
+      el.removeEventListener('paste', handlePaste);
     };
   });
 

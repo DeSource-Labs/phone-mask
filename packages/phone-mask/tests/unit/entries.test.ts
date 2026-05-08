@@ -26,10 +26,8 @@ describe('entries helpers', () => {
     const displayNamesSpy = vi.spyOn(Intl, 'DisplayNames').mockImplementation(function MockDisplayNames(
       this: Intl.DisplayNames
     ) {
-      return {
-        of: () => undefined
-      } as unknown as Intl.DisplayNames;
-    } as unknown as typeof Intl.DisplayNames);
+      return { of: () => undefined };
+    });
 
     try {
       const map = MasksFullMap('x-coverage-fallback');
