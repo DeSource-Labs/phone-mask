@@ -1,5 +1,31 @@
 # @desource/phone-mask-svelte
 
+## 1.4.0
+
+### Minor Changes
+
+- Core Upgrades:
+  - Added `@desource/phone-mask/kit` subpath for formatter, handlers, services, utilities, and shared country selector helpers
+  - Root `@desource/phone-mask` now focuses on country mask entries/data. Helper, formatter, handler, service, and utility imports should use `@desource/phone-mask/kit`
+  - Added shared country selector DOM, positioning, keyboard, and focus helpers used by framework packages
+
+- Vue/React/Svelte Upgrades:
+  - Rebuilt the country selector dropdown with stable body-rendered fixed positioning using Portal/Teleport patterns
+  - Improved dropdown UX across desktop and mobile: viewport-aware above/below placement, body-level rendering, outside-click close, Escape close, focus restore, search keyboard navigation, and empty-results keyboard safety
+  - Improved dropdown accessibility semantics by exposing the selector popup as a searchable dialog with listbox options
+  - Aligned country selector behavior and tests across React, Vue, and Svelte through shared common/core helpers
+
+- React Upgrades:
+  - Simplified internal memoization and callback usage where it reduced bundle/runtime overhead without changing behavior
+
+- Svelte Upgrades:
+  - Cleaned up event listener and attachment typings for newer Svelte/TypeScript tooling
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @desource/phone-mask@1.4.0
+
 ## 1.3.1
 
 ### Patch Changes
