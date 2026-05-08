@@ -194,7 +194,7 @@
   {...restProps}
   style:--pi-actions-count={actionsCount}
   role="group"
-  aria-label="Phone input with country selector"
+  aria-label="Phone input"
 >
   <!-- Country Selector -->
   <div class="pi-selector">
@@ -207,7 +207,7 @@
       tabindex={canOpenDropdown ? undefined : -1}
       aria-label="Selected country: {countryData.country.name}"
       aria-expanded={canOpenDropdown && selectorData.dropdownOpen}
-      aria-haspopup={canOpenDropdown ? 'listbox' : undefined}
+      aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
       aria-controls={canOpenDropdown ? dropdownElementId : undefined}
       onpointerdown={selectorData.handleSelectorPointerDown}
       onkeydown={selectorData.handleSelectorKeydown}
@@ -331,16 +331,16 @@
     class:is-open={selectorData.dropdownOpen}
     role="dialog"
     aria-modal="false"
-    aria-label="Select country"
+    aria-label="Country"
   >
     {#if selectorData.dropdownOpen}
       <div class="pi-search-wrap">
         <input
           bind:this={searchEl}
-          name="pi-search"
+          name="search"
           type="search"
           class="pi-search"
-          aria-label="Search countries"
+          aria-label="Search"
           placeholder={searchPlaceholder}
           aria-controls={listboxId}
           aria-activedescendant={activeOptionId}

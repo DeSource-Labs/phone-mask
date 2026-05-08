@@ -6,7 +6,6 @@ import {
   filterCountries,
   handleCountryButtonKeydown,
   handleCountrySearchKeydown,
-  isMousePointer,
   positionCountryDropdown,
   scrollCountryOptionIntoView
 } from '@desource/phone-mask/kit';
@@ -54,7 +53,7 @@ export function useCountrySelector({
   }, [dropdownRef, rootRef]);
 
   const focusSearch = useCallback(() => {
-    setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
+    setTimeout(() => searchRef.current?.focus({ preventScroll: true }));
   }, [searchRef]);
 
   const closeDropdown = useCallback(() => {
@@ -95,7 +94,7 @@ export function useCountrySelector({
 
   const scrollFocusedIntoView = useCallback(
     (index: number) => {
-      setTimeout(() => scrollCountryOptionIntoView(dropdownRef.current, index), 0);
+      setTimeout(() => scrollCountryOptionIntoView(dropdownRef.current, index));
     },
     [dropdownRef]
   );
@@ -108,15 +107,14 @@ export function useCountrySelector({
         filteredCountries,
         setFocusedIndex,
         scrollFocusedIntoView,
-        (country) => selectCountry(country.id),
-        closeDropdown
+        (country) => selectCountry(country.id)
       );
     },
-    [filteredCountries, focusedIndex, selectCountry, closeDropdown, scrollFocusedIntoView]
+    [filteredCountries, focusedIndex, selectCountry, scrollFocusedIntoView]
   );
 
   const handleSelectorPointerDown = useCallback((e: React.PointerEvent) => {
-    openByKeyboardRef.current = isMousePointer(e);
+    openByKeyboardRef.current = e.pointerType === 'mouse';
   }, []);
 
   const handleSelectorKeydown = useCallback(

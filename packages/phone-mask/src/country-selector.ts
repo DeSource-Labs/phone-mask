@@ -2,11 +2,6 @@ type KeyLikeEvent = {
   key: string;
   preventDefault: () => void;
 };
-
-type PointerLikeEvent = {
-  pointerType: string;
-};
-
 type ElementGetter = () => Node | null | undefined;
 type FocusedIndexUpdate = number | ((index: number) => number);
 type VoidCallback = () => void;
@@ -63,7 +58,10 @@ export function bindCountryDropdownListeners(
     closeDropdown();
   };
   const handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') closeDropdown();
+    if (event.key === 'Escape') {
+      closeDropdown();
+      (getSelectorElement() as HTMLElement).focus();
+    }
   };
   const handleScroll = (event: Event) => {
     if (containsEventTarget(getDropdownElement(), event.target)) return;
@@ -93,33 +91,23 @@ export function handleCountrySearchKeydown<T>(
   items: readonly T[],
   setFocusedIndex: (index: FocusedIndexUpdate) => void,
   scrollFocusedIntoView: (index: number) => void,
-  selectItem: (item: T) => void,
-  closeDropdown: VoidCallback
+  selectItem: (item: T) => void
 ): void {
-  if (event.key === 'ArrowDown') {
+  const isArrowDown = event.key === 'ArrowDown';
+
+  if (isArrowDown || event.key === 'ArrowUp') {
     event.preventDefault();
-    setFocusedIndex((index) => {
-      const next = Math.min(index + 1, items.length - 1);
-      scrollFocusedIntoView(next);
-      return next;
-    });
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    setFocusedIndex((index) => {
-      const prev = Math.max(index - 1, 0);
-      scrollFocusedIntoView(prev);
-      return prev;
-    });
+    if (items.length) {
+      setFocusedIndex((index) => {
+        const next = isArrowDown ? Math.min(index + 1, items.length - 1) : Math.max(index - 1, 0);
+        scrollFocusedIntoView(next);
+        return next;
+      });
+    }
   } else if (event.key === 'Enter' && items[focusedIndex]) {
     event.preventDefault();
     selectItem(items[focusedIndex]);
-  } else if (event.key === 'Escape') {
-    closeDropdown();
   }
-}
-
-export function isMousePointer(event: PointerLikeEvent): boolean {
-  return event.pointerType === 'mouse';
 }
 
 export function handleCountryButtonKeydown(

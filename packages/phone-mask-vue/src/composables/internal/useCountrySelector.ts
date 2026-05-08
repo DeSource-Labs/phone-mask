@@ -5,7 +5,6 @@ import {
   filterCountries,
   handleCountryButtonKeydown,
   handleCountrySearchKeydown,
-  isMousePointer,
   positionCountryDropdown,
   scrollCountryOptionIntoView
 } from '@desource/phone-mask/kit';
@@ -108,13 +107,12 @@ export function useCountrySelector({
       filteredCountries.value,
       setFocusedIndex,
       scrollFocusedIntoView,
-      (country) => selectCountry(country.id),
-      closeDropdown
+      (country) => selectCountry(country.id)
     );
   };
 
   const handleSelectorPointerDown = (e: PointerEvent) => {
-    openByKeyboard = isMousePointer(e);
+    openByKeyboard = e.pointerType === 'mouse';
   };
 
   const handleSelectorKeydown = (e: KeyboardEvent) => {

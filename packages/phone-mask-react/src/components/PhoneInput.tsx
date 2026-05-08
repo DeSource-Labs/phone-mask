@@ -105,7 +105,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   });
 
   const focusInput = useCallback(() => {
-    setTimeout(() => telRef.current?.focus(), 0);
+    setTimeout(() => telRef.current?.focus());
   }, []);
 
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
@@ -213,7 +213,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
         className={rootClasses}
         style={{ '--pi-actions-count': actionsCount } as CSSProperties}
         role="group"
-        aria-label="Phone input with country selector"
+        aria-label="Phone input"
       >
         {/* Country Selector */}
         <div className="pi-selector">
@@ -225,7 +225,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             tabIndex={canOpenDropdown ? undefined : -1}
             aria-label={`Selected country: ${country.name}`}
             aria-expanded={canOpenDropdown && dropdownOpen}
-            aria-haspopup={canOpenDropdown ? 'listbox' : undefined}
+            aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
             aria-controls={canOpenDropdown ? dropdownElementId : undefined}
             onPointerDown={handleSelectorPointerDown}
             onKeyDown={handleSelectorKeydown}
@@ -344,17 +344,17 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             ref={dropdownRef}
             className={`phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass}`}
             role="dialog"
-            aria-label="Select country"
+            aria-label="Country"
           >
             {dropdownOpen && (
               <>
                 <div className="pi-search-wrap">
                   <input
                     ref={searchRef}
-                    name="pi-search"
+                    name="search"
                     type="search"
                     className="pi-search"
-                    aria-label="Search countries"
+                    aria-label="Search"
                     aria-controls={listboxId}
                     aria-activedescendant={activeOptionId}
                     placeholder={searchPlaceholder}

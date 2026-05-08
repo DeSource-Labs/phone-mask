@@ -1,11 +1,5 @@
 <template>
-  <div
-    ref="rootRef"
-    aria-label="Phone input with country selector"
-    role="group"
-    :class="rootClasses"
-    :style="rootStyles"
-  >
+  <div ref="rootRef" aria-label="Phone input" role="group" :class="rootClasses" :style="rootStyles">
     <!-- Country Selector -->
     <div class="pi-selector">
       <button
@@ -17,7 +11,7 @@
         :tabindex="canOpenDropdown ? undefined : -1"
         :aria-label="`Selected country: ${country.name}`"
         :aria-expanded="canOpenDropdown && dropdownOpen"
-        :aria-haspopup="canOpenDropdown ? 'listbox' : undefined"
+        :aria-haspopup="canOpenDropdown ? 'dialog' : undefined"
         :aria-controls="canOpenDropdown ? dropdownElementId : undefined"
         @pointerdown="handleSelectorPointerDown"
         @keydown="handleSelectorKeydown"
@@ -133,16 +127,16 @@
         :class="[{ 'is-open': dropdownOpen }, dropdownClass, themeClass]"
         role="dialog"
         aria-modal="false"
-        aria-label="Select country"
+        aria-label="Country"
       >
         <template v-if="dropdownOpen">
           <div class="pi-search-wrap">
             <input
               ref="searchRef"
-              name="pi-search"
+              name="search"
               type="search"
               class="pi-search"
-              aria-label="Search countries"
+              aria-label="Search"
               :aria-controls="listboxId"
               :aria-activedescendant="activeOptionId"
               :placeholder="searchPlaceholder"

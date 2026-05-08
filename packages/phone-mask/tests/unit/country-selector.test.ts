@@ -3,7 +3,6 @@ import {
   bindCountryDropdownListeners,
   handleCountryButtonKeydown,
   handleCountrySearchKeydown,
-  isMousePointer,
   positionCountryDropdown,
   scrollCountryOptionIntoView
 } from '../../src/country-selector';
@@ -116,6 +115,7 @@ describe('country selector DOM helpers', () => {
     const selector = document.createElement('button');
     const closeDropdown = vi.fn();
     const updateDropdownPosition = vi.fn();
+    const focusSelector = vi.spyOn(selector, 'focus');
     dropdown.append(dropdownChild);
 
     const cleanup = bindCountryDropdownListeners(
@@ -131,6 +131,7 @@ describe('country selector DOM helpers', () => {
 
     expect(updateDropdownPosition).toHaveBeenCalledOnce();
     expect(closeDropdown).toHaveBeenCalledOnce();
+    expect(focusSelector).toHaveBeenCalledOnce();
 
     cleanup();
   });
@@ -142,7 +143,6 @@ describe('country selector keyboard helpers', () => {
     const setFocusedIndex = vi.fn();
     const scrollFocusedIntoView = vi.fn();
     const selectItem = vi.fn();
-    const closeDropdown = vi.fn();
 
     handleCountrySearchKeydown(
       event,
@@ -150,8 +150,7 @@ describe('country selector keyboard helpers', () => {
       [{ id: 'US' }, { id: 'DE' }],
       setFocusedIndex,
       scrollFocusedIntoView,
-      selectItem,
-      closeDropdown
+      selectItem
     );
 
     const updateFocusedIndex = setFocusedIndex.mock.calls[0]![0] as (index: number) => number;
@@ -165,19 +164,17 @@ describe('country selector keyboard helpers', () => {
       [{ id: 'US' }, { id: 'DE' }],
       setFocusedIndex,
       scrollFocusedIntoView,
-      selectItem,
-      closeDropdown
+      selectItem
     );
 
     expect(selectItem).toHaveBeenCalledWith({ id: 'DE' });
   });
 
-  it('moves to the previous search result and closes from search keyboard input', () => {
+  it('moves to the previous search result', () => {
     const event = { key: 'ArrowUp', preventDefault: vi.fn() };
     const setFocusedIndex = vi.fn();
     const scrollFocusedIntoView = vi.fn();
     const selectItem = vi.fn();
-    const closeDropdown = vi.fn();
 
     handleCountrySearchKeydown(
       event,
@@ -185,8 +182,7 @@ describe('country selector keyboard helpers', () => {
       [{ id: 'US' }, { id: 'DE' }],
       setFocusedIndex,
       scrollFocusedIntoView,
-      selectItem,
-      closeDropdown
+      selectItem
     );
 
     const updateFocusedIndex = setFocusedIndex.mock.calls[0]![0] as (index: number) => number;
@@ -194,18 +190,22 @@ describe('country selector keyboard helpers', () => {
     expect(event.preventDefault).toHaveBeenCalledOnce();
     expect(updateFocusedIndex(1)).toBe(0);
     expect(scrollFocusedIntoView).toHaveBeenCalledWith(0);
+  });
 
-    handleCountrySearchKeydown(
-      { key: 'Escape', preventDefault: vi.fn() },
-      0,
-      [{ id: 'US' }],
-      setFocusedIndex,
-      scrollFocusedIntoView,
-      selectItem,
-      closeDropdown
-    );
+  it('keeps the focused index unchanged when search navigation has no results', () => {
+    const arrowDownEvent = { key: 'ArrowDown', preventDefault: vi.fn() };
+    const arrowUpEvent = { key: 'ArrowUp', preventDefault: vi.fn() };
+    const setFocusedIndex = vi.fn();
+    const scrollFocusedIntoView = vi.fn();
+    const selectItem = vi.fn();
 
-    expect(closeDropdown).toHaveBeenCalledOnce();
+    handleCountrySearchKeydown(arrowDownEvent, 0, [], setFocusedIndex, scrollFocusedIntoView, selectItem);
+    handleCountrySearchKeydown(arrowUpEvent, 0, [], setFocusedIndex, scrollFocusedIntoView, selectItem);
+
+    expect(arrowDownEvent.preventDefault).toHaveBeenCalledOnce();
+    expect(arrowUpEvent.preventDefault).toHaveBeenCalledOnce();
+    expect(setFocusedIndex).not.toHaveBeenCalled();
+    expect(scrollFocusedIntoView).not.toHaveBeenCalled();
   });
 
   it('tracks pointer and selector keyboard focus intent', () => {
@@ -213,9 +213,6 @@ describe('country selector keyboard helpers', () => {
     const setOpenByKeyboard = vi.fn();
     const focusSearch = vi.fn();
     const openDropdown = vi.fn();
-
-    expect(isMousePointer({ pointerType: 'mouse' })).toBe(true);
-    expect(isMousePointer({ pointerType: 'touch' })).toBe(false);
 
     handleCountryButtonKeydown(event, true, setOpenByKeyboard, focusSearch, openDropdown);
 

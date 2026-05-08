@@ -457,13 +457,13 @@ Measured by bundling the packed package in a real consumer build with tree-shaki
 
 | Consumer import                                                   | Size (minified) | Gzipped |  Brotli |
 | ----------------------------------------------------------------- | --------------: | ------: | ------: |
-| `import * as PhoneMask from '@desource/phone-mask'`               |         6.10 KB | 2.87 KB | 2.30 KB |
-| `import { MasksFullMapEn } from '@desource/phone-mask'`           |         5.76 KB | 2.68 KB | 2.14 KB |
-| `import * as Kit from '@desource/phone-mask/kit'`                 |        11.21 KB | 5.12 KB | 4.29 KB |
-| `import { createPhoneFormatter } from '@desource/phone-mask/kit'` |         1.16 KB | 0.68 KB | 0.61 KB |
-| `import { formatDigitsWithMap } from '@desource/phone-mask/kit'`  |         0.28 KB | 0.23 KB | 0.20 KB |
-| `import { extractDigits } from '@desource/phone-mask/kit'`        |         0.10 KB | 0.12 KB | 0.09 KB |
-| `import { getCountry } from '@desource/phone-mask/kit'`           |         5.86 KB | 2.73 KB | 2.18 KB |
+| `import * as PhoneMask from '@desource/phone-mask'`               |         6.09 KB | 2.86 KB | 2.30 KB |
+| `import { MasksFullMapEn } from '@desource/phone-mask'`           |         5.75 KB | 2.67 KB | 2.13 KB |
+| `import * as Kit from '@desource/phone-mask/kit'`                 |        13.28 KB | 5.83 KB | 4.90 KB |
+| `import { createPhoneFormatter } from '@desource/phone-mask/kit'` |         1.03 KB | 0.59 KB | 0.53 KB |
+| `import { formatDigitsWithMap } from '@desource/phone-mask/kit'`  |         0.25 KB | 0.21 KB | 0.18 KB |
+| `import { extractDigits } from '@desource/phone-mask/kit'`        |         0.08 KB | 0.10 KB | 0.08 KB |
+| `import { getCountry } from '@desource/phone-mask/kit'`           |         5.84 KB | 2.72 KB | 2.18 KB |
 
 The root entry contains country metadata and mask data. Use `@desource/phone-mask/kit` when you need formatter, input handling, detection, or utility helpers. Data-dependent helpers such as `getCountry` include mask data; pure formatter and input helpers tree-shake to small standalone bundles.
 
