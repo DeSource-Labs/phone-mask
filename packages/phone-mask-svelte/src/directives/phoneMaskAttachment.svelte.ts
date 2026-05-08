@@ -71,7 +71,7 @@ export function phoneMaskAttachment(params?: string | PhoneMaskBindingOptions): 
     return () => {
       // Destroying the root synchronously runs all $effect cleanups (removes event listeners)
       stopRoot();
-      delete (el as PhoneMaskBindingElement).__phoneMaskState;
+      delete el.__phoneMaskState;
     };
   };
 }
