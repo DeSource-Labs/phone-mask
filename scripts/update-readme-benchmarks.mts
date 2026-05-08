@@ -122,6 +122,11 @@ const PHONE_ENGINE_PACKAGES = new Set([
 const PHONE_DATA_SOURCE_LABEL_OVERRIDES: Record<string, string> = {
   'react-international-phone': 'None'
 };
+const PACKAGES_WITHOUT_PHONE_DATA_SOURCE = new Set(
+  Object.entries(PHONE_DATA_SOURCE_LABEL_OVERRIDES)
+    .filter(([, label]) => label === 'None')
+    .map(([pkg]) => pkg)
+);
 
 const EXPORT_OVERHEAD_OVERRIDES: Record<string, ExportOverheadOverride[]> = {
   'vue-tel-input': [{ package: 'libphonenumber-js', exports: ['parsePhoneNumberFromString'] }],
@@ -572,8 +577,16 @@ function renderPhoneDataSource(pkg: string, metric: PackageMetrics): string {
   return 'Included in package';
 }
 
-function sortRowsByTotalGzip(group: GroupDefinition, metrics: Map<string, PackageMetrics>): GroupRow[] {
+function hasPhoneDataSource(pkg: string): boolean {
+  return !PACKAGES_WITHOUT_PHONE_DATA_SOURCE.has(pkg);
+}
+
+function sortRowsForComparison(group: GroupDefinition, metrics: Map<string, PackageMetrics>): GroupRow[] {
   return [...group.rows].sort((a, b) => {
+    const aHasPhoneDataSource = hasPhoneDataSource(a.pkg);
+    const bHasPhoneDataSource = hasPhoneDataSource(b.pkg);
+    if (aHasPhoneDataSource !== bHasPhoneDataSource) return aHasPhoneDataSource ? -1 : 1;
+
     const aMetric = metrics.get(a.pkg);
     const bMetric = metrics.get(b.pkg);
     const aSize =
@@ -590,7 +603,7 @@ function sortRowsByTotalGzip(group: GroupDefinition, metrics: Map<string, Packag
 }
 
 function renderGroupBestLine(group: GroupDefinition, metrics: Map<string, PackageMetrics>): string | null {
-  const ranked = sortRowsByTotalGzip(group, metrics);
+  const ranked = sortRowsForComparison(group, metrics);
   const winner = ranked.find((row) => {
     const metric = metrics.get(row.pkg);
     return metric && Number.isFinite(metric.comparableGzip);
@@ -611,7 +624,7 @@ function renderGroupSection(group: GroupDefinition, metrics: Map<string, Package
     '| --- | ---: | --- | ---: | ---: | ---: |'
   ];
 
-  const rows = sortRowsByTotalGzip(group, metrics);
+  const rows = sortRowsForComparison(group, metrics);
   for (const row of rows) {
     lines.push(renderMetricRow(row, metrics.get(row.pkg)));
   }
@@ -644,6 +657,7 @@ function renderSection(
     '*`Gzip` is measured locally by this repository benchmark pipeline (isolated temp install + minified bundle build).*',
     '*`Data overhead` is additional phone-data gzip excluded from raw package gzip (e.g. required peer engines).*',
     '*`Total gzip` = `Gzip` + `Data overhead`.*',
+    '*Packages without a phone data source are listed after data-backed packages; each bucket is sorted by `Total gzip`.*',
     ''
   ];
   const groupSections = GROUPS.flatMap((group) => renderGroupSection(group, metrics));
