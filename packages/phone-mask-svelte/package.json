@@ -76,9 +76,9 @@
     "@desource/phone-mask": "workspace:*"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@testing-library/svelte": "^5.3.1",
-    "svelte": "^5.55.4",
-    "svelte-check": "^4.4.6"
+    "svelte": "^5.55.5",
+    "svelte-check": "^4.4.8"
   }
 }

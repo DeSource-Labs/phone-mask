@@ -1,5 +1,5 @@
 import { usePhoneMask } from '../composables/usePhoneMask.svelte';
-import type { PhoneMaskBindingOptions, PhoneMaskBindingState, PhoneMaskBindingElement } from '../types';
+import type { PhoneMaskBindingOptions, PhoneMaskBindingElement } from '../types';
 
 // Local copy of Svelte's `Attachment` type to avoid a hard dependency on `svelte/attachments` for Svelte version below 5.29
 type Attachment<T extends EventTarget = Element> = (element: T) => void | (() => void);
@@ -22,7 +22,7 @@ function parseParams(params: string | PhoneMaskBindingOptions | undefined): Phon
  * in the call site changes — no `update()` hook needed.
  */
 export function phoneMaskAttachment(params?: string | PhoneMaskBindingOptions): Attachment<HTMLInputElement> {
-  return (el) => {
+  return (el: PhoneMaskBindingElement) => {
     if (el.tagName !== 'INPUT') {
       console.warn('[phoneMaskAttachment] Attachment can only be used on input elements');
       return;
@@ -50,7 +50,7 @@ export function phoneMaskAttachment(params?: string | PhoneMaskBindingOptions): 
 
       mask.inputRef = el;
 
-      (el as PhoneMaskBindingElement).__phoneMaskState = {
+      el.__phoneMaskState = {
         get country() {
           return mask.country;
         },
@@ -65,13 +65,13 @@ export function phoneMaskAttachment(params?: string | PhoneMaskBindingOptions): 
         },
         options,
         setCountry: (code: string) => mask.setCountry(code)
-      } as PhoneMaskBindingState;
+      };
     });
 
     return () => {
       // Destroying the root synchronously runs all $effect cleanups (removes event listeners)
       stopRoot();
-      delete (el as PhoneMaskBindingElement).__phoneMaskState;
+      delete el.__phoneMaskState;
     };
   };
 }

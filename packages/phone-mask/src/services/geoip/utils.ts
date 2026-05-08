@@ -63,7 +63,7 @@ export async function detectByGeoIp(): Promise<string | null> {
   if (code) {
     // Cache the result
     try {
-      const value = JSON.stringify({ country_code: code, ts: Date.now() } as MaskGeoCache);
+      const value = JSON.stringify({ country_code: code, ts: Date.now() });
       localStorage.setItem(CACHE_KEY, value);
     } catch {
       // Silent fail for localStorage issues

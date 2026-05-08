@@ -9,5 +9,5 @@ export function createRect(top: number, bottom: number, left = 0, width = 100): 
     width,
     height: bottom - top,
     toJSON: () => ({})
-  } as DOMRect;
+  };
 }
