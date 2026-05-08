@@ -67,11 +67,10 @@
     "@desource/phone-mask-vue": "workspace:*"
   },
   "devDependencies": {
-    "@nuxt/kit": "^4.4.2",
+    "@nuxt/kit": "^4.4.4",
     "@nuxt/module-builder": "^1.0.2",
-    "@nuxt/test-utils": "^4.0.2",
-    "nuxt": "^4.4.2",
-    "vite": "7.3.1",
-    "vue": "^3.5.33"
+    "@nuxt/test-utils": "^4.0.3",
+    "nuxt": "^4.4.4",
+    "vue": "^3.5.34"
   }
 }
