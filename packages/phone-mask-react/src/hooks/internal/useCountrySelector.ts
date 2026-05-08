@@ -53,6 +53,10 @@ export function useCountrySelector({
     positionCountryDropdown(rootRef.current, dropdownRef.current);
   }, [dropdownRef, rootRef]);
 
+  const focusSearch = useCallback(() => {
+    setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
+  }, [searchRef]);
+
   const closeDropdown = useCallback(() => {
     setDropdownOpen(false);
     resetDropdownState();
@@ -123,13 +127,11 @@ export function useCountrySelector({
         () => {
           openByKeyboardRef.current = true;
         },
-        () => {
-          setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
-        },
+        focusSearch,
         openDropdown
       );
     },
-    [dropdownOpen, openDropdown, searchRef]
+    [dropdownOpen, openDropdown, focusSearch]
   );
 
   useEffect(() => {
@@ -143,7 +145,7 @@ export function useCountrySelector({
 
     updateDropdownPosition();
     if (openByKeyboardRef.current) {
-      setTimeout(() => searchRef.current?.focus({ preventScroll: true }), 0);
+      focusSearch();
     }
 
     return bindCountryDropdownListeners(
@@ -152,7 +154,7 @@ export function useCountrySelector({
       closeDropdown,
       updateDropdownPosition
     );
-  }, [dropdownOpen, closeDropdown, dropdownRef, selectorRef, searchRef, updateDropdownPosition]);
+  }, [dropdownOpen, closeDropdown, dropdownRef, selectorRef, focusSearch, updateDropdownPosition]);
 
   return {
     // State

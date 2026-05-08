@@ -138,15 +138,15 @@
         <template v-if="dropdownOpen">
           <div class="pi-search-wrap">
             <input
-              id="pi-search"
               ref="searchRef"
-              :value="search"
+              name="pi-search"
               type="search"
               class="pi-search"
               aria-label="Search countries"
               :aria-controls="listboxId"
               :aria-activedescendant="activeOptionId"
               :placeholder="searchPlaceholder"
+              :value="search"
               @keydown="handleSearchKeydown"
               @input="handleSearchChange"
             />

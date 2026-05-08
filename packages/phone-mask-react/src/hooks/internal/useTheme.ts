@@ -9,7 +9,11 @@ interface UseThemeOptions {
 export function useTheme({ theme }: UseThemeOptions) {
   const [systemDark, setSystemDark] = useState(false);
 
-  const themeClass = theme === 'auto' ? (systemDark ? 'theme-dark' : 'theme-light') : `theme-${theme}`;
+  let themeClass = `theme-${theme}`;
+
+  if (theme === 'auto') {
+    themeClass = systemDark ? 'theme-dark' : 'theme-light';
+  }
 
   // Track system color scheme reactively so theme:'auto' responds to OS changes at runtime
   useEffect(() => {

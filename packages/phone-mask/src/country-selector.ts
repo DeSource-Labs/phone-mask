@@ -112,7 +112,7 @@ export function handleCountrySearchKeydown<T>(
     });
   } else if (event.key === 'Enter' && items[focusedIndex]) {
     event.preventDefault();
-    selectItem(items[focusedIndex]!);
+    selectItem(items[focusedIndex]);
   } else if (event.key === 'Escape') {
     closeDropdown();
   }

@@ -337,7 +337,7 @@
       <div class="pi-search-wrap">
         <input
           bind:this={searchEl}
-          id="pi-search"
+          name="pi-search"
           type="search"
           class="pi-search"
           aria-label="Search countries"
