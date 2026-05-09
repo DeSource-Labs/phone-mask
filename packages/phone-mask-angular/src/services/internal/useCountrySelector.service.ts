@@ -1,4 +1,4 @@
-import { Injectable, Injector, computed, effect, inject, signal } from '@angular/core';
+import { Injectable, Injector, afterNextRender, computed, effect, inject, signal } from '@angular/core';
 import { MasksFull, type CountryKey, type MaskFull } from '@desource/phone-mask';
 import {
   bindCountryDropdownListeners,
@@ -163,10 +163,10 @@ export class UseCountrySelectorService {
   }
 
   private focusSearch(): void {
-    setTimeout(() => this.searchElementGetter()?.focus({ preventScroll: true }));
+    afterNextRender(() => this.searchElementGetter()?.focus({ preventScroll: true }), { injector: this.injector });
   }
 
   private scrollFocusedIntoView(index: number): void {
-    setTimeout(() => scrollCountryOptionIntoView(this.dropdownElementGetter(), index));
+    afterNextRender(() => scrollCountryOptionIntoView(this.dropdownElementGetter(), index), { injector: this.injector });
   }
 }

@@ -26,6 +26,7 @@ export class UseFormatterService {
   private onPhoneChange: ((phone: PhoneNumber) => void) | undefined;
   private onValidationChange: ((isComplete: boolean) => void) | undefined;
   private configured = false;
+  private clampedValueKey = '';
 
   readonly country = computed(() => this.countryGetter());
   readonly formatter = computed(() => createPhoneFormatter(this.country()));
@@ -53,13 +54,17 @@ export class UseFormatterService {
     this.onPhoneChange = options.onPhoneChange;
     this.onValidationChange = options.onValidationChange;
 
+    this.emitClampedValue();
+
     effect(
       () => {
         const value = this.valueGetter();
         const digits = this.digits();
 
         if (value !== digits) {
-          queueMicrotask(() => this.onChange(this.digits()));
+          queueMicrotask(() => this.emitClampedValue());
+        } else {
+          this.clampedValueKey = '';
         }
       },
       { injector: this.injector }
@@ -78,5 +83,21 @@ export class UseFormatterService {
       },
       { injector: this.injector }
     );
+  }
+
+  private emitClampedValue(): void {
+    const value = this.valueGetter();
+    const digits = this.digits();
+
+    if (value === digits) {
+      this.clampedValueKey = '';
+      return;
+    }
+
+    const key = `${value}\u0000${digits}`;
+    if (key === this.clampedValueKey) return;
+
+    this.clampedValueKey = key;
+    this.onChange(digits);
   }
 }

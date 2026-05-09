@@ -39,6 +39,11 @@ export class UseCountryService {
     this.detectOption = options.detect ?? this.detectOption;
     this.onCountryChange = options.onCountryChange;
 
+    const initialCountry = parseCountryCode(this.countryOption());
+    if (initialCountry) {
+      this.countryCode.set(initialCountry);
+    }
+
     effect(
       () => {
         const parsed = parseCountryCode(this.countryOption());
