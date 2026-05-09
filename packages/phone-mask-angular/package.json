@@ -33,28 +33,14 @@
   "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-angular#readme",
   "private": false,
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "directory": "dist"
   },
   "sideEffects": false,
   "type": "module",
-  "module": "./dist/fesm2022/desource-phone-mask-angular.mjs",
-  "types": "./dist/types/desource-phone-mask-angular.d.ts",
   "exports": {
-    ".": {
-      "types": "./dist/types/desource-phone-mask-angular.d.ts",
-      "default": "./dist/fesm2022/desource-phone-mask-angular.mjs"
-    },
-    "./core": {
-      "types": "./dist/types/desource-phone-mask-angular-core.d.ts",
-      "default": "./dist/fesm2022/desource-phone-mask-angular-core.mjs"
-    },
-    "./assets/lib.css": "./dist/assets/lib.css"
+    "./assets/lib.css": "./assets/lib.css"
   },
-  "files": [
-    "dist",
-    "CHANGELOG.md",
-    "README.md"
-  ],
   "scripts": {
     "clean": "rimraf dist dist-demo test-results coverage tsconfig.tsbuildinfo",
     "clean:modules": "rimraf node_modules",
