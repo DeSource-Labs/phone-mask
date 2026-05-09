@@ -3,7 +3,9 @@
 > Svelte 5 phone input component with Google's libphonenumber data
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte)](https://www.npmjs.com/package/@desource/phone-mask-svelte)
+[![codewiki](https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-svelte?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-svelte)
+[![context7 docs](https://img.shields.io/badge/context7%20docs-000000)](https://context7.com/desource-labs/phone-mask)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
 Beautiful, accessible, extreme small & tree-shakeable Svelte 5 phone input with auto-formatting, country selector, and validation.

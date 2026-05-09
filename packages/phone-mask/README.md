@@ -2,8 +2,10 @@
 
 > Core TypeScript library for international phone number masking with Google's libphonenumber data
 
-[![npm version](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=npm)](https://www.npmjs.com/package/@desource/phone-mask)
+[![npm version](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)](https://www.npmjs.com/package/@desource/phone-mask)
+[![codewiki](https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask)
+[![context7 docs](https://img.shields.io/badge/context7%20docs-000000)](https://context7.com/desource-labs/phone-mask)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
 Framework-agnostic phone masking library that stays up-to-date with Google's libphonenumber database.
