@@ -126,7 +126,12 @@ class DemoHookComponent implements AfterViewInit, OnDestroy {
             <div class="control-group">
               <label class="label">
                 <span>Country:</span>
-                <select class="select" data-testid="props-country" [value]="country() ?? ''" (change)="setCountryOption($event)">
+                <select
+                  class="select"
+                  data-testid="props-country"
+                  [value]="country() ?? ''"
+                  (change)="setCountryOption($event)"
+                >
                   <option value="">Not Selected</option>
                   <option value="US">United States</option>
                   <option value="GB">United Kingdom</option>
@@ -141,7 +146,12 @@ class DemoHookComponent implements AfterViewInit, OnDestroy {
 
               <label class="label">
                 <span>Locale:</span>
-                <select class="select" data-testid="props-locale" [value]="locale() ?? ''" (change)="setLocaleOption($event)">
+                <select
+                  class="select"
+                  data-testid="props-locale"
+                  [value]="locale() ?? ''"
+                  (change)="setLocaleOption($event)"
+                >
                   <option value="">Not Selected</option>
                   <option value="en-US">English (US)</option>
                   <option value="de-DE">German</option>
@@ -224,15 +234,30 @@ class DemoHookComponent implements AfterViewInit, OnDestroy {
                 <span>Auto-detect country</span>
               </label>
               <label class="checkbox-label" data-testid="props-show-copy">
-                <input type="checkbox" class="checkbox" [checked]="showCopy()" (change)="showCopy.set($any($event.target).checked)" />
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  [checked]="showCopy()"
+                  (change)="showCopy.set($any($event.target).checked)"
+                />
                 <span>Show copy button</span>
               </label>
               <label class="checkbox-label" data-testid="props-show-clear">
-                <input type="checkbox" class="checkbox" [checked]="showClear()" (change)="showClear.set($any($event.target).checked)" />
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  [checked]="showClear()"
+                  (change)="showClear.set($any($event.target).checked)"
+                />
                 <span>Show clear button</span>
               </label>
               <label class="checkbox-label" data-testid="props-with-validity">
-                <input type="checkbox" class="checkbox" [checked]="withValidity()" (change)="withValidity.set($any($event.target).checked)" />
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  [checked]="withValidity()"
+                  (change)="withValidity.set($any($event.target).checked)"
+                />
                 <span>Show validity indicators</span>
               </label>
               <label class="checkbox-label" data-testid="props-disabled">
@@ -240,7 +265,12 @@ class DemoHookComponent implements AfterViewInit, OnDestroy {
                 <span>Disabled</span>
               </label>
               <label class="checkbox-label" data-testid="props-readonly">
-                <input type="checkbox" class="checkbox" [checked]="readonly()" (change)="readonly.set($any($event.target).checked)" />
+                <input
+                  type="checkbox"
+                  class="checkbox"
+                  [checked]="readonly()"
+                  (change)="readonly.set($any($event.target).checked)"
+                />
                 <span>Readonly</span>
               </label>
               <label class="checkbox-label" data-testid="props-disable-default-styles">

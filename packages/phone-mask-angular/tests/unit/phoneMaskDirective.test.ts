@@ -20,11 +20,7 @@ vi.mock('@desource/phone-mask/kit', async (importOriginal) => {
   imports: [PhoneMaskDirective],
   template: `
     @if (tag === 'input') {
-      <input
-        [phoneMask]="options"
-        [phoneMaskValue]="value"
-        (phoneMaskValueChange)="value = $event"
-      />
+      <input [phoneMask]="options" [phoneMaskValue]="value" (phoneMaskValueChange)="value = $event" />
     } @else {
       <div [phoneMask]="options"></div>
     }
@@ -48,9 +44,7 @@ const setup =
     const onChange = vi.fn();
     const onCountryChange = vi.fn();
 
-    const mergeOptions = (
-      opts?: string | PhoneMaskDirectiveOptions
-    ): string | PhoneMaskDirectiveOptions | undefined =>
+    const mergeOptions = (opts?: string | PhoneMaskDirectiveOptions): string | PhoneMaskDirectiveOptions | undefined =>
       typeof opts === 'object' ? { ...opts, onChange, onCountryChange } : opts;
 
     const result = await render(PhoneMaskDirectiveHostComponent, {
