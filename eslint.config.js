@@ -31,6 +31,7 @@ const BROWSER_FILES = [
   'packages/phone-mask-react/**/*.{ts,tsx,js,jsx}',
   'packages/phone-mask-vue/**/*.{ts,js,mts,cts,vue}',
   'packages/phone-mask-svelte/**/*.{ts,js,mts,cts,svelte}',
+  'packages/phone-mask-angular/**/*.{ts,js,mts,cts}',
   'demo/**/*.{ts,tsx,js,jsx,vue}'
 ];
 

@@ -1,0 +1,86 @@
+{
+  "name": "@desource/phone-mask-angular",
+  "version": "1.4.0",
+  "description": "📱 Angular component, directive, pipe, and service for international phone number masking. Powered by @desource/phone-mask and Google libphonenumber.",
+  "keywords": [
+    "angular",
+    "phone",
+    "phone-input",
+    "phone-mask",
+    "phone-number",
+    "international-phone",
+    "libphonenumber",
+    "angular-component",
+    "angular-directive",
+    "angular-pipe",
+    "input-mask",
+    "validation",
+    "tel",
+    "telephone",
+    "country-code",
+    "formatting"
+  ],
+  "author": "Stefan Popov <stefan@desource-labs.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
+    "directory": "packages/phone-mask-angular"
+  },
+  "bugs": {
+    "url": "https://github.com/DeSource-Labs/phone-mask/issues"
+  },
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-angular#readme",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "module": "./dist/fesm2022/desource-phone-mask-angular.mjs",
+  "types": "./dist/types/desource-phone-mask-angular.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/desource-phone-mask-angular.d.ts",
+      "default": "./dist/fesm2022/desource-phone-mask-angular.mjs"
+    },
+    "./core": {
+      "types": "./dist/types/desource-phone-mask-angular-core.d.ts",
+      "default": "./dist/fesm2022/desource-phone-mask-angular-core.mjs"
+    },
+    "./assets/lib.css": "./dist/assets/lib.css"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "rimraf dist test-results coverage tsconfig.tsbuildinfo",
+    "clean:modules": "rimraf node_modules",
+    "build": "pnpm clean && pnpm build:lib && pnpm build:styles",
+    "build:lib": "ng-packagr -p ng-package.json",
+    "build:styles": "sass src/phone-input/phone-input.component.scss dist/assets/lib.css --style=compressed --no-source-map",
+    "typecheck": "ngc -p tsconfig.json --noEmit",
+    "test:unit": "vitest run",
+    "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage"
+  },
+  "peerDependencies": {
+    "@angular/common": "^19.0.0 || ^20.0.0 || ^21.0.0",
+    "@angular/core": "^19.0.0 || ^20.0.0 || ^21.0.0",
+    "@angular/forms": "^19.0.0 || ^20.0.0 || ^21.0.0"
+  },
+  "dependencies": {
+    "@desource/phone-mask": "workspace:*",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@angular/common": "^21.2.12",
+    "@angular/compiler": "^21.2.12",
+    "@angular/compiler-cli": "^21.2.12",
+    "@angular/core": "^21.2.12",
+    "@angular/forms": "^21.2.12",
+    "ng-packagr": "^21.2.3",
+    "sass": "^1.99.0"
+  }
+}
