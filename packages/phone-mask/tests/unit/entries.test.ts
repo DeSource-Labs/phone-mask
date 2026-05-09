@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { describe, expect, it, vi } from 'vitest';
-import { countryCodeEmoji } from '../../src/country-code-emodji';
-import { MasksFull, MasksFullMap } from '../../src/entries';
+import { countryCodeEmoji } from '@src/country-code-emodji';
+import { MasksFull, MasksFullMap } from '@src/entries';
 
 describe('entries helpers', () => {
   it('throws for invalid country code inputs', () => {

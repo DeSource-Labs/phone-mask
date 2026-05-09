@@ -173,6 +173,7 @@ importers:
       sass:
         specifier: ^1.99.0
         version: 1.99.0
+    publishDirectory: dist
 
   packages/phone-mask-nuxt:
     dependencies:

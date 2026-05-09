@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { describe, expect, it } from 'vitest';
-import { createPhoneFormatter } from '../../src/formatter';
-import type { MaskFull } from '../../src/entries';
+import { createPhoneFormatter } from '@src/formatter';
+import type { MaskFull } from '@src/entries';
 
 const countryWithMultipleMasks: MaskFull = {
   id: 'AC',

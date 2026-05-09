@@ -3,7 +3,11 @@
   "compilerOptions": {
     "composite": false,
     "noEmit": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "paths": {
+      "@common/*": ["../../../common/*"],
+      "@src/*": ["../src/*"]
+    }
   },
   "include": ["./**/*", "../src/**/*"]
 }

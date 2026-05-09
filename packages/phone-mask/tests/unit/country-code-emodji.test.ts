@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { describe, expect, it, vi } from 'vitest';
-import { countryCodeEmoji } from '../../src/country-code-emodji';
+import { countryCodeEmoji } from '@src/country-code-emodji';
 
 describe('countryCodeEmoji', () => {
   it('converts a valid country code to a flag emoji', () => {

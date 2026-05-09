@@ -5,8 +5,8 @@ import {
   handleCountrySearchKeydown,
   positionCountryDropdown,
   scrollCountryOptionIntoView
-} from '../../src/country-selector';
-import { createRect } from '../../../../common/tests/unit/setup/domRect';
+} from '@src/country-selector';
+import { createRect } from '@common/tests/unit/setup/domRect';
 
 describe('country selector DOM helpers', () => {
   let originalInnerHeight = globalThis.innerHeight;
