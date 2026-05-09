@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import * as root from '@src/.';
+import * as root from '@src/index';
 import * as kit from '@src/kit';
 
 describe('public exports', () => {
