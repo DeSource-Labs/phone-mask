@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { usePhoneMask } from '../../src/composables/usePhoneMask.svelte';
+import { usePhoneMask } from '@src/composables/usePhoneMask.svelte';
 import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { createState, tools, withSetup } from './setup/tools.svelte';
 
