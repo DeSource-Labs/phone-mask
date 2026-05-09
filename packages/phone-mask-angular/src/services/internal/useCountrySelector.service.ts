@@ -167,6 +167,8 @@ export class UseCountrySelectorService {
   }
 
   private scrollFocusedIntoView(index: number): void {
-    afterNextRender(() => scrollCountryOptionIntoView(this.dropdownElementGetter(), index), { injector: this.injector });
+    afterNextRender(() => scrollCountryOptionIntoView(this.dropdownElementGetter(), index), {
+      injector: this.injector
+    });
   }
 }
