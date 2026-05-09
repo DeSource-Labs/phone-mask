@@ -1,37 +1,30 @@
 import {
-  DestroyRef,
   Directive,
+  DestroyRef,
   ElementRef,
-  Inject,
-  Optional,
   effect,
   forwardRef,
+  inject,
   input,
   model,
   output,
-  signal,
   untracked
 } from '@angular/core';
 import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
 import type { CountryKey, MaskFull } from '@desource/phone-mask';
-import {
-  createPhoneFormatter,
-  detectByGeoIp,
-  detectCountryFromLocale,
-  extractDigits,
-  getCountry,
-  getNavigatorLang,
-  parseCountryCode,
-  processBeforeInput,
-  processInput,
-  processKeydown,
-  processPaste,
-  setCaret
-} from '@desource/phone-mask/kit';
+import { extractDigits } from '@desource/phone-mask/kit';
 import { PHONE_MASK_CONFIG } from './config';
 import { optionalBooleanAttribute } from './internal/boolean-input';
-import { createPhoneNumber } from './internal/formatting';
-import type { PhoneMaskConfig, PhoneMaskDirectiveInput, PhoneMaskDirectiveOptions, PhoneNumber } from './types';
+import { UseCountryService } from './services/internal/useCountry.service';
+import { UseFormatterService } from './services/internal/useFormatter.service';
+import { UseInputHandlersService } from './services/internal/useInputHandlers.service';
+import type {
+  DirectiveHTMLInputElement,
+  PhoneMaskConfig,
+  PhoneMaskDirectiveInput,
+  PhoneMaskDirectiveOptions,
+  PhoneNumber
+} from './types';
 
 function parseOptions(value: PhoneMaskDirectiveInput): PhoneMaskDirectiveOptions {
   if (typeof value === 'string') return { country: value };
@@ -40,10 +33,13 @@ function parseOptions(value: PhoneMaskDirectiveInput): PhoneMaskDirectiveOptions
 }
 
 @Directive({
-  selector: 'input[phoneMask]',
+  selector: '[phoneMask]',
   standalone: true,
   exportAs: 'phoneMask',
   providers: [
+    UseCountryService,
+    UseFormatterService,
+    UseInputHandlersService,
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => PhoneMaskDirective),
@@ -64,10 +60,15 @@ export class PhoneMaskDirective implements ControlValueAccessor {
   readonly phoneChange = output<PhoneNumber>({ alias: 'phoneMaskChange' });
   readonly countryChange = output<MaskFull>({ alias: 'phoneMaskCountryChange' });
 
-  private readonly countryCode = signal('US');
-  private readonly disabled = signal(false);
-  private detectionKey = '';
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly countryState = inject(UseCountryService);
+  private readonly formatterState = inject(UseFormatterService);
+  private readonly inputHandlers = inject(UseInputHandlersService);
+  private readonly config: PhoneMaskConfig = inject(PHONE_MASK_CONFIG, { optional: true }) ?? {};
 
+  private readonly inputElement = this.elementRef.nativeElement as DirectiveHTMLInputElement;
+  private readonly isInput = this.inputElement.tagName === 'INPUT';
   private onTouched: () => void = () => {};
   private onChange: (value: string) => void = () => {};
 
@@ -82,94 +83,109 @@ export class PhoneMaskDirective implements ControlValueAccessor {
     };
   };
 
-  private readonly locale = () => this.options().locale || getNavigatorLang();
-  private readonly country = () => getCountry(this.countryCode(), this.locale());
-  private readonly formatter = () => createPhoneFormatter(this.country());
-  private readonly digits = () => extractDigits(this.value(), this.formatter().getMaxDigits());
-  private readonly phoneData = () => createPhoneNumber(this.digits(), this.country(), this.formatter());
+  readonly locale = this.countryState.locale;
+  readonly country = this.countryState.country;
+  readonly formatter = this.formatterState.formatter;
+  readonly digits = this.formatterState.digits;
+  readonly full = this.formatterState.full;
+  readonly fullFormatted = this.formatterState.fullFormatted;
 
-  constructor(
-    private readonly elementRef: ElementRef<HTMLInputElement>,
-    private readonly destroyRef: DestroyRef,
-    @Optional() @Inject(PHONE_MASK_CONFIG) private readonly config: PhoneMaskConfig = {}
-  ) {
-    const el = this.elementRef.nativeElement;
+  constructor() {
+    if (!this.isInput) {
+      console.warn('[phoneMask] Directive can only be used on input elements');
+      return;
+    }
 
-    this.countryCode.set(parseCountryCode(this.config.country, 'US'));
+    this.inputElement.setAttribute('type', 'tel');
+    this.inputElement.setAttribute('inputmode', 'tel');
+    this.inputElement.setAttribute('placeholder', '');
 
-    el.setAttribute('type', 'tel');
-    el.setAttribute('inputmode', 'tel');
-    el.setAttribute('placeholder', '');
-
-    const beforeInputHandler = (event: InputEvent) => this.handleBeforeInput(event);
-    const inputHandler = (event: Event) => this.handleInput(event);
-    const keydownHandler = (event: KeyboardEvent) => this.handleKeydown(event);
-    const pasteHandler = (event: ClipboardEvent) => this.handlePaste(event);
-    const blurHandler = () => this.onTouched();
-
-    el.addEventListener('beforeinput', beforeInputHandler);
-    el.addEventListener('input', inputHandler);
-    el.addEventListener('keydown', keydownHandler);
-    el.addEventListener('paste', pasteHandler);
-    el.addEventListener('blur', blurHandler);
-
-    this.destroyRef.onDestroy(() => {
-      el.removeEventListener('beforeinput', beforeInputHandler);
-      el.removeEventListener('input', inputHandler);
-      el.removeEventListener('keydown', keydownHandler);
-      el.removeEventListener('paste', pasteHandler);
-      el.removeEventListener('blur', blurHandler);
-    });
-
-    effect(() => {
-      const options = this.options();
-      const parsed = parseCountryCode(options.country);
-
-      if (parsed && parsed !== this.countryCode()) {
-        queueMicrotask(() => this.setCountry(parsed));
+    this.countryState.configure({
+      country: () => this.options().country,
+      locale: () => this.options().locale,
+      detect: () => this.options().detect,
+      onCountryChange: (country) => {
+        this.countryChange.emit(country);
+        this.options().onCountryChange?.(country);
       }
     });
 
-    effect(() => {
-      const options = this.options();
+    this.formatterState.configure({
+      country: this.country,
+      value: this.value,
+      onChange: (digits) => this.setValue(digits, true),
+      onPhoneChange: (phone) => {
+        this.phoneChange.emit(phone);
+        this.options().onChange?.(phone);
+      }
+    });
 
-      if (!options.detect || options.country) return;
+    this.inputHandlers.configure({
+      formatter: this.formatter,
+      digits: this.digits,
+      onChange: (digits) => this.setValue(digits, true)
+    });
 
-      const key = `${this.locale()}:${options.detect}`;
-      if (this.detectionKey === key) return;
+    const beforeInputHandler = (event: Event) => this.inputHandlers.handleBeforeInput(event);
+    const inputHandler = (event: Event) => this.inputHandlers.handleInput(event);
+    const keydownHandler = (event: KeyboardEvent) => this.inputHandlers.handleKeydown(event);
+    const pasteHandler = (event: ClipboardEvent) => this.inputHandlers.handlePaste(event);
+    const blurHandler = () => this.onTouched();
 
-      this.detectionKey = key;
-      void this.detectCountry();
+    this.inputElement.addEventListener('beforeinput', beforeInputHandler);
+    this.inputElement.addEventListener('input', inputHandler);
+    this.inputElement.addEventListener('keydown', keydownHandler);
+    this.inputElement.addEventListener('paste', pasteHandler);
+    this.inputElement.addEventListener('blur', blurHandler);
+
+    this.destroyRef.onDestroy(() => {
+      this.inputElement.removeEventListener('beforeinput', beforeInputHandler);
+      this.inputElement.removeEventListener('input', inputHandler);
+      this.inputElement.removeEventListener('keydown', keydownHandler);
+      this.inputElement.removeEventListener('paste', pasteHandler);
+      this.inputElement.removeEventListener('blur', blurHandler);
+      delete this.inputElement.__phoneMaskState;
     });
 
     effect(() => {
-      const el = this.elementRef.nativeElement;
-      const formatter = this.formatter();
-      const digits = this.digits();
+      this.inputElement.value = this.formatterState.displayValue();
+      this.inputElement.placeholder = this.formatterState.displayPlaceholder();
 
-      el.value = formatter.formatDisplay(digits);
-      el.placeholder = formatter.getPlaceholder();
-    });
+      let state = this.inputElement.__phoneMaskState;
 
-    effect(() => {
-      const phone = this.phoneData();
-      const options = this.options();
+      if (!state) {
+        state = {
+          country: this.country(),
+          formatter: this.formatter(),
+          digits: this.digits(),
+          locale: this.locale(),
+          options: this.options(),
+          setCountry: (code) => {
+            const updated = this.selectCountry(code);
+            if (!updated || !this.inputElement.__phoneMaskState) return false;
 
-      this.phoneChange.emit(phone);
-      options.onChange?.(phone);
-    });
+            this.inputElement.__phoneMaskState.country = this.country();
+            this.inputElement.__phoneMaskState.formatter = this.formatter();
+            this.inputElement.__phoneMaskState.digits = this.digits();
+            this.inputElement.__phoneMaskState.locale = this.locale();
+            this.inputElement.__phoneMaskState.options = this.options();
+            return true;
+          }
+        };
+      }
 
-    effect(() => {
-      const country = this.country();
-      const options = this.options();
-
-      this.countryChange.emit(country);
-      options.onCountryChange?.(country);
+      state.country = this.country();
+      state.formatter = this.formatter();
+      state.digits = this.digits();
+      state.locale = this.locale();
+      state.options = this.options();
+      this.inputElement.__phoneMaskState = state;
     });
   }
 
   writeValue(value: string | number | null | undefined): void {
-    this.setValue(extractDigits(String(value ?? ''), this.formatter().getMaxDigits()), false);
+    if (!this.isInput) return;
+    this.setValue(String(value ?? ''), false);
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -181,8 +197,8 @@ export class PhoneMaskDirective implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled.set(isDisabled);
-    this.elementRef.nativeElement.disabled = isDisabled;
+    if (!this.isInput) return;
+    this.inputElement.disabled = isDisabled;
   }
 
   clear(): void {
@@ -190,7 +206,16 @@ export class PhoneMaskDirective implements ControlValueAccessor {
   }
 
   selectCountry(country: CountryKey | string): boolean {
-    return this.setCountry(country);
+    const updated = this.countryState.setCountry(country);
+
+    if (!updated) return false;
+
+    const maxDigits = this.formatter().getMaxDigits();
+    if (this.digits().length > maxDigits) {
+      this.setValue(this.digits().slice(0, maxDigits), true);
+    }
+
+    return true;
   }
 
   getDigits(): string {
@@ -198,11 +223,11 @@ export class PhoneMaskDirective implements ControlValueAccessor {
   }
 
   getFullNumber(): string {
-    return this.phoneData().full;
+    return this.full();
   }
 
   getFullFormattedNumber(): string {
-    return this.phoneData().fullFormatted;
+    return this.fullFormatted();
   }
 
   isComplete(): boolean {
@@ -221,71 +246,5 @@ export class PhoneMaskDirective implements ControlValueAccessor {
     if (emit) {
       this.onChange(nextDigits);
     }
-  }
-
-  private setCountry(country: CountryKey | string | null | undefined): boolean {
-    const parsed = parseCountryCode(country);
-
-    if (!parsed) return false;
-
-    untracked(() => this.countryCode.set(parsed));
-
-    const digits = this.digits();
-    const maxDigits = this.formatter().getMaxDigits();
-
-    if (digits.length > maxDigits) {
-      this.setValue(digits.slice(0, maxDigits), true);
-    }
-
-    return true;
-  }
-
-  private async detectCountry(): Promise<void> {
-    const geoCountry = parseCountryCode(await detectByGeoIp());
-
-    if (geoCountry && this.setCountry(geoCountry)) return;
-
-    this.setCountry(detectCountryFromLocale());
-  }
-
-  private scheduleCaretUpdate(el: HTMLInputElement | null, digitIndex: number): void {
-    setTimeout(() => {
-      const position = this.formatter().getCaretPosition(digitIndex);
-      setCaret(el, position);
-    });
-  }
-
-  private handleBeforeInput(event: InputEvent): void {
-    processBeforeInput(event);
-  }
-
-  private handleInput(event: Event): void {
-    if (this.disabled()) return;
-
-    const result = processInput(event, { formatter: this.formatter() });
-    if (!result) return;
-
-    this.setValue(result.newDigits, true);
-    this.scheduleCaretUpdate(event.target as HTMLInputElement | null, result.caretDigitIndex);
-  }
-
-  private handleKeydown(event: KeyboardEvent): void {
-    if (this.disabled()) return;
-
-    const result = processKeydown(event, { digits: this.digits(), formatter: this.formatter() });
-    if (!result) return;
-
-    this.setValue(result.newDigits, true);
-    this.scheduleCaretUpdate(event.target as HTMLInputElement | null, result.caretDigitIndex);
-  }
-
-  private handlePaste(event: ClipboardEvent): void {
-    if (this.disabled()) return;
-
-    const result = processPaste(event, { digits: this.digits(), formatter: this.formatter() });
-    if (!result) return;
-
-    this.setValue(result.newDigits, true);
-    this.scheduleCaretUpdate(event.target as HTMLInputElement | null, result.caretDigitIndex);
   }
 }

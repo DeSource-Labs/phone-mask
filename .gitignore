@@ -2,7 +2,9 @@
 .vscode
 .idea
 .claude
+.angular
 dist
+dist-demo
 build
 coverage
 node_modules

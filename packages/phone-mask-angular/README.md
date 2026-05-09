@@ -104,11 +104,11 @@ You can also bind directive options directly:
 />
 ```
 
-## Pipe And Service
+## Pipe
 
 ```ts
 import { Component } from '@angular/core';
-import { PhoneMaskPipe, PhoneMaskService, providePhoneMask } from '@desource/phone-mask-angular';
+import { PhoneMaskPipe, providePhoneMask } from '@desource/phone-mask-angular';
 
 @Component({
   selector: 'app-phone-summary',
@@ -120,11 +120,7 @@ import { PhoneMaskPipe, PhoneMaskService, providePhoneMask } from '@desource/pho
     <p>{{ '2025551234' | phoneMask: { mode: 'fullFormatted' } }}</p>
   `
 })
-export class PhoneSummaryComponent {
-  constructor(phoneMask: PhoneMaskService) {
-    phoneMask.getPhoneNumber('2025551234');
-  }
-}
+export class PhoneSummaryComponent {}
 ```
 
 ## Custom Templates

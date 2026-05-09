@@ -156,11 +156,14 @@
             [id]="getOptionId(idx)"
             role="option"
             class="pi-option"
+            tabindex="-1"
             [class.is-focused]="idx === focusedIndex()"
             [class.is-selected]="c.id === country().id"
             [attr.aria-selected]="c.id === country().id"
             [title]="c.name"
             (click)="selectDropdownCountry(c.id)"
+            (keydown.enter)="selectDropdownCountry(c.id)"
+            (keydown.space)="$event.preventDefault(); selectDropdownCountry(c.id)"
             (mouseenter)="setFocusedIndex(idx)"
           >
             <span class="pi-flag" role="img" [attr.aria-label]="c.name + ' flag'">

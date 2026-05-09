@@ -1,12 +1,8 @@
-import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
-  DestroyRef,
   ElementRef,
-  Inject,
-  Optional,
   TemplateRef,
   ViewEncapsulation,
   booleanAttribute,
@@ -14,6 +10,7 @@ import {
   contentChild,
   effect,
   forwardRef,
+  inject,
   input,
   model,
   output,
@@ -22,37 +19,19 @@ import {
   viewChild
 } from '@angular/core';
 import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
-import { MasksFull, type CountryKey, type MaskFull } from '@desource/phone-mask';
-import {
-  bindCountryDropdownListeners,
-  createPhoneFormatter,
-  detectByGeoIp,
-  detectCountryFromLocale,
-  extractDigits,
-  filterCountries,
-  getCountry,
-  getNavigatorLang,
-  handleCountryButtonKeydown,
-  handleCountrySearchKeydown,
-  parseCountryCode,
-  positionCountryDropdown,
-  processBeforeInput,
-  processInput,
-  processKeydown,
-  processPaste,
-  scrollCountryOptionIntoView,
-  setCaret
-} from '@desource/phone-mask/kit';
+import type { CountryKey, MaskFull } from '@desource/phone-mask';
+import { extractDigits } from '@desource/phone-mask/kit';
 import { PHONE_MASK_CONFIG } from '../config';
 import { optionalBooleanAttribute } from '../internal/boolean-input';
-import { createPhoneNumber } from '../internal/formatting';
+import { UseCopyActionService } from '../services/internal/useCopyAction.service';
+import { UseCountryService } from '../services/internal/useCountry.service';
+import { UseCountrySelectorService } from '../services/internal/useCountrySelector.service';
+import { UseFormatterService } from '../services/internal/useFormatter.service';
+import { UseInputHandlersService } from '../services/internal/useInputHandlers.service';
+import { UseThemeService } from '../services/internal/useTheme.service';
+import { UseValidationHintService } from '../services/internal/useValidationHint.service';
+import { UseClipboardService } from '../services/utility/useClipboard.service';
 import type { PhoneInputRef, PhoneMaskConfig, PhoneNumber, Size, Theme } from '../types';
-
-type IndexUpdate = number | ((index: number) => number);
-
-const HINT_DELAY_INPUT = 500;
-const HINT_DELAY_ACTION = 300;
-const COPY_RESET_DELAY = 1_800;
 
 let nextDropdownId = 0;
 
@@ -65,6 +44,14 @@ let nextDropdownId = 0;
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
+    UseClipboardService,
+    UseCopyActionService,
+    UseCountryService,
+    UseCountrySelectorService,
+    UseFormatterService,
+    UseInputHandlersService,
+    UseThemeService,
+    UseValidationHintService,
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => PhoneInputComponent),
@@ -116,51 +103,52 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
   private readonly searchRef = viewChild<ElementRef<HTMLInputElement>>('searchInput');
   private readonly selectorRef = viewChild<ElementRef<HTMLButtonElement>>('selectorButton');
 
-  private readonly countryCode = signal('US');
-  private readonly formDisabled = signal(false);
-  private readonly systemDark = signal(false);
-  private readonly showValidationHint = signal(false);
-  readonly copied = signal(false);
+  private readonly countryState = inject(UseCountryService);
+  private readonly formatterState = inject(UseFormatterService);
+  private readonly inputHandlers = inject(UseInputHandlersService);
+  private readonly validationHint = inject(UseValidationHintService);
+  private readonly countrySelector = inject(UseCountrySelectorService);
+  private readonly copyAction = inject(UseCopyActionService);
+  private readonly themeState = inject(UseThemeService);
+  private readonly config: PhoneMaskConfig = inject(PHONE_MASK_CONFIG, { optional: true }) ?? {};
 
-  readonly dropdownOpen = signal(false);
-  readonly search = signal('');
-  readonly focusedIndex = signal(0);
+  private readonly formDisabled = signal(false);
+  private onTouched: () => void = () => {};
+  private onChange: (value: string) => void = () => {};
+
+  readonly locale = this.countryState.locale;
+  readonly country = this.countryState.country;
+  readonly formatter = this.formatterState.formatter;
+  readonly digits = this.formatterState.digits;
+  readonly displayPlaceholder = this.formatterState.displayPlaceholder;
+  readonly displayValue = this.formatterState.displayValue;
+  readonly phoneData = this.formatterState.phoneData;
+  readonly full = this.formatterState.full;
+  readonly fullFormatted = this.formatterState.fullFormatted;
+  readonly isCompleteSignal = this.formatterState.isComplete;
+  readonly isEmpty = this.formatterState.isEmpty;
+  readonly shouldShowWarn = this.formatterState.shouldShowWarn;
+  readonly showValidationHint = this.validationHint.showValidationHint;
+  readonly dropdownOpen = this.countrySelector.dropdownOpen;
+  readonly search = this.countrySelector.search;
+  readonly focusedIndex = this.countrySelector.focusedIndex;
+  readonly filteredCountries = this.countrySelector.filteredCountries;
+  readonly hasDropdown = this.countrySelector.hasDropdown;
+  readonly themeClass = this.themeState.themeClass;
+  readonly copied = this.copyAction.copied;
+  readonly copyAriaLabel = this.copyAction.copyAriaLabel;
+  readonly copyButtonTitle = this.copyAction.copyButtonTitle;
 
   readonly dropdownId = ++nextDropdownId;
   readonly dropdownElementId = `pi-dropdown-${this.dropdownId}`;
   readonly listboxId = `pi-options-${this.dropdownId}`;
 
-  private validationTimer: ReturnType<typeof setTimeout> | undefined;
-  private copyTimer: ReturnType<typeof setTimeout> | undefined;
-  private themeMediaQuery: MediaQueryList | undefined;
-  private openByKeyboard = false;
-  private detectionKey = '';
-
-  private onTouched: () => void = () => {};
-  private onChange: (value: string) => void = () => {};
-
-  readonly locale = computed(() => this.localeInput() || this.config.locale || getNavigatorLang());
-  readonly detect = computed(() => this.detectInput() ?? this.config.detect ?? !this.config.country);
-  readonly country = computed(() => getCountry(this.countryCode(), this.locale()));
-  readonly countries = computed(() => MasksFull(this.locale()));
-  readonly formatter = computed(() => createPhoneFormatter(this.country()));
-  readonly digits = computed(() => extractDigits(this.value(), this.formatter().getMaxDigits()));
-  readonly displayPlaceholder = computed(() => this.formatter().getPlaceholder());
-  readonly displayValue = computed(() => this.formatter().formatDisplay(this.digits()));
-  readonly phoneData = computed(() => createPhoneNumber(this.digits(), this.country(), this.formatter()));
-  readonly full = computed(() => this.phoneData().full);
-  readonly fullFormatted = computed(() => this.phoneData().fullFormatted);
-  readonly isCompleteSignal = computed(() => this.formatter().isComplete(this.digits()));
-  readonly isEmpty = computed(() => this.digits().length === 0);
-  readonly shouldShowWarn = computed(() => !this.isEmpty() && !this.isCompleteSignal());
   readonly isDisabled = computed(() => this.disabledInput() || this.formDisabled());
   readonly isReadOnly = computed(() => this.readOnlyInput());
   readonly inactive = computed(() => this.isDisabled() || this.isReadOnly());
   readonly incomplete = computed(() => this.showValidationHint() && this.shouldShowWarn());
   readonly showCopyButton = computed(() => this.showCopy() && !this.isEmpty() && !this.isDisabled());
   readonly showClearButton = computed(() => this.showClear() && !this.isEmpty() && !this.inactive());
-  readonly filteredCountries = computed(() => filterCountries(this.countries(), this.search()));
-  readonly hasDropdown = computed(() => !this.countryInput() && this.countries().length > 1);
   readonly canOpenDropdown = computed(() => this.hasDropdown() && !this.inactive());
   readonly renderDropdown = computed(() => this.hasDropdown() && (!this.inactive() || this.dropdownOpen()));
   readonly activeOptionId = computed(() =>
@@ -168,11 +156,6 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
       ? this.getOptionId(this.focusedIndex())
       : undefined
   );
-  readonly themeClass = computed(() => {
-    const theme = this.theme();
-    if (theme === 'auto') return this.systemDark() ? 'theme-dark' : 'theme-light';
-    return `theme-${theme}`;
-  });
   readonly rootClasses = computed(() =>
     [
       'phone-input',
@@ -195,83 +178,69 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
   readonly actionsCount = computed(
     () => +this.showCopyButton() + +this.showClearButton() + (this.actionsBeforeTemplate() ? 1 : 0)
   );
-  readonly copyAriaLabel = computed(() => (this.copied() ? 'Copied' : `Copy ${this.fullFormatted()}`));
-  readonly copyButtonTitle = computed(() => (this.copied() ? 'Copied' : 'Copy phone number'));
 
-  constructor(
-    private readonly destroyRef: DestroyRef,
-    private readonly cdr: ChangeDetectorRef,
-    @Optional() @Inject(DOCUMENT) private readonly document: Document | null,
-    @Optional() @Inject(PHONE_MASK_CONFIG) private readonly config: PhoneMaskConfig = {}
-  ) {
-    this.countryCode.set(parseCountryCode(this.config.country, 'US'));
-    this.bindThemePreference();
-
-    this.destroyRef.onDestroy(() => {
-      if (this.validationTimer) clearTimeout(this.validationTimer);
-      if (this.copyTimer) clearTimeout(this.copyTimer);
-      this.themeMediaQuery?.removeEventListener('change', this.handleThemeChange);
+  constructor() {
+    this.countryState.configure({
+      country: this.countryInput,
+      locale: this.localeInput,
+      detect: this.detectInput,
+      defaultDetect: !this.config.country,
+      onCountryChange: (country) => this.countryChange.emit(country)
     });
 
-    effect(() => {
-      const country = parseCountryCode(this.countryInput());
-
-      if (country && country !== this.countryCode()) {
-        queueMicrotask(() => this.selectCountry(country));
-      }
+    this.formatterState.configure({
+      country: this.country,
+      value: this.value,
+      onChange: (digits) => this.setValue(digits, true),
+      onPhoneChange: (phone) => this.phoneChange.emit(phone),
+      onValidationChange: (isComplete) => this.validationChange.emit(isComplete)
     });
 
-    effect(() => {
-      if (!this.detect() || this.countryInput() || this.config.country) return;
-
-      const key = `${this.locale()}:${this.detect()}`;
-      if (this.detectionKey === key) return;
-
-      this.detectionKey = key;
-      void this.detectCountry();
+    this.inputHandlers.configure({
+      formatter: this.formatter,
+      digits: this.digits,
+      inactive: this.inactive,
+      onChange: (digits) => this.setValue(digits, true),
+      scheduleValidationHint: (delay) => this.validationHint.scheduleValidationHint(delay)
     });
 
-    effect(() => {
-      const value = this.value();
-      const digits = this.digits();
-
-      if (value !== digits) {
-        queueMicrotask(() => {
-          if (this.value() !== this.digits()) {
-            this.setValue(this.digits(), false);
-          }
-        });
-      }
+    this.countrySelector.configure({
+      rootElement: () => this.rootRef()?.nativeElement,
+      dropdownElement: () => this.dropdownRef()?.nativeElement,
+      searchElement: () => this.searchRef()?.nativeElement,
+      selectorElement: () => this.selectorRef()?.nativeElement,
+      locale: this.locale,
+      inactive: this.inactive,
+      countryOption: this.countryInput,
+      onSelectCountry: (country) => this.selectCountry(country),
+      onAfterSelect: () => this.focus()
     });
 
-    effect(() => {
-      this.phoneChange.emit(this.phoneData());
+    this.copyAction.configure({
+      fullFormatted: this.fullFormatted,
+      liveElement: () => this.liveRef()?.nativeElement,
+      onCopy: (value) => this.copiedValue.emit(value)
     });
 
-    effect(() => {
-      this.validationChange.emit(this.isCompleteSignal());
-    });
-
-    effect(() => {
-      this.countryChange.emit(this.country());
-    });
+    this.themeState.configure({ theme: this.theme });
 
     effect((onCleanup) => {
-      if (!this.dropdownOpen()) return;
+      if (typeof document === 'undefined') return;
 
-      queueMicrotask(() => {
-        this.updateDropdownPosition();
-        if (this.openByKeyboard) this.focusSearch();
+      const dropdown = this.dropdownRef()?.nativeElement;
+      if (!dropdown || dropdown.parentElement === document.body) return;
+
+      const placeholder = document.createComment('phone-input-dropdown');
+      const parent = dropdown.parentNode;
+      parent?.insertBefore(placeholder, dropdown);
+      document.body.appendChild(dropdown);
+
+      onCleanup(() => {
+        if (placeholder.parentNode && dropdown.isConnected) {
+          placeholder.parentNode.insertBefore(dropdown, placeholder);
+        }
+        placeholder.remove();
       });
-
-      onCleanup(
-        bindCountryDropdownListeners(
-          () => this.dropdownRef()?.nativeElement,
-          () => this.selectorRef()?.nativeElement,
-          () => this.closeDropdown(),
-          () => this.updateDropdownPosition()
-        )
-      );
     });
   }
 
@@ -301,16 +270,14 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
 
   clear(): void {
     this.setValue('', true);
-    this.clearValidationHint();
+    this.validationHint.clearValidationHint();
     this.cleared.emit();
   }
 
   selectCountry(country: CountryKey | string): boolean {
-    const parsed = parseCountryCode(country);
+    const updated = this.countryState.setCountry(country);
 
-    if (!parsed) return false;
-
-    untracked(() => this.countryCode.set(parsed));
+    if (!updated) return false;
 
     const maxDigits = this.formatter().getMaxDigits();
     if (this.digits().length > maxDigits) {
@@ -353,45 +320,24 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
   }
 
   handleBeforeInput(event: Event): void {
-    processBeforeInput(event as InputEvent);
+    this.inputHandlers.handleBeforeInput(event);
   }
 
   handleInput(event: Event): void {
-    if (this.inactive()) return;
-
-    const result = processInput(event, { formatter: this.formatter() });
-    if (!result) return;
-
-    this.setValue(result.newDigits, true);
-    this.scheduleCaretUpdate(event.target as HTMLInputElement | null, result.caretDigitIndex);
-    this.scheduleValidationHint(HINT_DELAY_INPUT);
+    this.inputHandlers.handleInput(event);
   }
 
   handleKeydown(event: KeyboardEvent): void {
-    if (this.inactive()) return;
-
-    const result = processKeydown(event, { digits: this.digits(), formatter: this.formatter() });
-    if (!result) return;
-
-    this.setValue(result.newDigits, true);
-    this.scheduleCaretUpdate(event.target as HTMLInputElement | null, result.caretDigitIndex);
-    this.scheduleValidationHint(HINT_DELAY_ACTION);
+    this.inputHandlers.handleKeydown(event);
   }
 
   handlePaste(event: ClipboardEvent): void {
-    if (this.inactive()) return;
-
-    const result = processPaste(event, { digits: this.digits(), formatter: this.formatter() });
-    if (!result) return;
-
-    this.setValue(result.newDigits, true);
-    this.scheduleCaretUpdate(event.target as HTMLInputElement | null, result.caretDigitIndex);
-    this.scheduleValidationHint(HINT_DELAY_ACTION);
+    this.inputHandlers.handlePaste(event);
   }
 
   handleFocus(event: FocusEvent): void {
-    this.clearValidationHint(false);
-    this.closeDropdown();
+    this.validationHint.clearValidationHint(false);
+    this.countrySelector.closeDropdown();
     this.focused.emit(event);
   }
 
@@ -401,69 +347,31 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
   }
 
   handleSelectorPointerDown(event: PointerEvent): void {
-    this.openByKeyboard = event.pointerType === 'mouse';
+    this.countrySelector.handleSelectorPointerDown(event);
   }
 
   handleSelectorKeydown(event: KeyboardEvent): void {
-    handleCountryButtonKeydown(
-      event,
-      this.dropdownOpen(),
-      () => {
-        this.openByKeyboard = true;
-      },
-      () => this.focusSearch(),
-      () => this.openDropdown()
-    );
+    this.countrySelector.handleSelectorKeydown(event);
   }
 
   handleSearchChange(event: Event): void {
-    this.search.set((event.target as HTMLInputElement).value);
-    this.focusedIndex.set(0);
+    this.countrySelector.handleSearchChange(event);
   }
 
   handleSearchKeydown(event: KeyboardEvent): void {
-    handleCountrySearchKeydown(
-      event,
-      this.focusedIndex(),
-      this.filteredCountries(),
-      (index) => this.setFocusedIndex(index),
-      (index) => this.scrollFocusedIntoView(index),
-      (country) => this.selectDropdownCountry(country.id)
-    );
+    this.countrySelector.handleSearchKeydown(event);
   }
 
   toggleDropdown(): void {
-    if (this.inactive() || !this.hasDropdown()) return;
-
-    if (this.dropdownOpen()) {
-      this.closeDropdown();
-    } else {
-      this.openDropdown();
-    }
+    this.countrySelector.toggleDropdown();
   }
 
-  openDropdown(): void {
-    if (this.inactive() || !this.hasDropdown() || this.dropdownOpen()) return;
-    if (!this.dropdownRef()?.nativeElement || !this.selectorRef()?.nativeElement) return;
-
-    this.updateDropdownPosition();
-    this.focusedIndex.set(0);
-    this.dropdownOpen.set(true);
+  setFocusedIndex(index: number): void {
+    this.countrySelector.setFocusedIndex(index);
   }
 
-  closeDropdown(): void {
-    this.dropdownOpen.set(false);
-    this.resetDropdownState();
-  }
-
-  setFocusedIndex(index: IndexUpdate): void {
-    this.focusedIndex.update((current) => (typeof index === 'function' ? index(current) : index));
-  }
-
-  selectDropdownCountry(country: CountryKey | string): void {
-    this.selectCountry(country);
-    this.closeDropdown();
-    this.focus();
+  selectDropdownCountry(country: CountryKey): void {
+    this.countrySelector.selectCountry(country);
   }
 
   onClearClick(): void {
@@ -472,20 +380,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
   }
 
   async onCopyClick(): Promise<void> {
-    const value = this.fullFormatted().trim();
-    const success = await this.copyToClipboard(value);
-
-    if (!success) return;
-
-    this.copied.set(true);
-    this.copiedValue.emit(value);
-    this.announceToScreenReader('Phone number copied to clipboard');
-
-    if (this.copyTimer) clearTimeout(this.copyTimer);
-    this.copyTimer = setTimeout(() => {
-      this.copied.set(false);
-      this.cdr.markForCheck();
-    }, COPY_RESET_DELAY);
+    await this.copyAction.onCopyClick();
   }
 
   private setValue(value: string, emit: boolean): void {
@@ -497,101 +392,4 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
       this.onChange(nextDigits);
     }
   }
-
-  private async detectCountry(): Promise<void> {
-    const geoCountry = parseCountryCode(await detectByGeoIp());
-
-    if (geoCountry && this.selectCountry(geoCountry)) return;
-
-    this.selectCountry(detectCountryFromLocale() ?? 'US');
-  }
-
-  private resetDropdownState(): void {
-    this.search.set('');
-    this.focusedIndex.set(0);
-    this.openByKeyboard = false;
-  }
-
-  private updateDropdownPosition(): void {
-    positionCountryDropdown(this.rootRef()?.nativeElement ?? null, this.dropdownRef()?.nativeElement ?? null);
-  }
-
-  private focusSearch(): void {
-    setTimeout(() => this.searchRef()?.nativeElement.focus({ preventScroll: true }));
-  }
-
-  private scrollFocusedIntoView(index: number): void {
-    setTimeout(() => scrollCountryOptionIntoView(this.dropdownRef()?.nativeElement, index));
-  }
-
-  private scheduleCaretUpdate(el: HTMLInputElement | null, digitIndex: number): void {
-    setTimeout(() => {
-      const position = this.formatter().getCaretPosition(digitIndex);
-      setCaret(el, position);
-    });
-  }
-
-  private clearValidationHint(hideHint = true): void {
-    if (hideHint) this.showValidationHint.set(false);
-    if (this.validationTimer) clearTimeout(this.validationTimer);
-  }
-
-  private scheduleValidationHint(delay: number): void {
-    this.showValidationHint.set(false);
-    if (this.validationTimer) clearTimeout(this.validationTimer);
-    this.validationTimer = setTimeout(() => {
-      this.showValidationHint.set(true);
-      this.cdr.markForCheck();
-    }, delay);
-  }
-
-  private announceToScreenReader(message: string): void {
-    const live = this.liveRef()?.nativeElement;
-    if (!live) return;
-
-    live.textContent = message;
-    setTimeout(() => {
-      live.textContent = '';
-    }, COPY_RESET_DELAY);
-  }
-
-  private async copyToClipboard(value: string): Promise<boolean> {
-    if (!value) return false;
-
-    try {
-      if (globalThis.navigator?.clipboard?.writeText) {
-        await globalThis.navigator.clipboard.writeText(value);
-        return true;
-      }
-
-      if (!this.document?.body) return false;
-
-      const textarea = this.document.createElement('textarea');
-      textarea.value = value;
-      textarea.setAttribute('readonly', '');
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      this.document.body.appendChild(textarea);
-      textarea.select();
-      const copied = this.document.execCommand('copy');
-      textarea.remove();
-
-      return copied;
-    } catch {
-      return false;
-    }
-  }
-
-  private bindThemePreference(): void {
-    this.themeMediaQuery = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? undefined;
-    if (!this.themeMediaQuery) return;
-
-    this.systemDark.set(this.themeMediaQuery.matches);
-    this.themeMediaQuery.addEventListener('change', this.handleThemeChange);
-  }
-
-  private readonly handleThemeChange = (event: MediaQueryListEvent) => {
-    this.systemDark.set(event.matches);
-    this.cdr.markForCheck();
-  };
 }

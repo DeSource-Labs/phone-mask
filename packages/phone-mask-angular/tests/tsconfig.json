@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "emitDeclarationOnly": false,
+    "paths": {
+      "@common/*": ["../../common/*"],
+      "@src/*": ["../src/*"]
+    },
+    "types": ["vitest/globals"]
+  },
+  "include": ["unit/**/*.ts", "e2e/**/*.ts", "../src/**/*.ts", "../../common/tests/**/*.ts"],
+  "exclude": []
+}

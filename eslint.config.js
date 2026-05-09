@@ -7,6 +7,7 @@ import svelte from 'eslint-plugin-svelte';
 import svelteParser from 'svelte-eslint-parser';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import angular from 'angular-eslint';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
@@ -14,6 +15,8 @@ const TS_FILES = ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'];
 const JS_FILES = ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.jsx'];
 
 const REACT_FILES = ['packages/phone-mask-react/**/*.{ts,tsx,js,jsx}'];
+const ANGULAR_TS_FILES = ['packages/phone-mask-angular/**/*.ts'];
+const ANGULAR_TEMPLATE_FILES = ['packages/phone-mask-angular/**/*.html'];
 const VUE_SFC_FILES = ['packages/phone-mask-vue/**/*.vue', 'packages/phone-mask-nuxt/**/*.vue', 'demo/**/*.vue'];
 const VUE_TS_FILES = [
   'packages/phone-mask-vue/**/*.{ts,mts,cts}',
@@ -57,6 +60,7 @@ export default [
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
+      '**/dist-demo/**',
       '**/.nuxt/**',
       '**/.output/**',
       '**/.svelte-kit/**',
@@ -149,6 +153,31 @@ export default [
       'react/jsx-uses-react': 'off'
     }
   },
+
+  ...angular.configs.tsRecommended.map((config) => ({
+    ...config,
+    files: ANGULAR_TS_FILES
+  })),
+
+  {
+    files: ANGULAR_TS_FILES,
+    processor: angular.processInlineTemplates,
+    rules: {
+      '@angular-eslint/no-input-rename': 'off',
+      '@angular-eslint/no-output-native': 'off',
+      '@angular-eslint/no-output-rename': 'off'
+    }
+  },
+
+  ...angular.configs.templateRecommended.map((config) => ({
+    ...config,
+    files: ANGULAR_TEMPLATE_FILES
+  })),
+
+  ...angular.configs.templateAccessibility.map((config) => ({
+    ...config,
+    files: ANGULAR_TEMPLATE_FILES
+  })),
 
   {
     files: VUE_TS_FILES,

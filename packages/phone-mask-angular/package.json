@@ -56,14 +56,18 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rimraf dist test-results coverage tsconfig.tsbuildinfo",
+    "clean": "rimraf dist dist-demo test-results coverage tsconfig.tsbuildinfo",
     "clean:modules": "rimraf node_modules",
+    "dev": "ng serve demo --port 5173",
+    "build:demo": "ng build demo",
     "build": "pnpm clean && pnpm build:lib && pnpm build:styles",
     "build:lib": "ng-packagr -p ng-package.json",
     "build:styles": "sass src/phone-input/phone-input.component.scss dist/assets/lib.css --style=compressed --no-source-map",
+    "lint": "eslint .",
     "typecheck": "ngc -p tsconfig.json --noEmit",
     "test:unit": "vitest run",
-    "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage"
+    "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
+    "test:e2e": "playwright test"
   },
   "peerDependencies": {
     "@angular/common": "^19.0.0 || ^20.0.0 || ^21.0.0",
@@ -75,11 +79,16 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
+    "@angular/build": "^21.2.10",
     "@angular/common": "^21.2.12",
     "@angular/compiler": "^21.2.12",
     "@angular/compiler-cli": "^21.2.12",
     "@angular/core": "^21.2.12",
+    "@angular/cli": "^21.2.10",
     "@angular/forms": "^21.2.12",
+    "@angular/platform-browser": "^21.2.12",
+    "@analogjs/vite-plugin-angular": "^2.5.0",
+    "@testing-library/angular": "^19.2.1",
     "ng-packagr": "^21.2.3",
     "sass": "^1.99.0"
   }

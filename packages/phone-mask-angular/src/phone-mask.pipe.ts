@@ -1,4 +1,4 @@
-import { Inject, Optional, Pipe, type PipeTransform } from '@angular/core';
+import { Pipe, inject, type PipeTransform } from '@angular/core';
 import type { CountryKey } from '@desource/phone-mask';
 import { PHONE_MASK_CONFIG } from './config';
 import { formatPhoneValue } from './internal/formatting';
@@ -14,7 +14,7 @@ function isFormatOptions(value: unknown): value is PhoneMaskFormatOptions {
   pure: true
 })
 export class PhoneMaskPipe implements PipeTransform {
-  constructor(@Optional() @Inject(PHONE_MASK_CONFIG) private readonly config: PhoneMaskConfig = {}) {}
+  private readonly config: PhoneMaskConfig = inject(PHONE_MASK_CONFIG, { optional: true }) ?? {};
 
   transform(
     value: string | number | null | undefined,

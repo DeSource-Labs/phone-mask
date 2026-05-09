@@ -1,0 +1,31 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "demo": {
+      "projectType": "application",
+      "root": "demo",
+      "sourceRoot": "demo/src",
+      "prefix": "demo",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "demo/src/main.ts",
+            "index": "demo/src/index.html",
+            "outputPath": "dist-demo",
+            "tsConfig": "demo/tsconfig.json",
+            "styles": []
+          }
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "buildTarget": "demo:build"
+          }
+        }
+      }
+    }
+  }
+}

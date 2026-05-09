@@ -44,6 +44,19 @@ export interface PhoneMaskDirectiveOptions {
 
 export type PhoneMaskDirectiveInput = CountryKey | string | PhoneMaskDirectiveOptions | null | undefined;
 
+export interface PhoneMaskDirectiveState {
+  country: MaskFull;
+  formatter: FormatterHelpers;
+  digits: string;
+  locale: string;
+  options: PhoneMaskDirectiveOptions;
+  setCountry?: (code: string) => boolean;
+}
+
+export interface DirectiveHTMLInputElement extends HTMLInputElement {
+  __phoneMaskState?: PhoneMaskDirectiveState;
+}
+
 export interface PhoneInputRef {
   /** Focus the phone input. */
   focus: () => void;
