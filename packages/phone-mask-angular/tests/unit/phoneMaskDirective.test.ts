@@ -3,8 +3,8 @@ import { Component } from '@angular/core';
 import { render } from '@testing-library/angular';
 import { detectByGeoIp } from '@desource/phone-mask/kit';
 import { testPhoneMaskBinding } from '@common/tests/unit/phoneMaskBinding';
-import { PhoneMaskDirective } from '../../src/phone-mask.directive';
-import type { DirectiveHTMLInputElement, PhoneMaskDirectiveInput, PhoneMaskDirectiveOptions } from '../../src/types';
+import { PhoneMaskDirective } from '@src/phone-mask.directive';
+import type { DirectiveHTMLInputElement, PhoneMaskDirectiveInput, PhoneMaskDirectiveOptions } from '@src/types';
 import { tools } from './setup/tools';
 
 vi.mock('@desource/phone-mask/kit', async (importOriginal) => {

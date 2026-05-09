@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { PhoneMaskPipe } from '../../src/phone-mask.pipe';
+import { PhoneMaskPipe } from '@src/phone-mask.pipe';
 
 describe('PhoneMaskPipe', () => {
   const setup = () => {

@@ -2,7 +2,7 @@
 import { Component, ElementRef, inject, signal, viewChild, type AfterViewInit, type OnDestroy } from '@angular/core';
 import { render } from '@testing-library/angular';
 import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
-import { UsePhoneMaskService } from '../../src/services/usePhoneMask.service';
+import { UsePhoneMaskService } from '@src/services/usePhoneMask.service';
 import { tools } from './setup/tools';
 
 @Component({

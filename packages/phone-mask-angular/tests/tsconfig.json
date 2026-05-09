@@ -1,12 +1,12 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "composite": false,
     "declaration": false,
     "declarationMap": false,
     "emitDeclarationOnly": false,
     "paths": {
-      "@common/*": ["../../common/*"],
+      "@common/*": ["../../../common/*"],
       "@src/*": ["../src/*"]
     },
     "types": ["vitest/globals"]
