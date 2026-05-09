@@ -27,9 +27,14 @@ export interface UsePhoneMaskOptions {
 export class UsePhoneMaskService {
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly countryState = inject(UseCountryService);
-  private readonly formatterState = inject(UseFormatterService);
-  private readonly inputHandlers = inject(UseInputHandlersService);
+  private readonly stateInjector = Injector.create({
+    providers: [UseCountryService, UseFormatterService, UseInputHandlersService],
+    parent: this.injector,
+    name: 'UsePhoneMaskService'
+  });
+  private readonly countryState = this.stateInjector.get(UseCountryService);
+  private readonly formatterState = this.stateInjector.get(UseFormatterService);
+  private readonly inputHandlers = this.stateInjector.get(UseInputHandlersService);
   private readonly inputElement = signal<HTMLInputElement | null>(null);
   private onChange: (digits: string) => void = () => {};
   private configured = false;
@@ -44,6 +49,13 @@ export class UsePhoneMaskService {
   readonly isEmpty = this.formatterState.isEmpty;
   readonly shouldShowWarn = this.formatterState.shouldShowWarn;
   readonly inputRef = computed(() => this.inputElement());
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.connect(null);
+      this.stateInjector.destroy();
+    });
+  }
 
   configure(options: UsePhoneMaskOptions): void {
     if (this.configured) return;
@@ -105,7 +117,6 @@ export class UsePhoneMaskService {
       { injector: this.injector }
     );
 
-    this.destroyRef.onDestroy(() => this.connect(null));
   }
 
   connect(inputElement: HTMLInputElement | null): void {

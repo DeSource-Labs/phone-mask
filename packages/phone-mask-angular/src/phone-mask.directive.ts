@@ -13,18 +13,16 @@ import {
 import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
 import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import { extractDigits } from '@desource/phone-mask/kit';
-import { PHONE_MASK_CONFIG } from './config';
-import { optionalBooleanAttribute } from './internal/boolean-input';
 import { UseCountryService } from './services/internal/useCountry.service';
 import { UseFormatterService } from './services/internal/useFormatter.service';
 import { UseInputHandlersService } from './services/internal/useInputHandlers.service';
 import type {
   DirectiveHTMLInputElement,
-  PhoneMaskConfig,
   PhoneMaskDirectiveInput,
   PhoneMaskDirectiveOptions,
   PhoneNumber
 } from './types';
+import { optionalBooleanAttribute } from './utils/optionalBooleanAttribute';
 
 function parseOptions(value: PhoneMaskDirectiveInput): PhoneMaskDirectiveOptions {
   if (typeof value === 'string') return { country: value };
@@ -65,7 +63,6 @@ export class PhoneMaskDirective implements ControlValueAccessor {
   private readonly countryState = inject(UseCountryService);
   private readonly formatterState = inject(UseFormatterService);
   private readonly inputHandlers = inject(UseInputHandlersService);
-  private readonly config: PhoneMaskConfig = inject(PHONE_MASK_CONFIG, { optional: true }) ?? {};
 
   private readonly inputElement = this.elementRef.nativeElement as DirectiveHTMLInputElement;
   private readonly isInput = this.inputElement.tagName === 'INPUT';
@@ -77,9 +74,9 @@ export class PhoneMaskDirective implements ControlValueAccessor {
 
     return {
       ...parsed,
-      country: this.countryInput() ?? parsed.country ?? this.config.country,
-      locale: this.localeInput() ?? parsed.locale ?? this.config.locale,
-      detect: this.detectInput() ?? parsed.detect ?? this.config.detect ?? false
+      country: this.countryInput() ?? parsed.country,
+      locale: this.localeInput() ?? parsed.locale,
+      detect: this.detectInput() ?? parsed.detect ?? false
     };
   };
 

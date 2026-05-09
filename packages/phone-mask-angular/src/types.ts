@@ -11,15 +11,6 @@ export interface PhoneNumber {
   digits: string;
 }
 
-export interface PhoneMaskConfig {
-  /** Default ISO 3166-1 alpha-2 country code. */
-  country?: CountryKey | string;
-  /** Default locale for country names. */
-  locale?: string;
-  /** Default country auto-detection behavior for APIs that support detection. */
-  detect?: boolean;
-}
-
 export interface PhoneMaskFormatOptions {
   /** ISO 3166-1 alpha-2 country code. */
   country?: CountryKey | string;
@@ -76,15 +67,4 @@ export interface PhoneInputRef {
   isValid: () => boolean;
   /** Check if the current phone number is complete. */
   isComplete: () => boolean;
-}
-
-export interface PhoneMaskState {
-  country: MaskFull;
-  formatter: FormatterHelpers;
-  digits: string;
-  full: string;
-  fullFormatted: string;
-  isComplete: boolean;
-  isEmpty: boolean;
-  shouldShowWarn: boolean;
 }

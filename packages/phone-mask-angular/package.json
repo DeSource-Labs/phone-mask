@@ -48,7 +48,7 @@
     "build:demo": "ng build demo",
     "build": "pnpm clean && pnpm build:lib && pnpm build:styles",
     "build:lib": "ng-packagr -p ng-package.json",
-    "build:styles": "sass src/phone-input/phone-input.component.scss dist/assets/lib.css --style=compressed --no-source-map",
+    "build:styles": "sass src/components/phone-input/phone-input.component.scss dist/assets/lib.css --style=compressed --no-source-map",
     "lint": "eslint .",
     "typecheck": "ngc -p tsconfig.json --noEmit",
     "test:unit": "vitest run",

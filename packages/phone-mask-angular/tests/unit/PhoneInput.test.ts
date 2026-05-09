@@ -4,7 +4,7 @@ import { By } from '@angular/platform-browser';
 import { render } from '@testing-library/angular';
 import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import { testPhoneInput, type SetupFn } from '@common/tests/unit/PhoneInput';
-import { PhoneInputComponent } from '../../src/phone-input/phone-input.component';
+import { PhoneInputComponent } from '../../src/components/phone-input/phone-input.component';
 import type { PhoneNumber, Size, Theme } from '../../src/types';
 import { tools } from './setup/tools';
 

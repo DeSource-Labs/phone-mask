@@ -1,6 +1,6 @@
 # @desource/phone-mask-angular
 
-> Angular phone input component, directive, pipe, and service with smart masking and Google libphonenumber data
+> Angular phone input component, directive, pipe, and service API with smart masking and Google libphonenumber data
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask-angular?color=blue&logo=angular)](https://www.npmjs.com/package/@desource/phone-mask-angular)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
@@ -9,7 +9,7 @@ Beautiful, accessible, tree-shakeable Angular phone input with auto-formatting, 
 
 ## Features
 
-- Standalone Angular component, directive, pipe, and service
+- Standalone Angular component, directive, pipe, and `UsePhoneMaskService`
 - Signal inputs and `model()` two-way value binding
 - Works with Angular forms through `ControlValueAccessor`
 - Smart country search with keyboard navigation
@@ -108,13 +108,12 @@ You can also bind directive options directly:
 
 ```ts
 import { Component } from '@angular/core';
-import { PhoneMaskPipe, providePhoneMask } from '@desource/phone-mask-angular';
+import { PhoneMaskPipe } from '@desource/phone-mask-angular';
 
 @Component({
   selector: 'app-phone-summary',
   standalone: true,
   imports: [PhoneMaskPipe],
-  providers: [providePhoneMask({ country: 'US', locale: 'en' })],
   template: `
     <p>{{ '2025551234' | phoneMask }}</p>
     <p>{{ '2025551234' | phoneMask: { mode: 'fullFormatted' } }}</p>

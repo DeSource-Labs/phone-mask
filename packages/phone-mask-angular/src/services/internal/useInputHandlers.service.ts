@@ -56,7 +56,10 @@ export class UseInputHandlersService {
   }
 
   handleKeydown(event: KeyboardEvent): void {
-    if (this.inactiveGetter()) return;
+    if (this.inactiveGetter()) {
+      event.preventDefault();
+      return;
+    }
 
     const result = processKeydown(event, { digits: this.digitsGetter(), formatter: this.formatterGetter() });
     if (!result) return;
@@ -67,7 +70,10 @@ export class UseInputHandlersService {
   }
 
   handlePaste(event: ClipboardEvent): void {
-    if (this.inactiveGetter()) return;
+    if (this.inactiveGetter()) {
+      event.preventDefault();
+      return;
+    }
 
     const result = processPaste(event, { digits: this.digitsGetter(), formatter: this.formatterGetter() });
     if (!result) return;

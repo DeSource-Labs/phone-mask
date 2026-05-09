@@ -21,17 +21,16 @@ import {
 import { NG_VALUE_ACCESSOR, type ControlValueAccessor } from '@angular/forms';
 import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import { extractDigits } from '@desource/phone-mask/kit';
-import { PHONE_MASK_CONFIG } from '../config';
-import { optionalBooleanAttribute } from '../internal/boolean-input';
-import { UseCopyActionService } from '../services/internal/useCopyAction.service';
-import { UseCountryService } from '../services/internal/useCountry.service';
-import { UseCountrySelectorService } from '../services/internal/useCountrySelector.service';
-import { UseFormatterService } from '../services/internal/useFormatter.service';
-import { UseInputHandlersService } from '../services/internal/useInputHandlers.service';
-import { UseThemeService } from '../services/internal/useTheme.service';
-import { UseValidationHintService } from '../services/internal/useValidationHint.service';
-import { UseClipboardService } from '../services/utility/useClipboard.service';
-import type { PhoneInputRef, PhoneMaskConfig, PhoneNumber, Size, Theme } from '../types';
+import { UseCopyActionService } from '../../services/internal/useCopyAction.service';
+import { UseCountryService } from '../../services/internal/useCountry.service';
+import { UseCountrySelectorService } from '../../services/internal/useCountrySelector.service';
+import { UseFormatterService } from '../../services/internal/useFormatter.service';
+import { UseInputHandlersService } from '../../services/internal/useInputHandlers.service';
+import { UseThemeService } from '../../services/internal/useTheme.service';
+import { UseValidationHintService } from '../../services/internal/useValidationHint.service';
+import { UseClipboardService } from '../../services/utility/useClipboard.service';
+import { optionalBooleanAttribute } from '../../utils/optionalBooleanAttribute';
+import type { PhoneInputRef, PhoneNumber, Size, Theme } from '../../types';
 
 let nextDropdownId = 0;
 
@@ -110,7 +109,6 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
   private readonly countrySelector = inject(UseCountrySelectorService);
   private readonly copyAction = inject(UseCopyActionService);
   private readonly themeState = inject(UseThemeService);
-  private readonly config: PhoneMaskConfig = inject(PHONE_MASK_CONFIG, { optional: true }) ?? {};
 
   private readonly formDisabled = signal(false);
   private onTouched: () => void = () => {};
@@ -184,7 +182,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
       country: this.countryInput,
       locale: this.localeInput,
       detect: this.detectInput,
-      defaultDetect: !this.config.country,
+      defaultDetect: true,
       onCountryChange: (country) => this.countryChange.emit(country)
     });
 

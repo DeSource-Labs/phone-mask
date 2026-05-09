@@ -1,11 +1,32 @@
-import { Pipe, inject, type PipeTransform } from '@angular/core';
+import { Pipe, type PipeTransform } from '@angular/core';
 import type { CountryKey } from '@desource/phone-mask';
-import { PHONE_MASK_CONFIG } from './config';
-import { formatPhoneValue } from './internal/formatting';
-import type { PhoneMaskConfig, PhoneMaskFormatMode, PhoneMaskFormatOptions } from './types';
+import {
+  createPhoneFormatter,
+  extractDigits,
+  getCountry,
+  getNavigatorLang,
+  parseCountryCode
+} from '@desource/phone-mask/kit';
+import type { PhoneMaskFormatMode, PhoneMaskFormatOptions } from './types';
+
+const DEFAULT_COUNTRY = 'US';
 
 function isFormatOptions(value: unknown): value is PhoneMaskFormatOptions {
   return !!value && typeof value === 'object';
+}
+
+function formatPhoneValue(value: string | number | null | undefined, options: PhoneMaskFormatOptions): string {
+  const mode: PhoneMaskFormatMode = options.mode ?? 'display';
+  const country = getCountry(parseCountryCode(options.country, DEFAULT_COUNTRY), options.locale || getNavigatorLang());
+  const formatter = createPhoneFormatter(country);
+  const digits = extractDigits(String(value ?? ''), formatter.getMaxDigits());
+  const displayValue = formatter.formatDisplay(digits);
+
+  if (mode === 'placeholder') return formatter.getPlaceholder();
+  if (mode === 'full') return digits ? `${country.code}${digits}` : '';
+  if (mode === 'fullFormatted') return displayValue ? `${country.code} ${displayValue}` : '';
+
+  return displayValue;
 }
 
 @Pipe({
@@ -14,8 +35,6 @@ function isFormatOptions(value: unknown): value is PhoneMaskFormatOptions {
   pure: true
 })
 export class PhoneMaskPipe implements PipeTransform {
-  private readonly config: PhoneMaskConfig = inject(PHONE_MASK_CONFIG, { optional: true }) ?? {};
-
   transform(
     value: string | number | null | undefined,
     countryOrOptions?: CountryKey | string | PhoneMaskFormatOptions,
@@ -26,6 +45,6 @@ export class PhoneMaskPipe implements PipeTransform {
       ? countryOrOptions
       : { country: countryOrOptions as CountryKey | string | undefined, mode, locale };
 
-    return formatPhoneValue(value, options, this.config);
+    return formatPhoneValue(value, options);
   }
 }

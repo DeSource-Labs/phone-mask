@@ -2,16 +2,13 @@
 import { Component, ElementRef, inject, signal, viewChild, type AfterViewInit, type OnDestroy } from '@angular/core';
 import { render } from '@testing-library/angular';
 import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
-import { UseCountryService } from '../../src/services/internal/useCountry.service';
-import { UseFormatterService } from '../../src/services/internal/useFormatter.service';
-import { UseInputHandlersService } from '../../src/services/internal/useInputHandlers.service';
 import { UsePhoneMaskService } from '../../src/services/usePhoneMask.service';
 import { tools } from './setup/tools';
 
 @Component({
   standalone: true,
   template: '<input #phoneInput />',
-  providers: [UseCountryService, UseFormatterService, UseInputHandlersService, UsePhoneMaskService]
+  providers: [UsePhoneMaskService]
 })
 class UsePhoneMaskHostComponent implements AfterViewInit, OnDestroy {
   readonly mask = inject(UsePhoneMaskService);

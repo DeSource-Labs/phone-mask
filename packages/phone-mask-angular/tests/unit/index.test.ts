@@ -8,5 +8,5 @@ testIndexImports({
   indexModule,
   coreModule,
   expectedDefinedExports: ['PhoneInputComponent', 'PhoneMaskDirective', 'PhoneMaskPipe', 'UsePhoneMaskService'],
-  expectedFunctionExports: ['providePhoneMask']
+  expectedFunctionExports: []
 });

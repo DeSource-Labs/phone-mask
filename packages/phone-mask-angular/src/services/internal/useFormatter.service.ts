@@ -1,7 +1,6 @@
 import { Injectable, Injector, computed, effect, inject } from '@angular/core';
 import type { MaskFull } from '@desource/phone-mask';
 import { createPhoneFormatter, extractDigits } from '@desource/phone-mask/kit';
-import { createPhoneNumber } from '../../internal/formatting';
 import type { PhoneNumber } from '../../types';
 
 interface UseFormatterOptions {
@@ -33,7 +32,11 @@ export class UseFormatterService {
   readonly digits = computed(() => extractDigits(this.valueGetter(), this.formatter().getMaxDigits()));
   readonly displayPlaceholder = computed(() => this.formatter().getPlaceholder());
   readonly displayValue = computed(() => this.formatter().formatDisplay(this.digits()));
-  readonly phoneData = computed(() => createPhoneNumber(this.digits(), this.country(), this.formatter()));
+  readonly phoneData = computed<PhoneNumber>(() => ({
+    full: this.digits() ? `${this.country().code}${this.digits()}` : '',
+    fullFormatted: this.displayValue() ? `${this.country().code} ${this.displayValue()}` : '',
+    digits: this.digits()
+  }));
   readonly full = computed(() => this.phoneData().full);
   readonly fullFormatted = computed(() => this.phoneData().fullFormatted);
   readonly isComplete = computed(() => this.formatter().isComplete(this.digits()));

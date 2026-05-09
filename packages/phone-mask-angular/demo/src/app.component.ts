@@ -12,9 +12,6 @@ import {
 import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import {
   PhoneInputComponent,
-  UseCountryService,
-  UseFormatterService,
-  UseInputHandlersService,
   UsePhoneMaskService,
   type PhoneInputSize,
   type PhoneInputTheme
@@ -40,7 +37,7 @@ import {
       </div>
     </section>
   `,
-  providers: [UseCountryService, UseFormatterService, UseInputHandlersService, UsePhoneMaskService]
+  providers: [UsePhoneMaskService]
 })
 class DemoHookComponent implements AfterViewInit, OnDestroy {
   protected readonly mask = inject(UsePhoneMaskService);
@@ -269,7 +266,7 @@ class DemoHookComponent implements AfterViewInit, OnDestroy {
                   type="checkbox"
                   class="checkbox"
                   [checked]="readonly()"
-                  (change)="readonly.set($any($event.target).checked)"
+                  (change)="setReadonly($event)"
                 />
                 <span>Readonly</span>
               </label>
@@ -441,6 +438,11 @@ export class AppComponent {
     const checked = (event.target as HTMLInputElement).checked;
     this.disabled.set(checked);
     this.playgroundPhone()?.setDisabledState(checked);
+    this.changeDetector.detectChanges();
+  }
+
+  protected setReadonly(event: Event): void {
+    this.readonly.set((event.target as HTMLInputElement).checked);
     this.changeDetector.detectChanges();
   }
 

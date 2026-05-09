@@ -7,8 +7,6 @@ import {
   getNavigatorLang,
   parseCountryCode
 } from '@desource/phone-mask/kit';
-import { PHONE_MASK_CONFIG } from '../../config';
-import type { PhoneMaskConfig } from '../../types';
 
 interface UseCountryOptions {
   country?: () => CountryKey | string | null | undefined;
@@ -21,7 +19,6 @@ interface UseCountryOptions {
 @Injectable()
 export class UseCountryService {
   private readonly injector = inject(Injector);
-  private readonly config: PhoneMaskConfig = inject(PHONE_MASK_CONFIG, { optional: true }) ?? {};
   private countryOption: () => CountryKey | string | null | undefined = () => undefined;
   private localeOption: () => string | undefined = () => undefined;
   private detectOption: () => boolean | undefined = () => undefined;
@@ -31,13 +28,9 @@ export class UseCountryService {
   private configured = false;
 
   readonly countryCode = signal('US');
-  readonly locale = computed(() => this.localeOption() || this.config.locale || getNavigatorLang());
-  readonly detect = computed(() => this.detectOption() ?? this.config.detect ?? this.defaultDetect);
+  readonly locale = computed(() => this.localeOption() || getNavigatorLang());
+  readonly detect = computed(() => this.detectOption() ?? this.defaultDetect);
   readonly country = computed(() => getCountry(this.countryCode(), this.locale()));
-
-  constructor() {
-    this.countryCode.set(parseCountryCode(this.config.country, 'US'));
-  }
 
   configure(options: UseCountryOptions = {}): void {
     if (this.configured) return;
@@ -51,7 +44,7 @@ export class UseCountryService {
 
     effect(
       () => {
-        const parsed = parseCountryCode(this.countryOption() ?? this.config.country);
+        const parsed = parseCountryCode(this.countryOption());
 
         if (parsed && parsed !== this.countryCode()) {
           queueMicrotask(() => this.setCountry(parsed));
@@ -62,7 +55,7 @@ export class UseCountryService {
 
     effect(
       () => {
-        if (!this.detect() || this.countryOption() || this.config.country) return;
+        if (!this.detect() || this.countryOption()) return;
 
         const key = `${this.locale()}:${this.detect()}`;
         if (this.detectionKey === key) return;
