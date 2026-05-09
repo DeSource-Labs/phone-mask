@@ -3,7 +3,9 @@
 > React phone input component and hook with smart masking and Google libphonenumber data
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue&logo=react)](https://www.npmjs.com/package/@desource/phone-mask-react)
+[![codewiki](https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-react?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-react)
+[![context7 docs](https://img.shields.io/badge/context7%20docs-000000)](https://context7.com/desource-labs/phone-mask)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
 Beautiful, accessible, extreme small & tree-shakeable React phone input with auto-formatting, country selector, and validation.

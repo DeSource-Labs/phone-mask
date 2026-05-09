@@ -8,7 +8,10 @@
     <a href="https://bundlephobia.com/package/@desource/phone-mask"><img src="https://img.shields.io/bundlephobia/minzip/@desource/phone-mask?label=gzip%20size&color=purple" alt="bundle size"></a>
     <a href="https://codecov.io/gh/DeSource-Labs/phone-mask"><img src="https://codecov.io/gh/DeSource-Labs/phone-mask/branch/main/graph/badge.svg" alt="code coverage"></a>
     <a href="https://sonarcloud.io/summary/new_code?id=DeSource-Labs_phone-mask"><img src="https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_phone-mask&metric=alert_status" alt="SonarCloud"></a>
-    <a href="https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
+    <a href="https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license"></a>
+    <a href="https://codewiki.google/github.com/desource-labs/phone-mask"><img src="https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white
+    " alt="code wiki"></a>
+    <a href="https://context7.com/desource-labs/phone-mask"><img src="https://img.shields.io/badge/context7-docs-000000" alt="context7 docs"></a>
   </p>
 
   <p>
@@ -112,13 +115,13 @@ Ready-made plugins for your stack:
 
 ## 📦 Packages
 
-| Package                                                     | Version                                                                     | Description                                           |
-| ----------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------- |
-| [@desource/phone-mask](./packages/phone-mask)               | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue)        | Core library — TypeScript/JS                          |
-| [@desource/phone-mask-react](./packages/phone-mask-react)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue)  | React component + hook                                |
-| [@desource/phone-mask-vue](./packages/phone-mask-vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue)    | Vue 3 component + composable + directive              |
-| [@desource/phone-mask-svelte](./packages/phone-mask-svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue) | Svelte 5 component + composable + action + attachment |
-| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue)   | Nuxt module                                           |
+| Package                                                     | Version                                                                                 | Description                                           |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| [@desource/phone-mask](./packages/phone-mask)               | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)    | Core library — TypeScript/JS                          |
+| [@desource/phone-mask-react](./packages/phone-mask-react)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue&logo=react)   | React component + hook                                |
+| [@desource/phone-mask-vue](./packages/phone-mask-vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue&logo=vuedotjs)  | Vue 3 component + composable + directive              |
+| [@desource/phone-mask-svelte](./packages/phone-mask-svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte) | Svelte 5 component + composable + action + attachment |
+| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)     | Nuxt module                                           |
 
 ---
 
