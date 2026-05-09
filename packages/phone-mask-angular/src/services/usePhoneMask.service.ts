@@ -116,7 +116,6 @@ export class UsePhoneMaskService {
       },
       { injector: this.injector }
     );
-
   }
 
   connect(inputElement: HTMLInputElement | null): void {

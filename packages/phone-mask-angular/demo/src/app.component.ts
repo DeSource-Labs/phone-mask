@@ -262,12 +262,7 @@ class DemoHookComponent implements AfterViewInit, OnDestroy {
                 <span>Disabled</span>
               </label>
               <label class="checkbox-label" data-testid="props-readonly">
-                <input
-                  type="checkbox"
-                  class="checkbox"
-                  [checked]="readonly()"
-                  (change)="setReadonly($event)"
-                />
+                <input type="checkbox" class="checkbox" [checked]="readonly()" (change)="setReadonly($event)" />
                 <span>Readonly</span>
               </label>
               <label class="checkbox-label" data-testid="props-disable-default-styles">
