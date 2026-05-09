@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject } from '@angular/core';
 import { UseClipboardService } from '../utility/useClipboard.service';
 
 interface UseCopyActionOptions {
@@ -12,14 +12,13 @@ const DELAY = 1_800;
 @Injectable()
 export class UseCopyActionService {
   private readonly clipboard = inject(UseClipboardService);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   private fullFormattedGetter = () => '';
   private liveElementGetter: () => HTMLElement | null | undefined = () => undefined;
   private onCopy: ((value: string) => void) | undefined;
   private liveTimer: ReturnType<typeof setTimeout> | undefined;
 
-  readonly copied = signal(false);
+  readonly copied = this.clipboard.copied;
   readonly copyAriaLabel = computed(() => (this.copied() ? 'Copied' : `Copy ${this.fullFormattedGetter()}`));
   readonly copyButtonTitle = computed(() => (this.copied() ? 'Copied' : 'Copy phone number'));
 
@@ -41,14 +40,8 @@ export class UseCopyActionService {
 
     if (!success) return;
 
-    this.copied.set(true);
     this.onCopy?.(value);
     this.announceToScreenReader('Phone number copied to clipboard');
-
-    setTimeout(() => {
-      this.copied.set(false);
-      this.cdr.markForCheck();
-    }, DELAY);
   }
 
   private announceToScreenReader(message: string): void {

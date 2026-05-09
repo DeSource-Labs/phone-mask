@@ -8,6 +8,7 @@ export class UseClipboardService {
   private readonly document = inject(DOCUMENT, { optional: true });
 
   readonly copied = signal(false);
+  readonly isCopying = signal(false);
 
   private resetTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -18,20 +19,29 @@ export class UseClipboardService {
   }
 
   async copy(value: string, resetDelay = 1_800): Promise<boolean> {
-    if (!value) return false;
+    if (this.isCopying()) return false;
 
-    const success = await this.writeText(value);
-    if (!success) return false;
+    const text = value.trim();
+    if (!text) return false;
 
-    this.copied.set(true);
+    this.isCopying.set(true);
 
-    if (this.resetTimer) clearTimeout(this.resetTimer);
-    this.resetTimer = setTimeout(() => {
-      this.copied.set(false);
-      this.cdr.markForCheck();
-    }, resetDelay);
+    try {
+      const success = await this.writeText(text);
+      if (!success) return false;
 
-    return true;
+      this.copied.set(true);
+
+      if (this.resetTimer) clearTimeout(this.resetTimer);
+      this.resetTimer = setTimeout(() => {
+        this.copied.set(false);
+        this.cdr.markForCheck();
+      }, resetDelay);
+
+      return true;
+    } finally {
+      this.isCopying.set(false);
+    }
   }
 
   private async writeText(value: string): Promise<boolean> {
@@ -54,7 +64,8 @@ export class UseClipboardService {
       textarea.remove();
 
       return copied;
-    } catch {
+    } catch (err) {
+      console.warn('Copy failed', err);
       return false;
     }
   }
