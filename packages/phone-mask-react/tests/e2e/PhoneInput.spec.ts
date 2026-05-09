@@ -1,4 +1,4 @@
-import { testPhoneInput } from '../../../../common/tests/e2e/PhoneInput';
+import { testPhoneInput } from '@common/tests/e2e/PhoneInput';
 
 const PLAYGROUND_SELECTOR = '[data-testid="playground"]';
 
