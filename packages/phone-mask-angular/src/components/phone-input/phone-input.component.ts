@@ -29,7 +29,6 @@ import { UseInputHandlersService } from '../../services/internal/useInputHandler
 import { UseThemeService } from '../../services/internal/useTheme.service';
 import { UseValidationHintService } from '../../services/internal/useValidationHint.service';
 import { UseClipboardService } from '../../services/utility/useClipboard.service';
-import { optionalBooleanAttribute } from '../../utils/optionalBooleanAttribute';
 import type { PhoneInputRef, PhoneNumber, Size, Theme } from '../../types';
 
 let nextDropdownId = 0;
@@ -64,9 +63,9 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
   readonly id = input<string | undefined>();
   readonly name = input<string | undefined>();
   readonly countryInput = input<CountryKey | string | undefined>(undefined, { alias: 'country' });
-  readonly detectInput = input<boolean | undefined, unknown>(undefined, {
+  readonly detectInput = input(true, {
     alias: 'detect',
-    transform: optionalBooleanAttribute
+    transform: booleanAttribute
   });
   readonly localeInput = input<string | undefined>(undefined, { alias: 'locale' });
   readonly size = input<Size>('normal');
@@ -182,7 +181,6 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
       country: this.countryInput,
       locale: this.localeInput,
       detect: this.detectInput,
-      defaultDetect: true,
       onCountryChange: (country) => this.countryChange.emit(country)
     });
 

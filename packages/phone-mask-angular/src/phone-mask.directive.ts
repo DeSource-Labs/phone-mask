@@ -2,6 +2,7 @@ import {
   Directive,
   DestroyRef,
   ElementRef,
+  booleanAttribute,
   effect,
   forwardRef,
   inject,
@@ -22,7 +23,6 @@ import type {
   PhoneMaskDirectiveOptions,
   PhoneNumber
 } from './types';
-import { optionalBooleanAttribute } from './utils/optionalBooleanAttribute';
 
 function parseOptions(value: PhoneMaskDirectiveInput): PhoneMaskDirectiveOptions {
   if (typeof value === 'string') return { country: value };
@@ -49,9 +49,9 @@ export class PhoneMaskDirective implements ControlValueAccessor {
   readonly phoneMask = input<PhoneMaskDirectiveInput>(undefined);
   readonly countryInput = input<CountryKey | string | undefined>(undefined, { alias: 'phoneMaskCountry' });
   readonly localeInput = input<string | undefined>(undefined, { alias: 'phoneMaskLocale' });
-  readonly detectInput = input<boolean | undefined, unknown>(undefined, {
+  readonly detectInput = input(true, {
     alias: 'phoneMaskDetect',
-    transform: optionalBooleanAttribute
+    transform: booleanAttribute
   });
   readonly value = model<string>('', { alias: 'phoneMaskValue' });
 
@@ -76,7 +76,7 @@ export class PhoneMaskDirective implements ControlValueAccessor {
       ...parsed,
       country: this.countryInput() ?? parsed.country,
       locale: this.localeInput() ?? parsed.locale,
-      detect: this.detectInput() ?? parsed.detect ?? false
+      detect: parsed.detect ?? this.detectInput()
     };
   };
 

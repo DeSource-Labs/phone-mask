@@ -12,7 +12,6 @@ interface UseCountryOptions {
   country?: () => CountryKey | string | null | undefined;
   locale?: () => string | undefined;
   detect?: () => boolean | undefined;
-  defaultDetect?: boolean;
   onCountryChange?: (country: MaskFull) => void;
 }
 
@@ -22,14 +21,13 @@ export class UseCountryService {
   private countryOption: () => CountryKey | string | null | undefined = () => undefined;
   private localeOption: () => string | undefined = () => undefined;
   private detectOption: () => boolean | undefined = () => undefined;
-  private defaultDetect = false;
   private onCountryChange: ((country: MaskFull) => void) | undefined;
   private detectionKey = '';
   private configured = false;
 
   readonly countryCode = signal('US');
   readonly locale = computed(() => this.localeOption() || getNavigatorLang());
-  readonly detect = computed(() => this.detectOption() ?? this.defaultDetect);
+  readonly detect = computed(() => this.detectOption() ?? true);
   readonly country = computed(() => getCountry(this.countryCode(), this.locale()));
 
   configure(options: UseCountryOptions = {}): void {
@@ -39,7 +37,6 @@ export class UseCountryService {
     this.countryOption = options.country ?? this.countryOption;
     this.localeOption = options.locale ?? this.localeOption;
     this.detectOption = options.detect ?? this.detectOption;
-    this.defaultDetect = options.defaultDetect ?? this.defaultDetect;
     this.onCountryChange = options.onCountryChange;
 
     effect(
