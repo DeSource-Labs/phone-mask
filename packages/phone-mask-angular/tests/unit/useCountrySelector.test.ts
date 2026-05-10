@@ -129,3 +129,40 @@ function setupWithDom(initialCountryOption?: string) {
 describe('useCountrySelector DOM behavior (Angular)', () => {
   testUseCountrySelectorDomBehavior(setupWithDom, tools);
 });
+
+describe('UseCountrySelectorService Angular defaults', () => {
+  it('keeps the first configuration when configure is called again', () => {
+    const { fixture, host, dom } = createHost();
+    const ignoredSelect = vi.fn();
+
+    host.service.configure({
+      rootElement: host.rootElement,
+      dropdownElement: host.dropdownElement,
+      searchElement: host.searchElement,
+      selectorElement: host.selectorElement,
+      locale: () => 'de',
+      onSelectCountry: ignoredSelect
+    });
+
+    host.service.selectCountry('GB');
+
+    expect(host.onSelectCountry).toHaveBeenCalledWith('GB');
+    expect(ignoredSelect).not.toHaveBeenCalled();
+
+    dom.cleanup();
+    fixture.destroy();
+  });
+
+  it('is inert before configure is called', () => {
+    TestBed.configureTestingModule({ providers: [UseCountrySelectorService] });
+    const service = TestBed.inject(UseCountrySelectorService);
+
+    expect(service.hasDropdown()).toBe(true);
+
+    service.openDropdown();
+    expect(service.dropdownOpen()).toBe(false);
+
+    service.selectCountry('US');
+    expect(service.dropdownOpen()).toBe(false);
+  });
+});

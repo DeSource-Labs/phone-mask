@@ -2,19 +2,14 @@
 import { Component, inject, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { Mock } from 'vitest';
-import { detectByGeoIp, detectCountryFromLocale } from '@desource/phone-mask/kit';
 import { testUseCountry, type CountrySetupOptions } from '@common/tests/unit/useCountry';
-import { UseCountryService } from '@src/services/internal/useCountry.service';
+import { COUNTRY_DETECTION, UseCountryService } from '@src/services/internal/useCountry.service';
 import { tools } from './setup/tools';
 
-vi.mock('@desource/phone-mask/kit', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@desource/phone-mask/kit')>();
-  return {
-    ...actual,
-    detectByGeoIp: vi.fn(),
-    detectCountryFromLocale: vi.fn()
-  };
-});
+const countryDetection = {
+  detectByGeoIp: vi.fn(),
+  detectCountryFromLocale: vi.fn()
+};
 
 let initialOptions: CountrySetupOptions = {};
 
@@ -42,7 +37,10 @@ class UseCountryHostComponent {
 
 function setup(options: CountrySetupOptions = {}) {
   initialOptions = options;
-  TestBed.configureTestingModule({ imports: [UseCountryHostComponent] });
+  TestBed.configureTestingModule({
+    imports: [UseCountryHostComponent],
+    providers: [{ provide: COUNTRY_DETECTION, useValue: countryDetection }]
+  });
   const fixture = TestBed.createComponent(UseCountryHostComponent);
   fixture.detectChanges();
   TestBed.tick();
@@ -67,13 +65,42 @@ function setup(options: CountrySetupOptions = {}) {
 }
 
 const mocks = {
-  detectByGeoIp: detectByGeoIp as unknown as Mock,
-  detectCountryFromLocale: detectCountryFromLocale as unknown as Mock
+  detectByGeoIp: countryDetection.detectByGeoIp as Mock,
+  detectCountryFromLocale: countryDetection.detectCountryFromLocale as Mock
 };
 
 testUseCountry(setup, tools, mocks);
 
 describe('UseCountryService Angular scheduling', () => {
+  it('keeps the first configuration when configure is called again', () => {
+    TestBed.configureTestingModule({
+      providers: [UseCountryService, { provide: COUNTRY_DETECTION, useValue: countryDetection }]
+    });
+
+    const service = TestBed.inject(UseCountryService);
+    service.configure({ country: () => 'US', detect: () => false });
+    service.configure({ country: () => 'GB', detect: () => false });
+
+    expect(service.country().id).toBe('US');
+  });
+
+  it('uses detect=true as the service default when no detect option is configured', async () => {
+    mocks.detectByGeoIp.mockResolvedValue(null);
+    mocks.detectCountryFromLocale.mockReturnValue(null);
+
+    TestBed.configureTestingModule({
+      providers: [UseCountryService, { provide: COUNTRY_DETECTION, useValue: countryDetection }]
+    });
+
+    const service = TestBed.inject(UseCountryService);
+    service.configure();
+
+    await tools.act(async () => {});
+
+    expect(service.detect()).toBe(true);
+    expect(mocks.detectByGeoIp).toHaveBeenCalledOnce();
+  });
+
   it('does not repeat detection for the same locale and detect key', async () => {
     mocks.detectByGeoIp.mockResolvedValue(null);
     mocks.detectCountryFromLocale.mockReturnValue(null);

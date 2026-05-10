@@ -1,20 +1,19 @@
 /// <reference types="vitest/globals" />
 import { Component } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { render } from '@testing-library/angular';
-import { detectByGeoIp } from '@desource/phone-mask/kit';
+import { detectCountryFromLocale } from '@desource/phone-mask/kit';
 import { testPhoneMaskBinding } from '@common/tests/unit/phoneMaskBinding';
 import { PhoneMaskDirective } from '@src/phone-mask.directive';
+import { COUNTRY_DETECTION } from '@src/services/internal/useCountry.service';
 import type { DirectiveHTMLInputElement, PhoneMaskDirectiveInput, PhoneMaskDirectiveOptions } from '@src/types';
 import { tools } from './setup/tools';
 
-vi.mock('@desource/phone-mask/kit', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@desource/phone-mask/kit')>();
-  return {
-    ...actual,
-    detectByGeoIp: vi.fn().mockResolvedValue(null)
-  };
-});
+const countryDetection = {
+  detectByGeoIp: vi.fn().mockResolvedValue(null),
+  detectCountryFromLocale
+};
 
 @Component({
   standalone: true,
@@ -31,6 +30,15 @@ class PhoneMaskDirectiveHostComponent {
   tag: 'input' | 'div' = 'input';
   value = '';
   options?: PhoneMaskDirectiveInput;
+}
+
+@Component({
+  standalone: true,
+  imports: [PhoneMaskDirective, ReactiveFormsModule],
+  template: '<input phoneMask [formControl]="control" />'
+})
+class PhoneMaskDirectiveFormHostComponent {
+  readonly control = new FormControl('');
 }
 
 const flushAngular = async (detectChanges: () => void) => {
@@ -50,6 +58,7 @@ const setup =
 
     const result = await render(PhoneMaskDirectiveHostComponent, {
       imports: [PhoneMaskDirective],
+      providers: [{ provide: COUNTRY_DETECTION, useValue: countryDetection }],
       componentProperties: {
         tag: elTag,
         value: elValue ?? '',
@@ -82,16 +91,17 @@ describe('PhoneMaskDirective', () => {
     setup,
     {
       warnMessage: '[phoneMask] Directive can only be used on input elements',
-      detectByGeoIpMock: vi.mocked(detectByGeoIp)
+      detectByGeoIpMock: countryDetection.detectByGeoIp
     },
     tools
   );
 
-  const renderDirective = async (value = '', options?: PhoneMaskDirectiveInput) => {
+  const renderDirective = async (value = '', options?: PhoneMaskDirectiveInput, tag: 'input' | 'div' = 'input') => {
     const result = await render(PhoneMaskDirectiveHostComponent, {
       imports: [PhoneMaskDirective],
+      providers: [{ provide: COUNTRY_DETECTION, useValue: countryDetection }],
       componentProperties: {
-        tag: 'input',
+        tag,
         value,
         options
       }
@@ -99,7 +109,7 @@ describe('PhoneMaskDirective', () => {
 
     await flushAngular(result.detectChanges);
 
-    const el = result.container.querySelector('input') as DirectiveHTMLInputElement;
+    const el = result.container.querySelector(tag) as DirectiveHTMLInputElement;
     const directive = result.debugElement.query(By.directive(PhoneMaskDirective)).injector.get(PhoneMaskDirective);
 
     return {
@@ -108,6 +118,25 @@ describe('PhoneMaskDirective', () => {
       unmount: () => result.fixture.destroy()
     };
   };
+
+  it('keeps defensive ControlValueAccessor methods inert on non-input hosts', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { directive, unmount } = await renderDirective('', undefined, 'div');
+
+    expect(() => directive.writeValue('2025550199')).not.toThrow();
+    expect(() => directive.setDisabledState(true)).not.toThrow();
+
+    unmount();
+    warn.mockRestore();
+  });
+
+  it('uses default touched callback until ControlValueAccessor registers one', async () => {
+    const { el, unmount } = await renderDirective();
+
+    expect(() => el.dispatchEvent(new Event('blur'))).not.toThrow();
+
+    unmount();
+  });
 
   it('supports ControlValueAccessor change, touched, and disabled APIs', async () => {
     const { el, directive, unmount } = await renderDirective('2025550199', { country: 'US' });
@@ -123,14 +152,43 @@ describe('PhoneMaskDirective', () => {
     directive.setDisabledState(false);
     expect(el.disabled).toBe(false);
 
+    directive.writeValue(null);
+    expect(el.value).toBe('');
+
     el.dispatchEvent(new Event('blur'));
     expect(onTouched).toHaveBeenCalledOnce();
+
+    const beforeInput = new InputEvent('beforeinput', {
+      data: '7',
+      inputType: 'insertText',
+      bubbles: true,
+      cancelable: true
+    });
+
+    el.dispatchEvent(beforeInput);
+    expect(beforeInput.defaultPrevented).toBe(false);
 
     directive.clear();
     expect(onChange).toHaveBeenCalledWith('');
     expect(directive.getDigits()).toBe('');
 
     unmount();
+  });
+
+  it('works as an Angular reactive forms value accessor', async () => {
+    const result = await render(PhoneMaskDirectiveFormHostComponent, {
+      providers: [{ provide: COUNTRY_DETECTION, useValue: countryDetection }]
+    });
+    const host = result.fixture.componentInstance;
+    const el = result.container.querySelector('input') as HTMLInputElement;
+
+    host.control.setValue('2025550199');
+    await flushAngular(result.detectChanges);
+
+    expect(el.value).toBe('202-555-0199');
+    expect(host.control.value).toBe('2025550199');
+
+    result.fixture.destroy();
   });
 
   it('supports writeValue, getters, and invalid country handling', async () => {

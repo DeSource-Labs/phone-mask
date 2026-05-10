@@ -29,6 +29,29 @@ class UseCopyActionHostComponent {
   }
 }
 
+@Component({
+  standalone: true,
+  template: '',
+  providers: [UseClipboardService, UseCopyActionService]
+})
+class UnconfiguredUseCopyActionHostComponent {
+  readonly service = inject(UseCopyActionService);
+}
+
+@Component({
+  standalone: true,
+  template: '',
+  providers: [UseClipboardService, UseCopyActionService]
+})
+class UseCopyActionWithoutLiveHostComponent {
+  readonly service = inject(UseCopyActionService);
+  readonly fullFormatted = signal(PHONE);
+
+  constructor() {
+    this.service.configure({ fullFormatted: this.fullFormatted });
+  }
+}
+
 function setup(options: SetupOptions) {
   initialOptions = options;
   TestBed.configureTestingModule({ imports: [UseCopyActionHostComponent] });
@@ -59,6 +82,39 @@ function setup(options: SetupOptions) {
 testUseCopyAction(setup, tools);
 
 describe('UseCopyActionService Angular live region timer', () => {
+  it('keeps default copy state inert before configure is called', async () => {
+    TestBed.configureTestingModule({ imports: [UnconfiguredUseCopyActionHostComponent] });
+    const fixture = TestBed.createComponent(UnconfiguredUseCopyActionHostComponent);
+    fixture.detectChanges();
+    TestBed.tick();
+    const { service } = fixture.componentInstance;
+
+    expect(service.copyAriaLabel()).toBe('Copy ');
+    expect(service.copyButtonTitle()).toBe('Copy phone number');
+
+    await tools.act(async () => {
+      await service.onCopyClick();
+    });
+
+    expect(service.copied()).toBe(false);
+    fixture.destroy();
+  });
+
+  it('copies without optional live region and copy callback hooks', async () => {
+    TestBed.configureTestingModule({ imports: [UseCopyActionWithoutLiveHostComponent] });
+    const fixture = TestBed.createComponent(UseCopyActionWithoutLiveHostComponent);
+    fixture.detectChanges();
+    TestBed.tick();
+    const { service } = fixture.componentInstance;
+
+    await tools.act(async () => {
+      await service.onCopyClick();
+    });
+
+    expect(service.copied()).toBe(true);
+    fixture.destroy();
+  });
+
   it('replaces the pending live-region clear timer on repeated successful copy', async () => {
     const { result, el, unmount } = setup({ fullFormatted: PHONE });
 

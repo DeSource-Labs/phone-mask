@@ -67,6 +67,37 @@ function setup(options: SetupOptions = {}) {
 testUseFormatter(setup, tools);
 
 describe('UseFormatterService Angular scheduling', () => {
+  it('keeps the first configuration when configure is called again', () => {
+    initialOptions = { value: '2025550199', countryCode: 'US' };
+    TestBed.configureTestingModule({ imports: [UseFormatterHostComponent] });
+    const fixture = TestBed.createComponent(UseFormatterHostComponent);
+    fixture.detectChanges();
+    TestBed.tick();
+    const host = fixture.componentInstance;
+    const ignoredOnChange = vi.fn();
+
+    host.service.configure({
+      country: () => getCountry('GB', 'en'),
+      value: () => '777',
+      onChange: ignoredOnChange
+    });
+
+    expect(host.service.full()).toBe('+12025550199');
+    expect(ignoredOnChange).not.toHaveBeenCalled();
+    fixture.destroy();
+  });
+
+  it('exposes safe default formatter state before configure is called', () => {
+    TestBed.configureTestingModule({ providers: [UseFormatterService] });
+    const service = TestBed.inject(UseFormatterService);
+
+    expect(service.country().id).toBe('US');
+    expect(service.digits()).toBe('');
+    expect(service.displayPlaceholder()).toBe('###-###-####');
+    expect(service.full()).toBe('');
+    expect(service.isEmpty()).toBe(true);
+  });
+
   it('does not emit duplicate clamped values for the same raw and clamped pair', async () => {
     const { onChange, rerender, unmount } = setup({ value: '23456789011' });
 

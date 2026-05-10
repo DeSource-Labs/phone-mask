@@ -3,6 +3,34 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
+    "phone-mask-angular": {
+      "projectType": "library",
+      "root": ".",
+      "sourceRoot": ".",
+      "prefix": "desource",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": {
+            "project": "ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "buildTarget": "phone-mask-angular:build",
+            "tsConfig": "tsconfig.spec.json",
+            "runner": "vitest",
+            "runnerConfig": "vitest.angular.config.ts",
+            "setupFiles": ["tests/unit/setup/angular.ts"],
+            "include": ["tests/unit/**/*.test.ts"],
+            "coverageInclude": ["src/**/*.ts"],
+            "coverageExclude": ["src/**/*.d.ts"],
+            "coverageReporters": ["lcov"]
+          }
+        }
+      }
+    },
     "demo": {
       "projectType": "application",
       "root": "demo",

@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import { Component } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { render } from '@testing-library/angular';
 import type { CountryKey, MaskFull } from '@desource/phone-mask';
@@ -79,6 +80,15 @@ class PhoneInputHostComponent {
   }
 
   handlePhoneChange(_phone: PhoneNumber): void {}
+}
+
+@Component({
+  standalone: true,
+  imports: [PhoneInputComponent, ReactiveFormsModule],
+  template: '<desource-phone-input [formControl]="control" />'
+})
+class PhoneInputFormHostComponent {
+  readonly control = new FormControl('');
 }
 
 const setup: SetupFn = async ({
@@ -179,6 +189,20 @@ describe('PhoneInputComponent Angular API', () => {
     expect(onChange).toHaveBeenCalledWith('');
 
     unmount();
+  });
+
+  it('works as an Angular reactive forms value accessor', async () => {
+    const result = await render(PhoneInputFormHostComponent);
+    const host = result.fixture.componentInstance;
+    const input = result.container.querySelector('input') as HTMLInputElement;
+
+    host.control.setValue('2025550199');
+    result.detectChanges();
+
+    expect(input.value).toBe('202-555-0199');
+    expect(host.control.value).toBe('2025550199');
+
+    result.fixture.destroy();
   });
 
   it('rejects invalid country selections and truncates when country max digits shrink', async () => {

@@ -22,6 +22,15 @@ class UseThemeHostComponent {
   }
 }
 
+@Component({
+  standalone: true,
+  template: '',
+  providers: [UseThemeService]
+})
+class UnconfiguredUseThemeHostComponent {
+  readonly service = inject(UseThemeService);
+}
+
 function setup(options: SetupOptions) {
   initialOptions = options;
   TestBed.configureTestingModule({ imports: [UseThemeHostComponent] });
@@ -44,3 +53,15 @@ function setup(options: SetupOptions) {
 }
 
 testUseTheme(setup, tools);
+
+describe('UseThemeService Angular defaults', () => {
+  it('uses auto theme before configure is called', () => {
+    TestBed.configureTestingModule({ imports: [UnconfiguredUseThemeHostComponent] });
+    const fixture = TestBed.createComponent(UnconfiguredUseThemeHostComponent);
+    fixture.detectChanges();
+    TestBed.tick();
+
+    expect(fixture.componentInstance.service.themeClass()).toBe('theme-light');
+    fixture.destroy();
+  });
+});
