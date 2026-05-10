@@ -19,4 +19,13 @@ describe('PhoneMaskPipe', () => {
     const pipe = setup();
     expect(pipe.transform('442071234567', 'GB', 'fullFormatted', 'en')).toMatch(/^\+44 /);
   });
+
+  it('formats number, null, and invalid-country inputs through fallback paths', () => {
+    const pipe = setup();
+
+    expect(pipe.transform(2025551234, { country: 'US' })).toBe('202-555-1234');
+    expect(pipe.transform(null, { country: 'US', mode: 'full' })).toBe('');
+    expect(pipe.transform(undefined, { country: 'US', mode: 'fullFormatted' })).toBe('');
+    expect(pipe.transform('2025551234', { country: 'INVALID', mode: 'full' })).toBe('+12025551234');
+  });
 });

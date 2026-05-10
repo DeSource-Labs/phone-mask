@@ -65,3 +65,19 @@ function setup(options: SetupOptions = {}) {
 }
 
 testUseFormatter(setup, tools);
+
+describe('UseFormatterService Angular scheduling', () => {
+  it('does not emit duplicate clamped values for the same raw and clamped pair', async () => {
+    const { onChange, rerender, unmount } = setup({ value: '23456789011' });
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith('2345678901');
+
+    await tools.act(async () => {
+      rerender({ value: '23456789011' });
+    });
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+});

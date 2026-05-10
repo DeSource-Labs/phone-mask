@@ -72,3 +72,25 @@ const mocks = {
 };
 
 testUseCountry(setup, tools, mocks);
+
+describe('UseCountryService Angular scheduling', () => {
+  it('does not repeat detection for the same locale and detect key', async () => {
+    mocks.detectByGeoIp.mockResolvedValue(null);
+    mocks.detectCountryFromLocale.mockReturnValue(null);
+
+    const { rerender, unmount } = setup({ detect: true, locale: 'en' });
+
+    await tools.act(async () => {});
+    expect(mocks.detectByGeoIp).toHaveBeenCalledTimes(1);
+
+    rerender({ locale: 'en' });
+    await tools.act(async () => {});
+    expect(mocks.detectByGeoIp).toHaveBeenCalledTimes(1);
+
+    rerender({ locale: 'de' });
+    await tools.act(async () => {});
+    expect(mocks.detectByGeoIp).toHaveBeenCalledTimes(2);
+
+    unmount();
+  });
+});

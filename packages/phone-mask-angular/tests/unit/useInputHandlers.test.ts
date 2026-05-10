@@ -56,3 +56,41 @@ function setup(options: SetupOptions = {}) {
 }
 
 testUseInputHandlers(setup, tools);
+
+describe('UseInputHandlersService Angular edges', () => {
+  it('prevents beforeinput when inactive', async () => {
+    const { inputEl, unmount } = setup({ inactive: true });
+    const event = new InputEvent('beforeinput', {
+      bubbles: true,
+      cancelable: true,
+      inputType: 'insertText',
+      data: '5'
+    });
+    const preventDefault = vi.spyOn(event, 'preventDefault');
+
+    await tools.act(async () => {
+      inputEl.dispatchEvent(event);
+    });
+
+    expect(preventDefault).toHaveBeenCalledOnce();
+    unmount();
+  });
+
+  it('handles valid input without optional callbacks', async () => {
+    const formatter = createPhoneFormatter(getCountry('US', 'en'));
+    const service = new UseInputHandlersService();
+    const inputEl = document.createElement('input');
+
+    service.configure({
+      formatter: () => formatter,
+      digits: () => ''
+    });
+
+    await tools.act(async () => {
+      inputEl.value = '202-555-0199';
+      service.handleInput({ target: inputEl } as unknown as Event);
+    });
+
+    expect(inputEl.value).toBe('202-555-0199');
+  });
+});

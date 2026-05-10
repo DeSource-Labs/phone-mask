@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { Component, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { testUseCopyAction, type SetupOptions } from '@common/tests/unit/useCopyAction';
+import { DELAY, PHONE, testUseCopyAction, type SetupOptions } from '@common/tests/unit/useCopyAction';
 import { UseCopyActionService } from '@src/services/internal/useCopyAction.service';
 import { UseClipboardService } from '@src/services/utility/useClipboard.service';
 import { tools } from './setup/tools';
@@ -57,3 +57,31 @@ function setup(options: SetupOptions) {
 }
 
 testUseCopyAction(setup, tools);
+
+describe('UseCopyActionService Angular live region timer', () => {
+  it('replaces the pending live-region clear timer on repeated successful copy', async () => {
+    const { result, el, unmount } = setup({ fullFormatted: PHONE });
+
+    await tools.act(async () => {
+      await result.onCopyClick();
+    });
+
+    await tools.act(async () => {
+      vi.advanceTimersByTime(DELAY - 1);
+      await result.onCopyClick();
+    });
+
+    await tools.act(async () => {
+      vi.advanceTimersByTime(DELAY - 1);
+    });
+
+    expect(el.textContent).toBe('Phone number copied to clipboard');
+
+    await tools.act(async () => {
+      vi.advanceTimersByTime(1);
+    });
+
+    expect(el.textContent).toBe('');
+    unmount();
+  });
+});

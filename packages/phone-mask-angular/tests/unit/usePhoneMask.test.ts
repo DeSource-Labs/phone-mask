@@ -65,6 +65,7 @@ async function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) 
       getFullFormatted: () => host.mask.fullFormatted(),
       isEmpty: () => host.mask.isEmpty(),
       shouldShowWarn: () => host.mask.shouldShowWarn(),
+      getFormatter: () => host.mask.getFormatter(),
       setCountry: (countryCode: string) => host.mask.setCountry(countryCode),
       clear: () => host.mask.clear()
     }
@@ -72,3 +73,15 @@ async function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) 
 }
 
 testUsePhoneMask(setup, tools);
+
+describe('UsePhoneMaskService Angular API', () => {
+  it('exposes formatter helper and rejects invalid countries without resyncing input', async () => {
+    const { api, inputEl, unmount } = await setup('2025550199');
+
+    expect(api.getFormatter().getPlaceholder()).toBe('###-###-####');
+    expect(api.setCountry('INVALID')).toBe(false);
+    expect(inputEl.value).toBe('202-555-0199');
+
+    unmount();
+  });
+});
