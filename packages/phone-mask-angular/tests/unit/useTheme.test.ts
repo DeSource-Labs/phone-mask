@@ -9,6 +9,7 @@ import { tools } from './setup/tools';
 let initialOptions: SetupOptions = { theme: 'auto' };
 
 @Component({
+  selector: 'test-use-theme-host',
   standalone: true,
   template: '',
   providers: [UseThemeService]
@@ -23,6 +24,7 @@ class UseThemeHostComponent {
 }
 
 @Component({
+  selector: 'test-unconfigured-use-theme-host',
   standalone: true,
   template: '',
   providers: [UseThemeService]

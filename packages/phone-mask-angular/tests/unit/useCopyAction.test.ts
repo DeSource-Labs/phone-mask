@@ -9,6 +9,7 @@ import { tools } from './setup/tools';
 let initialOptions: SetupOptions = { fullFormatted: '' };
 
 @Component({
+  selector: 'test-use-copy-action-host',
   standalone: true,
   template: '<div #live></div>',
   providers: [UseClipboardService, UseCopyActionService]
@@ -30,6 +31,7 @@ class UseCopyActionHostComponent {
 }
 
 @Component({
+  selector: 'test-unconfigured-use-copy-action-host',
   standalone: true,
   template: '',
   providers: [UseClipboardService, UseCopyActionService]
@@ -39,6 +41,7 @@ class UnconfiguredUseCopyActionHostComponent {
 }
 
 @Component({
+  selector: 'test-use-copy-action-without-live-host',
   standalone: true,
   template: '',
   providers: [UseClipboardService, UseCopyActionService]
