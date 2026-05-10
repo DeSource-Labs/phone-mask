@@ -1,4 +1,4 @@
-import { Injectable, Injector, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Injectable, InjectionToken, Injector, computed, effect, inject, signal, untracked } from '@angular/core';
 import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import {
   detectByGeoIp,
@@ -15,9 +15,28 @@ interface UseCountryOptions {
   onCountryChange?: (country: MaskFull) => void;
 }
 
+interface CountryDetection {
+  detectByGeoIp: typeof detectByGeoIp;
+  detectCountryFromLocale: typeof detectCountryFromLocale;
+}
+
+/**
+ * Injection token for country detection methods.
+ * This allows for custom implementations to be provided if needed.
+ * It's designed for testing and flexibility.
+ */
+export const COUNTRY_DETECTION = new InjectionToken<CountryDetection>('COUNTRY_DETECTION', {
+  providedIn: 'root',
+  factory: () => ({
+    detectByGeoIp,
+    detectCountryFromLocale
+  })
+});
+
 @Injectable()
 export class UseCountryService {
   private readonly injector = inject(Injector);
+  private readonly detection = inject(COUNTRY_DETECTION);
   private countryOption: () => CountryKey | string | null | undefined = () => undefined;
   private localeOption: () => string | undefined = () => undefined;
   private detectOption: () => boolean | undefined = () => undefined;
@@ -86,10 +105,10 @@ export class UseCountryService {
   }
 
   private async detectCountry(): Promise<void> {
-    const geoCountry = parseCountryCode(await detectByGeoIp());
+    const geoCountry = parseCountryCode(await this.detection.detectByGeoIp());
 
     if (geoCountry && this.setCountry(geoCountry)) return;
 
-    this.setCountry(detectCountryFromLocale());
+    this.setCountry(this.detection.detectCountryFromLocale());
   }
 }

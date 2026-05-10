@@ -271,16 +271,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
   }
 
   selectCountry(country: CountryKey | string): boolean {
-    const updated = this.countryState.setCountry(country);
-
-    if (!updated) return false;
-
-    const maxDigits = this.formatter().getMaxDigits();
-    if (this.digits().length > maxDigits) {
-      this.setValue(this.digits().slice(0, maxDigits), true);
-    }
-
-    return true;
+    return this.countryState.setCountry(country);
   }
 
   getFullNumber(): string {
