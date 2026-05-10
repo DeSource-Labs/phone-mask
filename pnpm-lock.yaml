@@ -81,9 +81,6 @@ importers:
       svelte-eslint-parser:
         specifier: ^1.6.1
         version: 1.6.1(svelte@5.55.5)
-      tslib:
-        specifier: ^2.8.1
-        version: 2.8.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -137,7 +134,7 @@ importers:
         specifier: workspace:*
         version: link:../phone-mask
       tslib:
-        specifier: ^2.8.1
+        specifier: 2.8.1
         version: 2.8.1
     devDependencies:
       '@angular/build':
@@ -10715,7 +10712,7 @@ snapshots:
       obug: 2.1.1
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.6.2)(@vitest/coverage-v8@4.1.5)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.11(@types/node@25.6.2)(esbuild@0.28.0)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(terser@5.46.0)(yaml@2.8.4))
+      vitest: 4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.6.2)(@vitest/coverage-v8@4.1.5)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.11(@types/node@25.6.2)(esbuild@0.27.3)(jiti@2.6.1)(less@4.6.4)(sass@1.97.3)(terser@5.46.0)(yaml@2.8.4))
 
   '@vitest/expect@4.1.5':
     dependencies:
@@ -10733,7 +10730,6 @@ snapshots:
       magic-string: 0.30.21
     optionalDependencies:
       vite: 8.0.11(@types/node@25.6.2)(esbuild@0.27.3)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(terser@5.46.0)(yaml@2.8.4)
-    optional: true
 
   '@vitest/mocker@4.1.5(vite@8.0.11(@types/node@25.6.2)(esbuild@0.28.0)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(terser@5.46.0)(yaml@2.8.4))':
     dependencies:
@@ -15668,7 +15664,6 @@ snapshots:
       jsdom: 29.1.1(@noble/hashes@1.8.0)
     transitivePeerDependencies:
       - msw
-    optional: true
 
   vitest@4.1.5(@opentelemetry/api@1.9.1)(@types/node@25.6.2)(@vitest/coverage-v8@4.1.5)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.11(@types/node@25.6.2)(esbuild@0.28.0)(jiti@2.6.1)(less@4.6.4)(sass@1.99.0)(terser@5.46.0)(yaml@2.8.4)):
     dependencies:
