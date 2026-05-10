@@ -35,13 +35,13 @@ export class UseInputHandlersService {
     this.scheduleValidationHint = options.scheduleValidationHint;
   }
 
-  handleBeforeInput(event: Event): void {
+  handleBeforeInput(event: InputEvent): void {
     if (this.inactiveGetter()) {
       event.preventDefault();
       return;
     }
 
-    processBeforeInput(event as InputEvent);
+    processBeforeInput(event);
   }
 
   handleInput(event: Event): void {

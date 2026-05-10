@@ -43,7 +43,7 @@ export class PhoneMaskPipe implements PipeTransform {
   ): string {
     const options: PhoneMaskFormatOptions = isFormatOptions(countryOrOptions)
       ? countryOrOptions
-      : { country: countryOrOptions as CountryKey | string | undefined, mode, locale };
+      : { country: countryOrOptions, mode, locale };
 
     return formatPhoneValue(value, options);
   }

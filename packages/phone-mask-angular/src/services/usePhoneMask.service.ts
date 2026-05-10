@@ -97,7 +97,7 @@ export class UsePhoneMaskService {
         const el = this.inputElement();
         if (!el) return;
 
-        const beforeInputHandler = (event: Event) => this.inputHandlers.handleBeforeInput(event);
+        const beforeInputHandler = (event: InputEvent) => this.inputHandlers.handleBeforeInput(event);
         const inputHandler = (event: Event) => this.inputHandlers.handleInput(event);
         const keydownHandler = (event: KeyboardEvent) => this.inputHandlers.handleKeydown(event);
         const pasteHandler = (event: ClipboardEvent) => this.inputHandlers.handlePaste(event);

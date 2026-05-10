@@ -6,8 +6,8 @@ export class UseThemeService {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly systemDark = signal(false);
+  private readonly mediaQuery = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? undefined;
   private themeGetter: () => Theme = () => 'auto';
-  private mediaQuery: MediaQueryList | undefined;
 
   readonly themeClass = computed(() => {
     const theme = this.themeGetter();
@@ -16,7 +16,6 @@ export class UseThemeService {
   });
 
   constructor() {
-    this.mediaQuery = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? undefined;
     if (this.mediaQuery) {
       this.systemDark.set(this.mediaQuery.matches);
       this.mediaQuery.addEventListener('change', this.handleThemeChange);

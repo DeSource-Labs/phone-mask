@@ -17,6 +17,14 @@ import {
   type PhoneInputTheme
 } from '../../src/public-api';
 
+function isPhoneInputSize(value: string): value is PhoneInputSize {
+  return value === 'compact' || value === 'normal' || value === 'large';
+}
+
+function isPhoneInputTheme(value: string): value is PhoneInputTheme {
+  return value === 'auto' || value === 'light' || value === 'dark';
+}
+
 @Component({
   selector: 'demo-hook',
   standalone: true,
@@ -451,11 +459,13 @@ export class AppComponent {
   }
 
   protected setSizeOption(event: Event): void {
-    this.size.set((event.target as HTMLSelectElement).value as PhoneInputSize);
+    const value = (event.target as HTMLSelectElement).value;
+    if (isPhoneInputSize(value)) this.size.set(value);
   }
 
   protected setThemeOption(event: Event): void {
-    this.theme.set((event.target as HTMLSelectElement).value as PhoneInputTheme);
+    const value = (event.target as HTMLSelectElement).value;
+    if (isPhoneInputTheme(value)) this.theme.set(value);
   }
 
   protected onCountryChange(_country: MaskFull): void {}

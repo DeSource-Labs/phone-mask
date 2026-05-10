@@ -11,8 +11,8 @@ export const act = async (callback: () => void | Promise<void>): Promise<void> =
 export const tools: TestTools = {
   toValue: <T>(val: MaybeRef<T>) => {
     if (typeof val === 'function') return (val as () => T)();
-    if (val && typeof val === 'object' && 'value' in val) return val.value as T;
-    return val as T;
+    if (val && typeof val === 'object' && 'value' in val) return val.value;
+    return val;
   },
   act,
   waitFor,

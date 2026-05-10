@@ -123,7 +123,7 @@ export class PhoneMaskDirective implements ControlValueAccessor {
       onChange: (digits) => this.setValue(digits, true)
     });
 
-    const beforeInputHandler = (event: Event) => this.inputHandlers.handleBeforeInput(event);
+    const beforeInputHandler = (event: InputEvent) => this.inputHandlers.handleBeforeInput(event);
     const inputHandler = (event: Event) => this.inputHandlers.handleInput(event);
     const keydownHandler = (event: KeyboardEvent) => this.inputHandlers.handleKeydown(event);
     const pasteHandler = (event: ClipboardEvent) => this.inputHandlers.handlePaste(event);
@@ -148,28 +148,24 @@ export class PhoneMaskDirective implements ControlValueAccessor {
       this.inputElement.value = this.formatterState.displayValue();
       this.inputElement.placeholder = this.formatterState.displayPlaceholder();
 
-      let state = this.inputElement.__phoneMaskState;
+      const state = (this.inputElement.__phoneMaskState ??= {
+        country: this.country(),
+        formatter: this.formatter(),
+        digits: this.digits(),
+        locale: this.locale(),
+        options: this.options(),
+        setCountry: (code) => {
+          const updated = this.selectCountry(code);
+          if (!updated || !this.inputElement.__phoneMaskState) return false;
 
-      if (!state) {
-        state = {
-          country: this.country(),
-          formatter: this.formatter(),
-          digits: this.digits(),
-          locale: this.locale(),
-          options: this.options(),
-          setCountry: (code) => {
-            const updated = this.selectCountry(code);
-            if (!updated || !this.inputElement.__phoneMaskState) return false;
-
-            this.inputElement.__phoneMaskState.country = this.country();
-            this.inputElement.__phoneMaskState.formatter = this.formatter();
-            this.inputElement.__phoneMaskState.digits = this.digits();
-            this.inputElement.__phoneMaskState.locale = this.locale();
-            this.inputElement.__phoneMaskState.options = this.options();
-            return true;
-          }
-        };
-      }
+          this.inputElement.__phoneMaskState.country = this.country();
+          this.inputElement.__phoneMaskState.formatter = this.formatter();
+          this.inputElement.__phoneMaskState.digits = this.digits();
+          this.inputElement.__phoneMaskState.locale = this.locale();
+          this.inputElement.__phoneMaskState.options = this.options();
+          return true;
+        }
+      });
 
       state.country = this.country();
       state.formatter = this.formatter();

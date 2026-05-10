@@ -306,7 +306,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputRef 
     return { copied: this.copied() };
   }
 
-  handleBeforeInput(event: Event): void {
+  handleBeforeInput(event: InputEvent): void {
     this.inputHandlers.handleBeforeInput(event);
   }
 

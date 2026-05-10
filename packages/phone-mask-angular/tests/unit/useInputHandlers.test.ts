@@ -24,7 +24,7 @@ function setup(options: SetupOptions = {}) {
     scheduleValidationHint
   });
 
-  const beforeInputHandler = (event: Event) => service.handleBeforeInput(event);
+  const beforeInputHandler = (event: InputEvent) => service.handleBeforeInput(event);
   const inputHandler = (event: Event) => service.handleInput(event);
   const keydownHandler = (event: KeyboardEvent) => service.handleKeydown(event);
   const pasteHandler = (event: ClipboardEvent) => service.handlePaste(event);

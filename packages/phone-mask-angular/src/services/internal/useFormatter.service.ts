@@ -61,10 +61,10 @@ export class UseFormatterService {
         const value = this.valueGetter();
         const digits = this.digits();
 
-        if (value !== digits) {
-          queueMicrotask(() => this.emitClampedValue());
-        } else {
+        if (value === digits) {
           this.clampedValueKey = '';
+        } else {
+          queueMicrotask(() => this.emitClampedValue());
         }
       },
       { injector: this.injector }
