@@ -7,7 +7,7 @@
  */
 type FireEventReturn = Promise<boolean> | Promise<void> | boolean;
 
-export type MaybeRef<T> = T | { value: T };
+export type MaybeRef<T> = T | { value: T } | (() => T);
 
 export interface TestTools {
   toValue: <T>(val: MaybeRef<T>) => T;

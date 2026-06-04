@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CACHE_EXPIRY_MS, CACHE_KEY } from '../../src/services/geoip/consts';
-import { detectByGeoIp, detectCountryFromGeoIP } from '../../src/services/geoip';
+import { CACHE_EXPIRY_MS, CACHE_KEY } from '@src/services/geoip/consts';
+import { detectByGeoIp, detectCountryFromGeoIP } from '@src/services/geoip';
 
 function createMockStorage() {
   const store = new Map<string, string>();

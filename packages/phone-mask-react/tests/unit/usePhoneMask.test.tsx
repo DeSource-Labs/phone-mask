@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { useState } from 'react';
 import { render } from '@testing-library/react';
-import { usePhoneMask } from '../../src/hooks/usePhoneMask';
+import { usePhoneMask } from '@src/hooks/usePhoneMask';
 import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { tools } from './setup/tools';
 

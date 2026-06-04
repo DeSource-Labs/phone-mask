@@ -1,0 +1,20 @@
+import { defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'node:url';
+
+export default defineConfig({
+  resolve: {
+    alias: {
+      '@common': fileURLToPath(new URL('../../common', import.meta.url)),
+      '@src': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    coverage: {
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.d.ts'],
+      reportsDirectory: 'coverage'
+    }
+  }
+});

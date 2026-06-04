@@ -108,19 +108,21 @@ Ready-made plugins for your stack:
 - ✅ **Nuxt** — Auto-imported, SSR-compatible
 - ✅ **React** — Component & hook with modern React patterns
 - ✅ **Svelte** — Component, composable, action, and attachment for Svelte 5
+- ✅ **Angular** — Standalone component, directive, pipe, and service
 - ✅ **TypeScript/Vanilla JS** — Framework-agnostic core
 
 ---
 
 ## 📦 Packages
 
-| Package                                                     | Version                                                                                 | Description                                           |
-| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| [@desource/phone-mask](./packages/phone-mask)               | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)    | Core library — TypeScript/JS                          |
-| [@desource/phone-mask-react](./packages/phone-mask-react)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue&logo=react)   | React component + hook                                |
-| [@desource/phone-mask-vue](./packages/phone-mask-vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue&logo=vuedotjs)  | Vue 3 component + composable + directive              |
-| [@desource/phone-mask-svelte](./packages/phone-mask-svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte) | Svelte 5 component + composable + action + attachment |
-| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)     | Nuxt module                                           |
+| Package                                                       | Version                                                                                   | Description                                           |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| [@desource/phone-mask](./packages/phone-mask)                 | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)      | Core library — TypeScript/JS                          |
+| [@desource/phone-mask-react](./packages/phone-mask-react)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue&logo=react)     | React component + hook                                |
+| [@desource/phone-mask-vue](./packages/phone-mask-vue)         | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue&logo=vuedotjs)    | Vue 3 component + composable + directive              |
+| [@desource/phone-mask-svelte](./packages/phone-mask-svelte)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte)   | Svelte 5 component + composable + action + attachment |
+| [@desource/phone-mask-angular](./packages/phone-mask-angular) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-angular?color=blue&logo=angular) | Angular component + directive + pipe + service        |
+| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)       | Nuxt module                                           |
 
 ---
 
@@ -179,6 +181,27 @@ npm install @desource/phone-mask-svelte
 </script>
 
 <PhoneInput bind:value={phone} country="US" />
+```
+
+### Angular
+
+```bash
+npm install @desource/phone-mask-angular
+```
+
+```ts
+import { Component, signal } from '@angular/core';
+import { PhoneInputComponent } from '@desource/phone-mask-angular';
+
+@Component({
+  selector: 'app-phone',
+  standalone: true,
+  imports: [PhoneInputComponent],
+  template: `<desource-phone-input [(value)]="phone" country="US" />`
+})
+export class PhoneComponent {
+  readonly phone = signal('');
+}
 ```
 
 ### Nuxt

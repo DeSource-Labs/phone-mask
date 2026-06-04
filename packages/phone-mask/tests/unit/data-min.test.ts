@@ -1,9 +1,9 @@
 /// <reference types="vitest/globals" />
 import { describe, expect, it } from 'vitest';
-import dataJson from '../../src/data.json';
-import { countryCodeEmoji } from '../../src/country-code-emodji';
-import { Masks, MasksBase, MasksBaseMap, MasksMap, MasksWithFlag, MasksWithFlagMap } from '../../src/entries';
-import type { CountryKey } from '../../src/data-types';
+import dataJson from '@src/data.json';
+import { countryCodeEmoji } from '@src/country-code-emodji';
+import { Masks, MasksBase, MasksBaseMap, MasksMap, MasksWithFlag, MasksWithFlagMap } from '@src/entries';
+import type { CountryKey } from '@src/data-types';
 
 function splitBaseMask(baseMask: string) {
   const splitAt = baseMask.indexOf(' ');

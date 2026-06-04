@@ -1,8 +1,8 @@
 /// <reference types="vitest/globals" />
 import { defineComponent, shallowRef, h } from 'vue';
 import { render } from '@testing-library/vue';
-import { PhoneInput } from '../../src/index';
-import type { PhoneInputExposed } from '../../src/types';
+import { PhoneInput } from '@src/index';
+import type { PhoneInputExposed } from '@src/types';
 import { testPhoneInput } from '@common/tests/unit/PhoneInput';
 import { tools } from './setup/tools';
 import type { SetupFn } from '@common/tests/unit/PhoneInput';

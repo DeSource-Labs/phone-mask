@@ -1,0 +1,9 @@
+{
+  "$schema": "./node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "dist",
+  "assets": ["CHANGELOG.md"],
+  "allowedNonPeerDependencies": ["@desource/phone-mask", "tslib"],
+  "lib": {
+    "entryFile": "src/public-api.ts"
+  }
+}

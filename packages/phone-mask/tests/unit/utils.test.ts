@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { beforeEach, describe, expect, it } from 'vitest';
-import { countryCodeEmoji } from '../../src/country-code-emodji';
+import { countryCodeEmoji } from '@src/country-code-emodji';
 import {
   getCountry,
   parseCountryCode,
@@ -12,9 +12,9 @@ import {
   hasCountry,
   pickMaskVariant,
   removeCountryCodePrefix
-} from '../../src/utils';
-import { getFlagEmoji } from '../../src/entries';
-import type { MaskFull } from '../../src/entries';
+} from '@src/utils';
+import { getFlagEmoji } from '@src/entries';
+import type { MaskFull } from '@src/entries';
 
 const sampleCountries: MaskFull[] = [
   {

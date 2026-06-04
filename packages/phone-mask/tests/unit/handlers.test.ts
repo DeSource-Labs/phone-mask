@@ -8,9 +8,9 @@ import {
   processInput,
   processKeydown,
   processPaste
-} from '../../src/handlers';
-import { createPhoneFormatter } from '../../src/formatter';
-import type { CountryKey } from '../../src/entries';
+} from '@src/handlers';
+import { createPhoneFormatter } from '@src/formatter';
+import type { CountryKey } from '@src/entries';
 
 const createFormatter = () =>
   createPhoneFormatter({
