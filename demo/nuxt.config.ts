@@ -1,6 +1,5 @@
 import { meta } from './shared/utils/meta';
-import { defineNuxtConfig } from 'nuxt/config';
-import type { NuxtConfig } from '@nuxt/schema';
+import { defineNuxtConfig, type NuxtConfig } from 'nuxt/config';
 
 const config: NuxtConfig = {
   compatibilityDate: '2024-11-01',
@@ -132,4 +131,4 @@ const config: NuxtConfig = {
 };
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
-export default defineNuxtConfig(config) as unknown as NuxtConfig;
+export default defineNuxtConfig(config) as NuxtConfig;
