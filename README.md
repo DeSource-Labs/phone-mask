@@ -35,7 +35,7 @@ Phone formats sync automatically from [Google's libphonenumber](https://github.c
 ### 🪶 Lightest in Class
 
 Real market comparison, segmented by ecosystem and measured for what developers actually ship.
-Snapshot: **2026-06-15** ([Benchmark script](https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mts), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask), [Bundlephobia package page](https://bundlephobia.com/package/%40desource%2Fphone-mask) for independent reference).
+Snapshot: **2026-06-23** ([Benchmark script](https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mts), [npm Registry API](https://registry.npmjs.org/%40desource%2Fphone-mask), [Bundlephobia package page](https://bundlephobia.com/package/%40desource%2Fphone-mask) for independent reference).
 
 _Use `Total gzip` as the primary comparison column._
 _`Gzip` is measured locally by this repository benchmark pipeline (isolated temp install + minified bundle build)._
@@ -47,12 +47,12 @@ _Packages without a phone data source are listed after data-backed packages; eac
 
 | Package                                                                                                                                    | Last published | Phone data source   | Data overhead |     Gzip | Total gzip |
 | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------: | ------------------- | ------------: | -------: | ---------: |
-| [**@desource/phone-mask**](https://www.npmjs.com/package/@desource/phone-mask) · [Repo](https://github.com/DeSource-Labs/phone-mask)       |     2026-05-08 | Included in package |        0.0 KB |   2.8 KB |     2.8 KB |
-| [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) · [Repo](https://gitlab.com/catamphetamine/libphonenumber-js)         |     2026-06-06 | Included in package |        0.0 KB |  43.9 KB |    43.9 KB |
+| [**@desource/phone-mask**](https://www.npmjs.com/package/@desource/phone-mask) · [Repo](https://github.com/DeSource-Labs/phone-mask)       |     2026-05-08 | Included in package |        0.0 KB |   2.9 KB |     2.9 KB |
+| [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) · [Repo](https://gitlab.com/catamphetamine/libphonenumber-js)         |     2026-06-18 | Included in package |        0.0 KB |  43.9 KB |    43.9 KB |
 | [awesome-phonenumber](https://www.npmjs.com/package/awesome-phonenumber) · [Repo](https://github.com/grantila/awesome-phonenumber)         |     2026-02-18 | Included in package |        0.0 KB |  74.7 KB |    74.7 KB |
 | [google-libphonenumber](https://www.npmjs.com/package/google-libphonenumber) · [Repo](https://github.com/ruimarinho/google-libphonenumber) |     2026-01-19 | Included in package |        0.0 KB | 115.1 KB |   115.1 KB |
 
-Best choice in Core (TypeScript/JavaScript): **@desource/phone-mask** (2.8 KB).
+Best choice in Core (TypeScript/JavaScript): **@desource/phone-mask** (2.9 KB).
 
 #### React
 
@@ -73,7 +73,7 @@ React ecosystem note: `react-international-phone` removed built-in validation in
 | Package                                                                                                                                       | Last published | Phone data source                                                                                       | Data overhead |    Gzip | Total gzip |
 | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------: | ------------------------------------------------------------------------------------------------------- | ------------: | ------: | ---------: |
 | [**@desource/phone-mask-vue**](https://www.npmjs.com/package/@desource/phone-mask-vue) · [Repo](https://github.com/DeSource-Labs/phone-mask)  |     2026-05-08 | [@desource/phone-mask](https://www.npmjs.com/package/@desource/phone-mask) (dep)                        |        0.0 KB | 10.9 KB |    10.9 KB |
-| [v-phone-input](https://www.npmjs.com/package/v-phone-input) · [Repo](https://github.com/paul-thebaud/v-phone-input)                          |     2026-03-11 | [awesome-phonenumber](https://www.npmjs.com/package/awesome-phonenumber) (dep)                          |        0.0 KB | 15.4 KB |    15.4 KB |
+| [v-phone-input](https://www.npmjs.com/package/v-phone-input) · [Repo](https://github.com/paul-thebaud/v-phone-input)                          |     2026-03-11 | [awesome-phonenumber](https://www.npmjs.com/package/awesome-phonenumber) (dep)                          |        0.0 KB | 15.5 KB |    15.5 KB |
 | [vue-tel-input](https://www.npmjs.com/package/vue-tel-input) · [Repo](https://github.com/iamstevendao/vue-tel-input)                          |     2026-03-19 | [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) (peer: parsePhoneNumberFromString) |       28.5 KB | 10.3 KB |    38.8 KB |
 | [vue-phone-number-input](https://www.npmjs.com/package/vue-phone-number-input) · [Repo](https://github.com/LouisMazel/vue-phone-number-input) |     2022-09-20 | [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) (dep)                              |        0.0 KB | 96.3 KB |    96.3 KB |
 
@@ -84,7 +84,7 @@ Best choice in Vue: **@desource/phone-mask-vue** (10.9 KB).
 | Package                                                                                                                                            | Last published | Phone data source                                                                | Data overhead |    Gzip | Total gzip |
 | -------------------------------------------------------------------------------------------------------------------------------------------------- | -------------: | -------------------------------------------------------------------------------- | ------------: | ------: | ---------: |
 | [**@desource/phone-mask-svelte**](https://www.npmjs.com/package/@desource/phone-mask-svelte) · [Repo](https://github.com/DeSource-Labs/phone-mask) |     2026-05-08 | [@desource/phone-mask](https://www.npmjs.com/package/@desource/phone-mask) (dep) |        0.0 KB | 11.3 KB |    11.3 KB |
-| [svelte-tel-input](https://www.npmjs.com/package/svelte-tel-input) · [Repo](https://github.com/gyurielf/svelte-tel-input)                          |     2026-04-24 | [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) (dep)       |        0.0 KB | 78.4 KB |    78.4 KB |
+| [svelte-tel-input](https://www.npmjs.com/package/svelte-tel-input) · [Repo](https://github.com/gyurielf/svelte-tel-input)                          |     2026-04-24 | [libphonenumber-js](https://www.npmjs.com/package/libphonenumber-js) (dep)       |           N/A |     N/A |        N/A |
 
 Best choice in Svelte: **@desource/phone-mask-svelte** (11.3 KB).
 
