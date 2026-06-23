@@ -90,7 +90,8 @@ const DEFAULT_INSTALL_TIMEOUT_MS = 120_000;
 const SVELTE_BUILD_TIMEOUT_MS = 180_000;
 const SVELTE_FALLBACK_VITE_VERSION = '^8.0.0';
 const SVELTE_FALLBACK_PLUGIN_VERSION = '^7.0.0';
-const SVELTE_FALLBACK_SVELTE_VERSION = '^5.0.0';
+// Svelte 5.56.3 leaves TypeScript syntax untransformed in some node_modules .svelte files under this temp build.
+const SVELTE_FALLBACK_SVELTE_VERSION = '^5.56.4';
 const BUILTIN_EXTERNALS = new Set<string>([...builtinModules, ...builtinModules.map((mod) => `node:${mod}`)]);
 const CSS_LOADER_PATH = createRequire(import.meta.url).resolve('css-loader');
 const ESCAPE_REGEX = /[.*+?^${}()|[\]\\]/g;
