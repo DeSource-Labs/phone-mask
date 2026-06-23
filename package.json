@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm -w -r --filter \"./packages/**\" --stream run build",
-    "clean": "pnpm -w -r --filter \"./packages/**\" --stream run clean",
+    "clean": "pnpm -w -r --filter \"*\" --stream run clean",
     "clean:modules": "pnpm -w -r --filter \"*\" --stream run clean:modules && rimraf node_modules",
     "dev:demo": "pnpm --filter demo dev",
     "dev:prepare": "pnpm --filter demo deps:prepare",
@@ -25,7 +25,7 @@
     "test:unit:coverage": "pnpm -w -r --filter \"./packages/**\" --stream run test:unit:coverage",
     "prepare": "husky"
   },
-  "packageManager": "pnpm@11.6.0",
+  "packageManager": "pnpm@11.9.0",
   "engines": {
     "node": ">=22.18.0"
   },

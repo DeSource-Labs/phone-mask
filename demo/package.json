@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf .output .nuxt",
     "clean:modules": "rimraf node_modules",
     "deps:prepare": "nuxt prepare",
     "build": "nuxt build",
