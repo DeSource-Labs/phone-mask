@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm -w -r --filter \"./packages/**\" --stream run build",
-    "clean": "pnpm -w -r --filter \"./packages/**\" --stream run clean",
+    "clean": "pnpm -w -r --filter \"*\" --stream run clean",
     "clean:modules": "pnpm -w -r --filter \"*\" --stream run clean:modules && rimraf node_modules",
     "dev:demo": "pnpm --filter demo dev",
     "dev:prepare": "pnpm --filter demo deps:prepare",
