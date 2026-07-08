@@ -65,7 +65,7 @@
     "build:internal": "pnpm build:lib && pnpm build:types",
     "build:lib": "vite build",
     "build:types": "vue-tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
     "test:e2e": "playwright test"
