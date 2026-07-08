@@ -20,6 +20,7 @@
     "format": "prettier --write \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
     "format:check": "prettier --check \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
     "lint:staged": "lint-staged",
+    "typecheck": "pnpm -w -r --filter \"./packages/**\" --stream run typecheck",
     "test:e2e": "pnpm -w -r --filter \"./packages/**\" --stream --workspace-concurrency=1 run test:e2e",
     "test:unit": "pnpm -w -r --filter \"./packages/**\" --stream run test:unit",
     "test:unit:coverage": "pnpm -w -r --filter \"./packages/**\" --stream run test:unit:coverage",
