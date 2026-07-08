@@ -465,14 +465,12 @@ async function resolveDataOverheadGzip(
   for (const peerPkg of metric.phoneEnginePeers) {
     if (coveredPeerPkgs.has(peerPkg)) continue;
     const peerMetric = metrics.get(peerPkg);
-    if (
-      !(
-        peerMetric &&
-        peerMetric.sizeAvailable &&
-        typeof peerMetric.gzip === 'number' &&
-        Number.isFinite(peerMetric.gzip)
-      )
-    ) {
+    if (!(
+      peerMetric &&
+      peerMetric.sizeAvailable &&
+      typeof peerMetric.gzip === 'number' &&
+      Number.isFinite(peerMetric.gzip)
+    )) {
       return null;
     }
     total += peerMetric.gzip;
