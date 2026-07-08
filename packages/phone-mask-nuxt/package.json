@@ -71,6 +71,6 @@
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/test-utils": "^4.0.3",
     "nuxt": "^4.4.8",
-    "vue": "^3.5.38"
+    "vue": "^3.5.39"
   }
 }
