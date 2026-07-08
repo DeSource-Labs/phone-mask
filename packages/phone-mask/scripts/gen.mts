@@ -65,12 +65,7 @@ type MinifiedData = {
   countries: Record<string, string>;
 };
 type SerializableJsValue =
-  | string
-  | number
-  | boolean
-  | null
-  | SerializableJsValue[]
-  | { [key: string]: SerializableJsValue };
+  string | number | boolean | null | SerializableJsValue[] | { [key: string]: SerializableJsValue };
 type GitHubRelease = {
   tag_name?: unknown;
 };

@@ -65,7 +65,7 @@
     "build:internal": "pnpm build:lib && pnpm build:types",
     "build:lib": "vite build",
     "build:types": "vue-tsc -p tsconfig.json",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
     "test:e2e": "playwright test"
@@ -79,7 +79,7 @@
   "devDependencies": {
     "@testing-library/vue": "^8.1.0",
     "@vitejs/plugin-vue": "^6.0.7",
-    "vue": "^3.5.38",
-    "vue-tsc": "^3.3.5"
+    "vue": "^3.5.39",
+    "vue-tsc": "^3.3.6"
   }
 }

@@ -56,6 +56,7 @@
     "clean:modules": "rimraf node_modules",
     "build:internal": "pnpm dev:prepare && nuxt-module-build build",
     "build": "pnpm clean && pnpm build:internal",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run --config vitest.unit.config.ts",
     "test:unit:coverage": "vitest run --config vitest.unit.config.ts --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
@@ -71,6 +72,6 @@
     "@nuxt/module-builder": "^1.0.2",
     "@nuxt/test-utils": "^4.0.3",
     "nuxt": "^4.4.8",
-    "vue": "^3.5.38"
+    "vue": "^3.5.39"
   }
 }
