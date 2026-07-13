@@ -1,5 +1,13 @@
 # @desource/phone-mask
 
+## 1.4.1
+
+### Patch Changes
+
+- Core/Vue/React/Svelte/Nuxt Upgrades:
+  - Made an internal tooling update
+  - Updated development environment dependencies for better stability and security
+
 ## 1.4.0
 
 ### Minor Changes
