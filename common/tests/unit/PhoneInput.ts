@@ -64,6 +64,36 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
   };
 
   describe('PhoneInput API', () => {
+    it('uses the shared component structure and style scope markers', async () => {
+      const { container, unmount } = await setup({ detect: false });
+
+      const root = container.querySelector<HTMLElement>('[data-desource-phone-mask="input"]');
+      expect(root).not.toBeNull();
+      expect(root!.classList.contains('phone-input')).toBe(true);
+      expect(root!.getAttribute('role')).toBe('group');
+      expect(root!.getAttribute('aria-label')).toBe('Phone input');
+
+      const directChildren = Array.from(root!.children);
+      expect(directChildren).toHaveLength(3);
+      expect(directChildren[0]?.classList.contains('pi-selector')).toBe(true);
+      expect(directChildren[1]?.classList.contains('pi-input-wrap')).toBe(true);
+      expect(directChildren[2]?.classList.contains('sr-only')).toBe(true);
+
+      const liveRegion = directChildren[2]!;
+      expect(liveRegion.getAttribute('role')).toBe('status');
+      expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+      expect(liveRegion.getAttribute('aria-atomic')).toBe('true');
+
+      const dropdown = document.body.querySelector<HTMLElement>('[data-desource-phone-mask="dropdown"]');
+      expect(dropdown).not.toBeNull();
+      expect(dropdown!.parentElement).toBe(document.body);
+      expect(dropdown!.getAttribute('role')).toBe('dialog');
+      expect(dropdown!.getAttribute('aria-label')).toBe('Country');
+      expect(dropdown!.getAttribute('aria-modal')).toBe('false');
+
+      unmount();
+    });
+
     it('exposes imperative methods through ref', async () => {
       const { ref, onChange, unmount } = await setup({ value: '20255501', detect: false });
       const input = screen.getByRole('textbox');
