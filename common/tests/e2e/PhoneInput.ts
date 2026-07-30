@@ -763,6 +763,16 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
           await expect(component).toHaveClass(/is-unstyled/);
         });
 
+        test('screen-reader announcements remain visually hidden when default styles are disabled', async () => {
+          const liveRegion = component.locator(':scope > .sr-only');
+
+          await disableDefaultStylesControl.check();
+          await expect(liveRegion).toHaveCSS('position', 'absolute');
+          await expect(liveRegion).toHaveCSS('width', '1px');
+          await expect(liveRegion).toHaveCSS('height', '1px');
+          await expect(liveRegion).toHaveCSS('overflow', 'hidden');
+        });
+
         test('unchecking disableDefaultStyles removes is-unstyled class', async () => {
           await disableDefaultStylesControl.check();
           await disableDefaultStylesControl.uncheck();
