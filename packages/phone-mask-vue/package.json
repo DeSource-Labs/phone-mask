@@ -80,7 +80,7 @@
   "devDependencies": {
     "@testing-library/vue": "^8.1.0",
     "@vitejs/plugin-vue": "^6.0.7",
-    "vue": "^3.5.39",
-    "vue-tsc": "^3.3.6"
+    "vue": "^3.5.40",
+    "vue-tsc": "^3.3.8"
   }
 }
