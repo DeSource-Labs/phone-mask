@@ -5,12 +5,12 @@
   "scripts": {
     "clean": "rimraf .output .nuxt",
     "clean:modules": "rimraf node_modules",
-    "deps:prepare": "nuxt prepare",
+    "prepare:deps": "nuxt prepare",
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "vercel-build": "cd .. && pnpm vercel-build"
+    "vercel-build": "pnpm --workspace-root vercel-build"
   },
   "dependencies": {
     "@desource/phone-mask-nuxt": "workspace:*",
