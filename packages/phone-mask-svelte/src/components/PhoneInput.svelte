@@ -192,6 +192,7 @@
   bind:this={rootEl}
   class={rootClasses}
   {...restProps}
+  data-desource-phone-mask="input"
   style:--pi-actions-count={actionsCount}
   role="group"
   aria-label="Phone input"
@@ -319,63 +320,65 @@
       {/if}
     </div>
   </div>
+
+  <!-- Dropdown -->
+  {#if renderDropdown}
+    <div
+      id={dropdownElementId}
+      bind:this={dropdownEl}
+      use:portalToBody
+      class="phone-dropdown {dropdownClass} {themeData.themeClass}"
+      class:is-open={selectorData.dropdownOpen}
+      class:is-unstyled={disableDefaultStyles}
+      data-desource-phone-mask="dropdown"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Country"
+    >
+      {#if selectorData.dropdownOpen}
+        <div class="pi-search-wrap">
+          <input
+            bind:this={searchEl}
+            name="search"
+            type="search"
+            class="pi-search"
+            aria-label="Search"
+            placeholder={searchPlaceholder}
+            aria-controls={listboxId}
+            aria-activedescendant={activeOptionId}
+            value={selectorData.search}
+            onkeydown={selectorData.handleSearchKeydown}
+            oninput={selectorData.handleSearchChange}
+          />
+        </div>
+        <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
+          {#each selectorData.filteredCountries as c, idx (c.id)}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <li
+              id={getOptionId(idx)}
+              role="option"
+              class="pi-option"
+              class:is-focused={idx === selectorData.focusedIndex}
+              class:is-selected={c.id === countryData.country.id}
+              aria-selected={c.id === countryData.country.id}
+              title={c.name}
+              onclick={() => selectorData.selectCountry(c.id)}
+              onmouseenter={() => selectorData.setFocusedIndex(idx)}
+            >
+              <span class="pi-flag" role="img" aria-label="{c.name} flag">
+                {#if flag}{@render flag(c)}{:else}{c.flag}{/if}
+              </span>
+              <span class="pi-opt-name">{c.name}</span>
+              <span class="pi-opt-code">{c.code}</span>
+            </li>
+          {:else}
+            <li class="pi-empty">{noResultsText}</li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+  {/if}
+
+  <!-- Screen reader live region -->
+  <div bind:this={liveEl} class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 </div>
-
-<!-- Dropdown -->
-{#if renderDropdown}
-  <div
-    id={dropdownElementId}
-    bind:this={dropdownEl}
-    use:portalToBody
-    class="phone-dropdown {dropdownClass} {themeData.themeClass}"
-    class:is-open={selectorData.dropdownOpen}
-    role="dialog"
-    aria-modal="false"
-    aria-label="Country"
-  >
-    {#if selectorData.dropdownOpen}
-      <div class="pi-search-wrap">
-        <input
-          bind:this={searchEl}
-          name="search"
-          type="search"
-          class="pi-search"
-          aria-label="Search"
-          placeholder={searchPlaceholder}
-          aria-controls={listboxId}
-          aria-activedescendant={activeOptionId}
-          value={selectorData.search}
-          onkeydown={selectorData.handleSearchKeydown}
-          oninput={selectorData.handleSearchChange}
-        />
-      </div>
-      <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
-        {#each selectorData.filteredCountries as c, idx (c.id)}
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <li
-            id={getOptionId(idx)}
-            role="option"
-            class="pi-option"
-            class:is-focused={idx === selectorData.focusedIndex}
-            class:is-selected={c.id === countryData.country.id}
-            aria-selected={c.id === countryData.country.id}
-            title={c.name}
-            onclick={() => selectorData.selectCountry(c.id)}
-            onmouseenter={() => selectorData.setFocusedIndex(idx)}
-          >
-            <span class="pi-flag" role="img" aria-label="{c.name} flag">
-              {#if flag}{@render flag(c)}{:else}{c.flag}{/if}
-            </span>
-            <span class="pi-opt-name">{c.name}</span>
-            <span class="pi-opt-code">{c.code}</span>
-          </li>
-        {:else}
-          <li class="pi-empty">{noResultsText}</li>
-        {/each}
-      </ul>
-    {/if}
-  </div>
-{/if}
-
-<!-- Screen reader live region -->
-<div bind:this={liveEl} class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
