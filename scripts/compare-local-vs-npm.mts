@@ -5,8 +5,6 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-// Note: this script requires `esbuild`, `@rspack/core` & `css-loader` to be installed
-// (e.g. as a dev dependency: `pnpm add -w -D esbuild @rspack/core css-loader`).
 import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mts';
 
 type InstallScenario = 'local' | 'npm';
