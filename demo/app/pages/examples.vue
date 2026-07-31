@@ -98,7 +98,7 @@
             </div>
 
             <div class="code-box">
-              <button class="copy-btn" @click="copyCode('playground')">
+              <button class="copy-btn" type="button" @click="copyCode('playground')">
                 {{ copiedSnippet === 'playground' ? '✓ Copied!' : '📋 Copy' }}
               </button>
               <pre><code>{{ playgroundCode }}</code></pre>
@@ -121,7 +121,7 @@
           </div>
 
           <div class="code">
-            <button class="copy-btn" @click="copyCode('basic')">
+            <button class="copy-btn" type="button" @click="copyCode('basic')">
               {{ copiedSnippet === 'basic' ? '✓ Copied!' : '📋 Copy' }}
             </button>
             <pre><code>{{ snippets.basic }}</code></pre>
@@ -155,7 +155,7 @@
           </div>
 
           <div class="code">
-            <button class="copy-btn" @click="copyCode('validation')">
+            <button class="copy-btn" type="button" @click="copyCode('validation')">
               {{ copiedSnippet === 'validation' ? '✓ Copied!' : '📋 Copy' }}
             </button>
             <pre><code>{{ snippets.validation }}</code></pre>
@@ -182,7 +182,7 @@
           </div>
 
           <div class="code">
-            <button class="copy-btn" @click="copyCode('detection')">
+            <button class="copy-btn" type="button" @click="copyCode('detection')">
               {{ copiedSnippet === 'detection' ? '✓ Copied!' : '📋 Copy' }}
             </button>
             <pre><code>{{ snippets.detection }}</code></pre>
@@ -214,7 +214,7 @@
           </div>
 
           <div class="code">
-            <button class="copy-btn" @click="copyCode('sizes')">
+            <button class="copy-btn" type="button" @click="copyCode('sizes')">
               {{ copiedSnippet === 'sizes' ? '✓ Copied!' : '📋 Copy' }}
             </button>
             <pre><code>{{ snippets.sizes }}</code></pre>
@@ -247,7 +247,7 @@
           </div>
 
           <div class="code">
-            <button class="copy-btn" @click="copyCode('themes')">
+            <button class="copy-btn" type="button" @click="copyCode('themes')">
               {{ copiedSnippet === 'themes' ? '✓ Copied!' : '📋 Copy' }}
             </button>
             <pre><code>{{ snippets.themes }}</code></pre>
@@ -276,7 +276,7 @@
           </div>
 
           <div class="code">
-            <button class="copy-btn" @click="copyCode('actions')">
+            <button class="copy-btn" type="button" @click="copyCode('actions')">
               {{ copiedSnippet === 'actions' ? '✓ Copied!' : '📋 Copy' }}
             </button>
             <pre><code>{{ snippets.actions }}</code></pre>
@@ -304,7 +304,7 @@
           </div>
 
           <div class="code">
-            <button class="copy-btn" @click="copyCode('disabledAndReadonly')">
+            <button class="copy-btn" type="button" @click="copyCode('disabledAndReadonly')">
               {{ copiedSnippet === 'disabledAndReadonly' ? '✓ Copied!' : '📋 Copy' }}
             </button>
             <pre><code>{{ snippets.disabledAndReadonly }}</code></pre>
@@ -351,7 +351,7 @@
           </div>
 
           <div class="code">
-            <button class="copy-btn" @click="copyCode('form')">
+            <button class="copy-btn" type="button" @click="copyCode('form')">
               {{ copiedSnippet === 'form' ? '✓ Copied!' : '📋 Copy' }}
             </button>
             <pre><code>{{ snippets.form }}</code></pre>
@@ -384,7 +384,7 @@
             </div>
 
             <div class="code">
-              <button class="copy-btn" @click="copyCode('directiveBasic')">
+              <button class="copy-btn" type="button" @click="copyCode('directiveBasic')">
                 {{ copiedSnippet === 'directiveBasic' ? '✓ Copied!' : '📋 Copy' }}
               </button>
               <pre><code>{{ snippets.directiveBasic }}</code></pre>
@@ -422,7 +422,7 @@
             </div>
 
             <div class="code">
-              <button class="copy-btn" @click="copyCode('directiveOptions')">
+              <button class="copy-btn" type="button" @click="copyCode('directiveOptions')">
                 {{ copiedSnippet === 'directiveOptions' ? '✓ Copied!' : '📋 Copy' }}
               </button>
               <pre><code>{{ snippets.directiveOptions }}</code></pre>
@@ -453,7 +453,7 @@
             </div>
 
             <div class="code">
-              <button class="copy-btn" @click="copyCode('directiveDetect')">
+              <button class="copy-btn" type="button" @click="copyCode('directiveDetect')">
                 {{ copiedSnippet === 'directiveDetect' ? '✓ Copied!' : '📋 Copy' }}
               </button>
               <pre><code>{{ snippets.directiveDetect }}</code></pre>

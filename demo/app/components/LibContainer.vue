@@ -8,6 +8,7 @@
             :key="item.id"
             class="lib-item"
             :class="{ selected: selected === item.id }"
+            type="button"
             @click="onSelected(item.id)"
           >
             {{ item.name }}
@@ -15,7 +16,7 @@
         </div>
         <div class="lib-command" @click="copy(selectedNpmCommand)">
           <pre><code>{{ selectedNpmCommand }}</code></pre>
-          <button class="lib-copy" aria-label="Copy npm command to clipboard" :disabled="isCopying">
+          <button class="lib-copy" type="button" aria-label="Copy npm command to clipboard" :disabled="isCopying">
             <span v-if="!copied && !isCopying" aria-hidden="true">📋</span>
             <span v-else-if="copied" aria-hidden="true">✓</span>
             <span v-else aria-hidden="true">⏳</span>

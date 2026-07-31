@@ -19,7 +19,7 @@
         Error {{ error.statusCode }}<br />
         <span>{{ error.statusMessage }}</span>
       </h1>
-      <button class="error-button" href="/" @click.prevent="handleError">Home</button>
+      <button class="error-button" type="button" href="/" @click.prevent="handleError">Home</button>
     </section>
   </main>
 </template>

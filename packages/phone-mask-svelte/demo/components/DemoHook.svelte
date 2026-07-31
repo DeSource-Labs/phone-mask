@@ -35,9 +35,13 @@
       data-testid="phone-input"
       class="hook-input"
     />
-    <button class="btn" data-testid="control-country-us" onclick={() => phoneMask.setCountry('US')}>US</button>
-    <button class="btn" data-testid="control-country-de" onclick={() => phoneMask.setCountry('DE')}>DE</button>
-    <button class="btn" data-testid="control-clear" onclick={() => phoneMask.clear()}>Clear</button>
+    <button class="btn" type="button" data-testid="control-country-us" onclick={() => phoneMask.setCountry('US')}>
+      US
+    </button>
+    <button class="btn" type="button" data-testid="control-country-de" onclick={() => phoneMask.setCountry('DE')}>
+      DE
+    </button>
+    <button class="btn" type="button" data-testid="control-clear" onclick={() => phoneMask.clear()}>Clear</button>
   </div>
   <div class="meta">
     <div data-testid="meta-digits"><strong>Digits:</strong> {phoneMask.digits || '—'}</div>
