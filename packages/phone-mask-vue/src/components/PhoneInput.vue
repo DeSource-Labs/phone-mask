@@ -1,12 +1,5 @@
 <template>
-  <div
-    ref="rootRef"
-    data-desource-phone-mask="input"
-    aria-label="Phone input"
-    role="group"
-    :class="rootClasses"
-    :style="rootStyles"
-  >
+  <div ref="rootRef" aria-label="Phone input" role="group" :class="rootClasses" :style="rootStyles">
     <!-- Country Selector -->
     <div class="pi-selector">
       <button
@@ -124,8 +117,7 @@
         v-if="renderDropdown"
         :id="dropdownElementId"
         ref="dropdownRef"
-        class="phone-dropdown"
-        data-desource-phone-mask="dropdown"
+        class="desource-phone-dropdown phone-dropdown"
         :class="[{ 'is-open': dropdownOpen, 'is-unstyled': disableDefaultStyles }, dropdownClass, themeClass]"
         role="dialog"
         aria-modal="false"
@@ -349,7 +341,8 @@ const { themeClass } = useTheme({
 });
 
 const rootClasses = computed(() => [
-  'phone-input',
+  'desource-phone-input',
+  'phone-input', // [TODO 2.0.0] .phone-dropdown & .phone-input will be removed in 2.0.0+
   `size-${props.size}`,
   themeClass.value,
   {

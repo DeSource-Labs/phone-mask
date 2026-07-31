@@ -263,7 +263,7 @@ Then import manually where needed:
 @import '@desource/phone-mask-vue/assets/lib.css';
 
 /* Your custom overrides */
-.phone-input {
+.desource-phone-input {
   --pi-border: #your-color;
 }
 </style>
@@ -273,7 +273,8 @@ Then import manually where needed:
 
 ```vue
 <style>
-:root {
+.desource-phone-input,
+.desource-phone-dropdown {
   --pi-bg: #f9fafb;
   --pi-border: #e5e7eb;
   --pi-border-focus: #3b82f6;

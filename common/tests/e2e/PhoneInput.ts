@@ -20,9 +20,9 @@ type PlaygroundControls = {
 
 export function testPhoneInput(containerSelector: string, playgroundControls: PlaygroundControls) {
   // PhoneInput component selectors
-  const COMPONENT_SELECTOR = '.phone-input';
+  const COMPONENT_SELECTOR = '.desource-phone-input';
   const COUNTRY_DROPDOWN_BTN_SELECTOR = '.pi-selector-btn';
-  const COUNTRY_DROPDOWN_MENU_SELECTOR = '.phone-dropdown';
+  const COUNTRY_DROPDOWN_MENU_SELECTOR = '.desource-phone-dropdown';
   const INPUT_SELECTOR = 'input.pi-input[type="tel"]';
   const COPY_BTN_SELECTOR = 'button.pi-btn-copy';
   const CLEAR_BTN_SELECTOR = 'button.pi-btn-clear';

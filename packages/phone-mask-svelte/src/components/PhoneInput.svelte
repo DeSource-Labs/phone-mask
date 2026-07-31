@@ -164,7 +164,8 @@
 
   const rootClasses = $derived(
     [
-      'phone-input',
+      'desource-phone-input',
+      'phone-input', // [TODO 2.0.0] .phone-dropdown & .phone-input will be removed in 2.0.0+
       `size-${size}`,
       themeData.themeClass,
       disabled && 'is-disabled',
@@ -192,7 +193,6 @@
   bind:this={rootEl}
   class={rootClasses}
   {...restProps}
-  data-desource-phone-mask="input"
   style:--pi-actions-count={actionsCount}
   role="group"
   aria-label="Phone input"
@@ -327,10 +327,9 @@
       id={dropdownElementId}
       bind:this={dropdownEl}
       use:portalToBody
-      class="phone-dropdown {dropdownClass} {themeData.themeClass}"
+      class="desource-phone-dropdown phone-dropdown {dropdownClass} {themeData.themeClass}"
       class:is-open={selectorData.dropdownOpen}
       class:is-unstyled={disableDefaultStyles}
-      data-desource-phone-mask="dropdown"
       role="dialog"
       aria-modal="false"
       aria-label="Country"

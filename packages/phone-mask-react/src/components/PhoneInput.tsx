@@ -184,7 +184,8 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   const { themeClass } = useTheme({ theme });
 
   const rootClasses = [
-    'phone-input',
+    'desource-phone-input',
+    'phone-input', // [TODO 2.0.0] .phone-dropdown & .phone-input will be removed in 2.0.0+
     `size-${size}`,
     themeClass,
     disabled && 'is-disabled',
@@ -210,7 +211,6 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     <div
       ref={rootRef}
       className={rootClasses}
-      data-desource-phone-mask="input"
       style={{ '--pi-actions-count': actionsCount } as CSSProperties}
       role="group"
       aria-label="Phone input"
@@ -341,10 +341,9 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
           <div
             id={dropdownElementId}
             ref={dropdownRef}
-            className={`phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass} ${
+            className={`desource-phone-dropdown phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass} ${
               disableDefaultStyles ? 'is-unstyled' : ''
             }`}
-            data-desource-phone-mask="dropdown"
             role="dialog"
             aria-modal="false"
             aria-label="Country"
