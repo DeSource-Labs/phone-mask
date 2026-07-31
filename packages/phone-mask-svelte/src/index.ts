@@ -1,9 +1,6 @@
 import type { Component } from 'svelte';
 
-import './style.scss'; // Importing styles just for vite build, no side effects in js chunks
-
 import PhoneInputComponent from './components/PhoneInput.svelte';
-
 export { usePhoneMask } from './composables/usePhoneMask.svelte';
 export { phoneMaskAttachment } from './directives/phoneMaskAttachment.svelte';
 export { phoneMaskAction } from './directives/phoneMaskAction';
