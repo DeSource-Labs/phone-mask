@@ -278,7 +278,7 @@ Then import manually where needed:
   --pi-bg: #f9fafb;
   --pi-border: #e5e7eb;
   --pi-border-focus: #3b82f6;
-  --pi-text: #111827;
+  --pi-fg: #111827;
 }
 </style>
 ```
