@@ -735,7 +735,7 @@ Customize colors via CSS variables:
 Or with CSS:
 
 ```css
-.desource-phone-input[data-theme='dark'] {
+.desource-phone-input.theme-dark {
   --pi-bg: #1f2937;
   --pi-fg: #f9fafb;
   --pi-border: #374151;
