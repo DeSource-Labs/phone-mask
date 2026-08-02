@@ -4,6 +4,8 @@ import React, {
   useRef,
   useId,
   useCallback,
+  useEffect,
+  useState,
   type CSSProperties,
   type ForwardedRef
 } from 'react';
@@ -205,7 +207,9 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   const renderDropdown = hasDropdown && (!inactive || dropdownOpen);
   const activeOptionId =
     dropdownOpen && filteredCountries[focusedIndex] ? `${optionIdPrefix}-${focusedIndex}` : undefined;
-  const portalRoot = globalThis.document?.body;
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+
+  useEffect(() => setPortalRoot(document.body), []);
 
   return (
     <div
