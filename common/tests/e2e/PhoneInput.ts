@@ -20,9 +20,9 @@ type PlaygroundControls = {
 
 export function testPhoneInput(containerSelector: string, playgroundControls: PlaygroundControls) {
   // PhoneInput component selectors
-  const COMPONENT_SELECTOR = '.phone-input';
+  const COMPONENT_SELECTOR = '.desource-phone-input';
   const COUNTRY_DROPDOWN_BTN_SELECTOR = '.pi-selector-btn';
-  const COUNTRY_DROPDOWN_MENU_SELECTOR = '.phone-dropdown';
+  const COUNTRY_DROPDOWN_MENU_SELECTOR = '.desource-phone-dropdown';
   const INPUT_SELECTOR = 'input.pi-input[type="tel"]';
   const COPY_BTN_SELECTOR = 'button.pi-btn-copy';
   const CLEAR_BTN_SELECTOR = 'button.pi-btn-clear';
@@ -761,6 +761,16 @@ export function testPhoneInput(containerSelector: string, playgroundControls: Pl
         test('checking disableDefaultStyles adds is-unstyled class to root element', async () => {
           await disableDefaultStylesControl.check();
           await expect(component).toHaveClass(/is-unstyled/);
+        });
+
+        test('screen-reader announcements remain visually hidden when default styles are disabled', async () => {
+          const liveRegion = component.locator(':scope > .sr-only');
+
+          await disableDefaultStylesControl.check();
+          await expect(liveRegion).toHaveCSS('position', 'absolute');
+          await expect(liveRegion).toHaveCSS('width', '1px');
+          await expect(liveRegion).toHaveCSS('height', '1px');
+          await expect(liveRegion).toHaveCSS('overflow', 'hidden');
         });
 
         test('unchecking disableDefaultStyles removes is-unstyled class', async () => {

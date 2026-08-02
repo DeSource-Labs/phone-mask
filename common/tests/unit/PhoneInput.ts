@@ -64,6 +64,35 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
   };
 
   describe('PhoneInput API', () => {
+    it('uses the shared component structure and style scope markers', async () => {
+      const { container, unmount } = await setup({ detect: false });
+
+      const root = container.querySelector<HTMLElement>('.desource-phone-input');
+      expect(root).not.toBeNull();
+      expect(root!.getAttribute('role')).toBe('group');
+      expect(root!.getAttribute('aria-label')).toBe('Phone input');
+
+      const directChildren = Array.from(root!.children);
+      expect(directChildren).toHaveLength(3);
+      expect(directChildren[0]?.classList.contains('pi-selector')).toBe(true);
+      expect(directChildren[1]?.classList.contains('pi-input-wrap')).toBe(true);
+      expect(directChildren[2]?.classList.contains('sr-only')).toBe(true);
+
+      const liveRegion = directChildren[2]!;
+      expect(liveRegion.getAttribute('role')).toBe('status');
+      expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+      expect(liveRegion.getAttribute('aria-atomic')).toBe('true');
+
+      const dropdown = document.body.querySelector<HTMLElement>('.desource-phone-dropdown');
+      expect(dropdown).not.toBeNull();
+      expect(dropdown!.parentElement).toBe(document.body);
+      expect(dropdown!.getAttribute('role')).toBe('dialog');
+      expect(dropdown!.getAttribute('aria-label')).toBe('Country');
+      expect(dropdown!.getAttribute('aria-modal')).toBe('false');
+
+      unmount();
+    });
+
     it('exposes imperative methods through ref', async () => {
       const { ref, onChange, unmount } = await setup({ value: '20255501', detect: false });
       const input = screen.getByRole('textbox');
@@ -259,12 +288,12 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       });
 
       const searchInput = await openDropdownAndGetSearchInput();
-      expect(document.body.querySelector('.phone-dropdown.is-open')).not.toBeNull();
+      expect(document.body.querySelector('.desource-phone-dropdown.is-open')).not.toBeNull();
 
       await fireEvent.keyDown(searchInput, { key: 'Escape' });
 
       await waitFor(() => {
-        expect(document.body.querySelector('.phone-dropdown.is-open')).toBeNull();
+        expect(document.body.querySelector('.desource-phone-dropdown.is-open')).toBeNull();
       });
 
       unmount();
@@ -336,7 +365,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
         disableDefaultStyles: true
       });
 
-      const root = container.querySelector('.phone-input');
+      const root = container.querySelector('.desource-phone-input');
       expect(root).not.toBeNull();
       expect(root?.className).toContain('is-disabled');
       expect(root?.className).toContain('is-readonly');
@@ -347,7 +376,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       expect(selectorButton?.className).toContain('no-dropdown');
       expect(selectorButton?.disabled).toBe(true);
       expect(selectorButton?.getAttribute('tabindex')).toBe('-1');
-      expect(document.body.querySelector('.phone-dropdown')).toBeNull();
+      expect(document.body.querySelector('.desource-phone-dropdown')).toBeNull();
 
       // Disabled inputs hide actionable buttons regardless of value.
       expect(container.querySelector('.pi-btn-copy')).toBeNull();
@@ -391,7 +420,7 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       await fireEvent.click(screen.getByRole('button', { name: /Selected country:/i }));
 
       await waitFor(() => {
-        expect(document.body.querySelector('.phone-dropdown.custom-dropdown')).not.toBeNull();
+        expect(document.body.querySelector('.desource-phone-dropdown.custom-dropdown')).not.toBeNull();
       });
 
       expect(document.body.querySelectorAll('[data-testid="flag-custom"]').length).toBeGreaterThan(0);

@@ -184,7 +184,8 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   const { themeClass } = useTheme({ theme });
 
   const rootClasses = [
-    'phone-input',
+    'desource-phone-input',
+    'phone-input', // [TODO 2.0.0] .phone-dropdown & .phone-input will be removed in 2.0.0+
     `size-${size}`,
     themeClass,
     disabled && 'is-disabled',
@@ -207,131 +208,129 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   const portalRoot = globalThis.document?.body;
 
   return (
-    <>
-      <div
-        ref={rootRef}
-        className={rootClasses}
-        style={{ '--pi-actions-count': actionsCount } as CSSProperties}
-        role="group"
-        aria-label="Phone input"
-      >
-        {/* Country Selector */}
-        <div className="pi-selector">
-          <button
-            ref={selectorRef}
-            type="button"
-            className={`pi-selector-btn ${canOpenDropdown ? '' : 'no-dropdown'}`}
-            disabled={disabled}
-            tabIndex={canOpenDropdown ? undefined : -1}
-            aria-label={`Selected country: ${country.name}`}
-            aria-expanded={canOpenDropdown && dropdownOpen}
-            aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
-            aria-controls={canOpenDropdown ? dropdownElementId : undefined}
-            onPointerDown={handleSelectorPointerDown}
-            onKeyDown={handleSelectorKeydown}
-            onClick={toggleDropdown}
-          >
-            <span className="pi-flag" role="img" aria-label={`${country.name} flag`}>
-              {renderFlag ? renderFlag(country) : country.flag}
-            </span>
-            <span className="pi-code">{country.code}</span>
-            {canOpenDropdown && (
-              <svg
-                className={`pi-chevron ${dropdownOpen ? 'is-open' : ''}`}
-                width="12"
-                height="12"
-                viewBox="0 0 12 12"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M2.5 4.5L6 8L9.5 4.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
-          </button>
-        </div>
+    <div
+      ref={rootRef}
+      className={rootClasses}
+      style={{ '--pi-actions-count': actionsCount } as CSSProperties}
+      role="group"
+      aria-label="Phone input"
+    >
+      {/* Country Selector */}
+      <div className="pi-selector">
+        <button
+          ref={selectorRef}
+          type="button"
+          className={`pi-selector-btn ${canOpenDropdown ? '' : 'no-dropdown'}`}
+          disabled={disabled}
+          tabIndex={canOpenDropdown ? undefined : -1}
+          aria-label={`Selected country: ${country.name}`}
+          aria-expanded={canOpenDropdown && dropdownOpen}
+          aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
+          aria-controls={canOpenDropdown ? dropdownElementId : undefined}
+          onPointerDown={handleSelectorPointerDown}
+          onKeyDown={handleSelectorKeydown}
+          onClick={toggleDropdown}
+        >
+          <span className="pi-flag" role="img" aria-label={`${country.name} flag`}>
+            {renderFlag ? renderFlag(country) : country.flag}
+          </span>
+          <span className="pi-code">{country.code}</span>
+          {canOpenDropdown && (
+            <svg
+              className={`pi-chevron ${dropdownOpen ? 'is-open' : ''}`}
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M2.5 4.5L6 8L9.5 4.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+        </button>
+      </div>
 
-        {/* Input Container */}
-        <div className="pi-input-wrap">
-          <input
-            ref={telRef}
-            id={id}
-            name={name}
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel-national"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            className="pi-input"
-            placeholder={displayPlaceholder}
-            value={displayValue}
-            disabled={disabled}
-            readOnly={readonly}
-            aria-invalid={incomplete}
-            onInput={handleInput}
-            onBeforeInput={handleBeforeInput}
-            onKeyDown={handleKeydown}
-            onPaste={handlePaste}
-            onFocus={handleFocus}
-            onBlur={onBlur}
-          />
+      {/* Input Container */}
+      <div className="pi-input-wrap">
+        <input
+          ref={telRef}
+          id={id}
+          name={name}
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel-national"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          className="pi-input"
+          placeholder={displayPlaceholder}
+          value={displayValue}
+          disabled={disabled}
+          readOnly={readonly}
+          aria-invalid={incomplete}
+          onInput={handleInput}
+          onBeforeInput={handleBeforeInput}
+          onKeyDown={handleKeydown}
+          onPaste={handlePaste}
+          onFocus={handleFocus}
+          onBlur={onBlur}
+        />
 
-          {/* Action Buttons */}
-          <div className="pi-actions" role="toolbar" aria-label="Phone input actions">
-            {renderActionsBefore?.()}
+        {/* Action Buttons */}
+        <div className="pi-actions" role="toolbar" aria-label="Phone input actions">
+          {renderActionsBefore?.()}
 
-            {showCopyButton && (
-              <button
-                type="button"
-                className={`pi-btn pi-btn-copy ${copied ? 'is-copied' : ''}`}
-                aria-label={copyAriaLabel}
-                title={copyButtonTitle}
-                onClick={handleCopyClick}
-              >
-                {renderCopySvg ? (
-                  renderCopySvg(copied)
-                ) : copied ? (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M6.5 11.5L3 8L4.06 6.94L6.5 9.38L11.94 3.94L13 5L6.5 11.5Z" fill="currentColor" />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path
-                      d="M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM10.5 1H2.5V11H4V2.5H10.5V1Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                )}
-              </button>
-            )}
+          {showCopyButton && (
+            <button
+              type="button"
+              className={`pi-btn pi-btn-copy ${copied ? 'is-copied' : ''}`}
+              aria-label={copyAriaLabel}
+              title={copyButtonTitle}
+              onClick={handleCopyClick}
+            >
+              {renderCopySvg ? (
+                renderCopySvg(copied)
+              ) : copied ? (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M6.5 11.5L3 8L4.06 6.94L6.5 9.38L11.94 3.94L13 5L6.5 11.5Z" fill="currentColor" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path
+                    d="M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM10.5 1H2.5V11H4V2.5H10.5V1Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              )}
+            </button>
+          )}
 
-            {showClearButton && (
-              <button
-                type="button"
-                className="pi-btn pi-btn-clear"
-                aria-label={clearButtonLabel}
-                title={clearButtonLabel}
-                onClick={handleClearClick}
-              >
-                {renderClearSvg ? (
-                  renderClearSvg()
-                ) : (
-                  <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                    <path
-                      d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                )}
-              </button>
-            )}
-          </div>
+          {showClearButton && (
+            <button
+              type="button"
+              className="pi-btn pi-btn-clear"
+              aria-label={clearButtonLabel}
+              title={clearButtonLabel}
+              onClick={handleClearClick}
+            >
+              {renderClearSvg ? (
+                renderClearSvg()
+              ) : (
+                <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                  <path
+                    d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -342,8 +341,11 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
           <div
             id={dropdownElementId}
             ref={dropdownRef}
-            className={`phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass}`}
+            className={`desource-phone-dropdown phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass} ${
+              disableDefaultStyles ? 'is-unstyled' : ''
+            }`}
             role="dialog"
+            aria-modal="false"
             aria-label="Country"
           >
             {dropdownOpen && (
@@ -397,7 +399,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
 
       {/* Screen reader announcements */}
       <div ref={liveRef} className="sr-only" role="status" aria-live="polite" aria-atomic="true" />
-    </>
+    </div>
   );
 };
 

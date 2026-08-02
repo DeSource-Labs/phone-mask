@@ -448,8 +448,8 @@ const clearInput = () => {
 Customize colors via CSS variables:
 
 ```css
-.phone-input,
-.phone-dropdown {
+.desource-phone-input,
+.desource-phone-dropdown {
   /* Colors */
   --pi-bg: #ffffff;
   --pi-fg: #111827;
@@ -490,7 +490,7 @@ Customize colors via CSS variables:
 Or with CSS:
 
 ```css
-.phone-input[data-theme='dark'] {
+.desource-phone-input.theme-dark {
   --pi-bg: #1f2937;
   --pi-fg: #f9fafb;
   --pi-border: #374151;

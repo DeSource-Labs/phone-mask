@@ -41,13 +41,13 @@ function DemoHook() {
       <h2 style={headingStyle}>usePhoneMask Hook</h2>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <input ref={ref} type="tel" placeholder="Phone number" style={inputStyle} data-testid="phone-input" />
-        <button onClick={() => setCountry('US')} style={btnStyle} data-testid="control-country-us">
+        <button type="button" onClick={() => setCountry('US')} style={btnStyle} data-testid="control-country-us">
           US
         </button>
-        <button onClick={() => setCountry('DE')} style={btnStyle} data-testid="control-country-de">
+        <button type="button" onClick={() => setCountry('DE')} style={btnStyle} data-testid="control-country-de">
           DE
         </button>
-        <button onClick={() => clear()} style={btnStyle} data-testid="control-clear">
+        <button type="button" onClick={() => clear()} style={btnStyle} data-testid="control-clear">
           Clear
         </button>
       </div>

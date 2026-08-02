@@ -8,6 +8,7 @@
             :key="item.id"
             class="lib-item"
             :class="{ selected: selected === item.id }"
+            type="button"
             @click="onSelected(item.id)"
           >
             {{ item.name }}
@@ -15,7 +16,7 @@
         </div>
         <div class="lib-command" @click="copy(selectedNpmCommand)">
           <pre><code>{{ selectedNpmCommand }}</code></pre>
-          <button class="lib-copy" aria-label="Copy npm command to clipboard" :disabled="isCopying">
+          <button class="lib-copy" type="button" aria-label="Copy npm command to clipboard" :disabled="isCopying">
             <span v-if="!copied && !isCopying" aria-hidden="true">📋</span>
             <span v-else-if="copied" aria-hidden="true">✓</span>
             <span v-else aria-hidden="true">⏳</span>
@@ -62,8 +63,11 @@ function onSelected(lib: Library) {
 </script>
 
 <style lang="scss">
-.phone-input-main.phone-input,
-.phone-dropdown-main.phone-dropdown {
+$input: '.phone-input-main.desource-phone-input';
+$dropdown: '.phone-dropdown-main.desource-phone-dropdown';
+
+#{$input},
+#{$dropdown} {
   &,
   &.theme-dark {
     pointer-events: all;
@@ -73,13 +77,15 @@ function onSelected(lib: Library) {
     --pi-disabled-bg: #333333b8;
   }
 }
-.phone-input-main.phone-input {
+
+#{$input} {
   &,
   &.theme-dark {
     --pi-bg: #22222266;
   }
 }
-.phone-dropdown-main.phone-dropdown {
+
+#{$dropdown} {
   &,
   &.theme-dark {
     --pi-bg: #222222e6;
