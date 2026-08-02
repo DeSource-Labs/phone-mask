@@ -1,5 +1,25 @@
 # @desource/phone-mask-nuxt
 
+## 1.5.0
+
+### Minor Changes
+
+- Vue/React/Svelte Upgrades:
+  - Improved `PhoneInput` DOM structure across framework packages for more consistent styling, accessibility, and test coverage.
+  - Added stable public CSS hooks: `.desource-phone-input` and `.desource-phone-dropdown`.
+  - Preserved existing `.phone-input` and `.phone-dropdown` classes for backward compatibility.
+  - Moved duplicated framework styles into a shared SCSS implementation and aligned CSS build output across Vue, React, and Svelte packages.
+  - Improved screen reader live region styling and dropdown search autofill handling.
+  - Added shared unit and e2e coverage for structure, ARIA attributes, dropdown placement, style scope markers, and visually hidden announcements.
+
+- Nuxt Upgrades:
+  - Updated styling documentation to use the new Vue package CSS hooks and current CSS variables.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @desource/phone-mask-vue@1.5.0
+
 ## 1.4.1
 
 ### Patch Changes
