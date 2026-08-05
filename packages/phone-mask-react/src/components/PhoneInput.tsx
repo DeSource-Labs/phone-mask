@@ -144,27 +144,11 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     onAfterSelect: focusInput
   });
 
-  // Input focus behavior (close dropdown, clear validation timer, and call onFocus callback)
-  const handleFocus = useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
-      clearValidationHint(false);
-      closeDropdown();
-      onFocus?.(e);
-    },
-    [onFocus, closeDropdown, clearValidationHint]
-  );
-
   const clear = useCallback(() => {
     onChange?.('');
     clearValidationHint();
     onClear?.();
   }, [onChange, onClear, clearValidationHint]);
-
-  // Clear functionality
-  const handleClearClick = useCallback(() => {
-    clear();
-    focusInput();
-  }, [clear, focusInput]);
 
   // Imperative handle
   useImperativeHandle(
@@ -207,9 +191,9 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   const renderDropdown = hasDropdown && (!inactive || dropdownOpen);
   const activeOptionId =
     dropdownOpen && filteredCountries[focusedIndex] ? `${optionIdPrefix}-${focusedIndex}` : undefined;
-  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setPortalRoot(document.body), []);
+  useEffect(() => setMounted(true), []);
 
   return (
     <div
@@ -282,7 +266,11 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
           onBeforeInput={handleBeforeInput}
           onKeyDown={handleKeydown}
           onPaste={handlePaste}
-          onFocus={handleFocus}
+          onFocus={(e) => {
+            clearValidationHint(false);
+            closeDropdown();
+            onFocus?.(e);
+          }}
           onBlur={onBlur}
         />
 
@@ -302,7 +290,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                 renderCopySvg(copied)
               ) : copied ? (
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M6.5 11.5L3 8L4.06 6.94L6.5 9.38L11.94 3.94L13 5L6.5 11.5Z" fill="currentColor" />
+                  <path d="M6.5 11.5 3 8 4.06 6.94 6.5 9.38 11.94 3.94 13 5 6.5 11.5Z" fill="currentColor" />
                 </svg>
               ) : (
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -321,14 +309,17 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
               className="pi-btn pi-btn-clear"
               aria-label={clearButtonLabel}
               title={clearButtonLabel}
-              onClick={handleClearClick}
+              onClick={() => {
+                clear();
+                focusInput();
+              }}
             >
               {renderClearSvg ? (
                 renderClearSvg()
               ) : (
                 <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                   <path
-                    d="M14 1.41L12.59 0L7 5.59L1.41 0L0 1.41L5.59 7L0 12.59L1.41 14L7 8.41L12.59 14L14 12.59L8.41 7L14 1.41Z"
+                    d="M14 1.41 12.59 0 7 5.59 1.41 0 0 1.41 5.59 7 0 12.59 1.41 14 7 8.41 12.59 14 14 12.59 8.41 7Z"
                     fill="currentColor"
                   />
                 </svg>
@@ -339,7 +330,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
       </div>
 
       {/* Dropdown */}
-      {portalRoot &&
+      {mounted &&
         renderDropdown &&
         createPortal(
           <div
@@ -398,7 +389,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
               </>
             )}
           </div>,
-          portalRoot
+          document.body
         )}
 
       {/* Screen reader announcements */}
