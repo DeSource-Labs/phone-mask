@@ -58,8 +58,8 @@ async function readPackageJson(packageJsonPath: string): Promise<PackageJson> {
 }
 
 function extractChangelogEntry(changelog: string, targetVersion: string): string {
-  const escapedVersion = targetVersion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const heading = new RegExp(`^##\\s+${escapedVersion}\\s*$`, 'm');
+  const escapedVersion = targetVersion.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  const heading = new RegExp(String.raw`^##\s+${escapedVersion}\s*$`, 'm');
   const match = heading.exec(changelog);
 
   if (!match) {
@@ -79,7 +79,43 @@ function extractChangelogEntry(changelog: string, targetVersion: string): string
 }
 
 function isSemver(value: string): boolean {
-  return /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/.test(
-    value
+  const buildSeparator = value.indexOf('+');
+
+  if (buildSeparator !== value.lastIndexOf('+')) {
+    return false;
+  }
+
+  const versionWithoutBuild = buildSeparator === -1 ? value : value.slice(0, buildSeparator);
+  const build = buildSeparator === -1 ? undefined : value.slice(buildSeparator + 1);
+
+  if (build !== undefined && !hasValidIdentifiers(build)) {
+    return false;
+  }
+
+  const prereleaseSeparator = versionWithoutBuild.indexOf('-');
+  const core = prereleaseSeparator === -1 ? versionWithoutBuild : versionWithoutBuild.slice(0, prereleaseSeparator);
+  const prerelease = prereleaseSeparator === -1 ? undefined : versionWithoutBuild.slice(prereleaseSeparator + 1);
+
+  return isValidCoreVersion(core) && (prerelease === undefined || isValidPrerelease(prerelease));
+}
+
+function isValidCoreVersion(value: string): boolean {
+  const identifiers = value.split('.');
+
+  return identifiers.length === 3 && identifiers.every(isValidNumericIdentifier);
+}
+
+function isValidPrerelease(value: string): boolean {
+  return (
+    hasValidIdentifiers(value) &&
+    value.split('.').every((identifier) => !/^\d+$/.test(identifier) || isValidNumericIdentifier(identifier))
   );
+}
+
+function hasValidIdentifiers(value: string): boolean {
+  return value.split('.').every((identifier) => /^[0-9A-Za-z-]+$/.test(identifier));
+}
+
+function isValidNumericIdentifier(value: string): boolean {
+  return /^(?:0|[1-9]\d*)$/.test(value);
 }
