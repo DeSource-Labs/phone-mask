@@ -5,13 +5,21 @@ import { inspect } from 'node:util';
 // Note: this script requires `esbuild`, `@rspack/core` & `css-loader` to be installed
 // (e.g. as a dev dependency: `pnpm add -w -D esbuild @rspack/core css-loader`).
 import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mts';
+import {
+  calculateComparableGzip,
+  EMPTY_BENCHMARK_DATA as EMPTY_DATA,
+  EXPORT_OVERHEAD_OVERRIDES,
+  type ExportOverheadOverride,
+  formatBenchmarkKb as formatKb,
+  PACKAGE_STATS_INSTALL_TIMEOUT_MS,
+  PHONE_ENGINE_PACKAGES
+} from './readme-benchmark-shared.mts';
 import prettier from 'prettier';
 
 const README_PATH = new URL('../README.md', import.meta.url);
 const README_FILEPATH = fileURLToPath(README_PATH);
 const BENCHMARK_START_MARKER = '<!-- benchmarks:start -->';
 const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
-const EMPTY_DATA = 'N/A';
 
 type GroupRow = {
   pkg: string;
@@ -45,11 +53,6 @@ type PackageSizeMetrics = {
   gzip: number | null;
   sizeAvailable: boolean;
 };
-type ExportOverheadOverride = {
-  package: string;
-  exports: string[];
-};
-
 type PackageMetrics = {
   lastPublished: string | null;
   repositoryUrl: string | null;
@@ -111,14 +114,6 @@ const SOURCES = {
 const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 10_000;
 const PACKAGE_STATS_CONCURRENCY = 3;
-const PACKAGE_STATS_INSTALL_TIMEOUT_MS = 120_000;
-const PHONE_ENGINE_PACKAGES = new Set([
-  '@desource/phone-mask',
-  'libphonenumber-js',
-  'google-libphonenumber',
-  'awesome-phonenumber'
-]);
-
 const PHONE_DATA_SOURCE_LABEL_OVERRIDES: Record<string, string> = {
   'react-international-phone': 'None'
 };
@@ -127,15 +122,6 @@ const PACKAGES_WITHOUT_PHONE_DATA_SOURCE = new Set(
     .filter(([, label]) => label === 'None')
     .map(([pkg]) => pkg)
 );
-
-const EXPORT_OVERHEAD_OVERRIDES: Record<string, ExportOverheadOverride[]> = {
-  'vue-tel-input': [{ package: 'libphonenumber-js', exports: ['parsePhoneNumberFromString'] }],
-  '@desource/phone-mask-nuxt': [{ package: '@desource/phone-mask-vue', exports: ['install'] }]
-};
-
-function formatKb(value: number | null | undefined): string {
-  return typeof value === 'number' && Number.isFinite(value) ? `${(value / 1024).toFixed(1)} KB` : EMPTY_DATA;
-}
 
 function formatDate(value: string | Date | null | undefined): string {
   if (!value) return '-';
@@ -525,13 +511,7 @@ async function collectMetrics(): Promise<Map<string, PackageMetrics>> {
     if (!metric) continue;
     const overhead = await resolveDataOverheadGzip(row.pkg, metric, metrics);
     metric.dataOverheadGzip = overhead;
-    metric.comparableGzip =
-      typeof overhead === 'number' &&
-      Number.isFinite(overhead) &&
-      typeof metric.gzip === 'number' &&
-      Number.isFinite(metric.gzip)
-        ? metric.gzip + overhead
-        : null;
+    metric.comparableGzip = calculateComparableGzip(metric.gzip, overhead);
   }
 
   return metrics;

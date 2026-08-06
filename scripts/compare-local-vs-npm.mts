@@ -1,23 +1,27 @@
 import { execFile } from 'node:child_process';
-import { access, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mts';
+import {
+  calculateComparableGzip,
+  EXPORT_OVERHEAD_OVERRIDES,
+  type ExportOverheadOverride,
+  formatBenchmarkKb as formatKb,
+  isFiniteBenchmarkNumber as isFiniteNumber,
+  PACKAGE_STATS_INSTALL_TIMEOUT_MS,
+  PHONE_ENGINE_PACKAGES
+} from './readme-benchmark-shared.mts';
 
 type InstallScenario = 'local' | 'npm';
 type DependencyMap = Record<string, string>;
-type ExportOverheadOverride = {
-  package: string;
-  exports: string[];
-};
 type InstallOverrides = Record<string, string>;
 type WorkspacePackage = {
   name: string;
   version: string;
-  dir: string;
   dependencies: DependencyMap;
   peerDependencies: DependencyMap;
 };
@@ -66,22 +70,18 @@ const PACKAGES_DIR = path.join(ROOT_DIR, 'packages');
 const NPM_REGISTRY = 'https://registry.npmjs.org';
 const FETCH_TIMEOUT_MS = 10_000;
 const MAX_FETCH_ATTEMPTS = 3;
-const PACKAGE_STATS_INSTALL_TIMEOUT_MS = 120_000;
-const PHONE_ENGINE_PACKAGES = new Set<string>([
-  '@desource/phone-mask',
-  'libphonenumber-js',
-  'google-libphonenumber',
-  'awesome-phonenumber'
-]);
-const EXPORT_OVERHEAD_OVERRIDES: Record<string, ExportOverheadOverride[]> = {
-  '@desource/phone-mask-nuxt': [{ package: '@desource/phone-mask-vue', exports: ['install'] }]
-};
 const PACKAGE_ORDER = new Map<string, number>([
   ['@desource/phone-mask', 0],
   ['@desource/phone-mask-react', 1],
   ['@desource/phone-mask-vue', 2],
   ['@desource/phone-mask-svelte', 3],
   ['@desource/phone-mask-nuxt', 4]
+]);
+const README_GZIP_BUDGET_KB = new Map<string, number>([
+  ['@desource/phone-mask-react', 9.4],
+  ['@desource/phone-mask-vue', 15.5],
+  ['@desource/phone-mask-svelte', 20],
+  ['@desource/phone-mask-nuxt', 20]
 ]);
 const execFileAsync = promisify(execFile);
 
@@ -108,10 +108,6 @@ async function cleanupPackTempDirs(): Promise<void> {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
 }
 
 function getLocalPackInstallSpec(pkg: WorkspacePackage): Promise<string> {
@@ -200,10 +196,6 @@ function normalizeVersion(version: unknown): string {
   return '0.0.0';
 }
 
-function formatKb(value: number | null | undefined): string {
-  return isFiniteNumber(value) ? `${(value / 1024).toFixed(1)} KB` : 'N/A';
-}
-
 function formatDelta(localValue: number | null | undefined, npmValue: number | null | undefined): string {
   if (!isFiniteNumber(localValue) || !isFiniteNumber(npmValue) || npmValue === 0) return 'N/A';
 
@@ -212,6 +204,22 @@ function formatDelta(localValue: number | null | undefined, npmValue: number | n
   const absDiff = Math.abs(diff);
   const percent = Math.abs((diff / npmValue) * 100);
   return `${sign}${(absDiff / 1024).toFixed(1)} KB (${sign}${percent.toFixed(2)}%)`;
+}
+
+function formatBytes(value: number | null | undefined): string {
+  return isFiniteNumber(value) ? `${value.toLocaleString('en-US')} B` : 'N/A';
+}
+
+function formatByteDelta(localValue: number | null | undefined, npmValue: number | null | undefined): string {
+  if (!isFiniteNumber(localValue) || !isFiniteNumber(npmValue)) return 'N/A';
+
+  const diff = localValue - npmValue;
+  const sign = diff >= 0 ? '+' : '-';
+  return `${sign}${Math.abs(diff).toLocaleString('en-US')} B`;
+}
+
+function getMaxBytesForDisplayedKb(displayedKb: number): number {
+  return Math.ceil((displayedKb + 0.05) * 1024) - 1;
 }
 
 async function loadWorkspacePackages(): Promise<Map<string, WorkspacePackage>> {
@@ -230,7 +238,6 @@ async function loadWorkspacePackages(): Promise<Map<string, WorkspacePackage>> {
       list.push({
         name,
         version: normalizeVersion(pkg.version),
-        dir: path.join(PACKAGES_DIR, entry.name),
         dependencies: normalizeDeps(isRecord(pkg.dependencies) ? pkg.dependencies : undefined),
         peerDependencies: normalizeDeps(isRecord(pkg.peerDependencies) ? pkg.peerDependencies : undefined)
       });
@@ -477,17 +484,15 @@ async function fetchScenarioMetricWithTotals(
 
   const overhead = await resolveDataOverheadGzip(scenario, pkg, metric, workspacePackages);
   metric.dataOverheadGzip = overhead;
-  metric.totalGzip = isFiniteNumber(overhead) && isFiniteNumber(metric.gzip) ? metric.gzip + overhead : null;
+  metric.totalGzip = calculateComparableGzip(metric.gzip, overhead);
   return metric;
 }
 
-async function hasDistDir(packageDir: string): Promise<boolean> {
-  try {
-    await access(path.join(packageDir, 'dist'));
-    return true;
-  } catch {
-    return false;
-  }
+async function buildLocalPackages(): Promise<void> {
+  console.info('Building local workspace packages before creating publish-preview tarballs...');
+  await execFileAsync('pnpm', ['build'], { cwd: ROOT_DIR, maxBuffer: 20 * 1024 * 1024 });
+  console.info('Local workspace build completed.');
+  console.info('');
 }
 
 async function main(): Promise<void> {
@@ -501,16 +506,16 @@ async function main(): Promise<void> {
   ]);
   const targets = Array.from(workspacePackages.values()).filter((pkg) => targetPackageNames.has(pkg.name));
 
-  console.info('Local vs npm latest bundle comparison (same benchmark sizing pipeline)');
+  await buildLocalPackages();
+
+  console.info('Local publish preview vs npm latest (README benchmark sizing pipeline)');
+  console.info('README values use gzip bytes / 1024, rounded to one decimal place.');
   console.info('Columns: minified, gzip, data overhead, total gzip');
   console.info('');
 
-  for (const pkg of targets) {
-    const distExists = await hasDistDir(pkg.dir);
-    if (!distExists) {
-      console.info(`[local] ${pkg.name} has no dist folder. Run build first for accurate local comparison.`);
-    }
+  const budgetFailures: string[] = [];
 
+  for (const pkg of targets) {
     const localMetric = await fetchScenarioMetricWithTotals('local', pkg.name, workspacePackages);
     const npmMetric = await fetchScenarioMetricWithTotals('npm', pkg.name, workspacePackages);
 
@@ -524,12 +529,34 @@ async function main(): Promise<void> {
       `  gzip:         ${formatKb(localMetric.gzip)} | npm ${formatKb(npmMetric.gzip)} | delta ${formatDelta(localMetric.gzip, npmMetric.gzip)}`
     );
     console.info(
+      `  gzip bytes:   ${formatBytes(localMetric.gzip)} | npm ${formatBytes(npmMetric.gzip)} | delta ${formatByteDelta(localMetric.gzip, npmMetric.gzip)}`
+    );
+    console.info(
       `  data overhead:${formatKb(localMetric.dataOverheadGzip)} | npm ${formatKb(npmMetric.dataOverheadGzip)} | delta ${formatDelta(localMetric.dataOverheadGzip, npmMetric.dataOverheadGzip)}`
     );
     console.info(
       `  total gzip:   ${formatKb(localMetric.totalGzip)} | npm ${formatKb(npmMetric.totalGzip)} | delta ${formatDelta(localMetric.totalGzip, npmMetric.totalGzip)}`
     );
+    console.info(
+      `  total bytes:  ${formatBytes(localMetric.totalGzip)} | npm ${formatBytes(npmMetric.totalGzip)} | delta ${formatByteDelta(localMetric.totalGzip, npmMetric.totalGzip)}`
+    );
+
+    const budgetKb = README_GZIP_BUDGET_KB.get(pkg.name);
+    if (budgetKb !== undefined) {
+      const maxBytes = getMaxBytesForDisplayedKb(budgetKb);
+      const passesBudget = isFiniteNumber(localMetric.totalGzip) && localMetric.totalGzip <= maxBytes;
+      console.info(
+        `  gzip budget:  ${passesBudget ? 'PASS' : 'FAIL'} | max ${budgetKb.toFixed(1)} KB (${formatBytes(maxBytes)})`
+      );
+      if (!passesBudget) {
+        budgetFailures.push(`${pkg.name}: ${formatBytes(localMetric.totalGzip)} > ${formatBytes(maxBytes)}`);
+      }
+    }
     console.info('');
+  }
+
+  if (budgetFailures.length > 0) {
+    throw new Error(`README gzip budget exceeded:\n${budgetFailures.join('\n')}`);
   }
 }
 
