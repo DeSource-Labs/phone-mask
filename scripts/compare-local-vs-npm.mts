@@ -490,7 +490,7 @@ async function fetchScenarioMetricWithTotals(
 
 async function buildLocalPackages(): Promise<void> {
   console.info('Building local workspace packages before creating publish-preview tarballs...');
-  await execFileAsync('pnpm', ['build'], { cwd: ROOT_DIR });
+  await execFileAsync('pnpm', ['build'], { cwd: ROOT_DIR, maxBuffer: 20 * 1024 * 1024 });
   console.info('Local workspace build completed.');
   console.info('');
 }
