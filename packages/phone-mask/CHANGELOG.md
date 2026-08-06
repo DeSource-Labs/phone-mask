@@ -1,5 +1,17 @@
 # @desource/phone-mask
 
+## 1.6.0
+
+### Minor Changes
+
+- React Upgrades:
+  - Improved `PhoneInput` SSR support by deferring dropdown portal rendering until the component is mounted, avoiding server-side `document.body` access during render.
+  - Preserved country selector portal behavior by rendering the dropdown into `document.body` after mount.
+
+- Vue/React/Svelte/Nuxt Upgrades:
+  - Improved default copy icon visuals across framework `PhoneInput` components.
+  - Compressed default copy, copied, and clear SVG paths without changing public customization props or slots.
+
 ## 1.5.0
 
 ### Minor Changes
