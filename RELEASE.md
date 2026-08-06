@@ -1,249 +1,158 @@
 # Release Process
 
-This monorepo uses [Changesets](https://github.com/changesets/changesets) for version management and publishing.
+This monorepo uses [Changesets](https://github.com/changesets/changesets) to version and publish all
+public packages together. Every release has one shared version, one Git tag, and one GitHub release.
 
-## Quick Start
+## Packages
 
-```bash
-# 1. Contributors add changesets in feature PRs
-pnpm changeset
+The following packages form a Changesets fixed group and always receive the same version bump:
 
-# 2. Merge contributor PRs to main (changesets accumulate)
+- `@desource/phone-mask`
+- `@desource/phone-mask-react`
+- `@desource/phone-mask-vue`
+- `@desource/phone-mask-svelte`
+- `@desource/phone-mask-nuxt`
 
-# 3. When you're ready to release, on main:
-pnpm changeset:version
+## Standard Release
 
-# 4. Commit version/changelog updates with a message that contains the trigger text:
-git add .
-git commit -m "chore: Release packages"
+### 1. Create the release branch
 
-# 5. Push to main (release workflow publishes)
-git push origin main
-```
-
-## Detailed Workflow
-
-### 1. Adding a Changeset
-
-After making changes to any package, create a changeset:
+Start from an up-to-date `main` branch and replace `X.Y.Z` with the intended version:
 
 ```bash
+git switch main
+git pull --ff-only
+git switch -c chore/release-X.Y.Z
+```
+
+### 2. Create the release changeset
+
+```bash
 pnpm changeset
 ```
 
-You'll be prompted to:
+In the prompts:
 
-1. **Select packages**: Choose which packages were affected
-2. **Select bump type**:
-   - `patch` (0.0.X) - Bug fixes, minor changes
-   - `minor` (0.X.0) - New features, backwards compatible
-   - `major` (X.0.0) - Breaking changes
-3. **Write summary**: Describe the changes (supports markdown)
+1. Select every public package listed above. The fixed group enforces the shared version, but all
+   packages must be selected for the summary to appear in every package changelog.
+2. Select the same `major`, `minor`, or `patch` bump for the release.
+3. Write the complete, user-facing release summary.
+4. Confirm the generated changeset.
 
-Example changeset file (`.changeset/happy-pandas-dance.md`):
-
-```md
----
-'@desource/phone-mask': minor
-'@desource/phone-mask-vue': minor
-'@desource/phone-mask-nuxt': minor
----
-
-Add support for dynamic country list updates and improve performance
-```
-
-### 2. Maintainer Release Trigger (via GitHub Actions)
-
-This repository uses an explicit release trigger.
-
-1. Merge contributor PRs that contain `.changeset/*.md` files.
-2. When ready to publish, run:
+### 3. Apply the version
 
 ```bash
 pnpm changeset:version
-git add .
-git commit -m "chore: Release packages"
-git push origin main
 ```
 
-3. The release workflow runs on `main` and publishes when either:
-   - commit message contains `chore: Release packages`
-   - workflow is started manually (`workflow_dispatch`)
+This consumes all pending changesets and updates the five package versions and changelogs. A pnpm
+install is not required because internal packages use `workspace:*`; package version changes do not
+change the workspace importers in `pnpm-lock.yaml`.
 
-### 3. Manual Release (Workflow Dispatch)
+Before committing, verify:
 
-If you already have version/changelog changes on `main` and want to force publishing without the commit-message trigger:
+- all five `package.json` files contain the intended version;
+- all five changelogs contain the release summary;
+- `packages/phone-mask/CHANGELOG.md` has the content wanted for the GitHub release;
+- all temporary changeset files were consumed;
+- no unrelated files changed.
+
+### 4. Open and merge the release pull request
 
 ```bash
-# from GitHub UI: Actions -> Release -> Run workflow
-# or via GitHub CLI:
+git add .
+git commit -m "chore: Release packages"
+git push -u origin chore/release-X.Y.Z
+```
+
+Open a pull request to `main` and squash-merge it. Keep the squash commit message as
+`chore: Release packages` so it triggers the release workflow.
+
+### 5. Automated publishing
+
+After the release commit reaches `main`, `.github/workflows/release.yml`:
+
+1. installs dependencies with the frozen lockfile;
+2. verifies that every public package has the core package version;
+3. extracts the matching entry from `packages/phone-mask/CHANGELOG.md`;
+4. builds and publishes all packages to npm without package-specific Git tags;
+5. creates one Git tag named `X.Y.Z`;
+6. creates one GitHub release named `X.Y.Z` using the extracted changelog entry.
+
+The workflow marks versions such as `2.0.0-beta.0` as GitHub pre-releases.
+
+## Manual Recovery
+
+The workflow can be started from **Actions → Release → Run workflow**, or with GitHub CLI:
+
+```bash
 gh workflow run Release
 ```
 
-## Package Publishing Configuration
+Use manual dispatch to recover a release whose automatic workflow was interrupted. npm publishing
+and GitHub release creation are safe to retry: already-published package versions are skipped, and
+an existing GitHub release is left unchanged.
 
-Each package must have proper npm configuration:
+## Version Types
 
-```json
-{
-  "name": "@desource/package-name",
-  "version": "0.0.0",
-  "private": false,
-  "publishConfig": {
-    "access": "public"
-  }
-}
-```
-
-## Linked Packages
-
-If packages should always be versioned together, add to `.changeset/config.json`:
-
-```json
-{
-  "linked": [["@desource/phone-mask-vue", "@desource/phone-mask-nuxt"]]
-}
-```
-
-## Fixed Packages
-
-If packages should have the same version number:
-
-```json
-{
-  "fixed": [["@desource/phone-mask", "@desource/phone-mask-vue", "@desource/phone-mask-nuxt"]]
-}
-```
-
-## Pre-releases
-
-For beta/alpha releases:
-
-```bash
-# Enter pre-release mode
-pnpm changeset pre enter beta
-
-# Add changesets and version as normal
-pnpm changeset
-pnpm changeset:version
-
-# Publish pre-release
-pnpm changeset:publish
-
-# Exit pre-release mode
-pnpm changeset pre exit
-```
-
-## NPM Token Setup
-
-For GitHub Actions to publish:
-
-1. Create npm token at https://www.npmjs.com/settings/tokens
-2. Add as `NPM_TOKEN` in GitHub repo secrets
-3. Ensure you're logged in: `npm login`
+- **Patch (`1.0.X`)**: bug fixes and compatible internal improvements.
+- **Minor (`1.X.0`)**: backward-compatible features and public API additions.
+- **Major (`X.0.0`)**: breaking public API changes.
 
 ## Useful Commands
 
 ```bash
-# Add a changeset
+# Create a changeset
 pnpm changeset
 
-# View changeset status
+# Inspect pending changesets and calculated bumps
 pnpm changeset status
 
-# Version packages (updates package.json + CHANGELOGs)
+# Consume changesets and update package versions/changelogs
 pnpm changeset:version
 
-# Publish to npm
+# Build and publish unpublished versions without creating Git tags
 pnpm changeset:publish
-
-# Full release (version + publish)
-pnpm release
 ```
 
-## Changeset Types
+`pnpm changeset:publish` is a low-level workflow command: it publishes packages without creating a
+Git tag or GitHub release. Use the pull-request workflow for complete releases so the version changes
+are reviewed and the shared release artifact is created after publishing.
 
-### Patch (0.0.X)
+## Configuration and Credentials
 
-- Bug fixes
-- Documentation updates
-- Internal refactoring
-- Dependency updates
+- `.changeset/config.json` defines the fixed package group and public npm access.
+- `NPM_TOKEN` must be configured as a GitHub Actions repository secret.
+- The workflow's `GITHUB_TOKEN` requires `contents: write` to create the single tag and release.
+- Each publishable package must have `private: false` and `publishConfig.access: public`.
 
-### Minor (0.X.0)
-
-- New features
-- Non-breaking API additions
-- Performance improvements
-
-### Major (X.0.0)
-
-- Breaking API changes
-- Removal of deprecated features
-- Major refactoring affecting public API
-
-## Best Practices
-
-1. **One changeset per PR**: Add changeset in your feature branch
-2. **Descriptive summaries**: Write clear, user-facing change descriptions
-3. **Multiple packages**: If a change affects multiple packages, select all of them
-4. **Breaking changes**: Always mark breaking changes as `major`
-5. **Workspace dependencies**: Changesets automatically updates `workspace:*` versions
+If internal dependencies are ever changed from `workspace:*` to explicit ranges such as
+`workspace:^1.6.0`, re-evaluate whether `pnpm install --lockfile-only` is needed after
+`changeset version` and commit any resulting lockfile update.
 
 ## Troubleshooting
 
-### Package not publishing
+### A package is not published
 
-- Check `private: false` in package.json
-- Verify npm authentication: `npm whoami`
-- Check package scope permissions
+- Confirm the package version is newer than the version on npm.
+- Confirm `private` is not `true`.
+- Verify `NPM_TOKEN` and npm scope permissions.
+- Review the **Build and publish packages to npm** workflow step.
 
-### Version conflicts
+### The GitHub release is not created
 
-- Ensure all changesets are consumed before adding new ones
-- Run `pnpm changeset:version` to clear pending changesets
+- Confirm npm publishing completed successfully.
+- Confirm all public package versions match.
+- Confirm the core changelog has a `## X.Y.Z` entry with non-empty content.
+- Run the workflow manually to retry.
 
-### GitHub Action fails
+### Package versions do not match
 
-- Verify NPM_TOKEN secret is set
-- Check GITHUB_TOKEN has write permissions
-- Ensure release commit message is exactly `chore: Release packages` (unless using manual dispatch)
-- Review workflow logs for specific errors
-
-## Example Workflow
-
-1. **Feature branch**:
-
-   ```bash
-   git checkout -b feat/new-feature
-   # Make changes to @desource/phone-mask
-   pnpm changeset
-   # Select: @desource/phone-mask, minor
-   # Summary: "Add new formatInternational method"
-   git add .
-   git commit -m "feat: add formatInternational method"
-   git push origin feat/new-feature
-   ```
-
-2. **Create PR** → merge to main
-
-3. **Maintainer decides to release**:
-
-   ```bash
-   git checkout main
-   git pull
-   pnpm changeset:version
-   git add .
-   git commit -m "chore: Release packages"
-   git push origin main
-   ```
-
-4. **GitHub Action publishes packages**:
-   - Publishes updated versions to npm
-   - Pushes tags created by Changesets
+Do not publish. Correct the changeset or package versions and rerun `pnpm changeset:version`. The
+workflow intentionally fails before npm publishing when it detects a mismatch.
 
 ## Resources
 
-- [Changesets Documentation](https://github.com/changesets/changesets/blob/main/docs/intro-to-using-changesets.md)
+- [Changesets documentation](https://github.com/changesets/changesets/blob/main/docs/intro-to-using-changesets.md)
+- [pnpm workspace protocol](https://pnpm.io/workspaces#workspace-protocol-workspace)
 - [Semantic Versioning](https://semver.org/)
-- [Conventional Commits](https://www.conventionalcommits.org/)

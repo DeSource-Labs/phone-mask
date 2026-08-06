@@ -7,7 +7,15 @@
     }
   ],
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "@desource/phone-mask",
+      "@desource/phone-mask-react",
+      "@desource/phone-mask-vue",
+      "@desource/phone-mask-svelte",
+      "@desource/phone-mask-nuxt"
+    ]
+  ],
   "linked": [],
   "access": "public",
   "baseBranch": "main",
