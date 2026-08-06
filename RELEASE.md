@@ -115,8 +115,9 @@ pnpm changeset:version
 pnpm changeset:publish
 ```
 
-`pnpm release` versions and publishes directly from the current checkout. Prefer the pull-request
-workflow for normal releases so the version changes are reviewed before npm publishing begins.
+`pnpm changeset:publish` is a low-level workflow command: it publishes packages without creating a
+Git tag or GitHub release. Use the pull-request workflow for complete releases so the version changes
+are reviewed and the shared release artifact is created after publishing.
 
 ## Configuration and Credentials
 

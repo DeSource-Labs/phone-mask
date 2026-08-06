@@ -490,7 +490,7 @@ git switch -c chore/release-X.Y.Z
 # Include every public package so the release summary is added to every changelog
 pnpm changeset
 
-# Update all package versions, changelogs, and the lockfile
+# Update all package versions and changelogs
 pnpm changeset:version
 
 # Commit and open a pull request to main

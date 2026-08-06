@@ -13,7 +13,6 @@
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm build && changeset publish --no-git-tag",
-    "release": "pnpm changeset:version && pnpm changeset:publish",
     "readme:benchmarks": "node scripts/update-readme-benchmarks.mts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

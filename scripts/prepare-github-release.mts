@@ -45,8 +45,10 @@ if (!releaseNotesPath) {
 await writeFile(releaseNotesPath, `${releaseNotes}\n`);
 
 if (process.env.GITHUB_OUTPUT) {
+  const versionWithoutBuild = version.split('+', 1)[0];
+
   await appendFile(process.env.GITHUB_OUTPUT, `version=${version}\n`);
-  await appendFile(process.env.GITHUB_OUTPUT, `prerelease=${version.includes('-')}\n`);
+  await appendFile(process.env.GITHUB_OUTPUT, `prerelease=${versionWithoutBuild.includes('-')}\n`);
 }
 
 console.log(`Prepared GitHub release ${version} for ${publicPackages.length} packages`);
