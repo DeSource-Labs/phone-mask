@@ -484,19 +484,29 @@ We use [Semantic Versioning](https://semver.org/):
 ### Publishing
 
 ```bash
-# Contributors: create a changeset in your feature PR
+# Create the release branch
+git switch -c chore/release-X.Y.Z
+
+# Include every public package so the release summary is added to every changelog
 pnpm changeset
 
-# Maintainers: when ready to release from main, consume pending changesets
+# Update all package versions, changelogs, and the lockfile
 pnpm changeset:version
 
-# Commit with the release trigger message used by CI
+# Commit and open a pull request to main
 git add .
 git commit -m "chore: Release packages"
-git push origin main
+git push -u origin chore/release-X.Y.Z
 ```
 
-Release workflow also supports manual dispatch from GitHub Actions if needed.
+All public packages are configured as a Changesets fixed group, so they always use the same
+version and bump type. Include all packages in the changeset to copy the release summary to every
+package changelog.
+
+After the release pull request is squash-merged, the release workflow builds and publishes every
+package to npm without package-specific Git tags. It then creates one `X.Y.Z` Git tag and one GitHub
+release using the matching entry from `packages/phone-mask/CHANGELOG.md`. The workflow also supports
+manual dispatch from GitHub Actions if recovery is needed.
 
 ## 🎯 Areas We Need Help
 
