@@ -19,7 +19,6 @@ jobs:
     if: "${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore: Release packages') || contains(github.event.head_commit.message, 'chore: release packages') }}"
     permissions:
       contents: write
-      pull-requests: write
       id-token: write
     steps:
       - name: Checkout Repo
@@ -40,20 +39,37 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Packages
-        run: pnpm build
+      - name: Prepare GitHub release
+        id: release
+        env:
+          RELEASE_NOTES_PATH: ${{ runner.temp }}/release-notes.md
+        run: node scripts/prepare-github-release.mts
 
-      - name: Publish to npm (Changesets)
-        id: publish
-        uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1.9.0
-        with:
-          publish: pnpm changeset:publish
+      - name: Build and publish packages to npm
+        run: pnpm changeset:publish
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push tags to GitHub
-        run: git push --follow-tags
+      - name: Create GitHub release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRERELEASE: ${{ steps.release.outputs.prerelease }}
+          RELEASE_NOTES_PATH: ${{ runner.temp }}/release-notes.md
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "GitHub release $VERSION already exists"
+          else
+            release_options=(
+              --target "$GITHUB_SHA"
+              --title "$VERSION"
+              --notes-file "$RELEASE_NOTES_PATH"
+            )
+
+            if [[ "$PRERELEASE" == 'true' ]]; then
+              release_options+=(--prerelease)
+            fi
+
+            gh release create "$VERSION" "${release_options[@]}"
+          fi
