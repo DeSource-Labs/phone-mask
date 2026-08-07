@@ -26,6 +26,7 @@ const DATA_CHANGE_FILES = new Set([
 ]);
 const CHANGESET_PATH = '.changeset/google-libphonenumber-mask-sync.md';
 const CHANGESET_LEVEL = 'patch';
+const GIT_BINARY = '/usr/bin/git';
 const CHANGE_KIND_ORDER: Record<CountryChangeKind, number> = {
   added: 0,
   removed: 1,
@@ -83,12 +84,13 @@ console.log(
 );
 
 function resolveLatestReleaseTag(): string {
-  const tags = execFileSync('git', ['tag', '--merged', 'HEAD', '--sort=-version:refname'], { encoding: 'utf8' })
+  const latestTag = execFileSync(GIT_BINARY, ['tag', '--merged', 'HEAD', '--sort=-version:refname'], {
+    encoding: 'utf8'
+  })
     .split('\n')
     .map((tag) => tag.trim())
-    .filter((tag) => /^(?:v)?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(tag));
+    .find(isSemverTag);
 
-  const latestTag = tags[0];
   if (!latestTag) {
     throw new Error('Could not resolve the latest reachable semver release tag. Set MASK_SYNC_BASE_REF explicitly.');
   }
@@ -97,18 +99,22 @@ function resolveLatestReleaseTag(): string {
 }
 
 function assertGitRef(ref: string): void {
-  execFileSync('git', ['rev-parse', '--verify', `${ref}^{commit}`], { stdio: 'ignore' });
+  execFileSync(GIT_BINARY, ['rev-parse', '--verify', `${ref}^{commit}`], { stdio: 'ignore' });
 }
 
 function gitShow(refPath: string): string {
-  return execFileSync('git', ['show', refPath], { encoding: 'utf8' });
+  return execFileSync(GIT_BINARY, ['show', refPath], { encoding: 'utf8' });
 }
 
 function changedFilesSince(ref: string): string[] {
-  return execFileSync('git', ['diff', '--name-only', `${ref}..HEAD`], { encoding: 'utf8' })
+  return execFileSync(GIT_BINARY, ['diff', '--name-only', `${ref}..HEAD`], { encoding: 'utf8' })
     .split('\n')
     .map((file) => file.trim())
     .filter(Boolean);
+}
+
+function isSemverTag(tag: string): boolean {
+  return /^(?:v)?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(tag);
 }
 
 async function assertNoActiveChangesets(): Promise<void> {
@@ -233,7 +239,17 @@ function formatChangelogEntry(changes: CountryChange[]): string {
 }
 
 function countryFlag(countryCode: string): string {
-  return [...countryCode].map((char) => String.fromCodePoint(0x1f1e6 + char.charCodeAt(0) - 65)).join('');
+  return [...countryCode].map(countryCodeLetterToRegionalIndicator).join('');
+}
+
+function countryCodeLetterToRegionalIndicator(char: string): string {
+  const codePoint = char.codePointAt(0);
+
+  if (codePoint === undefined) {
+    return '';
+  }
+
+  return String.fromCodePoint(0x1f1e6 + codePoint - 65);
 }
 
 function unique(values: string[]): string[] {
@@ -252,12 +268,16 @@ async function writeStepSummary(
   const nonDataSection =
     nonDataFiles.length === 0
       ? 'No non-data files changed since the compare ref.'
-      : `Non-data files changed since the compare ref:\n\n${nonDataFiles.map((file) => `- \`${file}\``).join('\n')}`;
+      : `Non-data files changed since the compare ref:\n\n${nonDataFiles.map(formatMarkdownFileListItem).join('\n')}`;
 
   await appendFile(
     summaryPath,
     `## Google libphonenumber mask sync\n\nBase ref: \`${ref}\`\n\nCountry changes: ${changes.length}\n\n${changelogEntry}\n\n${nonDataSection}\n`
   );
+}
+
+function formatMarkdownFileListItem(file: string): string {
+  return `- \`${file}\``;
 }
 
 async function writeStepOutputs(changeCount: number, changelogEntry: string): Promise<void> {
