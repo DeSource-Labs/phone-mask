@@ -1,5 +1,15 @@
 # @desource/phone-mask-svelte
 
+## 1.6.1
+
+### Patch Changes
+
+- Core Upgrades:
+  - Sync country masks with google-libphonenumber (🇫🇴 Faroe Islands updates)
+
+- Updated dependencies []:
+  - @desource/phone-mask@1.6.1
+
 ## 1.6.0
 
 ### Minor Changes
