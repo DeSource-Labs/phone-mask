@@ -17,6 +17,13 @@ type CountryChange = {
   kind: CountryChangeKind;
   name: string;
 };
+type SemverTag = {
+  tag: string;
+  major: number;
+  minor: number;
+  patch: number;
+  prerelease: string[];
+};
 
 const DATA_JSON_PATH = 'packages/phone-mask/src/data.json';
 const DATA_CHANGE_FILES = new Set([
@@ -27,6 +34,7 @@ const DATA_CHANGE_FILES = new Set([
 const CHANGESET_PATH = '.changeset/google-libphonenumber-mask-sync.md';
 const CHANGESET_LEVEL = 'patch';
 const GIT_BINARY = '/usr/bin/git';
+const PACKAGE_CHANGELOG_RE = /^packages\/[^/]+\/CHANGELOG\.md$/;
 const CHANGE_KIND_ORDER: Record<CountryChangeKind, number> = {
   added: 0,
   removed: 1,
@@ -60,7 +68,15 @@ if (packageNames.length === 0) {
 
 const changelogEntry = formatChangelogEntry(changes);
 const changeset = formatChangeset(packageNames, changelogEntry);
-const nonDataFiles = changedFilesSince(baseRef).filter((file) => !DATA_CHANGE_FILES.has(file));
+const nonDataFiles = changedFilesSince(baseRef).filter(isNonDataFile);
+const releaseBlockingFiles = nonDataFiles.filter(isReleaseBlockingFile);
+
+if (releaseBlockingFiles.length > 0) {
+  await writeStepSummary(baseRef, changes, changelogEntry, nonDataFiles, releaseBlockingFiles);
+  throw new Error(
+    `Found publish-relevant non-data package changes since ${baseRef}: ${releaseBlockingFiles.join(', ')}. Release those changes first or rerun with a newer base ref.`
+  );
+}
 
 if (dryRun) {
   console.log(`Dry run: would create ${CHANGESET_PATH}`);
@@ -73,10 +89,10 @@ if (dryRun) {
 if (nonDataFiles.length > 0) {
   const preview = nonDataFiles.slice(0, 20).join(', ');
   const suffix = nonDataFiles.length > 20 ? `, and ${nonDataFiles.length - 20} more` : '';
-  console.warn(`::warning title=Non-data changes since ${baseRef}::${preview}${suffix}`);
+  console.warn(`::notice title=Non-published non-data changes since ${baseRef}::${preview}${suffix}`);
 }
 
-await writeStepSummary(baseRef, changes, changelogEntry, nonDataFiles);
+await writeStepSummary(baseRef, changes, changelogEntry, nonDataFiles, releaseBlockingFiles);
 await writeStepOutputs(changes.length, changelogEntry);
 
 console.log(
@@ -84,12 +100,14 @@ console.log(
 );
 
 function resolveLatestReleaseTag(): string {
-  const latestTag = execFileSync(GIT_BINARY, ['tag', '--merged', 'HEAD', '--sort=-version:refname'], {
-    encoding: 'utf8'
-  })
+  const tags = execFileSync(GIT_BINARY, ['tag', '--merged', 'HEAD'], { encoding: 'utf8' })
     .split('\n')
     .map((tag) => tag.trim())
-    .find(isSemverTag);
+    .map(parseSemverTag)
+    .filter((tag): tag is SemverTag => tag !== null)
+    .sort(compareSemverTags);
+
+  const latestTag = tags.at(-1)?.tag;
 
   if (!latestTag) {
     throw new Error('Could not resolve the latest reachable semver release tag. Set MASK_SYNC_BASE_REF explicitly.');
@@ -113,8 +131,72 @@ function changedFilesSince(ref: string): string[] {
     .filter(Boolean);
 }
 
-function isSemverTag(tag: string): boolean {
-  return /^(?:v)?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(tag);
+function isNonDataFile(file: string): boolean {
+  return !DATA_CHANGE_FILES.has(file);
+}
+
+function isReleaseBlockingFile(file: string): boolean {
+  return file.startsWith('packages/') && !PACKAGE_CHANGELOG_RE.test(file);
+}
+
+function parseSemverTag(tag: string): SemverTag | null {
+  const match = /^(?:v)?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(tag);
+  if (!match) return null;
+
+  return {
+    tag,
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: Number(match[3]),
+    prerelease: match[4]?.split('.') ?? []
+  };
+}
+
+function compareSemverTags(left: SemverTag, right: SemverTag): number {
+  return (
+    compareNumbers(left.major, right.major) ||
+    compareNumbers(left.minor, right.minor) ||
+    compareNumbers(left.patch, right.patch) ||
+    comparePrerelease(left.prerelease, right.prerelease)
+  );
+}
+
+function compareNumbers(left: number, right: number): number {
+  return left - right;
+}
+
+function comparePrerelease(left: string[], right: string[]): number {
+  if (left.length === 0 && right.length === 0) return 0;
+  if (left.length === 0) return 1;
+  if (right.length === 0) return -1;
+
+  const maxLength = Math.max(left.length, right.length);
+  for (let index = 0; index < maxLength; index += 1) {
+    const leftIdentifier = left[index];
+    const rightIdentifier = right[index];
+
+    if (leftIdentifier === undefined) return -1;
+    if (rightIdentifier === undefined) return 1;
+
+    const comparison = comparePrereleaseIdentifier(leftIdentifier, rightIdentifier);
+    if (comparison !== 0) return comparison;
+  }
+
+  return 0;
+}
+
+function comparePrereleaseIdentifier(left: string, right: string): number {
+  const leftNumeric = /^\d+$/.test(left);
+  const rightNumeric = /^\d+$/.test(right);
+
+  if (leftNumeric && rightNumeric) {
+    return compareNumbers(Number(left), Number(right));
+  }
+
+  if (leftNumeric) return -1;
+  if (rightNumeric) return 1;
+
+  return left.localeCompare(right, 'en');
 }
 
 async function assertNoActiveChangesets(): Promise<void> {
@@ -260,7 +342,8 @@ async function writeStepSummary(
   ref: string,
   changes: CountryChange[],
   changelogEntry: string,
-  nonDataFiles: string[]
+  nonDataFiles: string[],
+  releaseBlockingFiles: string[]
 ): Promise<void> {
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryPath) return;
@@ -269,10 +352,14 @@ async function writeStepSummary(
     nonDataFiles.length === 0
       ? 'No non-data files changed since the compare ref.'
       : `Non-data files changed since the compare ref:\n\n${nonDataFiles.map(formatMarkdownFileListItem).join('\n')}`;
+  const releaseBlockingSection =
+    releaseBlockingFiles.length === 0
+      ? 'No publish-relevant non-data package files changed since the compare ref.'
+      : `Publish-relevant non-data package files changed since the compare ref:\n\n${releaseBlockingFiles.map(formatMarkdownFileListItem).join('\n')}`;
 
   await appendFile(
     summaryPath,
-    `## Google libphonenumber mask sync\n\nBase ref: \`${ref}\`\n\nCountry changes: ${changes.length}\n\n${changelogEntry}\n\n${nonDataSection}\n`
+    `## Google libphonenumber mask sync\n\nBase ref: \`${ref}\`\n\nCountry changes: ${changes.length}\n\n${changelogEntry}\n\n${nonDataSection}\n\n${releaseBlockingSection}\n`
   );
 }
 
