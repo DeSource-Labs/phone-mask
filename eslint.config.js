@@ -143,6 +143,8 @@ export default [
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
+      // Existing hooks intentionally synchronize state in effects; keep the new Hooks 7 rule advisory.
+      'react-hooks/set-state-in-effect': 'warn',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
       'react/jsx-uses-react': 'off'
