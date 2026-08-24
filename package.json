@@ -27,11 +27,12 @@
     "test:e2e": "pnpm -r --filter \"./packages/**\" --stream --workspace-concurrency=1 run test:e2e",
     "test:unit": "pnpm -r --filter \"./packages/**\" --stream run test:unit",
     "test:unit:coverage": "pnpm -r --filter \"./packages/**\" --stream run test:unit:coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prebuild": "pnpm -r --filter \"./packages/**\" --if-present --stream run dev:prepare"
   },
   "packageManager": "pnpm@11.22.0",
   "engines": {
-    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+    "node": "^24.15.0 || >=26.0.0"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^1.0.0",

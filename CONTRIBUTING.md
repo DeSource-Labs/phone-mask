@@ -79,7 +79,7 @@ We actively welcome your pull requests:
 
 ### Prerequisites
 
-- **Node.js** ^22.22.2, ^24.15.0, or >=26.0.0
+- **Node.js** ^24.15.0, or >=26.0.0
 - **pnpm** 11.22.0
 
 ### Installation
