@@ -1,5 +1,15 @@
 # @desource/phone-mask-vue
 
+## 1.6.2
+
+### Patch Changes
+
+- Core/Vue/React/Svelte/Nuxt Upgrades:
+  - Updated development dependencies across build, lint, test, and framework tooling.
+
+- Updated dependencies []:
+  - @desource/phone-mask@1.6.2
+
 ## 1.6.1
 
 ### Patch Changes
