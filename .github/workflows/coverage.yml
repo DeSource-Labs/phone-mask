@@ -47,6 +47,7 @@ jobs:
         with:
           ref: ${{ steps.resolve-ref.outputs.ref }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Resolve base SHA for manual PR run
         id: resolve-base
