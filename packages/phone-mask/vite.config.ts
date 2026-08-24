@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import terser from '@rollup/plugin-terser';
-import packageJson from './package.json';
+import packageJson from './package.json' with { type: 'json' };
 
 const rawName = packageJson.name.replace(/^@.*\//, '');
 const safeName = rawName.replaceAll(/[^a-z0-9-_]/gi, '');
