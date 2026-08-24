@@ -6,8 +6,6 @@ overrides:
   glob: ^13.0.6
   # Less has no patched image-size release in its legacy range; this repo does not use its image helpers.
   "less>image-size": "-"
-  # Keep compatible transitive ranges on patched releases.
-  "nanoid@3.3.16": 3.3.18
 
 allowBuilds:
   '@parcel/watcher': true
