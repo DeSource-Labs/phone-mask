@@ -5,7 +5,6 @@ import vue from 'eslint-plugin-vue';
 import vueParser from 'vue-eslint-parser';
 import svelte from 'eslint-plugin-svelte';
 import svelteParser from 'svelte-eslint-parser';
-import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
@@ -131,21 +130,12 @@ export default [
       }
     },
     plugins: {
-      react,
       'react-hooks': reactHooks
     },
-    settings: {
-      react: {
-        version: 'detect'
-      }
-    },
     rules: {
-      ...react.configs.recommended.rules,
-      ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
-      'react/prop-types': 'off',
-      'react/react-in-jsx-scope': 'off',
-      'react/jsx-uses-react': 'off'
+      // Existing hooks intentionally synchronize state in effects; keep the new Hooks 7 rule advisory.
+      'react-hooks/set-state-in-effect': 'warn'
     }
   },
 

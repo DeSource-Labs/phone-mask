@@ -4,7 +4,8 @@ packages:
 
 overrides:
   glob: ^13.0.6
-  vite: ~8.0.16
+  # Less has no patched image-size release in its legacy range; this repo does not use its image helpers.
+  "less>image-size": "-"
 
 allowBuilds:
   '@parcel/watcher': true
