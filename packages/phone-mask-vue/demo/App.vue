@@ -7,8 +7,8 @@ import DemoDirective from './components/DemoDirective.vue';
 <template>
   <main class="app-main">
     <header class="app-header">
-      <h1 class="app-title">@desource/phone-mask-vue</h1>
-      <p class="app-subtitle">Interactive Component Demo &amp; Playground</p>
+      <h1 class="app-title">🔌 @desource/phone-mask-vue</h1>
+      <p class="app-subtitle">Test every Vue API with weekly-synced Google libphonenumber data.</p>
     </header>
 
     <div class="app-content">
@@ -18,7 +18,7 @@ import DemoDirective from './components/DemoDirective.vue';
     </div>
 
     <footer class="app-footer">
-      <p>Tip: Open console to see event logs</p>
+      <p>💡 Open the developer console to inspect emitted values and events.</p>
     </footer>
   </main>
 </template>

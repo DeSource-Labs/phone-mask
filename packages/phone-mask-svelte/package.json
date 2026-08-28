@@ -1,7 +1,7 @@
 {
   "name": "@desource/phone-mask-svelte",
   "version": "1.6.2",
-  "description": "🌍 Svelte 5 component, composable, action, and attachment for international phone number masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
+  "description": "Best-in-class, accessible Svelte 5 phone input, composable, action, and attachment with formatting, validation, and data updated weekly from Google's libphonenumber.",
   "keywords": [
     "svelte",
     "svelte5",

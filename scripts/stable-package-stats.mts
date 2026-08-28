@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { gzipSync } from 'node:zlib';
-import { build, type BuildResult, type OutputFile } from 'esbuild';
+import { build, type BuildResult } from 'esbuild';
 import { rspack, type Configuration } from '@rspack/core';
 
 type ExecFileAsync = (
@@ -53,7 +53,6 @@ type EsbuildRetryInput = {
   entryFile: string;
   externalSet: Set<string>;
 };
-type PreferredOutputFile = Pick<OutputFile, 'path' | 'contents'>;
 type RspackConfigInput = {
   entryFile: string;
   distDir: string;
@@ -176,7 +175,7 @@ async function createInstallRoot(pkg: string, options: NormalizedStatsOptions): 
   return { installRoot, manifest: pkgManifest, peerDeps };
 }
 
-function hasSvelteOnlyRootExport(manifest: Record<string, unknown>): boolean {
+function requiresSvelteVite(manifest: Record<string, unknown>): boolean {
   const exportsField = manifest.exports;
   if (!exportsField || typeof exportsField !== 'object' || Array.isArray(exportsField)) return false;
 
@@ -187,11 +186,16 @@ function hasSvelteOnlyRootExport(manifest: Record<string, unknown>): boolean {
       : null;
   if (!rootExport || Array.isArray(rootExport)) return false;
 
-  const hasSvelte = typeof rootExport.svelte === 'string';
-  const hasImport = typeof rootExport.import === 'string';
-  const hasDefault = typeof rootExport.default === 'string';
-  const hasRequire = typeof rootExport.require === 'string';
-  return hasSvelte && !hasImport && !hasDefault && !hasRequire;
+  const svelteExport = rootExport.svelte;
+  const importExport = rootExport.import;
+  const hasCompiledAlternative =
+    (typeof importExport === 'string' && !importExport.endsWith('.svelte')) ||
+    typeof rootExport.default === 'string' ||
+    typeof rootExport.require === 'string';
+  const pointsToRawSvelte =
+    typeof svelteExport === 'string' &&
+    (svelteExport.endsWith('.svelte') || (typeof importExport === 'string' && importExport.endsWith('.svelte')));
+  return typeof svelteExport === 'string' && (pointsToRawSvelte || !hasCompiledAlternative);
 }
 
 async function measureWithEsbuild(input: PackageMeasureInput): Promise<MeasuredSize | null> {
@@ -274,20 +278,13 @@ function getExternalCandidates(id: string): string[] {
 
 function getEsbuildOutputMetrics(result: BuildResult): MeasuredSize | null {
   if (!result.outputFiles || result.outputFiles.length === 0) return null;
-  const mainOutput = findPreferredOutputFile(result.outputFiles);
-  if (!mainOutput) return null;
+  const assets = result.outputFiles.filter((file) => /\.(?:js|css)$/.test(file.path || ''));
+  if (assets.length === 0) return null;
 
-  const size = mainOutput.contents.length;
-  const gzip = gzipSync(mainOutput.contents).length;
+  const size = assets.reduce((total, file) => total + file.contents.length, 0);
+  const gzip = assets.reduce((total, file) => total + gzipSync(file.contents).length, 0);
   if (size === 0 || gzip === 0) return null;
   return { size, gzip };
-}
-
-function findPreferredOutputFile(outputFiles: OutputFile[]): PreferredOutputFile | undefined {
-  return (
-    outputFiles.find((file) => path.extname(file.path || '') === '.css') ??
-    outputFiles.find((file) => path.extname(file.path || '') === '.js')
-  );
 }
 
 function getPackageNameFromImportId(id: string): string | null {
@@ -361,14 +358,16 @@ function extractRspackMissingImport(message: string): string | null {
 
 async function pickMainAssetSize(distDir: string): Promise<MeasuredSize | null> {
   const files = await readdir(distDir);
-  const cssFile = files.find((name) => name === 'main.bundle.css') ?? null;
-  const jsFile = files.find((name) => name === 'main.bundle.js') ?? null;
-  const mainFile = cssFile ?? jsFile;
-  if (!mainFile) return null;
+  const assetFiles = files.filter((name) => /^main(?:\.|$)/.test(name) && /\.(?:js|css)$/.test(name));
+  if (assetFiles.length === 0) return null;
 
-  const fileContents = await readFile(path.join(distDir, mainFile));
-  const size = fileContents.length;
-  const gzip = gzipSync(fileContents).length;
+  let size = 0;
+  let gzip = 0;
+  for (const fileName of assetFiles) {
+    const fileContents = await readFile(path.join(distDir, fileName));
+    size += fileContents.length;
+    gzip += gzipSync(fileContents).length;
+  }
   if (size === 0 || gzip === 0) return null;
   return { size, gzip };
 }
@@ -593,9 +592,9 @@ async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<Measure
 async function measurePackageFallback(pkg: string, options: NormalizedStatsOptions): Promise<MeasuredSize | null> {
   const { installRoot, manifest, peerDeps } = await createInstallRoot(pkg, options);
   try {
-    const entrySource = `import * as benchmarkPackage from ${JSON.stringify(pkg)};\nconsole.log(Object.keys(benchmarkPackage).length);\n`;
+    const entrySource = `import * as benchmarkPackage from ${JSON.stringify(pkg)};\nconsole.log(benchmarkPackage);\n`;
 
-    if (hasSvelteOnlyRootExport(manifest)) {
+    if (requiresSvelteVite(manifest)) {
       return await measureWithSvelteVite({
         pkg,
         installSpec: options.installSpec,
@@ -639,7 +638,7 @@ async function discoverExportNames(pkg: string, installRoot: string, installTime
 async function measureExportSizesFallback(pkg: string, options: NormalizedStatsOptions): Promise<PackageStatsPayload> {
   const { installRoot, manifest, peerDeps } = await createInstallRoot(pkg, options);
   try {
-    if (hasSvelteOnlyRootExport(manifest)) {
+    if (requiresSvelteVite(manifest)) {
       return { assets: [] };
     }
 

@@ -39,7 +39,7 @@
 </script>
 
 <section class="playground" data-testid="playground">
-  <h2 class="heading">Component Playground</h2>
+  <h2 class="heading">🎛️ Configure PhoneInput</h2>
 
   <div class="playground-grid">
     <!-- Preview Panel -->

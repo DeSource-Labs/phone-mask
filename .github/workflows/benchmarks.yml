@@ -1,4 +1,4 @@
-name: Weekly README benchmarks update
+name: Benchmarks update
 
 on:
   schedule:
@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: weekly-benchmarks
+  group: benchmarks
   cancel-in-progress: false
 
 jobs:
@@ -37,10 +37,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Update README benchmark section
+      - name: Update comparison benchmark section & bundle size badges
         run: |
-          pnpm readme:benchmarks
-          git restore package.json pnpm-lock.yaml
+          pnpm docs:benchmarks
 
       - name: Create Pull Request
         id: cpr
@@ -48,16 +47,18 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: |
-            README.md
-          commit-message: "docs(readme): weekly benchmark refresh"
-          title: "docs(readme): weekly benchmark refresh"
+            .github/badges
+            docs/comparison.md
+            demo/shared/generated/bundle-sizes.ts
+          commit-message: 'docs: Refresh benchmarks & bundle size badges'
+          title: 'docs: Refresh benchmarks & bundle size badges'
           body: |
-            Automated weekly README benchmark refresh via GitHub Actions.
+            Automated benchmarks & bundle size refresh from packed workspace packages via GitHub Actions.
 
-            This PR was created automatically after running `pnpm readme:benchmarks`.
+            This PR was created automatically after running `pnpm docs:benchmarks`.
 
             cc @stefashkaa
-          branch: chore/weekly-readme-benchmarks
+          branch: chore/comparison-benchmarks
           branch-suffix: timestamp
           labels: |
             automation

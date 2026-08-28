@@ -104,7 +104,7 @@ function Playground() {
 
   return (
     <section style={playgroundStyle} data-testid="playground">
-      <h2 style={headingStyle}>Component Playground</h2>
+      <h2 style={headingStyle}>🎛️ Configure PhoneInput</h2>
 
       <div style={playgroundGridStyle}>
         {/* Component Preview */}
@@ -379,8 +379,8 @@ function App() {
   return (
     <main style={mainStyle}>
       <header style={headerStyle}>
-        <h1 style={titleStyle}>@desource/phone-mask-react</h1>
-        <p style={subtitleStyle}>Interactive Component Demo & Playground</p>
+        <h1 style={titleStyle}>📱 @desource/phone-mask-react</h1>
+        <p style={subtitleStyle}>Test the component and headless hook with weekly-synced Google libphonenumber data.</p>
       </header>
 
       <div style={contentStyle}>
@@ -389,7 +389,7 @@ function App() {
       </div>
 
       <footer style={footerStyle}>
-        <p>💡 Tip: Open console to see event logs</p>
+        <p>💡 Open the developer console to inspect emitted values and events.</p>
       </footer>
     </main>
   );

@@ -1,6 +1,6 @@
 <template>
   <footer class="footer">
-    <a class="animated-link h3" :href="Links.org" rel="nofollow noopener">DESOURCE LABS</a>
+    <a class="animated-link h3" :href="Links.org" rel="nofollow noopener">BUILT BY DESOURCE LABS ❤️</a>
     <div class="footer__center">
       <LiquidGlass>
         <div class="footer__socials">

@@ -1,42 +1,33 @@
-# @desource/phone-mask-svelte
+# 🌍 @desource/phone-mask-svelte
 
-> Svelte 5 phone input component with Google's libphonenumber data
+> A best-in-class Svelte 5 phone input with component, composable, attachment, and action APIs, backed by country data updated weekly from Google's libphonenumber.
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte)](https://www.npmjs.com/package/@desource/phone-mask-svelte)
 [![codewiki](https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-svelte?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-svelte)
+[![measured gzip size](https://raw.githubusercontent.com/DeSource-Labs/phone-mask/main/.github/badges/phone-mask-svelte.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/docs/comparison.md#current-package-sizes)
 [![context7 docs](https://img.shields.io/badge/context7%20docs-000000)](https://context7.com/desource-labs/phone-mask)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
-Beautiful, accessible, extreme small & tree-shakeable Svelte 5 phone input with auto-formatting, country selector, and validation.
+Use the ready-made `PhoneInput`, build custom markup with `usePhoneMask`, or add masking directly to an existing input with an attachment or action.
 
-## ✨ Features
-
-- 🎨 **Beautiful UI** — Modern design with light/dark themes
-- 🔍 **Smart Country Search** — Fuzzy matching with keyboard navigation
-- 🎭 **Auto-formatting** — As-you-type formatting with smart cursor
-- ✅ **Validation** — Built-in validation with visual feedback
-- 📋 **Copy Button** — One-click copy to clipboard
-- 🌐 **Auto-detection** — GeoIP and locale-based detection
-- ♿ **Accessible** — ARIA labels, keyboard navigation
-- 📱 **Mobile-friendly** — Optimized for touch devices
-- 🎯 **TypeScript** — Full type safety
-- 🧩 **Four modes** — Component, composable, attachment, or action
-- ⚡ **Optimized** — Tree-shaking and code splitting
-
-## 📦 Installation
+## 📦 Install
 
 ```bash
 npm install @desource/phone-mask-svelte
-# or
-yarn add @desource/phone-mask-svelte
-# or
-pnpm add @desource/phone-mask-svelte
 ```
 
-## 🚀 Quick Start
+## 🌟 Why this package
 
-### Importing
+- **Four native Svelte APIs:** component, composable, attachment, and action.
+- **Complete input:** country search, as-you-type formatting, validation feedback, clipboard actions, and themes.
+- **Current data:** 245 countries and territories, refreshed weekly from Google libphonenumber.
+- **Accessible controls:** ARIA labels, focus management, and full keyboard navigation.
+- **Form-ready output:** receive raw digits, international values, and formatted values.
+- **Typed and tree-shakeable:** Svelte 5 support with complete TypeScript declarations.
+
+## 🚀 Quick start
+
+### Choose an API
 
 Component mode:
 
@@ -915,5 +906,5 @@ See [Contributing Guide](../../CONTRIBUTING.md)
 ---
 
 <div align="center">
-  <sub>Made with ❤️ by <a href="https://github.com/DeSource-Labs">DeSource Labs</a></sub>
+  <sub>Built with ❤️ by the <a href="https://github.com/DeSource-Labs">DeSource Labs</a> team</sub>
 </div>

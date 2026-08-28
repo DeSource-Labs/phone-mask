@@ -78,7 +78,9 @@ pnpm outdated
 
 # Update to latest
 pnpm update @desource/phone-mask@latest
+pnpm update @desource/phone-mask-react@latest
 pnpm update @desource/phone-mask-vue@latest
+pnpm update @desource/phone-mask-svelte@latest
 pnpm update @desource/phone-mask-nuxt@latest
 ```
 
@@ -105,7 +107,9 @@ There are currently no known security issues.
 
 - All packages under `@desource/phone-mask*`
   - `@desource/phone-mask`
+  - `@desource/phone-mask-react`
   - `@desource/phone-mask-vue`
+  - `@desource/phone-mask-svelte`
   - `@desource/phone-mask-nuxt`
 
 ### Out of Scope

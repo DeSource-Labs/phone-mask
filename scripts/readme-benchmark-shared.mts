@@ -7,6 +7,7 @@ export const EMPTY_BENCHMARK_DATA = 'N/A';
 export const PACKAGE_STATS_INSTALL_TIMEOUT_MS = 120_000;
 export const PHONE_ENGINE_PACKAGES = new Set([
   '@desource/phone-mask',
+  'intl-tel-input',
   'libphonenumber-js',
   'google-libphonenumber',
   'awesome-phonenumber'

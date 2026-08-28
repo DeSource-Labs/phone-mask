@@ -1,35 +1,30 @@
-# @desource/phone-mask
+# ⚡ @desource/phone-mask
 
-> Core TypeScript library for international phone number masking with Google's libphonenumber data
+> Best-in-class, zero-dependency TypeScript phone formatting and validation, backed by country data updated weekly from Google's libphonenumber.
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)](https://www.npmjs.com/package/@desource/phone-mask)
 [![codewiki](https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask)
+[![measured gzip size](https://raw.githubusercontent.com/DeSource-Labs/phone-mask/main/.github/badges/phone-mask.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/docs/comparison.md#current-package-sizes)
 [![context7 docs](https://img.shields.io/badge/context7%20docs-000000)](https://context7.com/desource-labs/phone-mask)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
-Framework-agnostic phone masking library that stays up-to-date with Google's libphonenumber database.
+Ship international phone formatting without a heavyweight phone engine. The package includes masks, calling codes, flags, and localized country names for 245 countries and territories. A weekly workflow keeps the data aligned with Google's libphonenumber project.
 
-## ✨ Features
-
-- 🌍 **240+ countries** with accurate masks and dialing codes
-- 🔄 **Auto-synced** from Google's libphonenumber
-- 🪶 **Tiny** — root entry is 6.1 KB minified, 2.9 KB gzipped, 2.3 KB brotli
-- 🌳 **Tree-shakeable** — import only what you need
-- 🔧 **TypeScript** — fully typed
-- 🎯 **Zero dependencies**
-
-## 📦 Installation
+## 📦 Install
 
 ```bash
 npm install @desource/phone-mask
-# or
-yarn add @desource/phone-mask
-# or
-pnpm add @desource/phone-mask
 ```
 
-## Import Paths
+## 🌟 Why use the core package
+
+- **Current country data:** 245 countries and territories, refreshed weekly from Google libphonenumber.
+- **Zero runtime dependencies:** country data and formatting logic ship together.
+- **Best-in-class footprint:** the self-hosted size badge comes from a clean consumer build of the packed package, and pure helpers tree-shake much smaller.
+- **Framework-free:** use it in browser code, Node.js, workers, or as the base for a custom input.
+- **Typed end to end:** country keys, masks, formatter results, and handlers include TypeScript declarations.
+
+## 🧭 Import paths
 
 The root entry contains country metadata and mask data. Formatter, input handling, detection, and utility helpers live in the `kit` subpath.
 
@@ -38,7 +33,7 @@ import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
 import { createPhoneFormatter, formatDigitsWithMap } from '@desource/phone-mask/kit';
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick start
 
 ### Basic Formatting
 
@@ -261,7 +256,7 @@ function createTenantPhoneService(tenantId: string) {
 
 ```ts
 // Country ISO 3166-1 alpha-2 code
-type CountryKey = 'US' | 'GB' | 'DE' | ... // 240+ countries
+type CountryKey = 'US' | 'GB' | 'DE' | ... // 245 countries and territories
 
 // Mask interfaces
 interface MaskBase {
@@ -453,21 +448,11 @@ pnpm gen
 This fetches the latest data and regenerates `data.json`.
 This updates generated metadata files used by the package (`src/data.json`, `src/data.min.js`, and `src/data-types.ts`).
 
-## 📊 Bundle Size
+## 📊 Bundle size
 
-Measured by bundling the packed package in a real consumer build with tree-shaking enabled:
+The badge at the top is generated from the packed workspace package in a clean consumer build. The [bundle-size report](../../docs/comparison.md#current-package-sizes) explains the method and lists every framework package.
 
-| Consumer import                                                   | Size (minified) | Gzipped |  Brotli |
-| ----------------------------------------------------------------- | --------------: | ------: | ------: |
-| `import * as PhoneMask from '@desource/phone-mask'`               |         6.09 KB | 2.86 KB | 2.30 KB |
-| `import { MasksFullMapEn } from '@desource/phone-mask'`           |         5.75 KB | 2.67 KB | 2.13 KB |
-| `import * as Kit from '@desource/phone-mask/kit'`                 |        13.28 KB | 5.83 KB | 4.90 KB |
-| `import { createPhoneFormatter } from '@desource/phone-mask/kit'` |         1.03 KB | 0.59 KB | 0.53 KB |
-| `import { formatDigitsWithMap } from '@desource/phone-mask/kit'`  |         0.25 KB | 0.21 KB | 0.18 KB |
-| `import { extractDigits } from '@desource/phone-mask/kit'`        |         0.08 KB | 0.10 KB | 0.08 KB |
-| `import { getCountry } from '@desource/phone-mask/kit'`           |         5.84 KB | 2.72 KB | 2.18 KB |
-
-The root entry contains country metadata and mask data. Use `@desource/phone-mask/kit` when you need formatter, input handling, detection, or utility helpers. Data-dependent helpers such as `getCountry` include mask data; pure formatter and input helpers tree-shake to small standalone bundles.
+The root entry contains country metadata and mask data. Use `@desource/phone-mask/kit` for formatter, input handling, detection, and utility helpers. Data-dependent helpers such as `getCountry` include mask data; pure helpers tree-shake to small standalone bundles.
 
 ## 🔗 Related Packages
 
@@ -487,5 +472,5 @@ See [Contributing Guide](../../CONTRIBUTING.md)
 ---
 
 <div align="center">
-  <sub>Made with ❤️ by <a href="https://github.com/DeSource-Labs">DeSource Labs</a></sub>
+  <sub>Built with ❤️ by the <a href="https://github.com/DeSource-Labs">DeSource Labs</a> team</sub>
 </div>

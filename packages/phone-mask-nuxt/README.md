@@ -1,33 +1,29 @@
-# @desource/phone-mask-nuxt
+# 🎯 @desource/phone-mask-nuxt
 
-> Nuxt module for phone input with Google's libphonenumber data
+> A best-in-class, zero-config Nuxt phone input module with SSR-safe auto-imports and country data updated weekly from Google's libphonenumber.
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)](https://www.npmjs.com/package/@desource/phone-mask-nuxt)
 [![codewiki](https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-nuxt?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-nuxt)
+[![measured gzip size](https://raw.githubusercontent.com/DeSource-Labs/phone-mask/main/.github/badges/phone-mask-nuxt.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/docs/comparison.md#current-package-sizes)
 [![context7 docs](https://img.shields.io/badge/context7%20docs-000000)](https://context7.com/desource-labs/phone-mask)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
-Drop-in Nuxt module with auto-imports, SSR support, and zero configuration.
+Add one module and use `PhoneInput` anywhere. The component, directive, styles, and TypeScript types are auto-imported, while client-only UI registration keeps server rendering safe.
 
-## ✨ Features
-
-- 🎯 **Zero Config** — Works out of the box
-- 🔄 **Auto-imports** — Component, directive, and types by default
-- 🌐 **SSR Compatible** — Server-side rendering ready
-- 🎨 **Styleable** — Bring your own styles or use defaults
-- 🔧 **TypeScript** — Fully typed
-- ⚡ **Optimized** — Tree-shaking and code splitting
-
-## 📦 Installation
+## 📦 Install
 
 ```bash
 npm install @desource/phone-mask-nuxt
-# or
-yarn add @desource/phone-mask-nuxt
-# or
-pnpm add @desource/phone-mask-nuxt
 ```
+
+## 🌟 Why this module
+
+- **One-line setup:** component, directive, styles, and mask types work after adding the module.
+- **SSR-safe registration:** module configuration runs on the server; interactive UI loads on the client.
+- **Current data:** 245 countries and territories, refreshed weekly from Google libphonenumber.
+- **Optional headless APIs:** auto-import helpers and `usePhoneMask` only when your app needs them.
+- **Flexible styling:** keep the defaults, override CSS variables, or disable the bundled stylesheet.
+- **Typed configuration:** module options and runtime APIs include TypeScript declarations.
 
 ## 🚀 Setup
 
@@ -39,8 +35,7 @@ export default defineNuxtConfig({
 });
 ```
 
-That's it! The component, directive, and related mask types are now auto-imported.
-You can additionally enable helper/composable auto-imports via module options.
+The component, directive, and mask types are now auto-imported. Helper and composable auto-imports remain opt-in through module options.
 
 ## 📖 Usage
 
@@ -512,5 +507,5 @@ See [Contributing Guide](../../CONTRIBUTING.md)
 ---
 
 <div align="center">
-  <sub>Made with ❤️ by <a href="https://github.com/DeSource-Labs">DeSource Labs</a></sub>
+  <sub>Built with ❤️ by the <a href="https://github.com/DeSource-Labs">DeSource Labs</a> team</sub>
 </div>

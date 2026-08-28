@@ -2,8 +2,6 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { inspect } from 'node:util';
-// Note: this script requires `esbuild`, `@rspack/core` & `css-loader` to be installed
-// (e.g. as a dev dependency: `pnpm add -w -D esbuild @rspack/core css-loader`).
 import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mts';
 import {
   calculateComparableGzip,
@@ -16,8 +14,8 @@ import {
 } from './readme-benchmark-shared.mts';
 import prettier from 'prettier';
 
-const README_PATH = new URL('../README.md', import.meta.url);
-const README_FILEPATH = fileURLToPath(README_PATH);
+const COMPARISON_PATH = new URL('../docs/comparison.md', import.meta.url);
+const COMPARISON_FILEPATH = fileURLToPath(COMPARISON_PATH);
 const BENCHMARK_START_MARKER = '<!-- benchmarks:start -->';
 const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
 
@@ -67,13 +65,16 @@ type PackageMetrics = {
 
 const GROUPS: GroupDefinition[] = [
   {
-    title: 'Core (TypeScript/JavaScript)',
+    title: 'Framework-agnostic / vanilla',
     rows: [
       { pkg: '@desource/phone-mask', highlight: true },
+      { pkg: 'phone' },
+      { pkg: 'intl-tel-input' },
       { pkg: 'libphonenumber-js' },
       { pkg: 'google-libphonenumber' },
       { pkg: 'awesome-phonenumber' }
-    ]
+    ],
+    note: 'Related package reviewed: [`@maskito/phone`](https://www.npmjs.com/package/@maskito/phone) is an optional Maskito plugin rather than a standalone package. It requires `@maskito/core`, `@maskito/kit`, and `libphonenumber-js` peers, so a package-only result would omit required runtime code and is not ranked here.'
   },
   {
     title: 'React',
@@ -82,6 +83,8 @@ const GROUPS: GroupDefinition[] = [
       { pkg: 'react-phone-number-input' },
       { pkg: 'react-phone-input-2' },
       { pkg: 'react-international-phone' },
+      { pkg: '@intl-tel-input/react' },
+      { pkg: 'react-intl-tel-input' },
       { pkg: 'mui-tel-input' }
     ],
     note: 'React ecosystem note: `react-international-phone` removed built-in validation in v3 and recommends adding [`google-libphonenumber`](https://www.npmjs.com/package/google-libphonenumber) separately ([migration doc](https://github.com/ybrusentsov/react-international-phone/blob/master/packages/docs/docs/05-Migrations/02-migrate-to-v3.md)). Raw package gzip above does not include that optional validator overhead.'
@@ -92,23 +95,27 @@ const GROUPS: GroupDefinition[] = [
       { pkg: '@desource/phone-mask-vue', highlight: true },
       { pkg: 'vue-tel-input' },
       { pkg: 'v-phone-input' },
+      { pkg: '@intl-tel-input/vue' },
+      { pkg: 'base-vue-phone-input' },
       { pkg: 'vue-phone-number-input' }
     ]
   },
   {
     title: 'Svelte',
-    rows: [{ pkg: '@desource/phone-mask-svelte', highlight: true }, { pkg: 'svelte-tel-input' }]
+    rows: [
+      { pkg: '@desource/phone-mask-svelte', highlight: true },
+      { pkg: 'svelte-tel-input' },
+      { pkg: '@intl-tel-input/svelte' }
+    ]
   },
   {
     title: 'Nuxt',
-    rows: [{ pkg: '@desource/phone-mask-nuxt', highlight: true }],
-    note: 'Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input modules with stable npm + size signals comparable to React/Vue/Svelte peers; most Nuxt apps use Vue phone input packages directly.'
+    rows: [{ pkg: '@desource/phone-mask-nuxt', highlight: true }, { pkg: 'nuxt-phone-number' }]
   }
 ];
 
 const SOURCES = {
   npmRegistry: 'https://registry.npmjs.org',
-  bundlephobiaPackage: 'https://bundlephobia.com/package/',
   benchmarkScript: 'https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mts'
 };
 const MAX_FETCH_ATTEMPTS = 3;
@@ -580,25 +587,33 @@ function sortRowsForComparison(group: GroupDefinition, metrics: Map<string, Pack
   });
 }
 
-function renderGroupBestLine(group: GroupDefinition, metrics: Map<string, PackageMetrics>): string | null {
+function renderGroupResultLine(group: GroupDefinition, metrics: Map<string, PackageMetrics>): string | null {
   const ranked = sortRowsForComparison(group, metrics);
-  const winner = ranked.find((row) => {
+  const measured = ranked.filter((row) => {
     const metric = metrics.get(row.pkg);
     return metric && Number.isFinite(metric.comparableGzip);
   });
+  const winner = measured[0];
   if (!winner) return null;
 
   const winnerMetric = metrics.get(winner.pkg);
   if (!winnerMetric) return null;
+  const displayedSize = formatKb(winnerMetric.comparableGzip);
+  const displayedWinners = measured.filter((row) => {
+    const metric = metrics.get(row.pkg);
+    return metric && formatKb(metric.comparableGzip) === displayedSize;
+  });
+  const names = displayedWinners.map((row) => `**${row.pkg}**`);
+  const winnerNames = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0];
 
-  return `Best choice in ${group.title}: **${winner.pkg}** (${formatKb(winnerMetric.comparableGzip)}).`;
+  return `Smallest measured bundle${displayedWinners.length > 1 ? 's at displayed precision' : ''}: ${winnerNames} (${displayedSize}).`;
 }
 
 function renderGroupSection(group: GroupDefinition, metrics: Map<string, PackageMetrics>): string[] {
   const lines = [
-    `#### ${group.title}`,
+    `### ${group.title}`,
     '',
-    '| Package | Last published | Phone data source | Data overhead | Gzip | Total gzip |',
+    '| Package | Last published | Phone data | Data overhead | Gzip | Total gzip |',
     '| --- | ---: | --- | ---: | ---: | ---: |'
   ];
 
@@ -608,9 +623,9 @@ function renderGroupSection(group: GroupDefinition, metrics: Map<string, Package
   }
 
   lines.push('');
-  const bestLine = renderGroupBestLine(group, metrics);
-  if (bestLine) {
-    lines.push(bestLine, '');
+  const resultLine = renderGroupResultLine(group, metrics);
+  if (resultLine) {
+    lines.push(resultLine, '');
   }
 
   if (group.note) {
@@ -626,16 +641,15 @@ function renderSection(
 ): string {
   const header = [
     BENCHMARK_START_MARKER,
-    '### 🪶 Lightest in Class',
+    '## 🌐 Published ecosystem comparison',
     '',
-    'Real market comparison, segmented by ecosystem and measured for what developers actually ship.',
-    `Snapshot: **${snapshotDate}** ([Benchmark script](${SOURCES.benchmarkScript}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')}), [Bundlephobia package page](${SOURCES.bundlephobiaPackage}${encodeURIComponent('@desource/phone-mask')}) for independent reference).`,
+    'Published packages are installed into isolated projects and bundled with the same production settings. The phone-data column makes limited masks, included metadata, peer engines, and optional validators visible beside the size result.',
+    `Snapshot: **${snapshotDate}** ([benchmark script](${SOURCES.benchmarkScript}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
     '',
-    '*Use `Total gzip` as the primary comparison column.*',
-    '*`Gzip` is measured locally by this repository benchmark pipeline (isolated temp install + minified bundle build).*',
-    '*`Data overhead` is additional phone-data gzip excluded from raw package gzip (e.g. required peer engines).*',
-    '*`Total gzip` = `Gzip` + `Data overhead`.*',
-    '*Packages without a phone data source are listed after data-backed packages; each bucket is sorted by `Total gzip`.*',
+    '- Use `Total gzip` for the closest like-for-like comparison.',
+    '- `Gzip` is the locally measured package bundle.',
+    '- `Data overhead` adds required phone-data code excluded from that bundle.',
+    '- Values are displayed to the nearest 0.1 KB; packages in the same displayed size tier are reported together.',
     ''
   ];
   const groupSections = GROUPS.flatMap((group) => renderGroupSection(group, metrics));
@@ -644,42 +658,42 @@ function renderSection(
   return lines.join('\n').trimEnd();
 }
 
-function updateReadmeSection(readme: string, newSection: string): string {
-  const markerStartIndex = readme.indexOf(BENCHMARK_START_MARKER);
-  const markerEndIndex = readme.indexOf(BENCHMARK_END_MARKER);
+function updateComparisonSection(document: string, newSection: string): string {
+  const markerStartIndex = document.indexOf(BENCHMARK_START_MARKER);
+  const markerEndIndex = document.indexOf(BENCHMARK_END_MARKER);
 
   if (markerStartIndex >= 0 && markerEndIndex >= 0 && markerEndIndex > markerStartIndex) {
     const markerEndOffset = markerEndIndex + BENCHMARK_END_MARKER.length;
-    return `${readme.slice(0, markerStartIndex)}${newSection}${readme.slice(markerEndOffset)}`;
+    return `${document.slice(0, markerStartIndex)}${newSection}${document.slice(markerEndOffset)}`;
   }
 
-  throw new Error('Could not locate benchmark section markers in README.md');
+  throw new Error('Could not locate benchmark section markers in docs/comparison.md');
 }
 
 async function formatMarkdown(markdown: string): Promise<string> {
-  const config = (await prettier.resolveConfig(README_FILEPATH)) ?? {};
+  const config = (await prettier.resolveConfig(COMPARISON_FILEPATH)) ?? {};
   return prettier.format(markdown, {
     ...config,
     parser: 'markdown',
-    filepath: README_FILEPATH
+    filepath: COMPARISON_FILEPATH
   });
 }
 
 async function main(): Promise<void> {
-  const readme = await readFile(README_PATH, 'utf8');
+  const comparison = await readFile(COMPARISON_PATH, 'utf8');
 
   const metrics = await collectMetrics();
   const section = renderSection(metrics);
-  const updated = updateReadmeSection(readme, section);
+  const updated = updateComparisonSection(comparison, section);
   const formattedUpdated = await formatMarkdown(updated);
 
-  if (readme === formattedUpdated) {
-    console.log('README benchmark section already up to date.');
+  if (comparison === formattedUpdated) {
+    console.log('Comparison benchmark section already up to date.');
     return;
   }
 
-  await writeFile(README_PATH, formattedUpdated, 'utf8');
-  console.log('Updated README benchmark section.');
+  await writeFile(COMPARISON_PATH, formattedUpdated, 'utf8');
+  console.log('Updated comparison benchmark section.');
 }
 
 try {

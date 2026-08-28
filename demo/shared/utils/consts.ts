@@ -70,6 +70,7 @@ export const DocLinks: Record<Library, string> = {
 export const Links = {
   coreRepo: 'https://github.com/DeSource-Labs/phone-mask',
   packages: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages',
+  comparison: 'https://github.com/DeSource-Labs/phone-mask/blob/main/docs/comparison.md',
   org: 'https://desource-labs.org',
   googleLib: 'https://github.com/google/libphonenumber',
   contributing: 'https://github.com/DeSource-Labs/phone-mask/blob/main/CONTRIBUTING.md'

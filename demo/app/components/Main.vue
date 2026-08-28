@@ -15,14 +15,14 @@
                 loading="lazy"
               />
             </span>
-            <p class="card-title h3">Always fresh data</p>
+            <p class="card-title h3">245 countries & territories</p>
           </div>
           <div class="card-body secondary p4">
-            Country dialing rules and formats are synced from
+            Calling codes and masks refresh weekly from
             <a class="animated-link card-link" :href="Links.googleLib" target="_blank" rel="noopener noreferrer">
-              Google's library
+              Google libphonenumber
             </a>
-            — automatically. Keep your inputs accurate without manual updates or stale data.
+            data. Upgrade the package to keep your input aligned with current numbering plans.
           </div>
           <NuxtImg
             class="card-image img-google"
@@ -49,14 +49,15 @@
                 loading="lazy"
               />
             </span>
-            <p class="card-title h3">Tiny & fast — 2.9 KB</p>
+            <p class="card-title h3">{{ bundleSizes.core.gzip }} gzip</p>
           </div>
           <div class="card-body secondary p4">
-            <a class="animated-link card-link" :href="NpmLinks.typescript" target="_blank" rel="noopener noreferrer">
-              Extremely small
+            The core includes every mask in {{ bundleSizes.core.minified }} minified. Sizes come from packed packages in
+            clean consumer builds.
+            <a class="animated-link card-link" :href="Links.comparison" target="_blank" rel="noopener noreferrer">
+              See the reproducible report
             </a>
-            footprint (6.1 KB / 2.9 KB gzip / 2.3 KB brotli). Optimized for performance on web and mobile — no bloat.
-            Import only what you need, and it'll be even smaller by tree-shaking.
+            for every framework package.
           </div>
           <NuxtImg
             class="card-image img-npm"
@@ -82,14 +83,14 @@
                 loading="lazy"
               />
             </span>
-            <p class="card-title h3">Easy to integrate</p>
+            <p class="card-title h3">One install for your stack</p>
           </div>
           <div class="card-body secondary p4">
             <a class="animated-link card-link" :href="Links.packages" target="_blank" rel="noopener noreferrer">
-              Ready-made plugins
+              Choose React, Vue, Svelte, Nuxt, or TypeScript.
             </a>
-            for Vue, Nuxt, React, Svelte and vanilla JS. Need setup help? Use <strong>Ask Docs AI</strong> to get
-            copy-paste guidance from live docs in seconds.
+            Install one package and render <code>PhoneInput</code>. Headless APIs cover custom markup, and
+            <strong>Ask Docs AI</strong> answers setup questions from the live documentation.
           </div>
           <div class="card-images">
             <NuxtImg
@@ -105,7 +106,7 @@
             <NuxtImg
               class="img-svelte"
               src="/img/cards/svelte.png"
-              alt="Vue.js Logo"
+              alt="Svelte Logo"
               quality="75"
               format="webp"
               loading="lazy"
@@ -138,6 +139,10 @@
     </CardSwap>
   </main>
 </template>
+
+<script setup lang="ts">
+import { bundleSizes } from '~~/shared/generated/bundle-sizes';
+</script>
 
 <style scoped>
 .main {

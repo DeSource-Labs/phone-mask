@@ -9,6 +9,7 @@
             class="lib-item"
             :class="{ selected: selected === item.id }"
             type="button"
+            :aria-pressed="selected === item.id"
             @click="onSelected(item.id)"
           >
             {{ item.name }}
@@ -16,7 +17,12 @@
         </div>
         <div class="lib-command" @click="copy(selectedNpmCommand)">
           <pre><code>{{ selectedNpmCommand }}</code></pre>
-          <button class="lib-copy" type="button" aria-label="Copy npm command to clipboard" :disabled="isCopying">
+          <button
+            class="lib-copy"
+            type="button"
+            :aria-label="copied ? 'Install command copied' : 'Copy install command'"
+            :disabled="isCopying"
+          >
             <span v-if="!copied && !isCopying" aria-hidden="true">📋</span>
             <span v-else-if="copied" aria-hidden="true">✓</span>
             <span v-else aria-hidden="true">⏳</span>
@@ -24,11 +30,11 @@
         </div>
         <div class="lib-links">
           <a :href="selectedDocLink" target="_blank" rel="noopener noreferrer" class="animated-link p4">
-            Documentation
+            Setup guide
           </a>
           |
           <a :href="selectedNpmLink" target="_blank" rel="noopener noreferrer" class="animated-link p4">
-            View on NPM
+            npm package
           </a>
         </div>
       </div>

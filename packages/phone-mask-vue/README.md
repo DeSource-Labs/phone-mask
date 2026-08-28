@@ -1,42 +1,33 @@
-# @desource/phone-mask-vue
+# 🔌 @desource/phone-mask-vue
 
-> Vue 3 phone input component with Google's libphonenumber data
+> A best-in-class Vue 3 phone input with component, directive, and composable APIs, backed by country data updated weekly from Google's libphonenumber.
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue&logo=vuedotjs)](https://www.npmjs.com/package/@desource/phone-mask-vue)
 [![codewiki](https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-vue?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-vue)
+[![measured gzip size](https://raw.githubusercontent.com/DeSource-Labs/phone-mask/main/.github/badges/phone-mask-vue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/docs/comparison.md#current-package-sizes)
 [![context7 docs](https://img.shields.io/badge/context7%20docs-000000)](https://context7.com/desource-labs/phone-mask)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
-Beautiful, accessible, extreme small & tree-shakeable Vue 3 phone input with auto-formatting, country selector, and validation.
+Start with `PhoneInput`, add masking to existing markup with `v-phone-mask`, or use `usePhoneMask` for full rendering control. All three modes share the same country data and input behavior.
 
-## ✨ Features
-
-- 🎨 **Beautiful UI** — Modern design with light/dark themes
-- 🔍 **Smart Country Search** — Fuzzy matching with keyboard navigation
-- 🎭 **Auto-formatting** — As-you-type formatting with smart cursor
-- ✅ **Validation** — Built-in validation with visual feedback
-- 📋 **Copy Button** — One-click copy to clipboard
-- 🌐 **Auto-detection** — GeoIP and locale-based detection
-- ♿ **Accessible** — ARIA labels, keyboard navigation
-- 📱 **Mobile-friendly** — Optimized for touch devices
-- 🎯 **TypeScript** — Full type safety
-- 🧩 **Three modes** — Component, composable, or directive
-- ⚡ **Optimized** — Tree-shaking and code splitting
-
-## 📦 Installation
+## 📦 Install
 
 ```bash
 npm install @desource/phone-mask-vue
-# or
-yarn add @desource/phone-mask-vue
-# or
-pnpm add @desource/phone-mask-vue
 ```
 
-## 🚀 Quick Start
+## 🌟 Why this package
 
-### Importing
+- **Three native Vue APIs:** component, directive, and composable.
+- **Complete input:** country search, as-you-type formatting, validation feedback, clipboard actions, and themes.
+- **Current data:** 245 countries and territories, refreshed weekly from Google libphonenumber.
+- **Accessible controls:** ARIA labels, focus management, and full keyboard navigation.
+- **Form-ready output:** receive raw digits, international values, and formatted values.
+- **Typed and tree-shakeable:** Vue 3 support with complete TypeScript declarations.
+
+## 🚀 Quick start
+
+### Choose an API
 
 Component mode:
 
@@ -816,5 +807,5 @@ See [Contributing Guide](../../CONTRIBUTING.md)
 ---
 
 <div align="center">
-  <sub>Made with ❤️ by <a href="https://github.com/DeSource-Labs">DeSource Labs</a></sub>
+  <sub>Built with ❤️ by the <a href="https://github.com/DeSource-Labs">DeSource Labs</a> team</sub>
 </div>

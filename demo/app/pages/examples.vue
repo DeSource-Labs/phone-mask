@@ -2,11 +2,11 @@
   <div class="examples-page">
     <div class="container">
       <header class="page-header">
-        <h1>Interactive Examples</h1>
-        <p>Explore real-world use cases and copy-paste code snippets</p>
+        <h1>🎮 Try Phone Mask</h1>
+        <p>Change options, test real form states, and copy working Vue code.</p>
         <div class="page-header__actions">
           <LiquidGlass actionable width="200">
-            <NuxtLink class="link" to="/">← Back to Home</NuxtLink>
+            <NuxtLink class="link" to="/">← Back to demo</NuxtLink>
           </LiquidGlass>
           <Context7Button ref="context7Button" variant="big" :ready="context7Ready" @toggle="toggleContext7" />
         </div>
@@ -14,8 +14,8 @@
 
       <!-- Playground -->
       <div class="playground">
-        <h2>🎮 Live Playground</h2>
-        <p>Adjust props in real-time and see the results instantly</p>
+        <h2>🎛️ Build your input</h2>
+        <p>Choose a country, size, theme, and actions. The preview and code update together.</p>
 
         <div class="playground-container">
           <div class="playground-controls">
@@ -110,7 +110,7 @@
       <!-- Example 1: Basic Usage -->
       <div class="example">
         <h2>1. Basic Usage</h2>
-        <p>Simple phone input with country selector</p>
+        <p>Start with one component and a bound value.</p>
 
         <div class="example-container">
           <div class="demo">
@@ -132,7 +132,7 @@
       <!-- Example 2: Validation -->
       <div class="example">
         <h2>2. Phone Validation</h2>
-        <p>Real-time validation state tracking</p>
+        <p>Enable or block form actions as the number becomes complete.</p>
 
         <div class="example-container">
           <div class="demo">
@@ -166,7 +166,7 @@
       <!-- Example 3: Auto-detect Country -->
       <div class="example">
         <h2>3. Auto Country Detection</h2>
-        <p>Automatically detect country from IP or browser locale</p>
+        <p>Pick a starting country from GeoIP or the browser locale.</p>
 
         <div class="example-container">
           <div class="demo">
@@ -193,7 +193,7 @@
       <!-- Example 4: Sizes -->
       <div class="example">
         <h2>4. Size Variants</h2>
-        <p>Three size options: compact, normal, and large</p>
+        <p>Match compact forms, standard fields, or large touch targets.</p>
 
         <div class="example-container">
           <div class="demo">
@@ -225,7 +225,7 @@
       <!-- Example 5: Themes -->
       <div class="example">
         <h2>5. Theme Modes</h2>
-        <p>Auto, light, and dark themes</p>
+        <p>Follow the system theme or choose light or dark explicitly.</p>
 
         <div class="example-container">
           <div class="demo">
@@ -258,7 +258,7 @@
       <!-- Example 6: Actions (Copy & Clear) -->
       <div class="example">
         <h2>6. Copy & Clear Actions</h2>
-        <p>Built-in copy and clear button functionality</p>
+        <p>Add copy and clear controls without wiring separate buttons.</p>
 
         <div class="example-container">
           <div class="demo">
@@ -287,7 +287,7 @@
       <!-- Example 7: Disabled & Readonly -->
       <div class="example">
         <h2>7. Disabled & Readonly States</h2>
-        <p>Control input interaction modes</p>
+        <p>Show saved values without allowing accidental edits.</p>
 
         <div class="example-container">
           <div class="demo">
@@ -315,7 +315,7 @@
       <!-- Example 8: Form Integration -->
       <div class="example">
         <h2>8. Form Integration</h2>
-        <p>Use in forms with validation</p>
+        <p>Bind a clean value and keep submit logic next to the form.</p>
 
         <div class="example-container">
           <div class="demo">
@@ -361,13 +361,13 @@
 
       <!-- Directive Examples Section -->
       <div class="directive-section">
-        <h2>🎯 Vue Directive Examples</h2>
-        <p>Use <code>v-phone-mask</code> directive for custom inputs</p>
+        <h2>🧩 Keep your own input markup</h2>
+        <p>Use <code>v-phone-mask</code> when you want formatting without the packaged component.</p>
 
         <!-- Directive Example 1: Basic -->
         <div class="example">
           <h3>9. Basic Directive Usage</h3>
-          <p>Apply phone masking to any input element</p>
+          <p>Add international formatting to an existing input.</p>
 
           <div class="example-container">
             <div class="demo">
@@ -395,7 +395,7 @@
         <!-- Directive Example 2: With Options -->
         <div class="example">
           <h3>10. Directive with Options</h3>
-          <p>Configure country and handle change events</p>
+          <p>Set the country and receive raw, international, and formatted values.</p>
 
           <div class="example-container">
             <div class="demo">
@@ -433,7 +433,7 @@
         <!-- Directive Example 3: Auto-detect -->
         <div class="example">
           <h3>11. Directive with Auto-detect</h3>
-          <p>Automatically detect country from IP/locale</p>
+          <p>Detect the starting country while keeping your own HTML and styles.</p>
 
           <div class="example-container">
             <div class="demo">
@@ -464,11 +464,11 @@
 
       <!-- Resources -->
       <div class="resources">
-        <h2>📖 Additional Resources</h2>
+        <h2>📚 Keep building</h2>
         <div class="resource-cards">
           <a class="resource-card" target="_blank" rel="noopener noreferrer" :href="Links.coreRepo">
             <h3>GitHub Repository</h3>
-            <p>View source code and contribute</p>
+            <p>Inspect the source, tests, and release history.</p>
           </a>
           <a
             v-for="item in LibItems"
@@ -479,11 +479,11 @@
             :href="DocLinks[item.id]"
           >
             <h3>{{ item.name }} Documentation</h3>
-            <p>Learn more about the {{ item.name }} package</p>
+            <p>Install and use the {{ item.name }} package.</p>
           </a>
           <a class="resource-card" target="_blank" rel="noopener noreferrer" :href="Links.contributing">
             <h3>Contributing Guide</h3>
-            <p>Help improve the library</p>
+            <p>Run the project locally and open a focused pull request.</p>
           </a>
         </div>
       </div>

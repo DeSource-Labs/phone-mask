@@ -2,9 +2,9 @@
   <header class="header">
     <div class="header__title">
       <LiquidGlass actionable>
-        <NuxtLink to="/examples" class="examples"><span class="emoji">🔥</span> Examples</NuxtLink>
+        <NuxtLink to="/examples" class="examples"><span class="emoji">🔥</span> Try examples</NuxtLink>
       </LiquidGlass>
-      <h1>Phone Mask</h1>
+      <h1>📱 Phone Mask</h1>
       <LiquidGlass actionable>
         <a class="stars" :href="Links.coreRepo" target="_blank" rel="noopener noreferrer">
           Star
@@ -14,7 +14,7 @@
         </a>
       </LiquidGlass>
     </div>
-    <p class="header__subtitle h3">Phone masks from across the universe (and every country)</p>
+    <p class="header__subtitle h3">Best-in-class phone inputs backed by Google's libphonenumber data</p>
   </header>
 </template>
 

@@ -17,7 +17,7 @@
     "changeset:mask-sync": "node scripts/create-mask-sync-changeset.mts",
     "changeset:version": "changeset version",
     "changeset:publish": "pnpm build && changeset publish --no-git-tag",
-    "readme:benchmarks": "node scripts/update-readme-benchmarks.mts",
+    "docs:benchmarks": "node scripts/update-readme-benchmarks.mts && node scripts/update-bundle-size-badges.mts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",

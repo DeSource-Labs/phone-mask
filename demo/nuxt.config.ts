@@ -47,7 +47,7 @@ const config: NuxtConfig = {
           'data-api-url': 'https://context7.com',
           'data-hide-default-button': 'true',
           'data-position': 'bottom-right',
-          'data-placeholder': 'Ask about phone-mask...',
+          'data-placeholder': 'Ask about Phone Mask...',
           'data-color': '#4F46E5'
         }
       ],

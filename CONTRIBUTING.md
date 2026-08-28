@@ -1,6 +1,6 @@
 # Contributing to Phone Mask
 
-First off, thank you for considering contributing to Phone Mask! It's people like you that make open source such a great community. 🎉
+Thanks for helping improve Phone Mask. Bug fixes, framework integrations, documentation, and country-data corrections are welcome.
 
 ## 📋 Table of Contents
 
@@ -188,10 +188,14 @@ phone-mask/
 │       └── e2e/
 │
 ├── scripts/
+│   ├── update-bundle-size-badges.mts
 │   ├── update-readme-benchmarks.mts
 │   ├── build-coverage-pr-report.mts
 │   └── comment-coverage-pr.mts
-
+│
+├── docs/
+│   └── comparison.md            # Generated bundle sizes + published package comparison
+│
 ├── demo/                        # Nuxt playground/demo app
 │   ├── app/
 │   └── nuxt.config.ts
@@ -200,10 +204,11 @@ phone-mask/
 └── .github/
     ├── PULL_REQUEST_TEMPLATE.md
     └── workflows/
+        ├── bundle-size.yml      # Measures local packages and refreshes static badges
         ├── coverage.yml         # Coverage on main + optional manual PR report
         ├── release.yml          # Changesets publish workflow
         ├── weekly-gen.yml       # Weekly metadata sync PR
-        └── weekly-benchmarks.yml # Weekly README benchmark refresh PR
+        └── weekly-benchmarks.yml # Weekly comparison refresh PR
 ```
 
 ## 🔄 Development Workflow
@@ -239,6 +244,12 @@ pnpm lint:fix
 
 # Format code
 pnpm format
+
+# Refresh local package sizes and self-hosted badges
+pnpm bundle-size:badges
+
+# Refresh the published package comparison
+pnpm docs:benchmarks
 
 # Run tests
 pnpm test:unit
@@ -530,5 +541,5 @@ By contributing, you agree that your contributions will be licensed under the MI
 Your contributions make this project better for everyone. We appreciate your time and effort! ❤️
 
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/DeSource-Labs">DeSource Labs</a></sub>
+  <sub>Built with ❤️ by the <a href="https://github.com/DeSource-Labs">DeSource Labs</a> team</sub>
 </div>
