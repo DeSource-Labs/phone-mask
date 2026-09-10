@@ -11,7 +11,7 @@ We take the security of `@desource/phone-mask` and its ecosystem seriously. If y
 
 ### How to Report
 
-**Email us at:** [hello@desource-labs.org](mailto:hello@desource-labs.org)
+**Email us at:** [hello@desourcelabs.com](mailto:hello@desourcelabs.com)
 
 Please include the following information in your report:
 
@@ -126,8 +126,8 @@ _No security reports yet. Be the first!_
 
 ## Contact
 
-- **Security Email:** [hello@desource-labs.org](mailto:hello@desource-labs.org)
-- **General Contact:** [hello@desource-labs.org](mailto:hello@desource-labs.org)
+- **Security Email:** [hello@desourcelabs.com](mailto:hello@desourcelabs.com)
+- **General Contact:** [hello@desourcelabs.com](mailto:hello@desourcelabs.com)
 - **GitHub:** [@DeSource-Labs](https://github.com/DeSource-Labs)
 
 ---

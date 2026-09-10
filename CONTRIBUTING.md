@@ -16,7 +16,7 @@ First off, thank you for considering contributing to Phone Mask! It's people lik
 
 ## 📜 Code of Conduct
 
-This project and everyone participating in it is governed by our [Code of Conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [hello@desource-labs.org](mailto:hello@desource-labs.org).
+This project and everyone participating in it is governed by our [Code of Conduct](./CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [hello@desourcelabs.com](mailto:hello@desourcelabs.com).
 
 ## 🤝 How Can I Contribute?
 
