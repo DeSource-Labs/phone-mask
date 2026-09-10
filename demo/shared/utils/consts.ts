@@ -1,7 +1,7 @@
 import type { SocialMediaItem, SocialMediaKey, LibItem, Library } from '../types';
 
 export const socialMedia = {
-  email: 'mailto:hello@desource-labs.org',
+  email: 'mailto:hello@desourcelabs.com',
   github: 'https://github.com/DeSource-Labs',
   linkedin: 'https://www.linkedin.com/company/desource-labs',
   telegram: 'https://t.me/desource_labs'
@@ -70,7 +70,7 @@ export const DocLinks: Record<Library, string> = {
 export const Links = {
   coreRepo: 'https://github.com/DeSource-Labs/phone-mask',
   packages: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages',
-  org: 'https://desource-labs.org',
+  org: 'https://desourcelabs.com',
   googleLib: 'https://github.com/google/libphonenumber',
   contributing: 'https://github.com/DeSource-Labs/phone-mask/blob/main/CONTRIBUTING.md'
 };

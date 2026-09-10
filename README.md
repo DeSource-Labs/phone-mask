@@ -242,7 +242,7 @@ const formatted = formatDigitsWithMap(mask, '2025551234').display;
 
 ## 🎮 Demo
 
-**[Live Demo →](https://phonemask.desource-labs.org)**
+**[Live Demo →](https://mask.desourcelabs.com)**
 
 Try the interactive playground with:
 
