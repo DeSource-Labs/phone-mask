@@ -15,7 +15,7 @@
     "changeset": "changeset",
     "changeset:format-changelogs": "node scripts/format-changelog-dependencies.mts",
     "changeset:mask-sync": "node scripts/create-mask-sync-changeset.mts",
-    "changeset:version": "changeset version",
+    "changeset:version": "changeset version && pnpm changeset:format-changelogs",
     "changeset:publish": "pnpm build && changeset publish --no-git-tag",
     "readme:benchmarks": "node scripts/update-readme-benchmarks.mts",
     "lint": "eslint .",
