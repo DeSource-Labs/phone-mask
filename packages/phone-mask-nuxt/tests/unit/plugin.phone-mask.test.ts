@@ -13,10 +13,9 @@ vi.mock('@desource/phone-mask-vue', () => ({
   vPhoneMask: vPhoneMaskMock
 }));
 
-import plugin from '../../src/runtime/plugin.phone-mask';
-
 describe('runtime plugin', () => {
-  it('registers the phone-mask directive on vue app', () => {
+  it('registers the phone-mask directive on vue app', async () => {
+    const { default: plugin } = await import('../../src/runtime/plugin.phone-mask');
     const directive = vi.fn();
 
     plugin.setup({

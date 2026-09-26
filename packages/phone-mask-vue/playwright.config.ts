@@ -8,6 +8,7 @@ export default defineConfig({
   webServer: {
     command: 'pnpm dev',
     url: 'http://localhost:5173',
+    gracefulShutdown: { signal: 'SIGINT', timeout: 5_000 },
     reuseExistingServer: !process.env.CI
   }
 });
