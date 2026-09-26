@@ -1,5 +1,17 @@
 # @desource/phone-mask-react
 
+## 1.6.4
+
+### Patch Changes
+
+- Core/Vue/React/Svelte/Nuxt Upgrades:
+  - Refreshed package tooling for builds, linting, tests, and releases, including pnpm 12 and Vitest 5.
+  - Updated React, Vue, and Svelte development dependencies and Nuxt test utilities within compatible peer ranges.
+  - Adjusted unit and end-to-end test setup for the updated tooling.
+
+- Updated dependencies []:
+  - @desource/phone-mask@1.6.4
+
 ## 1.6.3
 
 ### Patch Changes
