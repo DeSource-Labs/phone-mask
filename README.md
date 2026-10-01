@@ -5,12 +5,12 @@
   <p>
     <a href="https://www.npmjs.com/package/@desource/phone-mask"><img src="https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=npm" alt="npm version"></a>
     <a href="https://www.npmjs.com/package/@desource/phone-mask"><img src="https://img.shields.io/npm/dm/@desource/phone-mask?color=green" alt="npm downloads"></a>
-    <a href="https://bundlephobia.com/package/@desource/phone-mask"><img src="https://img.shields.io/bundlephobia/minzip/@desource/phone-mask?label=gzip%20size&color=purple" alt="bundle size"></a>
     <a href="https://codecov.io/gh/DeSource-Labs/phone-mask"><img src="https://codecov.io/gh/DeSource-Labs/phone-mask/branch/main/graph/badge.svg" alt="code coverage"></a>
     <a href="https://sonarcloud.io/summary/new_code?id=DeSource-Labs_phone-mask"><img src="https://sonarcloud.io/api/project_badges/measure?project=DeSource-Labs_phone-mask&metric=alert_status" alt="SonarCloud"></a>
     <a href="https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="license"></a>
-    <a href="https://codewiki.google/github.com/desource-labs/phone-mask"><img src="https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white" alt="code wiki"></a>
-    <a href="https://context7.com/desource-labs/phone-mask"><img src="https://img.shields.io/badge/context7-docs-000000" alt="context7 docs"></a>
+    <a href="https://codewiki.google/github.com/desource-labs/phone-mask"><img src="https://img.shields.io/badge/Ask%20CodeWiki-blue?logo=googlegemini&logoColor=white" alt="Ask CodeWiki"></a>
+    <a href="https://context7.com/desource-labs/phone-mask"><img src="https://img.shields.io/badge/Ask%20Context7-blue.svg?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHZpZXdCb3g9IjAgMCAyOCAyOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTI0IDBINEMxLjc5MDg2IDAgMCAxLjc5MDg2IDAgNFYyNEMwIDI2LjIwOTEgMS43OTA4NiAyOCA0IDI4SDI0QzI2LjIwOTEgMjggMjggMjYuMjA5MSAyOCAyNFY0QzI4IDEuNzkwODYgMjYuMjA5MSAwIDI0IDBaIiBmaWxsPSIjRjdGMkU4IiBmaWxsLW9wYWNpdHk9IjAuNjUiLz4KPHBhdGggZD0iTTEwLjYgMTUuMjk5MkMxMC42IDE3LjQ5OTIgOS43MDAwNSAxOS4zOTkyIDguMjAwMDUgMjEuMDk5MkgxMS42VjIyLjc5OTJINi4zMDAwNVYyMS4xOTkyQzguMDAwMDUgMTkuMzk5MiA4LjYwMDA1IDE3Ljg5OTIgOC42MDAwNSAxNS4yOTkySDEwLjZaTTE3LjQgMTUuMjk5MkMxNy40IDE3LjQ5OTIgMTguMyAxOS4zOTkyIDE5LjggMjEuMDk5MkgxNi40VjIyLjc5OTJIMjEuN1YyMS4xOTkyQzIwIDE5LjM5OTIgMTkuNCAxNy44OTkyIDE5LjQgMTUuMjk5MkgxNy40Wk0xMC42IDEyLjY5OTJDMTAuNiAxMC40OTkyIDkuNzAwMDUgOC41OTkyMiA4LjIwMDA1IDYuODk5MjJIMTEuNlY1LjE5OTIySDYuMzAwMDVWNi43OTkyMkM4LjAwMDA1IDguNTk5MjIgOC42MDAwNSAxMC4wOTkyIDguNjAwMDUgMTIuNjk5MkgxMC42Wk0xNy40IDEyLjY5OTJDMTcuNCAxMC40OTkyIDE4LjMgOC41OTkyMiAxOS44IDYuODk5MjJIMTYuNFY1LjE5OTIySDIxLjdWNi43OTkyMkMyMCA4LjU5OTIyIDE5LjQgMTAuMDk5MiAxOS40IDEyLjY5OTJIMTcuNFoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPgo=" alt="Ask Context7"></a>
+    <a href="https://deepwiki.com/DeSource-Labs/phone-mask"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
   </p>
 
   <p>

@@ -3,9 +3,9 @@
 > Nuxt module for phone input with Google's libphonenumber data
 
 [![npm version](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)](https://www.npmjs.com/package/@desource/phone-mask-nuxt)
-[![codewiki](https://img.shields.io/badge/code%20wiki-000000?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/@desource/phone-mask-nuxt?label=gzip%20size&color=purple)](https://bundlephobia.com/package/@desource/phone-mask-nuxt)
-[![context7 docs](https://img.shields.io/badge/context7%20docs-000000)](https://context7.com/desource-labs/phone-mask)
+[![Ask CodeWiki](https://img.shields.io/badge/Ask%20CodeWiki-blue?logo=googlegemini&logoColor=white)](https://codewiki.google/github.com/desource-labs/phone-mask)
+[![Ask Context7](https://img.shields.io/badge/Ask%20Context7-blue.svg?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHZpZXdCb3g9IjAgMCAyOCAyOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTI0IDBINEMxLjc5MDg2IDAgMCAxLjc5MDg2IDAgNFYyNEMwIDI2LjIwOTEgMS43OTA4NiAyOCA0IDI4SDI0QzI2LjIwOTEgMjggMjggMjYuMjA5MSAyOCAyNFY0QzI4IDEuNzkwODYgMjYuMjA5MSAwIDI0IDBaIiBmaWxsPSIjRjdGMkU4IiBmaWxsLW9wYWNpdHk9IjAuNjUiLz4KPHBhdGggZD0iTTEwLjYgMTUuMjk5MkMxMC42IDE3LjQ5OTIgOS43MDAwNSAxOS4zOTkyIDguMjAwMDUgMjEuMDk5MkgxMS42VjIyLjc5OTJINi4zMDAwNVYyMS4xOTkyQzguMDAwMDUgMTkuMzk5MiA4LjYwMDA1IDE3Ljg5OTIgOC42MDAwNSAxNS4yOTkySDEwLjZaTTE3LjQgMTUuMjk5MkMxNy40IDE3LjQ5OTIgMTguMyAxOS4zOTkyIDE5LjggMjEuMDk5MkgxNi40VjIyLjc5OTJIMjEuN1YyMS4xOTkyQzIwIDE5LjM5OTIgMTkuNCAxNy44OTkyIDE5LjQgMTUuMjk5MkgxNy40Wk0xMC42IDEyLjY5OTJDMTAuNiAxMC40OTkyIDkuNzAwMDUgOC41OTkyMiA4LjIwMDA1IDYuODk5MjJIMTEuNlY1LjE5OTIySDYuMzAwMDVWNi43OTkyMkM4LjAwMDA1IDguNTk5MjIgOC42MDAwNSAxMC4wOTkyIDguNjAwMDUgMTIuNjk5MkgxMC42Wk0xNy40IDEyLjY5OTJDMTcuNCAxMC40OTkyIDE4LjMgOC41OTkyMiAxOS44IDYuODk5MjJIMTYuNFY1LjE5OTIySDIxLjdWNi43OTkyMkMyMCA4LjU5OTIyIDE5LjQgMTAuMDk5MiAxOS40IDEyLjY5OTJIMTcuNFoiIGZpbGw9ImJsYWNrIi8+Cjwvc3ZnPgo=)](https://context7.com/desource-labs/phone-mask)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/DeSource-Labs/phone-mask)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE)
 
 Drop-in Nuxt module with auto-imports, SSR support, and zero configuration.
