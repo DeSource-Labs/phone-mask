@@ -110,7 +110,7 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
 
         expect(toValue(result.copied)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(DELAY);
         });
 
@@ -125,7 +125,7 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
           await result.copy(TEXT);
         });
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(DELAY - 1);
         });
 
@@ -235,7 +235,7 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
 
         // Start first copy — writeText hangs
         let firstCopy!: Promise<boolean>;
-        await act(async () => {
+        await act(() => {
           firstCopy = result.copy(TEXT);
         });
 
@@ -267,7 +267,7 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
         const { result, unmount } = setup();
 
         let firstCopy!: Promise<boolean>;
-        await act(async () => {
+        await act(() => {
           firstCopy = result.copy(TEXT);
         });
 
@@ -298,7 +298,7 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
 
         expect(toValue(result.copied)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(customDelay);
         });
 
@@ -314,7 +314,7 @@ export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): v
           await result.copy(TEXT);
         });
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(customDelay - 1);
         });
 

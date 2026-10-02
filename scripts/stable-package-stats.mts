@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { gzipSync } from 'node:zlib';
 import { build, type BuildResult, type OutputFile } from 'esbuild';
 import { rspack, type Configuration } from '@rspack/core';
+import { mapLimit } from './benchmark-async.mts';
 
 type ExecFileAsync = (
   file: string,
@@ -401,7 +402,7 @@ async function measureWithRspack(input: PackageMeasureInput): Promise<MeasuredSi
       continue;
     }
 
-    return await pickMainAssetSize(distDir);
+    return pickMainAssetSize(distDir);
   }
 
   throw new Error('Rspack fallback failed after retries');
@@ -573,12 +574,15 @@ async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<Measure
 
     const assetsDir = path.join(tmpRoot, 'dist', 'assets');
     const files = await readdir(assetsDir);
+    const assets = await Promise.all(
+      files
+        .filter((fileName) => /\.(js|css)$/.test(fileName))
+        .map((fileName) => readFile(path.join(assetsDir, fileName)))
+    );
     let size = 0;
     let gzip = 0;
 
-    for (const fileName of files) {
-      if (!/\.(js|css)$/.test(fileName)) continue;
-      const fileContents = await readFile(path.join(assetsDir, fileName));
+    for (const fileContents of assets) {
       size += fileContents.length;
       gzip += gzipSync(fileContents).length;
     }
@@ -650,21 +654,21 @@ async function measureExportSizesFallback(pkg: string, options: NormalizedStatsO
 
     const assets: PackageStatsAsset[] = [];
 
-    for (const exportName of exportNames) {
+    await mapLimit(exportNames, 1, async (exportName) => {
       const entrySource = `import { ${exportName} as benchmarkExport } from ${JSON.stringify(pkg)};\nconsole.log(benchmarkExport);\n`;
-      let measured = null;
+      let measured: MeasuredSize | null;
       try {
         measured = await measureWithRspack({ installRoot, entrySource, peerDeps });
       } catch {
         measured = await measureWithEsbuild({ installRoot, entrySource, peerDeps });
       }
-      if (!measured) continue;
+      if (!measured) return;
       assets.push({
         name: exportName,
         size: measured.size,
         gzip: measured.gzip
       });
-    }
+    });
 
     return { assets };
   } finally {

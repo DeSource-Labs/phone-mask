@@ -36,13 +36,13 @@ export function testUseValidationHint(setup: SetupFn, { act, toValue }: TestTool
       it('sets showValidationHint to true after the delay', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
         });
 
         expect(toValue(result.showValidationHint)).toBe(false);
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(DELAY);
         });
 
@@ -53,7 +53,7 @@ export function testUseValidationHint(setup: SetupFn, { act, toValue }: TestTool
       it('does not show hint before the delay elapses', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
           vi.advanceTimersByTime(DELAY - 1);
         });
@@ -65,14 +65,14 @@ export function testUseValidationHint(setup: SetupFn, { act, toValue }: TestTool
       it('immediately resets showValidationHint to false when called again', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
           vi.advanceTimersByTime(DELAY);
         });
 
         expect(toValue(result.showValidationHint)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
         });
 
@@ -83,16 +83,16 @@ export function testUseValidationHint(setup: SetupFn, { act, toValue }: TestTool
       it('cancels previous pending timer when called again', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
         });
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(DELAY / 2);
           result.scheduleValidationHint(DELAY);
         });
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(DELAY / 2);
         });
 
@@ -106,14 +106,14 @@ export function testUseValidationHint(setup: SetupFn, { act, toValue }: TestTool
       it('sets showValidationHint to false by default', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
           vi.advanceTimersByTime(DELAY);
         });
 
         expect(toValue(result.showValidationHint)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           result.clearValidationHint();
         });
 
@@ -124,11 +124,11 @@ export function testUseValidationHint(setup: SetupFn, { act, toValue }: TestTool
       it('cancels pending timer', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
         });
 
-        await act(async () => {
+        await act(() => {
           result.clearValidationHint();
           vi.advanceTimersByTime(DELAY);
         });
@@ -140,14 +140,14 @@ export function testUseValidationHint(setup: SetupFn, { act, toValue }: TestTool
       it('does not hide hint when hideHint is false', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
           vi.advanceTimersByTime(DELAY);
         });
 
         expect(toValue(result.showValidationHint)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           result.clearValidationHint(false);
         });
 
@@ -158,11 +158,11 @@ export function testUseValidationHint(setup: SetupFn, { act, toValue }: TestTool
       it('still cancels pending timer when hideHint is false', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.scheduleValidationHint(DELAY);
         });
 
-        await act(async () => {
+        await act(() => {
           result.clearValidationHint(false);
           vi.advanceTimersByTime(DELAY);
         });

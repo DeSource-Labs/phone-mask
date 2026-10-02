@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { inspect } from 'node:util';
+import { mapLimit, retry } from './benchmark-async.mts';
 // Note: this script requires `esbuild`, `@rspack/core` & `css-loader` to be installed
 // (e.g. as a dev dependency: `pnpm add -w -D esbuild @rspack/core css-loader`).
 import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mts';
@@ -222,10 +223,6 @@ function markdownRepo(url: string | null): string {
   return `[Repo](${safeUrl})`;
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function toLogString(value: unknown): string {
   if (value instanceof Error) {
     return `${value.name}: ${value.message}`;
@@ -268,10 +265,8 @@ function formatErrorDetails(error: unknown): string {
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
-  let lastError: unknown = null;
-
-  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
-    try {
+  try {
+    return await retry(async () => {
       const response = await fetch(url, {
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         headers: {
@@ -284,32 +279,10 @@ async function fetchJson<T>(url: string): Promise<T> {
       }
 
       return (await response.json()) as T;
-    } catch (error) {
-      lastError = error;
-      if (attempt < MAX_FETCH_ATTEMPTS) {
-        await sleep(300 * attempt);
-      }
-    }
+    }, MAX_FETCH_ATTEMPTS);
+  } catch (error) {
+    throw error instanceof Error ? error : new Error(`Failed to fetch JSON from ${url}`);
   }
-
-  throw lastError instanceof Error ? lastError : new Error(`Failed to fetch JSON from ${url}`);
-}
-
-async function mapLimit<T, R>(items: T[], limit: number, mapper: (item: T, index: number) => Promise<R>): Promise<R[]> {
-  const results = new Array<R>(items.length);
-  let nextIndex = 0;
-
-  const worker = async () => {
-    while (nextIndex < items.length) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
-    }
-  };
-
-  const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
-  await Promise.all(workers);
-  return results;
 }
 
 const packageSizeCache = new Map<string, Promise<PackageSizeMetrics>>();
@@ -506,13 +479,13 @@ async function collectMetrics(): Promise<Map<string, PackageMetrics>> {
 
   await fetchMissingPhonePeerMetrics(metrics);
 
-  for (const row of rows) {
+  await mapLimit(rows, PACKAGE_STATS_CONCURRENCY, async (row) => {
     const metric = metrics.get(row.pkg);
-    if (!metric) continue;
+    if (!metric) return;
     const overhead = await resolveDataOverheadGzip(row.pkg, metric, metrics);
     metric.dataOverheadGzip = overhead;
     metric.comparableGzip = calculateComparableGzip(metric.gzip, overhead);
-  }
+  });
 
   return metrics;
 }

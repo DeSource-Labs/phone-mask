@@ -69,7 +69,7 @@ function createHandler<T>(
 
     updateDigits(el, state, result.newDigits);
 
-    Promise.resolve().then(() => {
+    void Promise.resolve().then(() => {
       const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
       setCaret(el, pos);
     });
@@ -163,7 +163,7 @@ export function phoneMaskAction(
   el.addEventListener('keydown', keydownHandler);
   el.addEventListener('paste', pasteHandler);
   // Update state with detected country & formatter, then run effects
-  detectInitialCountry(options).then((countryCode) => {
+  void detectInitialCountry(options).then((countryCode) => {
     // Guard against the directive being unmounted before the async detection resolves.
     if ((el as PhoneMaskBindingElement).__phoneMaskState !== state) return;
     state.setCountry(countryCode);

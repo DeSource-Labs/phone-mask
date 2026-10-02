@@ -66,19 +66,19 @@ export function testUseCountrySelectorDomBehavior(
     };
 
     const openDropdown = (ctx: CountrySelectorDomSetupResult) =>
-      act(async () => {
+      act(() => {
         ctx.result.openDropdown();
       });
 
     const pressSearchKey = async (ctx: CountrySelectorDomSetupResult, key: string) => {
-      await act(async () => {
+      await act(() => {
         ctx.result.handleSearchKeydown({ key, preventDefault: vi.fn() });
       });
       await ctx.flushAsync();
     };
 
     const pressSelectorKey = async (ctx: CountrySelectorDomSetupResult, key: string) => {
-      await act(async () => {
+      await act(() => {
         ctx.result.handleSelectorKeydown({ key, preventDefault: vi.fn() });
       });
       await ctx.flushAsync();
@@ -106,7 +106,7 @@ export function testUseCountrySelectorDomBehavior(
 
     it('scrolls focused option into view when navigating up', async () => {
       await withDom(async (ctx) => {
-        await act(async () => {
+        await act(() => {
           ctx.result.openDropdown();
           ctx.result.setFocusedIndex(1);
         });
@@ -156,7 +156,7 @@ export function testUseCountrySelectorDomBehavior(
         await openDropdown(ctx);
         setCompactViewport(ctx, 200);
 
-        await act(async () => {
+        await act(() => {
           globalThis.dispatchEvent(new Event('resize'));
         });
 
@@ -186,7 +186,7 @@ export function testUseCountrySelectorDomBehavior(
       ['mouse', true]
     ] as const)('uses %s pointer focus behavior', async (pointerType, shouldFocus) => {
       await withDom(async (ctx) => {
-        await act(async () => {
+        await act(() => {
           ctx.result.handleSelectorPointerDown({ pointerType });
           ctx.result.toggleDropdown();
         });
@@ -231,7 +231,7 @@ export function testUseCountrySelectorDomBehavior(
 
     it('preserves keyboard focus behavior when Space primes the selector before opening', async () => {
       await withDom(async (ctx) => {
-        await act(async () => {
+        await act(() => {
           ctx.result.handleSelectorKeydown({ key: ' ', preventDefault: vi.fn() });
           ctx.result.toggleDropdown();
         });
@@ -246,7 +246,7 @@ export function testUseCountrySelectorDomBehavior(
       await withDom(async (ctx) => {
         await pressSelectorKey(ctx, 'ArrowDown');
 
-        await act(async () => {
+        await act(() => {
           ctx.result.handleSearchChange({ target: { value: 'uni' } });
           ctx.result.setFocusedIndex(2);
           globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));

@@ -3,7 +3,11 @@ import type { TestTools, MaybeRef } from '@common/tests/unit/setup/tools';
 
 export const tools: TestTools = {
   toValue: <T>(val: MaybeRef<T>) => val as T,
-  act,
+  // Keep React's asynchronous act boundary even when the shared callback is synchronous.
+  act: (callback) =>
+    act(async () => {
+      await callback();
+    }),
   waitFor,
   fireEvent,
   screen

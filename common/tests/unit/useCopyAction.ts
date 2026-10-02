@@ -133,7 +133,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
           await result.onCopyClick();
         });
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(DELAY);
         });
 
@@ -150,7 +150,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
 
         expect(toValue(result.copied)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(DELAY);
         });
 
@@ -165,7 +165,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
           await result.onCopyClick();
         });
 
-        await act(async () => {
+        await act(() => {
           vi.advanceTimersByTime(DELAY);
         });
 
@@ -237,7 +237,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
 
         // Start first copy — writeText hangs; wrap in act to flush setIsCopying(true)
         let firstCopy!: Promise<void>;
-        await act(async () => {
+        await act(() => {
           firstCopy = result.onCopyClick();
         });
 
@@ -264,7 +264,7 @@ export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): 
 
         expect(toValue(result.copyAriaLabel)).toBe(`Copy ${PHONE}`);
 
-        await act(async () => {
+        await act(() => {
           rerender({ fullFormatted: '+44 20 7946 0958' });
         });
 

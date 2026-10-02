@@ -192,7 +192,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
       it('calls onChange when rerendered value exceeds maxDigits', async () => {
         const { onChange, rerender, unmount } = setup({ value: US_PARTIAL });
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: US_EXCESS });
         });
 
@@ -207,7 +207,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         expect(toValue(result.isComplete)).toBe(false);
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: US_COMPLETE });
         });
 
@@ -220,7 +220,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         expect(toValue(result.isEmpty)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: US_PARTIAL });
         });
 
@@ -233,7 +233,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         expect(toValue(result.shouldShowWarn)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: US_COMPLETE });
         });
 
@@ -246,7 +246,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         expect(toValue(result.full)).toBe('');
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: US_PARTIAL });
         });
 
@@ -259,7 +259,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         expect(toValue(result.full)).not.toBe('');
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: '' });
         });
 
@@ -275,7 +275,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         const usPlaceholder = toValue(result.displayPlaceholder);
 
-        await act(async () => {
+        await act(() => {
           rerender({ countryCode: 'GB' });
         });
 
@@ -288,7 +288,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         expect(toValue(result.full)).toMatch(/^\+1/);
 
-        await act(async () => {
+        await act(() => {
           rerender({ countryCode: 'GB' });
         });
 
@@ -303,7 +303,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         onChange.mockClear();
 
-        await act(async () => {
+        await act(() => {
           rerender({ countryCode: 'AD' });
         });
 
@@ -342,7 +342,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         onPhoneChange.mockClear();
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: US_COMPLETE });
         });
 
@@ -373,7 +373,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         onValidationChange.mockClear();
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: US_COMPLETE });
         });
 
@@ -386,7 +386,7 @@ export function testUseFormatter(setup: SetupFn, { act, toValue }: TestTools): v
 
         onValidationChange.mockClear();
 
-        await act(async () => {
+        await act(() => {
           rerender({ value: US_PARTIAL });
         });
 
