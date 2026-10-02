@@ -72,7 +72,7 @@ export function useCountry({
   // Auto-detect country
   watchEffect(() => {
     if (toValue(detect) && !toValue(countryOption)) {
-      detectCountry();
+      void detectCountry();
     }
   });
 

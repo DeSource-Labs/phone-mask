@@ -151,7 +151,7 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
     el.addEventListener('keydown', state.keydownHandler);
     el.addEventListener('paste', state.pasteHandler);
     // Update state with detected country & formatter, then run effects.
-    detectInitialCountry(options).then((countryCode) => {
+    void detectInitialCountry(options).then((countryCode) => {
       // Guard against the directive being unmounted before the async detection resolves.
       if (el.__phoneMaskState !== state) return;
       setCountry(el, state, countryCode);

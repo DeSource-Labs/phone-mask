@@ -66,7 +66,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
       it('updates country for a valid code', async () => {
         const { result, unmount } = setup({ locale: 'en' });
 
-        await act(async () => {
+        await act(() => {
           result.setCountry('GB');
         });
 
@@ -77,7 +77,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
       it('returns true for a valid country code', async () => {
         const { result, unmount } = setup({ locale: 'en' });
 
-        await act(async () => {
+        await act(() => {
           expect(result.setCountry('FR')).toBe(true);
         });
 
@@ -87,7 +87,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
       it('returns false for an invalid country code', async () => {
         const { result, unmount } = setup({ locale: 'en' });
 
-        await act(async () => {
+        await act(() => {
           expect(result.setCountry('INVALID')).toBe(false);
         });
 
@@ -97,7 +97,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
       it('does not change country for an invalid code', async () => {
         const { result, unmount } = setup({ locale: 'en' });
 
-        await act(async () => {
+        await act(() => {
           result.setCountry('INVALID');
         });
 
@@ -108,7 +108,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
       it('does not change country when called with null', async () => {
         const { result, unmount } = setup({ countryOption: 'DE', locale: 'en' });
 
-        await act(async () => {
+        await act(() => {
           result.setCountry(null);
         });
 
@@ -121,7 +121,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
       it('updates country when countryOption prop changes', async () => {
         const { result, rerender, unmount } = setup({ countryOption: 'US', locale: 'en' });
 
-        await act(async () => {
+        await act(() => {
           rerender({ countryOption: 'JP' });
         });
 
@@ -132,7 +132,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
       it('does not update country when countryOption changes to an invalid code', async () => {
         const { result, rerender, unmount } = setup({ countryOption: 'US', locale: 'en' });
 
-        await act(async () => {
+        await act(() => {
           rerender({ countryOption: 'INVALID' });
         });
 
@@ -152,7 +152,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
         const { result, onCountryChange, unmount } = setup({ locale: 'en' });
         onCountryChange.mockClear();
 
-        await act(async () => {
+        await act(() => {
           result.setCountry('DE');
         });
 
@@ -164,7 +164,7 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
         const { rerender, onCountryChange, unmount } = setup({ countryOption: 'US', locale: 'en' });
         onCountryChange.mockClear();
 
-        await act(async () => {
+        await act(() => {
           rerender({ countryOption: 'FR' });
         });
 

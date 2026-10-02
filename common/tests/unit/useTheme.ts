@@ -95,7 +95,7 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
 
         expect(toValue(result.themeClass)).toBe('theme-light');
 
-        await act(async () => {
+        await act(() => {
           changeHandler?.({ matches: true });
         });
 
@@ -109,7 +109,7 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
 
         expect(toValue(result.themeClass)).toBe('theme-dark');
 
-        await act(async () => {
+        await act(() => {
           changeHandler?.({ matches: false });
         });
 
@@ -124,7 +124,7 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
 
         expect(toValue(result.themeClass)).toBe('theme-light');
 
-        await act(async () => {
+        await act(() => {
           rerender({ theme: 'dark' });
         });
 
@@ -138,7 +138,7 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
 
         expect(toValue(result.themeClass)).toBe('theme-dark');
 
-        await act(async () => {
+        await act(() => {
           rerender({ theme: 'light' });
         });
 
@@ -152,7 +152,7 @@ export function testUseTheme(setup: SetupFn, { act, toValue }: TestTools): void 
 
         expect(toValue(result.themeClass)).toBe('theme-dark');
 
-        await act(async () => {
+        await act(() => {
           rerender({ theme: 'auto' });
         });
 

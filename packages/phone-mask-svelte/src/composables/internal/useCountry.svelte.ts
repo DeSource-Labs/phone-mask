@@ -56,7 +56,7 @@ export function useCountry({
   // Auto-detect country
   $effect(() => {
     if (detect?.() && !countryOption?.()) {
-      detectCountry();
+      void detectCountry();
     }
   });
 

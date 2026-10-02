@@ -506,13 +506,13 @@ async function collectMetrics(): Promise<Map<string, PackageMetrics>> {
 
   await fetchMissingPhonePeerMetrics(metrics);
 
-  for (const row of rows) {
+  await mapLimit(rows, PACKAGE_STATS_CONCURRENCY, async (row) => {
     const metric = metrics.get(row.pkg);
-    if (!metric) continue;
+    if (!metric) return;
     const overhead = await resolveDataOverheadGzip(row.pkg, metric, metrics);
     metric.dataOverheadGzip = overhead;
     metric.comparableGzip = calculateComparableGzip(metric.gzip, overhead);
-  }
+  });
 
   return metrics;
 }

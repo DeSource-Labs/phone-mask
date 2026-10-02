@@ -401,7 +401,7 @@ async function measureWithRspack(input: PackageMeasureInput): Promise<MeasuredSi
       continue;
     }
 
-    return await pickMainAssetSize(distDir);
+    return pickMainAssetSize(distDir);
   }
 
   throw new Error('Rspack fallback failed after retries');
@@ -573,12 +573,15 @@ async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<Measure
 
     const assetsDir = path.join(tmpRoot, 'dist', 'assets');
     const files = await readdir(assetsDir);
+    const assets = await Promise.all(
+      files
+        .filter((fileName) => /\.(js|css)$/.test(fileName))
+        .map((fileName) => readFile(path.join(assetsDir, fileName)))
+    );
     let size = 0;
     let gzip = 0;
 
-    for (const fileName of files) {
-      if (!/\.(js|css)$/.test(fileName)) continue;
-      const fileContents = await readFile(path.join(assetsDir, fileName));
+    for (const fileContents of assets) {
       size += fileContents.length;
       gzip += gzipSync(fileContents).length;
     }

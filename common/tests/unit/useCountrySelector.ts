@@ -132,7 +132,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('sets dropdownOpen to true', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
@@ -143,11 +143,11 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('resets focusedIndex to 0', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.setFocusedIndex(3);
         });
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
@@ -160,11 +160,11 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         try {
           const { result, searchEl, unmount } = setup();
 
-          await act(async () => {
+          await act(() => {
             result.openDropdown();
           });
 
-          await act(async () => {
+          await act(() => {
             vi.runAllTimers();
           });
 
@@ -178,7 +178,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('does nothing when inactive', async () => {
         const { result, unmount } = setup({ inactive: true });
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
@@ -189,7 +189,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('does nothing when hasDropdown is false', async () => {
         const { result, unmount } = setup({ countryOption: 'US' });
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
@@ -202,7 +202,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('does nothing when already closed', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.closeDropdown();
         });
 
@@ -213,17 +213,17 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('closes the dropdown', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
         expect(toValue(result.dropdownOpen)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           result.closeDropdown();
         });
 
-        await act(async () => {
+        await act(() => {
           simulateCloseComplete();
         });
 
@@ -238,11 +238,11 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
           return;
         }
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
-        await act(async () => {
+        await act(() => {
           result.closeDropdown();
         });
 
@@ -258,15 +258,15 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
           return;
         }
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
-        await act(async () => {
+        await act(() => {
           result.closeDropdown();
         });
 
-        await act(async () => {
+        await act(() => {
           simulateCloseComplete();
         });
 
@@ -280,7 +280,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('opens the dropdown when it is closed', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.toggleDropdown();
         });
 
@@ -291,17 +291,17 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('closes the dropdown when it is open', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.toggleDropdown();
         });
 
         expect(toValue(result.dropdownOpen)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           result.toggleDropdown();
         });
 
-        await act(async () => {
+        await act(() => {
           simulateCloseComplete();
         });
 
@@ -312,7 +312,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('does nothing when inactive', async () => {
         const { result, unmount } = setup({ inactive: true });
 
-        await act(async () => {
+        await act(() => {
           result.toggleDropdown();
         });
 
@@ -323,7 +323,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('does nothing when hasDropdown is false', async () => {
         const { result, unmount } = setup({ countryOption: 'US' });
 
-        await act(async () => {
+        await act(() => {
           result.toggleDropdown();
         });
 
@@ -336,7 +336,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('calls onSelectCountry with the given code', async () => {
         const { result, onSelectCountry, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.selectCountry('US');
         });
 
@@ -347,15 +347,15 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('closes the dropdown', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
-        await act(async () => {
+        await act(() => {
           result.selectCountry('US');
         });
 
-        await act(async () => {
+        await act(() => {
           simulateCloseComplete();
         });
 
@@ -366,7 +366,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('resets search to empty string', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.selectCountry('US');
         });
 
@@ -377,11 +377,11 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('resets focusedIndex to 0', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.setFocusedIndex(5);
         });
 
-        await act(async () => {
+        await act(() => {
           result.selectCountry('US');
         });
 
@@ -392,7 +392,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('calls onAfterSelect', async () => {
         const { result, onAfterSelect, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.selectCountry('US');
         });
 
@@ -413,7 +413,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
         const { result, unmount } = setup();
         const total = toValue(result.filteredCountries).length;
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchChange({ target: { value: 'united' } });
         });
 
@@ -426,7 +426,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('returns an empty list when search matches nothing', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchChange({ target: { value: 'zzzznomatch' } });
         });
 
@@ -439,17 +439,17 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('closes the dropdown when clicking outside', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
         expect(toValue(result.dropdownOpen)).toBe(true);
 
-        await act(async () => {
+        await act(() => {
           globalThis.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
         });
 
-        await act(async () => {
+        await act(() => {
           simulateCloseComplete();
         });
 
@@ -462,7 +462,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('updates search when called', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchChange({ target: { value: 'ger' } });
         });
 
@@ -473,11 +473,11 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('resets focusedIndex to 0 when search changes', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.setFocusedIndex(5);
         });
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchChange({ target: { value: 'fr' } });
         });
 
@@ -490,7 +490,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('ArrowDown increments focusedIndex', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
         });
 
@@ -503,7 +503,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
 
         const total = toValue(result.filteredCountries).length;
 
-        await act(async () => {
+        await act(() => {
           for (let i = 0; i < total + 2; i++) {
             result.handleSearchKeydown({ key: 'ArrowDown', preventDefault: vi.fn() });
           }
@@ -516,11 +516,11 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('ArrowUp decrements focusedIndex', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.setFocusedIndex(3);
         });
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() });
         });
 
@@ -531,7 +531,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('ArrowUp does not go below 0', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() });
           result.handleSearchKeydown({ key: 'ArrowUp', preventDefault: vi.fn() });
         });
@@ -545,7 +545,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
 
         const firstCountry = toValue(result.filteredCountries)[0];
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchKeydown({ key: 'Enter', preventDefault: vi.fn() });
         });
 
@@ -556,11 +556,11 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('Enter does nothing when no focused country exists', async () => {
         const { result, onSelectCountry, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchChange({ target: { value: 'zzzz-no-country' } });
         });
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchKeydown({ key: 'Enter', preventDefault: vi.fn() });
         });
 
@@ -571,7 +571,7 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('ignores unrelated keys', async () => {
         const { result, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.handleSearchKeydown({ key: 'Tab', preventDefault: vi.fn() });
         });
 
@@ -582,15 +582,15 @@ export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestToo
       it('Escape closes the dropdown', async () => {
         const { result, simulateCloseComplete, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           result.openDropdown();
         });
 
-        await act(async () => {
+        await act(() => {
           globalThis.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
         });
 
-        await act(async () => {
+        await act(() => {
           simulateCloseComplete();
         });
 

@@ -113,23 +113,23 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       expect(typeof ref.isComplete()).toBe('boolean');
       expect(ref.isValid()).toBe(ref.isComplete());
 
-      await act(async () => {
+      await act(() => {
         ref.selectCountry('GB');
       });
       await waitFor(() => expect(ref.getFullNumber()).toBe('+4420255501'));
       expect(ref.getFullFormattedNumber()).toContain('+44');
 
-      await act(async () => {
+      await act(() => {
         ref.clear();
       });
       expect(onChange).toHaveBeenCalledWith('');
 
-      await act(async () => {
+      await act(() => {
         ref.focus();
       });
       await waitFor(() => expect(document.activeElement).toBe(input));
 
-      await act(async () => {
+      await act(() => {
         ref.blur();
       });
       await waitFor(() => expect(document.activeElement).not.toBe(input));

@@ -53,7 +53,7 @@ export function testUsePhoneMask(setup: UsePhoneMaskSetupFn, { act }: Pick<TestT
 
       await act(async () => {});
 
-      await act(async () => {
+      await act(() => {
         inputEl.value = '202-555-0199';
         inputEl.dispatchEvent(new Event('input', { bubbles: true }));
       });
@@ -67,13 +67,13 @@ export function testUsePhoneMask(setup: UsePhoneMaskSetupFn, { act }: Pick<TestT
       await act(async () => {});
       expect(api.getFull()).toBe('+12025550199');
 
-      await act(async () => {
+      await act(() => {
         api.setCountry('DE');
       });
       expect(api.getFull()).toBe('+492025550199');
       expect(api.getFullFormatted()).toContain('+49');
 
-      await act(async () => {
+      await act(() => {
         api.clear();
       });
 
@@ -90,12 +90,12 @@ export function testUsePhoneMask(setup: UsePhoneMaskSetupFn, { act }: Pick<TestT
       expect(api.getDigits()).toBe('202');
       expect(api.getFull()).toBe('+1202');
 
-      await act(async () => {
+      await act(() => {
         api.setCountry('DE');
       });
       expect(api.getFull()).toBe('+49202');
 
-      await act(async () => {
+      await act(() => {
         api.clear();
       });
       expect(onChange).toHaveBeenCalledWith('');

@@ -75,7 +75,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
         const event = makeBeforeInputEvent('5');
         const spy = vi.spyOn(event, 'preventDefault');
 
-        await act(async () => {
+        await act(() => {
           inputEl.dispatchEvent(event);
         });
 
@@ -88,7 +88,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
         const event = makeBeforeInputEvent('a');
         const spy = vi.spyOn(event, 'preventDefault');
 
-        await act(async () => {
+        await act(() => {
           inputEl.dispatchEvent(event);
         });
 
@@ -102,7 +102,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
         const event = makeBeforeInputEvent(' ');
         const spy = vi.spyOn(event, 'preventDefault');
 
-        await act(async () => {
+        await act(() => {
           inputEl.dispatchEvent(event);
         });
 
@@ -113,7 +113,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does not call onChange', async () => {
         const { inputEl, onChange, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.dispatchEvent(makeBeforeInputEvent('5'));
         });
 
@@ -124,7 +124,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does not call scheduleValidationHint', async () => {
         const { inputEl, scheduleValidationHint, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.dispatchEvent(makeBeforeInputEvent('5'));
         });
 
@@ -140,7 +140,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('calls onChange with digits extracted from the input value', async () => {
         const { inputEl, onChange, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         });
@@ -152,7 +152,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('calls scheduleValidationHint with HINT_DELAY_INPUT', async () => {
         const { inputEl, scheduleValidationHint, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         });
@@ -164,7 +164,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does nothing when inactive', async () => {
         const { inputEl, onChange, scheduleValidationHint, unmount } = setup({ inactive: true });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         });
@@ -177,11 +177,11 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does nothing when inactive after rerender', async () => {
         const { inputEl, onChange, rerender, unmount } = setup({ inactive: false });
 
-        await act(async () => {
+        await act(() => {
           rerender({ inactive: true });
         });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         });
@@ -193,7 +193,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('updates caret position after formatting', async () => {
         const { inputEl, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         });
@@ -214,7 +214,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
           return;
         }
 
-        await act(async () => {
+        await act(() => {
           invokeInputWithoutTarget();
         });
 
@@ -231,7 +231,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does nothing when inactive', async () => {
         const { inputEl, onChange, unmount } = setup({ digits: DIGITS_COMPLETE, inactive: true });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.selectionStart = DISPLAY_COMPLETE.length;
           inputEl.selectionEnd = DISPLAY_COMPLETE.length;
@@ -245,7 +245,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('calls onChange with last digit removed on Backspace at end', async () => {
         const { inputEl, onChange, unmount } = setup({ digits: DIGITS_COMPLETE });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.selectionStart = DISPLAY_COMPLETE.length;
           inputEl.selectionEnd = DISPLAY_COMPLETE.length;
@@ -259,7 +259,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('calls onChange with first digit removed on Delete at start', async () => {
         const { inputEl, onChange, unmount } = setup({ digits: DIGITS_COMPLETE });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.selectionStart = 0;
           inputEl.selectionEnd = 0;
@@ -273,7 +273,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('calls onChange with next digit removed on Delete when caret is on a delimiter', async () => {
         const { inputEl, onChange, unmount } = setup({ digits: DIGITS_COMPLETE });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           // "234-567-8901": index 3 is '-'
           inputEl.selectionStart = 3;
@@ -288,7 +288,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('calls scheduleValidationHint with HINT_DELAY_ACTION when a digit is deleted', async () => {
         const { inputEl, scheduleValidationHint, unmount } = setup({ digits: DIGITS_COMPLETE });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = DISPLAY_COMPLETE;
           inputEl.selectionStart = DISPLAY_COMPLETE.length;
           inputEl.selectionEnd = DISPLAY_COMPLETE.length;
@@ -302,7 +302,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does not call onChange for navigation keys', async () => {
         const { inputEl, onChange, unmount } = setup({ digits: DIGITS_COMPLETE });
 
-        await act(async () => {
+        await act(() => {
           for (const key of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Tab']) {
             inputEl.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
           }
@@ -315,7 +315,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does not call onChange on Backspace when digits is empty', async () => {
         const { inputEl, onChange, unmount } = setup({ digits: '' });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = '';
           inputEl.selectionStart = 0;
           inputEl.selectionEnd = 0;
@@ -334,7 +334,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('calls onChange with digits extracted from pasted text', async () => {
         const { inputEl, onChange, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.selectionStart = 0;
           inputEl.selectionEnd = 0;
           inputEl.dispatchEvent(makePasteEvent(DISPLAY_COMPLETE));
@@ -347,7 +347,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('inserts pasted digits at collapsed caret position instead of appending to end', async () => {
         const { inputEl, onChange, unmount } = setup({ digits: '234567' });
 
-        await act(async () => {
+        await act(() => {
           inputEl.value = '234-567';
           inputEl.selectionStart = 4;
           inputEl.selectionEnd = 4;
@@ -361,7 +361,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('calls scheduleValidationHint with HINT_DELAY_ACTION', async () => {
         const { inputEl, scheduleValidationHint, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.selectionStart = 0;
           inputEl.selectionEnd = 0;
           inputEl.dispatchEvent(makePasteEvent(DISPLAY_COMPLETE));
@@ -374,7 +374,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does nothing when inactive', async () => {
         const { inputEl, onChange, scheduleValidationHint, unmount } = setup({ inactive: true });
 
-        await act(async () => {
+        await act(() => {
           inputEl.selectionStart = 0;
           inputEl.selectionEnd = 0;
           inputEl.dispatchEvent(makePasteEvent(DISPLAY_COMPLETE));
@@ -388,7 +388,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('does not call onChange when pasted text contains no digits', async () => {
         const { inputEl, onChange, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.selectionStart = 0;
           inputEl.selectionEnd = 0;
           inputEl.dispatchEvent(makePasteEvent('--- ---'));
@@ -401,7 +401,7 @@ export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {
       it('clamps pasted digits to maxDigits', async () => {
         const { inputEl, onChange, unmount } = setup();
 
-        await act(async () => {
+        await act(() => {
           inputEl.selectionStart = 0;
           inputEl.selectionEnd = 0;
           // 12 digits total — must be clamped to 10

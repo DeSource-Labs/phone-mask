@@ -224,27 +224,29 @@ function getMaxBytesForDisplayedKb(displayedKb: number): number {
 
 async function loadWorkspacePackages(): Promise<Map<string, WorkspacePackage>> {
   const entries = await readdir(PACKAGES_DIR, { withFileTypes: true });
-  const list: WorkspacePackage[] = [];
+  const packages = await Promise.all(
+    entries.map(async (entry): Promise<WorkspacePackage | null> => {
+      if (!entry.isDirectory()) return null;
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
+      const pkgPath = path.join(PACKAGES_DIR, entry.name, 'package.json');
+      try {
+        const pkg = await readJson<Record<string, unknown>>(pkgPath);
+        const name = typeof pkg.name === 'string' ? pkg.name : undefined;
+        if (!name?.startsWith('@desource/phone-mask')) return null;
 
-    const pkgPath = path.join(PACKAGES_DIR, entry.name, 'package.json');
-    try {
-      const pkg = await readJson<Record<string, unknown>>(pkgPath);
-      const name = typeof pkg.name === 'string' ? pkg.name : undefined;
-      if (!name?.startsWith('@desource/phone-mask')) continue;
-
-      list.push({
-        name,
-        version: normalizeVersion(pkg.version),
-        dependencies: normalizeDeps(isRecord(pkg.dependencies) ? pkg.dependencies : undefined),
-        peerDependencies: normalizeDeps(isRecord(pkg.peerDependencies) ? pkg.peerDependencies : undefined)
-      });
-    } catch {
-      // Ignore folders without valid package.json.
-    }
-  }
+        return {
+          name,
+          version: normalizeVersion(pkg.version),
+          dependencies: normalizeDeps(isRecord(pkg.dependencies) ? pkg.dependencies : undefined),
+          peerDependencies: normalizeDeps(isRecord(pkg.peerDependencies) ? pkg.peerDependencies : undefined)
+        };
+      } catch {
+        // Ignore folders without valid package.json.
+        return null;
+      }
+    })
+  );
+  const list = packages.filter((pkg): pkg is WorkspacePackage => pkg !== null);
 
   list.sort((a, b) => {
     const oa = PACKAGE_ORDER.get(a.name) ?? 999;

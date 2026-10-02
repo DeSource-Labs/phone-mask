@@ -63,9 +63,7 @@ export function useGhStars() {
     }
   };
 
-  onMounted(() => {
-    fetchStars();
-  });
+  onMounted(fetchStars);
 
   return stars;
 }
