@@ -67,28 +67,28 @@ type ReportHeaderParams = {
 const PACKAGE_REPORTS: PackageReport[] = [
   {
     label: 'phone-mask',
-    file: 'packages/phone-mask/coverage/lcov.info',
-    packagePath: 'packages/phone-mask/src'
+    file: 'packages/core/coverage/lcov.info',
+    packagePath: 'packages/core/src'
   },
   {
     label: 'phone-mask-vue',
-    file: 'packages/phone-mask-vue/coverage/lcov.info',
-    packagePath: 'packages/phone-mask-vue/src'
+    file: 'packages/vue/coverage/lcov.info',
+    packagePath: 'packages/vue/src'
   },
   {
     label: 'phone-mask-react',
-    file: 'packages/phone-mask-react/coverage/lcov.info',
-    packagePath: 'packages/phone-mask-react/src'
+    file: 'packages/react/coverage/lcov.info',
+    packagePath: 'packages/react/src'
   },
   {
     label: 'phone-mask-svelte',
-    file: 'packages/phone-mask-svelte/coverage/lcov.info',
-    packagePath: 'packages/phone-mask-svelte/src'
+    file: 'packages/svelte/coverage/lcov.info',
+    packagePath: 'packages/svelte/src'
   },
   {
     label: 'phone-mask-nuxt',
-    file: 'packages/phone-mask-nuxt/coverage/lcov.info',
-    packagePath: 'packages/phone-mask-nuxt/src'
+    file: 'packages/nuxt/coverage/lcov.info',
+    packagePath: 'packages/nuxt/src'
   }
 ];
 

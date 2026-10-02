@@ -22,12 +22,12 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
-    "directory": "packages/phone-mask-svelte"
+    "directory": "packages/svelte"
   },
   "bugs": {
     "url": "https://github.com/DeSource-Labs/phone-mask/issues"
   },
-  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-svelte#readme",
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/svelte#readme",
   "private": false,
   "publishConfig": {
     "access": "public"

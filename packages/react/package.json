@@ -1,44 +1,44 @@
 {
-  "name": "@desource/phone-mask-vue",
+  "name": "@desource/phone-mask-react",
   "version": "1.6.4",
-  "description": "🔌 Vue 3 component, composable, and directive for international phone number masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
+  "description": "📱 React component and hook for international phone number input with smart masking. Powered by @desource/phone-mask and Google libphonenumber.",
   "keywords": [
-    "vue",
-    "vue3",
     "phone",
-    "mask",
-    "input",
-    "component",
-    "directive",
-    "international",
-    "libphonenumber",
-    "country-code",
+    "phone-input",
+    "phone-mask",
     "phone-number",
-    "formatting",
+    "international-phone",
+    "react",
+    "libphonenumber",
+    "react-component",
+    "react-hook",
+    "input-mask",
     "validation",
-    "composition-api",
-    "typescript"
+    "tel",
+    "telephone",
+    "country-code",
+    "formatting"
   ],
   "author": "Stefan Popov <stefan@desourcelabs.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
-    "directory": "packages/phone-mask-vue"
+    "directory": "packages/react"
   },
   "bugs": {
     "url": "https://github.com/DeSource-Labs/phone-mask/issues"
   },
-  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-vue#readme",
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/react#readme",
   "private": false,
   "publishConfig": {
     "access": "public"
   },
   "sideEffects": false,
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "types": "dist/types/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
@@ -50,7 +50,7 @@
       "import": "./dist/core.mjs",
       "require": "./dist/core.cjs"
     },
-    "./assets/lib.css": "./dist/phone-mask-vue.css"
+    "./assets/lib.css": "./dist/phone-mask-react.css"
   },
   "files": [
     "dist",
@@ -60,27 +60,30 @@
   "scripts": {
     "clean": "rimraf dist tsconfig.tsbuildinfo test-results coverage",
     "clean:modules": "rimraf node_modules",
-    "dev": "vite demo",
+    "dev": "cd demo && vite",
     "build": "pnpm clean && pnpm build:internal",
     "build:internal": "pnpm build:lib && pnpm build:types && pnpm build:css",
     "build:lib": "vite build",
-    "build:types": "vue-tsc -p tsconfig.json",
-    "build:css": "sass src/style.scss dist/phone-mask-vue.css --no-source-map --style=compressed",
-    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "build:types": "tsc --project tsconfig.json",
+    "build:css": "sass src/style.scss dist/phone-mask-react.css --no-source-map --style=compressed",
+    "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
     "test:e2e": "playwright test"
   },
   "peerDependencies": {
-    "vue": "^3.4.33"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
     "@desource/phone-mask": "workspace:*"
   },
   "devDependencies": {
-    "@testing-library/vue": "^8.1.0",
-    "@vitejs/plugin-vue": "^6.0.9",
-    "vue": "^3.5.43",
-    "vue-tsc": "^3.3.11"
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   }
 }

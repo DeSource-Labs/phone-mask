@@ -9,7 +9,7 @@ interface PackageJson {
 
 const rootDirectory = process.cwd();
 const packagesDirectory = path.join(rootDirectory, 'packages');
-const corePackageDirectory = path.join(packagesDirectory, 'phone-mask');
+const corePackageDirectory = path.join(packagesDirectory, 'core');
 const corePackageJson = await readPackageJson(path.join(corePackageDirectory, 'package.json'));
 const version = corePackageJson.version;
 

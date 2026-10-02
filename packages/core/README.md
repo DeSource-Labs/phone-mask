@@ -473,10 +473,10 @@ The root entry contains country metadata and mask data. Use `@desource/phone-mas
 
 ## 🔗 Related Packages
 
-- [@desource/phone-mask-vue](../phone-mask-vue) — Vue 3 component + composable + directive
-- [@desource/phone-mask-nuxt](../phone-mask-nuxt) — Nuxt module
-- [@desource/phone-mask-react](../phone-mask-react) — React component + hook
-- [@desource/phone-mask-svelte](../phone-mask-svelte) — Svelte component + composable + action + attachment
+- [@desource/phone-mask-vue](../vue) — Vue 3 component + composable + directive
+- [@desource/phone-mask-nuxt](../nuxt) — Nuxt module
+- [@desource/phone-mask-react](../react) — React component + hook
+- [@desource/phone-mask-svelte](../svelte) — Svelte component + composable + action + attachment
 
 ## 📄 License
 

@@ -901,10 +901,10 @@ Or with CSS:
 
 ## 🔗 Related
 
-- [@desource/phone-mask](../phone-mask) — Core library
-- [@desource/phone-mask-nuxt](../phone-mask-nuxt) — Nuxt module
-- [@desource/phone-mask-vue](../phone-mask-vue) — Vue 3 bindings
-- [@desource/phone-mask-react](../phone-mask-react) — React bindings
+- [@desource/phone-mask](../core) — Core library
+- [@desource/phone-mask-nuxt](../nuxt) — Nuxt module
+- [@desource/phone-mask-vue](../vue) — Vue 3 bindings
+- [@desource/phone-mask-react](../react) — React bindings
 
 ## 📄 License
 

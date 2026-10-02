@@ -40,12 +40,12 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DeSource-Labs/phone-mask.git",
-    "directory": "packages/phone-mask-nuxt"
+    "directory": "packages/nuxt"
   },
   "bugs": {
     "url": "https://github.com/DeSource-Labs/phone-mask/issues"
   },
-  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-nuxt#readme",
+  "homepage": "https://github.com/DeSource-Labs/phone-mask/tree/main/packages/nuxt#readme",
   "private": false,
   "publishConfig": {
     "access": "public"

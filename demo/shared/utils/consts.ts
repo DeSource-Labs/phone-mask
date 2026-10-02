@@ -60,11 +60,11 @@ export const NpmCommands: Record<Library, string> = {
 };
 
 export const DocLinks: Record<Library, string> = {
-  vue: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-vue',
-  nuxt: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-nuxt',
-  react: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-react',
-  svelte: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask-svelte',
-  typescript: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/phone-mask'
+  vue: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/vue',
+  nuxt: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/nuxt',
+  react: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/react',
+  svelte: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/svelte',
+  typescript: 'https://github.com/DeSource-Labs/phone-mask/tree/main/packages/core'
 };
 
 export const Links = {

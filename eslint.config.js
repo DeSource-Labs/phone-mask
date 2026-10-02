@@ -12,24 +12,20 @@ import globals from 'globals';
 const TS_FILES = ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'];
 const JS_FILES = ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.jsx'];
 
-const REACT_FILES = ['packages/phone-mask-react/**/*.{ts,tsx,js,jsx}'];
-const VUE_SFC_FILES = ['packages/phone-mask-vue/**/*.vue', 'packages/phone-mask-nuxt/**/*.vue', 'demo/**/*.vue'];
-const VUE_TS_FILES = [
-  'packages/phone-mask-vue/**/*.{ts,mts,cts}',
-  'packages/phone-mask-nuxt/**/*.{ts,mts,cts}',
-  'demo/**/*.{ts,mts,cts}'
-];
+const REACT_FILES = ['packages/react/**/*.{ts,tsx,js,jsx}'];
+const VUE_SFC_FILES = ['packages/vue/**/*.vue', 'packages/nuxt/**/*.vue', 'demo/**/*.vue'];
+const VUE_TS_FILES = ['packages/vue/**/*.{ts,mts,cts}', 'packages/nuxt/**/*.{ts,mts,cts}', 'demo/**/*.{ts,mts,cts}'];
 const SVELTE_FILES = [
-  'packages/phone-mask-svelte/**/*.svelte',
-  'packages/phone-mask-svelte/**/*.svelte.ts',
-  'packages/phone-mask-svelte/**/*.svelte.js'
+  'packages/svelte/**/*.svelte',
+  'packages/svelte/**/*.svelte.ts',
+  'packages/svelte/**/*.svelte.js'
 ];
 
 const BROWSER_FILES = [
-  'packages/phone-mask/src/**/*.{ts,mts,cts}',
-  'packages/phone-mask-react/**/*.{ts,tsx,js,jsx}',
-  'packages/phone-mask-vue/**/*.{ts,js,mts,cts,vue}',
-  'packages/phone-mask-svelte/**/*.{ts,js,mts,cts,svelte}',
+  'packages/core/src/**/*.{ts,mts,cts}',
+  'packages/react/**/*.{ts,tsx,js,jsx}',
+  'packages/vue/**/*.{ts,js,mts,cts,vue}',
+  'packages/svelte/**/*.{ts,js,mts,cts,svelte}',
   'demo/**/*.{ts,tsx,js,jsx,vue}'
 ];
 

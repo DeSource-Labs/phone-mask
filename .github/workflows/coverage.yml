@@ -126,11 +126,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           files: |
-            ./packages/phone-mask/coverage/lcov.info
-            ./packages/phone-mask-vue/coverage/lcov.info
-            ./packages/phone-mask-react/coverage/lcov.info
-            ./packages/phone-mask-svelte/coverage/lcov.info
-            ./packages/phone-mask-nuxt/coverage/lcov.info
+            ./packages/core/coverage/lcov.info
+            ./packages/vue/coverage/lcov.info
+            ./packages/react/coverage/lcov.info
+            ./packages/svelte/coverage/lcov.info
+            ./packages/nuxt/coverage/lcov.info
 
       - name: Cleanup baseline worktree
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' && steps.baseline-worktree.outputs.path != '' }}

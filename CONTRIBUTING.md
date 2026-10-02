@@ -150,7 +150,7 @@ Source-oriented overview (`dist`, `.nuxt`, `coverage`, `node_modules`, and other
 ```
 phone-mask/
 ├── packages/
-│   ├── phone-mask/              # Core package
+│   ├── core/                    # Core package
 │   │   ├── src/
 │   │   │   ├── data.json        # Source-of-truth phone metadata
 │   │   │   ├── data.min.js      # Generated compact metadata
@@ -166,19 +166,19 @@ phone-mask/
 │   │   └── tests/
 │   │       └── unit/
 │
-│   ├── phone-mask-react/        # React package
+│   ├── react/                   # React package
 │   │   ├── src/                 # components/, hooks/, types.ts, index.ts
 │   │   └── tests/               # unit + e2e
 │   │
-│   ├── phone-mask-vue/          # Vue package
+│   ├── vue/                     # Vue package
 │   │   ├── src/                 # components/, composables/, directives/, types.ts, index.ts
 │   │   └── tests/               # unit + e2e
 │   │
-│   ├── phone-mask-svelte/       # Svelte package
+│   ├── svelte/                  # Svelte package
 │   │   ├── src/                 # components/, composables/, directives/, types.ts, index.ts
 │   │   └── tests/               # unit + e2e
 │   │
-│   └── phone-mask-nuxt/         # Nuxt module package
+│   └── nuxt/                    # Nuxt module package
 │       ├── src/                 # module.ts + runtime/
 │       └── tests/               # unit + e2e fixtures
 │
@@ -505,7 +505,7 @@ package changelog.
 
 After the release pull request is squash-merged, the release workflow builds and publishes every
 package to npm without package-specific Git tags. It then creates one `X.Y.Z` Git tag and one GitHub
-release using the matching entry from `packages/phone-mask/CHANGELOG.md`. The workflow also supports
+release using the matching entry from `packages/core/CHANGELOG.md`. The workflow also supports
 manual dispatch from GitHub Actions if recovery is needed.
 
 ## 🎯 Areas We Need Help

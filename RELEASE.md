@@ -53,7 +53,7 @@ Before committing, verify:
 
 - all five `package.json` files contain the intended version;
 - all five changelogs contain the release summary;
-- `packages/phone-mask/CHANGELOG.md` has the content wanted for the GitHub release;
+- `packages/core/CHANGELOG.md` has the content wanted for the GitHub release;
 - all temporary changeset files were consumed;
 - no unrelated files changed.
 
@@ -74,7 +74,7 @@ After the release commit reaches `main`, `.github/workflows/release.yml`:
 
 1. installs dependencies with the frozen lockfile;
 2. verifies that every public package has the core package version;
-3. extracts the matching entry from `packages/phone-mask/CHANGELOG.md`;
+3. extracts the matching entry from `packages/core/CHANGELOG.md`;
 4. builds and publishes all packages to npm without package-specific Git tags;
 5. creates one Git tag named `X.Y.Z`;
 6. creates one GitHub release named `X.Y.Z` using the extracted changelog entry.

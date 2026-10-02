@@ -114,13 +114,13 @@ Ready-made plugins for your stack:
 
 ## 📦 Packages
 
-| Package                                                     | Version                                                                                 | Description                                           |
-| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| [@desource/phone-mask](./packages/phone-mask)               | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)    | Core library — TypeScript/JS                          |
-| [@desource/phone-mask-react](./packages/phone-mask-react)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue&logo=react)   | React component + hook                                |
-| [@desource/phone-mask-vue](./packages/phone-mask-vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue&logo=vuedotjs)  | Vue 3 component + composable + directive              |
-| [@desource/phone-mask-svelte](./packages/phone-mask-svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte) | Svelte 5 component + composable + action + attachment |
-| [@desource/phone-mask-nuxt](./packages/phone-mask-nuxt)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)     | Nuxt module                                           |
+| Package                                          | Version                                                                                 | Description                                           |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| [@desource/phone-mask](./packages/core)          | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)    | Core library — TypeScript/JS                          |
+| [@desource/phone-mask-react](./packages/react)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue&logo=react)   | React component + hook                                |
+| [@desource/phone-mask-vue](./packages/vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue&logo=vuedotjs)  | Vue 3 component + composable + directive              |
+| [@desource/phone-mask-svelte](./packages/svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte) | Svelte 5 component + composable + action + attachment |
+| [@desource/phone-mask-nuxt](./packages/nuxt)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)     | Nuxt module                                           |
 
 ---
 
@@ -255,11 +255,11 @@ Try the interactive playground with:
 
 ## 📚 Documentation
 
-- [Core](./packages/phone-mask/README.md)
-- [React](./packages/phone-mask-react/README.md)
-- [Vue](./packages/phone-mask-vue/README.md)
-- [Nuxt](./packages/phone-mask-nuxt/README.md)
-- [Svelte](./packages/phone-mask-svelte/README.md)
+- [Core](./packages/core/README.md)
+- [React](./packages/react/README.md)
+- [Vue](./packages/vue/README.md)
+- [Nuxt](./packages/nuxt/README.md)
+- [Svelte](./packages/svelte/README.md)
 
 ---
 
