@@ -5,6 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { mapLimit, retry } from './benchmark-async.mts';
 import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mts';
 import {
   calculateComparableGzip,
@@ -154,28 +155,22 @@ async function readJson<T>(filepath: string): Promise<T> {
   return JSON.parse(await readFile(filepath, 'utf8')) as T;
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function fetchJson<T>(url: string): Promise<T> {
-  let lastError: unknown = null;
-  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    try {
-      const response = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return (await response.json()) as T;
-    } catch (error) {
-      lastError = error;
-      if (attempt < MAX_FETCH_ATTEMPTS) await sleep(300 * attempt);
-    } finally {
-      clearTimeout(timeoutId);
-    }
+  try {
+    return await retry(async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      try {
+        const response = await fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return (await response.json()) as T;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    }, MAX_FETCH_ATTEMPTS);
+  } catch (error) {
+    throw error instanceof Error ? error : new Error(`Failed to fetch ${url}`);
   }
-
-  throw lastError instanceof Error ? lastError : new Error(`Failed to fetch ${url}`);
 }
 
 function normalizeDeps(deps: Record<string, unknown> | undefined): DependencyMap {
@@ -517,7 +512,7 @@ async function main(): Promise<void> {
 
   const budgetFailures: string[] = [];
 
-  for (const pkg of targets) {
+  await mapLimit(targets, 1, async (pkg) => {
     const localMetric = await fetchScenarioMetricWithTotals('local', pkg.name, workspacePackages);
     const npmMetric = await fetchScenarioMetricWithTotals('npm', pkg.name, workspacePackages);
 
@@ -555,7 +550,7 @@ async function main(): Promise<void> {
       }
     }
     console.info('');
-  }
+  });
 
   if (budgetFailures.length > 0) {
     throw new Error(`README gzip budget exceeded:\n${budgetFailures.join('\n')}`);
