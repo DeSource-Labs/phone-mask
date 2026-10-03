@@ -36,36 +36,35 @@ describe('country selector DOM helpers', () => {
     expect(dropdown.dataset.placement).toBe('bottom');
   });
 
-  it('positions the dropdown above when the upper viewport side has more room', () => {
+  it.each([
+    {
+      name: 'positions the dropdown above when the upper viewport side has more room',
+      rootRect: createRect(150, 180, 5, 120),
+      top: '8px',
+      maxHeight: '78px',
+      placement: 'top'
+    },
+    {
+      name: 'keeps the viewport gap when the dropdown opens below in a compact viewport',
+      rootRect: createRect(10, 30, 5, 120),
+      top: '38px',
+      maxHeight: '98px',
+      placement: 'bottom'
+    }
+  ])('$name', ({ rootRect, top, maxHeight, placement }) => {
     const root = document.createElement('div');
     const dropdown = document.createElement('div');
     Object.defineProperty(globalThis, 'innerHeight', {
       value: 200,
       configurable: true
     });
-    vi.spyOn(root, 'getBoundingClientRect').mockReturnValue(createRect(150, 180, 5, 120));
+    vi.spyOn(root, 'getBoundingClientRect').mockReturnValue(rootRect);
 
     positionCountryDropdown(root, dropdown);
 
-    expect(dropdown.style.getPropertyValue('--pi-dd-top')).toBe('8px');
-    expect(dropdown.style.getPropertyValue('--pi-dd-max-height')).toBe('78px');
-    expect(dropdown.dataset.placement).toBe('top');
-  });
-
-  it('keeps the viewport gap when the dropdown opens below in a compact viewport', () => {
-    const root = document.createElement('div');
-    const dropdown = document.createElement('div');
-    Object.defineProperty(globalThis, 'innerHeight', {
-      value: 200,
-      configurable: true
-    });
-    vi.spyOn(root, 'getBoundingClientRect').mockReturnValue(createRect(10, 30, 5, 120));
-
-    positionCountryDropdown(root, dropdown);
-
-    expect(dropdown.style.getPropertyValue('--pi-dd-top')).toBe('38px');
-    expect(dropdown.style.getPropertyValue('--pi-dd-max-height')).toBe('98px');
-    expect(dropdown.dataset.placement).toBe('bottom');
+    expect(dropdown.style.getPropertyValue('--pi-dd-top')).toBe(top);
+    expect(dropdown.style.getPropertyValue('--pi-dd-max-height')).toBe(maxHeight);
+    expect(dropdown.dataset.placement).toBe(placement);
   });
 
   it('scrolls the focused option into the nearest visible area', () => {
