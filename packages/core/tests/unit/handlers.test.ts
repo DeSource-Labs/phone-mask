@@ -21,6 +21,37 @@ const createFormatter = () =>
     mask: ['#-##-##']
   });
 
+const createInput = (value = '') => {
+  const input = document.createElement('input');
+  input.value = value;
+  return input;
+};
+
+const createBeforeInputEvent = (target: HTMLInputElement | null, data: string, inputType = 'insertText') =>
+  ({ target, data, inputType, preventDefault: vi.fn() }) as unknown as InputEvent;
+
+const createKeyboardEvent = (
+  target: HTMLInputElement | null,
+  key: string | undefined,
+  modifiers: Partial<Pick<KeyboardEvent, 'ctrlKey' | 'metaKey' | 'altKey'>> = {}
+) =>
+  ({
+    target,
+    key,
+    ctrlKey: false,
+    metaKey: false,
+    altKey: false,
+    ...modifiers,
+    preventDefault: vi.fn()
+  }) as unknown as KeyboardEvent;
+
+const createPasteEvent = (target: HTMLInputElement | null, text?: string) =>
+  ({
+    target,
+    clipboardData: text === undefined ? undefined : { getData: () => text },
+    preventDefault: vi.fn()
+  }) as unknown as ClipboardEvent;
+
 describe('core handlers: digit helpers', () => {
   it('extracts and limits digits', () => {
     expect(extractDigits('+1 (234) 567-890', 5)).toBe('12345');
@@ -28,8 +59,7 @@ describe('core handlers: digit helpers', () => {
   });
 
   it('reads and sets input selection', () => {
-    const input = document.createElement('input');
-    input.value = '123-45';
+    const input = createInput('123-45');
     input.setSelectionRange(2, 4);
     expect(getSelection(input)).toEqual([2, 4]);
     expect(getSelection(null)).toEqual([0, 0]);
@@ -50,26 +80,15 @@ describe('core handlers: digit helpers', () => {
 
 describe('processBeforeInput', () => {
   it('returns early when event target is missing', () => {
-    const event = {
-      inputType: 'insertText',
-      data: '1',
-      target: null,
-      preventDefault: vi.fn()
-    } as unknown as InputEvent;
+    const event = createBeforeInputEvent(null, '1');
 
     processBeforeInput(event);
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
 
   it('blocks invalid chars and double spaces', () => {
-    const input = document.createElement('input');
-    input.value = '1 ';
-    const event = {
-      inputType: 'insertText',
-      data: ' ',
-      target: input,
-      preventDefault: vi.fn()
-    } as unknown as InputEvent;
+    const input = createInput('1 ');
+    const event = createBeforeInputEvent(input, ' ');
 
     processBeforeInput(event);
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -77,26 +96,15 @@ describe('processBeforeInput', () => {
 
   it('blocks invalid symbols', () => {
     const input = document.createElement('input');
-    const event = {
-      inputType: 'insertText',
-      data: '@',
-      target: input,
-      preventDefault: vi.fn()
-    } as unknown as InputEvent;
+    const event = createBeforeInputEvent(input, '@');
 
     processBeforeInput(event);
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
   });
 
   it('allows a single space when the current value does not end with space', () => {
-    const input = document.createElement('input');
-    input.value = '1';
-    const event = {
-      inputType: 'insertText',
-      data: ' ',
-      target: input,
-      preventDefault: vi.fn()
-    } as unknown as InputEvent;
+    const input = createInput('1');
+    const event = createBeforeInputEvent(input, ' ');
 
     processBeforeInput(event);
     expect(event.preventDefault).not.toHaveBeenCalled();
@@ -104,12 +112,7 @@ describe('processBeforeInput', () => {
 
   it('ignores non-insert text input events', () => {
     const input = document.createElement('input');
-    const event = {
-      inputType: 'deleteContentBackward',
-      data: '1',
-      target: input,
-      preventDefault: vi.fn()
-    } as unknown as InputEvent;
+    const event = createBeforeInputEvent(input, '1', 'deleteContentBackward');
 
     processBeforeInput(event);
     expect(event.preventDefault).not.toHaveBeenCalled();
@@ -119,8 +122,7 @@ describe('processBeforeInput', () => {
 describe('processInput', () => {
   it('extracts digits and clamps to max count', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = '1234-56';
+    const input = createInput('1234-56');
 
     const result = processInput({ target: input } as unknown as Event, { formatter });
     expect(result?.newDigits).toBe('12345');
@@ -136,32 +138,17 @@ describe('processInput', () => {
 describe('processKeydown', () => {
   it('returns undefined when target is missing', () => {
     const formatter = createFormatter();
-    const event = {
-      key: 'Backspace',
-      target: null,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(null, 'Backspace');
 
     expect(processKeydown(event, { digits: '12345', formatter })).toBeUndefined();
   });
 
   it('allows shortcut keys with modifiers', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
+    const input = createInput(formatter.formatDisplay('12345'));
     input.setSelectionRange(1, 1);
 
-    const event = {
-      key: 'a',
-      target: input,
-      ctrlKey: true,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'a', { ctrlKey: true });
 
     const result = processKeydown(event, { digits: '12345', formatter });
     expect(result).toBeUndefined();
@@ -170,118 +157,68 @@ describe('processKeydown', () => {
 
   it('removes selected digits', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
+    const input = createInput(formatter.formatDisplay('12345'));
     input.setSelectionRange(0, 1); // Select the first digit '1'
 
-    const event = {
-      key: 'Backspace',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'Backspace');
 
     const result = processKeydown(event, { digits: '12345', formatter });
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
     expect(result).toEqual({ newDigits: '2345', caretDigitIndex: 0 });
   });
 
-  it('handles Backspace selection ranges that contain only delimiters', () => {
+  it.each([
+    {
+      name: 'handles Backspace selection ranges that contain only delimiters',
+      key: 'Backspace',
+      expected: { newDigits: '2345', caretDigitIndex: 0 }
+    },
+    {
+      name: 'handles Delete selection ranges that contain only delimiters',
+      key: 'Delete',
+      expected: { newDigits: '1345', caretDigitIndex: 1 }
+    }
+  ])('$name', ({ key, expected }) => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
+    const input = createInput(formatter.formatDisplay('12345'));
     input.setSelectionRange(1, 2);
 
-    const event = {
-      key: 'Backspace',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
-
-    const result = processKeydown(event, { digits: '12345', formatter });
-    expect(result).toEqual({ newDigits: '2345', caretDigitIndex: 0 });
+    const result = processKeydown(createKeyboardEvent(input, key), { digits: '12345', formatter });
+    expect(result).toEqual(expected);
   });
 
-  it('deletes previous digit when caret on delimiter', () => {
+  it.each([
+    { name: 'deletes previous digit when caret on delimiter', key: 'Backspace', newDigits: '2345' },
+    { name: 'deletes next digit for Delete when caret on delimiter', key: 'Delete', newDigits: '1345' }
+  ])('$name', ({ key, newDigits }) => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
-    // Position 1 is the separator in `1-23-45` format for this formatter
+    const input = createInput(formatter.formatDisplay('12345'));
+    // Position 1 is the separator in `1-23-45`.
     input.setSelectionRange(1, 1);
 
-    const event = {
-      key: 'Backspace',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
-
-    const result = processKeydown(event, { digits: '12345', formatter });
-    expect(result?.newDigits).toBe('2345');
+    const result = processKeydown(createKeyboardEvent(input, key), { digits: '12345', formatter });
+    expect(result?.newDigits).toBe(newDigits);
   });
 
   it('skips delimiters when caret is after a delimiter on Backspace', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
+    const input = createInput(formatter.formatDisplay('12345'));
     // `1-23-45`: index 2 is just after delimiter '-'
     input.setSelectionRange(2, 2);
 
-    const event = {
-      key: 'Backspace',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'Backspace');
 
     const result = processKeydown(event, { digits: '12345', formatter });
     expect(result?.newDigits).toBe('2345');
     expect(result?.caretDigitIndex).toBe(0);
   });
 
-  it('deletes next digit for Delete when caret on delimiter', () => {
-    const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
-    // Position 1 is the separator in `1-23-45`
-    input.setSelectionRange(1, 1);
-
-    const event = {
-      key: 'Delete',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
-
-    const result = processKeydown(event, { digits: '12345', formatter });
-    expect(result?.newDigits).toBe('1345');
-  });
-
   it('blocks digits after max length', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
+    const input = createInput(formatter.formatDisplay('12345'));
     input.setSelectionRange(5, 5);
 
-    const event = {
-      key: '6',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, '6');
 
     const result = processKeydown(event, { digits: '12345', formatter });
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -290,18 +227,10 @@ describe('processKeydown', () => {
 
   it('returns undefined for Backspace at start with no selection', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
+    const input = createInput(formatter.formatDisplay('12345'));
     input.setSelectionRange(0, 0);
 
-    const event = {
-      key: 'Backspace',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'Backspace');
 
     const result = processKeydown(event, { digits: '12345', formatter });
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -310,18 +239,10 @@ describe('processKeydown', () => {
 
   it('returns undefined for Backspace when no previous digit can be resolved', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = '-';
+    const input = createInput('-');
     input.setSelectionRange(1, 1);
 
-    const event = {
-      key: 'Backspace',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'Backspace');
 
     const result = processKeydown(event, { digits: '12345', formatter });
     expect(result).toBeUndefined();
@@ -329,18 +250,10 @@ describe('processKeydown', () => {
 
   it('returns undefined for Backspace when digit range cannot be mapped', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = 'x';
+    const input = createInput('x');
     input.setSelectionRange(1, 1);
 
-    const event = {
-      key: 'Backspace',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'Backspace');
 
     const result = processKeydown(event, { digits: '', formatter });
     expect(result).toBeUndefined();
@@ -348,56 +261,21 @@ describe('processKeydown', () => {
 
   it('deletes selected digits for Delete key', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
+    const input = createInput(formatter.formatDisplay('12345'));
     input.setSelectionRange(0, 3);
 
-    const event = {
-      key: 'Delete',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'Delete');
 
     const result = processKeydown(event, { digits: '12345', formatter });
     expect(result).toEqual({ newDigits: '345', caretDigitIndex: 0 });
   });
 
-  it('handles Delete selection ranges that contain only delimiters', () => {
-    const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
-    input.setSelectionRange(1, 2);
-
-    const event = {
-      key: 'Delete',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
-
-    const result = processKeydown(event, { digits: '12345', formatter });
-    expect(result).toEqual({ newDigits: '1345', caretDigitIndex: 1 });
-  });
-
   it('returns undefined for Delete at the end', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12345');
+    const input = createInput(formatter.formatDisplay('12345'));
     input.setSelectionRange(input.value.length, input.value.length);
 
-    const event = {
-      key: 'Delete',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'Delete');
 
     const result = processKeydown(event, { digits: '12345', formatter });
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -406,18 +284,10 @@ describe('processKeydown', () => {
 
   it('returns undefined for Delete when no next digit can be mapped', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = 'x';
+    const input = createInput('x');
     input.setSelectionRange(0, 0);
 
-    const event = {
-      key: 'Delete',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'Delete');
 
     const result = processKeydown(event, { digits: '', formatter });
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -426,18 +296,10 @@ describe('processKeydown', () => {
 
   it('blocks non-numeric single characters', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(2, 2);
 
-    const event = {
-      key: 'a',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'a');
 
     const result = processKeydown(event, { digits: '12', formatter });
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -446,18 +308,10 @@ describe('processKeydown', () => {
 
   it('does not block multi-character non-navigation keys', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(2, 2);
 
-    const event = {
-      key: 'F1',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, 'F1');
 
     const result = processKeydown(event, { digits: '12', formatter });
     expect(event.preventDefault).not.toHaveBeenCalled();
@@ -466,18 +320,10 @@ describe('processKeydown', () => {
 
   it('does not throw when keyboard event key is missing, e.g. autocomplete', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(2, 2);
 
-    const event = {
-      key: undefined,
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, undefined);
 
     expect(() => processKeydown(event, { digits: '12', formatter })).not.toThrow();
     expect(event.preventDefault).not.toHaveBeenCalled();
@@ -485,18 +331,10 @@ describe('processKeydown', () => {
 
   it('allows numeric input when below max digits', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(2, 2);
 
-    const event = {
-      key: '3',
-      target: input,
-      ctrlKey: false,
-      metaKey: false,
-      altKey: false,
-      preventDefault: vi.fn()
-    } as unknown as KeyboardEvent;
+    const event = createKeyboardEvent(input, '3');
 
     const result = processKeydown(event, { digits: '12', formatter });
     expect(event.preventDefault).not.toHaveBeenCalled();
@@ -507,26 +345,17 @@ describe('processKeydown', () => {
 describe('processPaste', () => {
   it('returns undefined when target is missing', () => {
     const formatter = createFormatter();
-    const event = {
-      target: null,
-      clipboardData: { getData: () => '99' },
-      preventDefault: vi.fn()
-    } as unknown as ClipboardEvent;
+    const event = createPasteEvent(null, '99');
 
     expect(processPaste(event, { digits: '12', formatter })).toBeUndefined();
   });
 
   it('returns undefined when clipboardData is missing', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(1, 1);
 
-    const event = {
-      target: input,
-      clipboardData: undefined,
-      preventDefault: vi.fn()
-    } as unknown as ClipboardEvent;
+    const event = createPasteEvent(input);
 
     const result = processPaste(event, { digits: '12', formatter });
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
@@ -535,18 +364,11 @@ describe('processPaste', () => {
 
   it('inserts pasted digits at collapsed cursor on delimiters', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     // Value: `1-2`; cursor placed after the first digit '1' and before the separator
     input.setSelectionRange(1, 1);
 
-    const event = {
-      target: input,
-      clipboardData: {
-        getData: () => '99'
-      },
-      preventDefault: vi.fn()
-    } as unknown as ClipboardEvent;
+    const event = createPasteEvent(input, '99');
 
     const result = processPaste(event, { digits: '12', formatter });
     expect(result?.newDigits).toBe('1992');
@@ -555,17 +377,10 @@ describe('processPaste', () => {
 
   it('falls back to insertion logic when selection range maps to no digits', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(1, 2); // only delimiter
 
-    const event = {
-      target: input,
-      clipboardData: {
-        getData: () => '99'
-      },
-      preventDefault: vi.fn()
-    } as unknown as ClipboardEvent;
+    const event = createPasteEvent(input, '99');
 
     const result = processPaste(event, { digits: '12', formatter });
     expect(result?.newDigits).toBe('1992');
@@ -574,17 +389,10 @@ describe('processPaste', () => {
 
   it('inserts at index 0 when caret is at the beginning', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(0, 0);
 
-    const event = {
-      target: input,
-      clipboardData: {
-        getData: () => '99'
-      },
-      preventDefault: vi.fn()
-    } as unknown as ClipboardEvent;
+    const event = createPasteEvent(input, '99');
 
     const result = processPaste(event, { digits: '12', formatter });
     expect(result?.newDigits).toBe('9912');
@@ -593,17 +401,10 @@ describe('processPaste', () => {
 
   it('replaces existing selection and clamps max digits', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(0, 3);
 
-    const event = {
-      target: input,
-      clipboardData: {
-        getData: () => '9999'
-      },
-      preventDefault: vi.fn()
-    } as unknown as ClipboardEvent;
+    const event = createPasteEvent(input, '9999');
 
     const result = processPaste(event, { digits: '12', formatter });
     expect(result?.newDigits).toBe('9999');
@@ -612,17 +413,10 @@ describe('processPaste', () => {
 
   it('returns undefined for paste values without digits', () => {
     const formatter = createFormatter();
-    const input = document.createElement('input');
-    input.value = formatter.formatDisplay('12');
+    const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(1, 1);
 
-    const event = {
-      target: input,
-      clipboardData: {
-        getData: () => 'abc()'
-      },
-      preventDefault: vi.fn()
-    } as unknown as ClipboardEvent;
+    const event = createPasteEvent(input, 'abc()');
 
     const result = processPaste(event, { digits: '12', formatter });
     expect(result).toBeUndefined();
