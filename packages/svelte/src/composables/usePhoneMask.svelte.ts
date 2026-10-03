@@ -23,12 +23,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions) {
   let inputRef = $state<HTMLInputElement | null>(null);
 
   // Keep as objects (no destructuring) to preserve reactive getter chains
-  const countryData = useCountry({
-    country: options.country,
-    locale: options.locale,
-    detect: options.detect,
-    onCountryChange: options.onCountryChange
-  });
+  const countryData = useCountry(options);
 
   const formatterData = useFormatter({
     country: () => countryData.country,

@@ -13,12 +13,7 @@ import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
 export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { country, setCountry } = useCountry({
-    country: options.country,
-    locale: options.locale,
-    detect: options.detect,
-    onCountryChange: options.onCountryChange
-  });
+  const { country, setCountry } = useCountry(options);
 
   const {
     digits,
