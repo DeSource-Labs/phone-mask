@@ -1,12 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
-
-// Library imports
-// Import styles
+import '../../../common/styles/demo.css';
 import '../src/style.scss';
-// Import components and hooks
 import { PhoneInput, usePhoneMask } from '../src';
-// Import types
 import type {
   PCountryKey as CountryKey,
   PMaskFull as MaskFull,
