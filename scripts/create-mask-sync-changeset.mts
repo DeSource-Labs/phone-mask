@@ -25,12 +25,8 @@ type SemverTag = {
   prerelease: string[];
 };
 
-const DATA_JSON_PATH = 'packages/phone-mask/src/data.json';
-const DATA_CHANGE_FILES = new Set([
-  DATA_JSON_PATH,
-  'packages/phone-mask/src/data.min.js',
-  'packages/phone-mask/src/data-types.ts'
-]);
+const DATA_JSON_PATH = 'packages/core/src/data.json';
+const DATA_CHANGE_FILES = new Set([DATA_JSON_PATH, 'packages/core/src/data.min.js', 'packages/core/src/data-types.ts']);
 const CHANGESET_PATH = '.changeset/google-libphonenumber-mask-sync.md';
 const CHANGESET_LEVEL = 'patch';
 const GIT_BINARY = '/usr/bin/git';

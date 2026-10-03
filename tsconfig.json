@@ -15,11 +15,11 @@
     "esModuleInterop": true
   },
   "references": [
-    { "path": "./packages/phone-mask/tsconfig.json" },
-    { "path": "./packages/phone-mask-vue/tsconfig.json" },
-    { "path": "./packages/phone-mask-nuxt/tsconfig.json" },
-    { "path": "./packages/phone-mask-react/tsconfig.json" },
-    { "path": "./packages/phone-mask-svelte/tsconfig.json" }
+    { "path": "./packages/core/tsconfig.json" },
+    { "path": "./packages/vue/tsconfig.json" },
+    { "path": "./packages/nuxt/tsconfig.json" },
+    { "path": "./packages/react/tsconfig.json" },
+    { "path": "./packages/svelte/tsconfig.json" }
   ],
   "include": [],
   "exclude": ["node_modules", "dist"]

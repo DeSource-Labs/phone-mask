@@ -18,7 +18,28 @@ type PlaygroundControls = {
   disableDefaultStyles: string;
 };
 
-export function testPhoneInput(containerSelector: string, playgroundControls: PlaygroundControls) {
+const DEFAULT_PLAYGROUND_CONTROLS: PlaygroundControls = {
+  country: '[data-testid="props-country"]',
+  readonly: '[data-testid="props-readonly"] input[type="checkbox"]',
+  disabled: '[data-testid="props-disabled"] input[type="checkbox"]',
+  showCopy: '[data-testid="props-show-copy"] input[type="checkbox"]',
+  showClear: '[data-testid="props-show-clear"] input[type="checkbox"]',
+  withValidity: '[data-testid="props-with-validity"] input[type="checkbox"]',
+  detect: '[data-testid="props-detect"] input[type="checkbox"]',
+  locale: '[data-testid="props-locale"]',
+  size: '[data-testid="props-size"]',
+  theme: '[data-testid="props-theme"]',
+  searchPlaceholder: '[data-testid="props-search-placeholder"]',
+  noResultsText: '[data-testid="props-no-results-text"]',
+  clearButtonLabel: '[data-testid="props-clear-button-label"]',
+  dropdownClass: '[data-testid="props-dropdown-class"]',
+  disableDefaultStyles: '[data-testid="props-disable-default-styles"] input[type="checkbox"]'
+};
+
+export function testPhoneInput(
+  containerSelector = '[data-testid="playground"]',
+  playgroundControls: PlaygroundControls = DEFAULT_PLAYGROUND_CONTROLS
+) {
   // PhoneInput component selectors
   const COMPONENT_SELECTOR = '.desource-phone-input';
   const COUNTRY_DROPDOWN_BTN_SELECTOR = '.pi-selector-btn';
