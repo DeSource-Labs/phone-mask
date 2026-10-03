@@ -1,8 +1,6 @@
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import { setup, $fetch } from '@nuxt/test-utils/e2e';
 import { describe, expect, it } from 'vitest';
-import { getBuildDir, getFixtureRoot } from './utils';
+import { expectGeneratedRegistrations, getFixtureRoot } from './utils';
 
 const fixtureRoot = getFixtureRoot('../fixtures/basic', import.meta.url);
 
@@ -20,12 +18,6 @@ describe('Nuxt module contract: basic fixture', () => {
   });
 
   it('generates helper imports and PhoneInput component typing', async () => {
-    const buildDir = getBuildDir();
-    const importsDts = await readFile(resolve(buildDir, 'imports.d.ts'), 'utf8');
-    const componentsDts = await readFile(resolve(buildDir, 'components.d.ts'), 'utf8');
-
-    expect(importsDts).toContain('PMaskHelpers');
-    expect(importsDts).toContain('vPhoneMaskSetCountry');
-    expect(componentsDts).toContain('PhoneInput');
+    await expectGeneratedRegistrations(true);
   });
 });
