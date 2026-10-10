@@ -1,5 +1,37 @@
 # @desource/phone-mask-vue
 
+## 1.7.0
+
+### Minor Changes
+
+- Core/Vue/React/Svelte/Nuxt Upgrades:
+  - Refreshed README benchmarks, documentation links, and CodeWiki, Context7, and DeepWiki badges; removed unstable Bundlephobia size badges.
+  - Simplified repository package directories to `core`, `vue`, `react`, `svelte`, and `nuxt`, preserving published package names and public imports.
+  - Updated repository links, TypeScript configuration, coverage reporting, and release scripts for the new directory structure.
+  - Consolidated benchmark retry and concurrency helpers and parallelized independent file operations in benchmark and changelog scripts.
+
+- Vue/React/Svelte Upgrades:
+  - Simplified country-option forwarding in `usePhoneMask`.
+  - Consolidated framework demo styles and shared end-to-end playground controls.
+
+- Vue/Svelte Upgrades:
+  - Made intentional background country detection and deferred caret updates explicit in composables and directives.
+
+### Patch Changes
+
+- Core/Vue/React/Svelte/Nuxt Upgrades:
+  - Updated build, lint, test, release, and framework dependencies within compatible peer ranges and pnpm release-age rules.
+  - Updated pnpm to 12.10.1.
+  - Updated transitive dependencies to resolve production audit findings in `source-map-js` and `sharp`.
+  - Refactored core input-handler and country-selector tests and simplified shared unit-test callbacks while preserving React's asynchronous `act` boundary.
+
+- Nuxt Upgrades:
+  - Updated Nuxt and its kit to 4.6.0 and refreshed test utilities.
+  - Consolidated generated import and component registration assertions across end-to-end fixtures.
+
+- Updated dependencies []:
+  - @desource/phone-mask@1.7.0
+
 ## 1.6.4
 
 ### Patch Changes
