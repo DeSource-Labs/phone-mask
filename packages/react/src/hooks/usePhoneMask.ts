@@ -39,13 +39,13 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
     onChange: options.onChange
   });
 
-  // after mount, set input type to tel for better experience
+  // Restore native input attributes after React renders.
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
     el.setAttribute('type', 'tel');
     el.setAttribute('inputmode', 'tel');
-  }, []);
+  });
 
   // Update display when digits or placeholder changes
   useEffect(() => {
