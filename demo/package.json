@@ -2,6 +2,7 @@
   "name": "demo",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "clean": "rimraf .output .nuxt",
     "clean:modules": "rimraf node_modules",
