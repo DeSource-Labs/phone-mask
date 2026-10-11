@@ -12,7 +12,7 @@
         :aria-label="`Selected country: ${country.name}`"
         :aria-expanded="canOpenDropdown && dropdownOpen"
         :aria-haspopup="canOpenDropdown ? 'dialog' : undefined"
-        :aria-controls="canOpenDropdown ? dropdownElementId : undefined"
+        :aria-controls="mounted && canOpenDropdown ? dropdownElementId : undefined"
         @pointerdown="handleSelectorPointerDown"
         @keydown="handleSelectorKeydown"
         @click="toggleDropdown"
@@ -112,7 +112,7 @@
     </div>
 
     <!-- Country Dropdown -->
-    <Teleport to="body">
+    <Teleport v-if="mounted" to="body">
       <div
         v-if="renderDropdown"
         :id="dropdownElementId"
@@ -177,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, getCurrentInstance, nextTick, useTemplateRef, type CSSProperties } from 'vue';
+import { computed, getCurrentInstance, nextTick, onMounted, ref, useTemplateRef, type CSSProperties } from 'vue';
 
 import { useCountry } from '../composables/internal/useCountry';
 import { useFormatter } from '../composables/internal/useFormatter';
@@ -246,6 +246,12 @@ const liveRef = useTemplateRef('liveRef');
 const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const searchRef = useTemplateRef<HTMLInputElement>('searchRef');
 const selectorRef = useTemplateRef<HTMLButtonElement>('selectorRef');
+const mounted = ref(false);
+
+onMounted(() => {
+  mounted.value = true;
+});
+
 /** Generate unique IDs for ARIA attributes; use useId once we stop supporting Vue < 3.5.0 */
 const dropdownId = getCurrentInstance()?.uid ?? 0;
 const dropdownElementId = `pi-dropdown-${dropdownId}`;
