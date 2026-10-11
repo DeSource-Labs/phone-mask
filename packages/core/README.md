@@ -446,7 +446,7 @@ const flag = getFlagEmoji('US'); // "🇺🇸"
 
 ## 🔄 Data Updates
 
-The library syncs with [Google's libphonenumber](https://github.com/google/libphonenumber) weekly via automated workflow. To update manually:
+The library syncs with [Google's libphonenumber](https://github.com/google/libphonenumber) via automated workflow. To update manually:
 
 ```bash
 pnpm gen

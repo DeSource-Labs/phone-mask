@@ -1,9 +1,9 @@
-name: Weekly data generation
+name: Daily data generation
 
 on:
   schedule:
-    # Every Friday at 09:00 UTC
-    - cron: '0 9 * * 5'
+    # Every day at 09:00 UTC
+    - cron: '0 9 * * *'
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: weekly-gen
+  group: data-gen
   cancel-in-progress: false
 
 jobs:
@@ -43,16 +43,15 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore(data): weekly sync from Google lib"
-          title: "chore(data): weekly sync"
+          commit-message: "chore(data): sync from Google lib"
+          title: "chore(data): Sync from Google lib"
           body: |
-            Automated weekly generation via GitHub Actions.
+            Automated data generation via GitHub Actions.
 
             This PR was created automatically after running `pnpm gen`.
 
             cc @stefashkaa
-          branch: chore/weekly-gen
-          branch-suffix: timestamp
+          branch: chore/data-gen
           labels: |
             automation
             chore
