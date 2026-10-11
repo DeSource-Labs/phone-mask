@@ -52,7 +52,6 @@ jobs:
 
             cc @stefashkaa
           branch: chore/data-gen
-          branch-suffix: timestamp
           labels: |
             automation
             chore
