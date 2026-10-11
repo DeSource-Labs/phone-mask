@@ -1,6 +1,7 @@
 import { createServer, type ViteDevServer } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { builtinModules } from 'node:module';
+import { resolve } from 'node:path';
 import { flushSync, hydrate, tick, unmount } from 'svelte';
 import { testPhoneInputSsr, type SsrOptions } from '@common/tests/unit/PhoneInput.ssr';
 import SSR from './setup/SSR.svelte';
@@ -16,7 +17,10 @@ beforeAll(async () => {
     appType: 'custom',
     plugins: [svelte()],
     // Avoid native RegExp checks and optimizer timers inside Vitest's DOM VM.
-    resolve: { builtins: builtinModules.flatMap((name) => [name, `node:${name}`]) },
+    resolve: {
+      alias: { '@src': resolve('src') },
+      builtins: builtinModules.flatMap((name) => [name, `node:${name}`])
+    },
     optimizeDeps: { noDiscovery: true, exclude: ['svelte'] },
     ssr: { noExternal: true, optimizeDeps: { noDiscovery: true, exclude: ['svelte'] } },
     // Match Vitest's client compilation, which omits HMR hydration anchors.

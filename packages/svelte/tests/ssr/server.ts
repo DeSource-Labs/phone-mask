@@ -20,9 +20,9 @@ vite.middlewares.use(async (request, response, next) => {
     const { default: App } = await vite.ssrLoadModule('./App.svelte');
     const fetch = globalThis.fetch;
     let geoRequests = 0;
-    globalThis.fetch = async () => {
+    globalThis.fetch = () => {
       geoRequests++;
-      return Response.json({ country_code: 'US' });
+      return Promise.resolve(Response.json({ country_code: 'US' }));
     };
     let rendered;
     try {

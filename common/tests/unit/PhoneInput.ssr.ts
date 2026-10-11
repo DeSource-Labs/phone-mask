@@ -32,7 +32,7 @@ export function testPhoneInputSsr(adapter: SsrAdapter): void {
       vi.spyOn(console, 'warn').mockImplementation((...args) => diagnostics.push(args));
       vi.spyOn(navigator, 'language', 'get').mockReturnValue('en-US');
       media.mockReturnValue({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() });
-      fetch.mockImplementation(async () => Response.json({ country_code: 'DE' }));
+      fetch.mockImplementation(() => Promise.resolve(Response.json({ country_code: 'DE' })));
       vi.stubGlobal('matchMedia', media);
       vi.stubGlobal('fetch', fetch);
     });
@@ -66,8 +66,9 @@ export function testPhoneInputSsr(adapter: SsrAdapter): void {
     };
 
     it('renders formatted inputs on repeated SSR requests without browser effects', async () => {
-      for (let request = 0; request < 2; request++) {
-        const html = await adapter.render({ count: 2, detect: true });
+      const options = { count: 2, detect: true };
+      const responses = [await adapter.render(options), await adapter.render(options)];
+      for (const html of responses) {
         container.innerHTML = html;
         const inputs = [...container.querySelectorAll<HTMLInputElement>('input[type="tel"]')];
         expect(inputs.map((input) => input.value)).toEqual(['202-555-0123', '202-555-0123']);
@@ -92,7 +93,7 @@ export function testPhoneInputSsr(adapter: SsrAdapter): void {
       const ids = selectors.map((selector) => selector.getAttribute('aria-controls'));
       expect(new Set(ids).size).toBe(2);
       expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(2);
-      for (const selector of selectors) {
+      const selectGermany = async (selector: HTMLButtonElement) => {
         const dropdown = document.getElementById(selector.getAttribute('aria-controls')!)!;
         expect(dropdown?.parentElement).toBe(document.body);
         await adapter.act(() => selector.click());
@@ -112,7 +113,9 @@ export function testPhoneInputSsr(adapter: SsrAdapter): void {
         await adapter.act(() => germany.click());
         expect(selector.getAttribute('aria-expanded')).toBe('false');
         expect(selector.querySelector('.pi-code')?.textContent).toBe('+49');
-      }
+      };
+      await selectGermany(selectors[0]);
+      await selectGermany(selectors[1]);
     });
 
     it.each([false, true])('hydrates a different browser locale with custom flag=%s', async (customFlag) => {
