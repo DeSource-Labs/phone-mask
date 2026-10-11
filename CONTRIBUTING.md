@@ -202,7 +202,7 @@ phone-mask/
     └── workflows/
         ├── coverage.yml         # Coverage on main + optional manual PR report
         ├── release.yml          # Changesets publish workflow
-        ├── weekly-gen.yml       # Weekly metadata sync PR
+        ├── gen.yml              # Metadata sync PR
         └── weekly-benchmarks.yml # Weekly README benchmark refresh PR
 ```
 
