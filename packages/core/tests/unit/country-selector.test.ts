@@ -1,4 +1,5 @@
 /// <reference types="vitest/globals" />
+// @vitest-environment jsdom
 import {
   bindCountryDropdownListeners,
   handleCountryButtonKeydown,

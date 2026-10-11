@@ -1,4 +1,5 @@
 /// <reference types="vitest/globals" />
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest';
 import {
   extractDigits,
