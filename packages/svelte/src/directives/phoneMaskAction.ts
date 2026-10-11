@@ -13,7 +13,7 @@ import {
   createPhoneFormatter
 } from '@desource/phone-mask/kit';
 
-import type { PhoneMaskBindingOptions, PhoneMaskBindingState, PhoneMaskBindingElement } from '../types';
+import type { PhoneMaskBindingOptions, PhoneMaskBindingState, PhoneMaskBindingElement } from '../types.js';
 
 function parseParams(params: string | PhoneMaskBindingOptions | undefined): PhoneMaskBindingOptions {
   if (typeof params === 'string') return { country: params };

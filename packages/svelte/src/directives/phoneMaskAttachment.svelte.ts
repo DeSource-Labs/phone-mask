@@ -1,5 +1,5 @@
-import { usePhoneMask } from '../composables/usePhoneMask.svelte';
-import type { PhoneMaskBindingOptions, PhoneMaskBindingElement } from '../types';
+import { usePhoneMask } from '../composables/usePhoneMask.svelte.js';
+import type { PhoneMaskBindingOptions, PhoneMaskBindingElement } from '../types.js';
 
 // Local copy of Svelte's `Attachment` type to avoid a hard dependency on `svelte/attachments` for Svelte version below 5.29
 type Attachment<T extends EventTarget = Element> = (element: T) => void | (() => void);

@@ -1,5 +1,5 @@
-import { useClipboard } from '../utility/useClipboard.svelte';
-import { useTimer } from '../utility/useTimer.svelte';
+import { useClipboard } from '../utility/useClipboard.svelte.js';
+import { useTimer } from '../utility/useTimer.svelte.js';
 
 interface UseCopyActionOptions {
   fullFormatted: () => string;

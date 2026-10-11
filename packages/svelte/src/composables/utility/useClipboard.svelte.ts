@@ -1,4 +1,4 @@
-import { useTimer } from './useTimer.svelte';
+import { useTimer } from './useTimer.svelte.js';
 
 export function useClipboard(delay = 1_800) {
   let copied = $state(false);

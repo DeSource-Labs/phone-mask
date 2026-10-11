@@ -1,14 +1,14 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
-  import { useCountry } from '../composables/internal/useCountry.svelte';
-  import { useFormatter } from '../composables/internal/useFormatter.svelte';
-  import { useValidationHint } from '../composables/internal/useValidationHint.svelte';
-  import { useInputHandlers } from '../composables/internal/useInputHandlers.svelte';
-  import { useCountrySelector } from '../composables/internal/useCountrySelector.svelte';
-  import { useCopyAction } from '../composables/internal/useCopyAction.svelte';
-  import { useTheme } from '../composables/internal/useTheme.svelte';
+  import { useCountry } from '../composables/internal/useCountry.svelte.js';
+  import { useFormatter } from '../composables/internal/useFormatter.svelte.js';
+  import { useValidationHint } from '../composables/internal/useValidationHint.svelte.js';
+  import { useInputHandlers } from '../composables/internal/useInputHandlers.svelte.js';
+  import { useCountrySelector } from '../composables/internal/useCountrySelector.svelte.js';
+  import { useCopyAction } from '../composables/internal/useCopyAction.svelte.js';
+  import { useTheme } from '../composables/internal/useTheme.svelte.js';
 
-  import type { PhoneInputProps } from '../types';
+  import type { PhoneInputProps } from '../types.js';
 
   let {
     value = $bindable(''),
@@ -94,7 +94,7 @@
     onSelectCountry: countryData.setCountry,
     onAfterSelect: focusInput
   });
-  let dropdownId = $state<string>('0'); // Migrate to $props.id() once we stop supporting Svelte < 5.20.0
+  let dropdownId = $state<string>(''); // Migrate to $props.id() once we stop supporting Svelte < 5.20.0
   onMount(() => {
     dropdownId = Math.random().toString(36).slice(2, 10);
   });
@@ -209,7 +209,7 @@
       aria-label="Selected country: {countryData.country.name}"
       aria-expanded={canOpenDropdown && selectorData.dropdownOpen}
       aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
-      aria-controls={canOpenDropdown ? dropdownElementId : undefined}
+      aria-controls={dropdownId && canOpenDropdown ? dropdownElementId : undefined}
       onpointerdown={selectorData.handleSelectorPointerDown}
       onkeydown={selectorData.handleSelectorKeydown}
       onclick={selectorData.toggleDropdown}
@@ -322,7 +322,7 @@
   </div>
 
   <!-- Dropdown -->
-  {#if renderDropdown}
+  {#if dropdownId && renderDropdown}
     <div
       id={dropdownElementId}
       bind:this={dropdownEl}

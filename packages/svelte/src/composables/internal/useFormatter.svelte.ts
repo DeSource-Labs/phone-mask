@@ -1,6 +1,6 @@
 import type { MaskFull } from '@desource/phone-mask';
 import { extractDigits, createPhoneFormatter, type FormatterHelpers } from '@desource/phone-mask/kit';
-import type { PhoneNumber } from '../../types';
+import type { PhoneNumber } from '../../types.js';
 
 export interface UseFormatterOptions {
   /** Pre-resolved country data getter */

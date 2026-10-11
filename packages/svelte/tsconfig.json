@@ -3,7 +3,7 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "declarationDir": "dist/types",
+    "declarationMap": false,
     "verbatimModuleSyntax": true,
     "allowArbitraryExtensions": true
   },

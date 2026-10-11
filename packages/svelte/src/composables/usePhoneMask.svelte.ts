@@ -1,7 +1,7 @@
-import { useFormatter } from './internal/useFormatter.svelte';
-import { useCountry } from './internal/useCountry.svelte';
-import { useInputHandlers } from './internal/useInputHandlers.svelte';
-import type { UsePhoneMaskOptions } from '../types';
+import { useFormatter } from './internal/useFormatter.svelte.js';
+import { useCountry } from './internal/useCountry.svelte.js';
+import { useInputHandlers } from './internal/useInputHandlers.svelte.js';
+import type { UsePhoneMaskOptions } from '../types.js';
 
 /**
  * Svelte composable for phone number masking.
