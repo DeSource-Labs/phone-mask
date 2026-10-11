@@ -138,13 +138,10 @@ describe('module setup contract', () => {
     );
 
     expect(addComponentMock).toHaveBeenCalledTimes(1);
-    expect(addComponentMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: 'PhoneInput',
-        mode: 'client',
-        filePath: expect.stringMatching(/runtime[\\/]component/)
-      })
-    );
+    expect(addComponentMock).toHaveBeenCalledWith({
+      name: 'PhoneInput',
+      filePath: expect.stringMatching(/runtime[\\/]component/)
+    });
 
     expect(nuxt.options.css[0]).toBe('@desource/phone-mask-vue/assets/lib.css');
   });
