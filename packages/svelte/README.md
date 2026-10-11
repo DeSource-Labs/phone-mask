@@ -14,6 +14,7 @@ Beautiful, accessible, extreme small & tree-shakeable Svelte 5 phone input with 
 
 ## ✨ Features
 
+- 🌐 **SSR Support** — `PhoneInput` renders formatted HTML on the server and hydrates in the browser
 - 🎨 **Beautiful UI** — Modern design with light/dark themes
 - 🔍 **Smart Country Search** — Fuzzy matching with keyboard navigation
 - 🎭 **Auto-formatting** — As-you-type formatting with smart cursor
@@ -889,15 +890,19 @@ Or with CSS:
 ```
 @desource/phone-mask-svelte/
 ├── dist/
-│   ├── index.mjs              # Main ESM/Svelte entry
-│   ├── index.cjs              # Main CommonJS entry
-│   ├── core.mjs               # Core kit utilities and mask data subpath
-│   ├── core.cjs               # Core kit utilities and mask data CJS subpath
+│   ├── index.js               # Main Svelte package entry
+│   ├── index.d.ts             # Root TypeScript declarations
+│   ├── components/
+│   │   └── PhoneInput.svelte  # Consumer-compiled Svelte component
+│   ├── core.js                # Core kit utilities and mask data subpath
+│   ├── core.d.ts              # Core subpath declarations
 │   ├── phone-mask-svelte.css  # Component styles
-│   └── types/                 # TypeScript declaration files
+│   └── ...                    # Supporting modules and colocated declarations
 ├── README.md                  # This file
 └── package.json               # Package manifest
 ```
+
+The package ships native Svelte components and rune modules so your Svelte build compiles them for the browser or server. It requires Svelte-aware tooling; there is no precompiled CommonJS component entry.
 
 ## 🔗 Related
 

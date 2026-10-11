@@ -1,8 +1,8 @@
 /// <reference types="vitest/globals" />
 import { createRef, type RefObject } from 'react';
 import { render } from '@testing-library/react';
-import { PhoneInput } from '../../src/components/PhoneInput';
-import type { PhoneInputRef } from '../../src/types';
+import { PhoneInput } from '@src/components/PhoneInput';
+import type { PhoneInputRef } from '@src/types';
 import { testPhoneInput } from '@common/tests/unit/PhoneInput';
 import { tools, createResultProxy } from './setup/tools';
 import type { SetupFn } from '@common/tests/unit/PhoneInput';

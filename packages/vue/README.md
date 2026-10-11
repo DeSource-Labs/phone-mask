@@ -14,6 +14,7 @@ Beautiful, accessible, extreme small & tree-shakeable Vue 3 phone input with aut
 
 ## ✨ Features
 
+- 🌐 **SSR Support** — `PhoneInput` renders formatted HTML on the server and hydrates in the browser
 - 🎨 **Beautiful UI** — Modern design with light/dark themes
 - 🔍 **Smart Country Search** — Fuzzy matching with keyboard navigation
 - 🎭 **Auto-formatting** — As-you-type formatting with smart cursor

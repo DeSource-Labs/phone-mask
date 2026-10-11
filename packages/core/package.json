@@ -60,6 +60,13 @@
     },
     "./package.json": "./package.json"
   },
+  "typesVersions": {
+    "*": {
+      "kit": [
+        "./dist/types/kit.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "clean": "rimraf dist coverage tsconfig.tsbuildinfo",
     "clean:modules": "rimraf node_modules",

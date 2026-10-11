@@ -21,6 +21,7 @@ export default defineConfig({
       external: ['@desource/phone-mask', '@desource/phone-mask/kit', 'react', 'react-dom', 'react/jsx-runtime'],
       output: {
         exports: 'named',
+        postBanner: (chunk) => (chunk.isEntry && chunk.name === 'index' ? "'use client';" : ''),
         globals: {
           '@desource/phone-mask': 'phoneMask',
           '@desource/phone-mask/kit': 'phoneMaskKit',

@@ -1,4 +1,4 @@
-import { useTimer } from '../utility/useTimer.svelte';
+import { useTimer } from '../utility/useTimer.svelte.js';
 
 export function useValidationHint() {
   let showValidationHint = $state(false);

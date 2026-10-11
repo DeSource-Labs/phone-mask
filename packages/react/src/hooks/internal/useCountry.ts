@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from 'react';
 import type { MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
@@ -7,6 +7,8 @@ import {
   detectByGeoIp,
   detectCountryFromLocale
 } from '@desource/phone-mask/kit';
+
+const subscribeLocale = () => () => {};
 
 export interface UseCountryOptions {
   /** Country ISO code (e.g., 'US', 'DE', 'GB') */
@@ -34,7 +36,11 @@ export function useCountry({
   detect,
   onCountryChange
 }: UseCountryOptions): UseCountryReturn {
-  const locale = useMemo<string>(() => localeOption || getNavigatorLang(), [localeOption]);
+  const locale = useSyncExternalStore(
+    subscribeLocale,
+    () => localeOption || getNavigatorLang(),
+    () => localeOption || 'en'
+  );
 
   const [countryCode, setCountryCode] = useState<string>(parseCountryCode(countryOption, 'US'));
 
