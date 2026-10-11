@@ -16,7 +16,7 @@ Drop-in Nuxt module with auto-imports, SSR support, and zero configuration.
 
 - 🎯 **Zero Config** — Works out of the box
 - 🔄 **Auto-imports** — Component, directive, and types by default
-- 🌐 **SSR Compatible** — Server-side rendering ready
+- 🌐 **SSR Support** — `PhoneInput` renders formatted HTML on the server and hydrates in the browser
 - 🎨 **Styleable** — Bring your own styles or use defaults
 - 🔧 **TypeScript** — Fully typed
 - ⚡ **Optimized** — Tree-shaking and code splitting

@@ -239,7 +239,7 @@ const {
 });
 
 const { showValidationHint, clearValidationHint, scheduleValidationHint } = useValidationHint();
-// Use useTemplateRef instead of shallowRef once stop supporting Vue < 3.5.0
+// Use useTemplateRef instead of shallowRef once we stop supporting Vue < 3.5.0
 const rootRef = shallowRef<HTMLDivElement | null>(null);
 const telRef = shallowRef<HTMLInputElement | null>(null);
 const liveRef = shallowRef<HTMLDivElement | null>(null);
