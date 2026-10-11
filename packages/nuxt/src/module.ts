@@ -74,8 +74,7 @@ const module: NuxtModule<ModuleOptions> = defineNuxtModule<ModuleOptions>({
       const componentDir = resolve(runtimeDir, 'component');
       addComponent({
         name: 'PhoneInput',
-        filePath: componentDir,
-        mode: 'client'
+        filePath: componentDir
       });
     }
     // Add CSS

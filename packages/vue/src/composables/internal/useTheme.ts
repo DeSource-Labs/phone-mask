@@ -1,4 +1,4 @@
-import { ref, computed, toValue, onBeforeMount, onBeforeUnmount, type MaybeRefOrGetter } from 'vue';
+import { ref, computed, toValue, onMounted, onBeforeUnmount, type MaybeRefOrGetter } from 'vue';
 import type { Theme } from '../../types';
 
 interface UseThemeOptions {
@@ -24,7 +24,7 @@ export function useTheme({ theme }: UseThemeOptions) {
     systemDark.value = e.matches;
   };
 
-  onBeforeMount(() => {
+  onMounted(() => {
     mq = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
     if (!mq) return;
     systemDark.value = mq.matches;

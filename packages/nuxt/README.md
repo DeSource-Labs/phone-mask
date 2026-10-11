@@ -117,7 +117,7 @@ const handleChange = (nextPhone: PMaskPhoneNumber) => {
 
 ### SSR + Auto-imports in Practice
 
-`@desource/phone-mask-nuxt` is SSR-safe: the module config is evaluated on server, while the UI component is registered in client mode.
+`@desource/phone-mask-nuxt` renders `PhoneInput` on the server and hydrates it in the browser. Browser locale, system theme, country detection, and the dropdown initialize after mount. Pass `locale`, `theme`, and `country` explicitly to control the initial server-rendered appearance.
 
 ```vue
 <script setup lang="ts">

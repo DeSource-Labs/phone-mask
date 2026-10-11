@@ -1,4 +1,4 @@
-import { ref, computed, watchEffect, toValue, type MaybeRefOrGetter, type ComputedRef } from 'vue';
+import { ref, computed, watchEffect, toValue, onMounted, type MaybeRefOrGetter, type ComputedRef } from 'vue';
 import type { MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
@@ -34,7 +34,8 @@ export function useCountry({
   detect,
   onCountryChange
 }: UseCountryOptions = {}): UseCountryReturn {
-  const locale = computed<string>(() => toValue(localeOption) || getNavigatorLang());
+  const browserLocale = ref('en');
+  const locale = computed<string>(() => toValue(localeOption) || browserLocale.value);
 
   const countryCode = ref<string>(parseCountryCode(toValue(countryOption), 'US'));
 
@@ -69,11 +70,15 @@ export function useCountry({
     }
   });
 
-  // Auto-detect country
-  watchEffect(() => {
-    if (toValue(detect) && !toValue(countryOption)) {
-      void detectCountry();
-    }
+  onMounted(() => {
+    browserLocale.value = getNavigatorLang();
+
+    // Auto-detect country
+    watchEffect(() => {
+      if (toValue(detect) && !toValue(countryOption)) {
+        void detectCountry();
+      }
+    });
   });
 
   // Emit onCountryChange
