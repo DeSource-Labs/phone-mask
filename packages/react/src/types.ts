@@ -1,6 +1,6 @@
 import type { MaskFull, CountryKey } from '@desource/phone-mask';
 import type { FormatterHelpers } from '@desource/phone-mask/kit';
-import type { ReactNode, FocusEvent, RefObject } from 'react';
+import type { ReactNode, FocusEvent } from 'react';
 
 export type Size = 'compact' | 'normal' | 'large';
 export type Theme = 'auto' | 'light' | 'dark';
@@ -187,7 +187,7 @@ export interface UsePhoneMaskReturn {
   /** Whether to show validation warning */
   shouldShowWarn: boolean;
   /** Ref to attach to input element */
-  ref: RefObject<HTMLInputElement | null>;
+  ref: { current: HTMLInputElement | null }; // -> RefObject<HTMLInputElement | null> once React 18 won't be supported
   /** Clear the input */
   clear: () => void;
 }
