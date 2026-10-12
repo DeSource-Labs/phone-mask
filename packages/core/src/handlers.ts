@@ -1,6 +1,6 @@
 // Framework-agnostic input handling utilities for phone mask inputs
 // These pure functions can be used across any framework (React, Vue, etc.)
-import type { FormatterHelpers } from './formatter';
+import type { FormatterHelpers } from './formatter.js';
 
 export const DELIMITERS = [' ', '-', '(', ')'];
 export const NAVIGATION_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Tab'];

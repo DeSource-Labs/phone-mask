@@ -1,7 +1,7 @@
 // @ts-expect-error -- Ignore import of JS file
 import countries, { masks } from './data.min.js';
-import { countryCodeEmoji } from './country-code-emodji';
-import type { CountryKey } from './data-types';
+import { countryCodeEmoji } from './country-code-emodji.js';
+import type { CountryKey } from './data-types.js';
 
 interface MaskBase {
   id: CountryKey;

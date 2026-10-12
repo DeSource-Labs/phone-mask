@@ -1,6 +1,6 @@
 import { useCallback, type RefObject } from 'react';
-import { useClipboard } from '../utility/useClipboard';
-import { useTimer } from '../utility/useTimer';
+import { useClipboard } from '../utility/useClipboard.js';
+import { useTimer } from '../utility/useTimer.js';
 
 interface UseCopyActionOptions {
   fullFormatted: string;

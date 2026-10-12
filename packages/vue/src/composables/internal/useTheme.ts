@@ -1,5 +1,5 @@
 import { ref, computed, toValue, onMounted, onBeforeUnmount, type MaybeRefOrGetter } from 'vue';
-import type { Theme } from '../../types';
+import type { Theme } from '../../types.js';
 
 interface UseThemeOptions {
   theme: MaybeRefOrGetter<Theme>;

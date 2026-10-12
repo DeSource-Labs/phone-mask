@@ -5,8 +5,8 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
   plugins: [vue()],
   build: {
+    minify: false,
     lib: {
-      name: 'PhoneMaskVue',
       entry: {
         index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
         core: fileURLToPath(new URL('./src/core.ts', import.meta.url))
@@ -20,13 +20,7 @@ export default defineConfig({
     rolldownOptions: {
       external: ['@desource/phone-mask', '@desource/phone-mask/kit', 'vue'],
       output: {
-        exports: 'named',
-        globals: {
-          '@desource/phone-mask': 'phoneMask',
-          '@desource/phone-mask/kit': 'phoneMaskKit',
-          vue: 'Vue'
-        },
-        minify: true
+        exports: 'named'
       }
     }
   }

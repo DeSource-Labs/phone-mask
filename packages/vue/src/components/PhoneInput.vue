@@ -179,14 +179,14 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, nextTick, onMounted, ref, shallowRef, type CSSProperties } from 'vue';
 
-import { useCountry } from '../composables/internal/useCountry';
-import { useFormatter } from '../composables/internal/useFormatter';
-import { useValidationHint } from '../composables/internal/useValidationHint';
-import { useInputHandlers } from '../composables/internal/useInputHandlers';
-import { useCountrySelector } from '../composables/internal/useCountrySelector';
-import { useCopyAction } from '../composables/internal/useCopyAction';
-import { useTheme } from '../composables/internal/useTheme';
-import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots, PhoneNumber } from '../types';
+import { useCountry } from '../composables/internal/useCountry.js';
+import { useFormatter } from '../composables/internal/useFormatter.js';
+import { useValidationHint } from '../composables/internal/useValidationHint.js';
+import { useInputHandlers } from '../composables/internal/useInputHandlers.js';
+import { useCountrySelector } from '../composables/internal/useCountrySelector.js';
+import { useCopyAction } from '../composables/internal/useCopyAction.js';
+import { useTheme } from '../composables/internal/useTheme.js';
+import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots, PhoneNumber } from '../types.js';
 
 const props = withDefaults(defineProps<PhoneInputProps>(), {
   detect: true,

@@ -1,6 +1,6 @@
 // Phone number formatter utilities
-import { countPlaceholders, pickMaskVariant, formatDigitsWithMap } from './utils';
-import type { MaskFull } from './entries';
+import { countPlaceholders, pickMaskVariant, formatDigitsWithMap } from './utils.js';
+import type { MaskFull } from './entries.js';
 
 /**
  * Formatter interface for digit range and caret calculations

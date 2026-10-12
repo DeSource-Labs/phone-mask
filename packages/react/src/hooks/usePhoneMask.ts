@@ -1,9 +1,9 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { useFormatter } from './internal/useFormatter';
-import { useCountry } from './internal/useCountry';
-import { useInputHandlers } from './internal/useInputHandlers';
+import { useFormatter } from './internal/useFormatter.js';
+import { useCountry } from './internal/useCountry.js';
+import { useInputHandlers } from './internal/useInputHandlers.js';
 
-import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
+import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types.js';
 
 /**
  * React hook for phone number masking.

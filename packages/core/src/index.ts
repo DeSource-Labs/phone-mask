@@ -1,1 +1,1 @@
-export * from './entries';
+export * from './entries.js';

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useTimer } from '../utility/useTimer';
+import { useTimer } from '../utility/useTimer.js';
 
 export function useValidationHint() {
   const [showValidationHint, setShowValidationHint] = useState(false);

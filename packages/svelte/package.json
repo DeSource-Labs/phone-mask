@@ -74,7 +74,8 @@
     "typecheck": "svelte-check --tsconfig tsconfig.json",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage.enabled --coverage.provider=v8 --coverage.reporter=lcov --coverage.reportsDirectory=coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "publish:check": "node ../../scripts/check-package.mts --profile esm-only"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"

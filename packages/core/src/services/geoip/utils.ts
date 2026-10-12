@@ -1,8 +1,8 @@
-import { parseCountryCode } from '../../utils';
+import { parseCountryCode } from '../../utils.js';
 
-import { GEO_IP_API_URL, GEO_IP_TIMEOUT_MS, CACHE_KEY, CACHE_EXPIRY_MS } from './consts';
+import { GEO_IP_API_URL, GEO_IP_TIMEOUT_MS, CACHE_KEY, CACHE_EXPIRY_MS } from './consts.js';
 
-import type { MaskGeoCache } from './types';
+import type { MaskGeoCache } from './types.js';
 
 /**
  * Detect country from GeoIP service.

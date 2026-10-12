@@ -35,27 +35,37 @@
   "type": "module",
   "main": "dist/phone-mask.cjs",
   "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
   "unpkg": "dist/phone-mask.umd.min.js",
   "jsdelivr": "dist/phone-mask.umd.min.js",
-  "browser": "dist/phone-mask.umd.min.js",
   "files": [
     "dist",
+    "!dist/types",
     "CHANGELOG.md",
     "README.md"
   ],
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/phone-mask.cjs",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/phone-mask.cjs"
+      },
       "default": "./dist/esm/index.js"
     },
     "./kit": {
-      "types": "./dist/types/kit.d.ts",
-      "import": "./dist/esm/kit.js",
-      "require": "./dist/kit.cjs",
+      "import": {
+        "types": "./dist/kit.d.ts",
+        "default": "./dist/esm/kit.js"
+      },
+      "require": {
+        "types": "./dist/kit.d.cts",
+        "default": "./dist/kit.cjs"
+      },
       "default": "./dist/esm/kit.js"
     },
     "./package.json": "./package.json"
@@ -63,7 +73,7 @@
   "typesVersions": {
     "*": {
       "kit": [
-        "./dist/types/kit.d.ts"
+        "./dist/kit.d.ts"
       ]
     }
   },
@@ -73,7 +83,8 @@
     "build": "pnpm clean && pnpm build:internal",
     "build:internal": "pnpm build:lib && pnpm build:types",
     "build:lib": "vite build --mode kit && vite build --mode root",
-    "build:types": "tsc -p tsconfig.json",
+    "build:types": "tsc -p tsconfig.json && node ../../scripts/build-dual-types.mts index kit",
+    "publish:check": "node ../../scripts/check-package.mts",
     "dev": "vite",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test:unit": "vitest run --config vitest.config.ts",

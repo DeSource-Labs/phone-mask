@@ -229,6 +229,9 @@ git checkout -b fix/bug-description
 # Build packages
 pnpm build
 
+# Check the packed packages before publishing
+pnpm publish:check
+
 # Run demo to verify visually
 pnpm dev:prepare
 pnpm dev:demo
@@ -503,10 +506,15 @@ All public packages are configured as a Changesets fixed group, so they always u
 version and bump type. Include all packages in the changeset to copy the release summary to every
 package changelog.
 
-After the release pull request is squash-merged, the release workflow builds and publishes every
+After the release pull request is squash-merged, the release workflow builds, checks, and publishes every
 package to npm without package-specific Git tags. It then creates one `X.Y.Z` Git tag and one GitHub
 release using the matching entry from `packages/core/CHANGELOG.md`. The workflow also supports
 manual dispatch from GitHub Actions if recovery is needed.
+
+`pnpm publish:check` runs strict publint and Are the Types Wrong? checks on temporary `pnpm pack`
+tarballs. Core, React, and Vue check all TypeScript resolution modes. Svelte and Nuxt use the
+ESM-only profile because their native tooling requires ESM. CSS and package metadata are excluded
+from TypeScript entrypoint checks. Build the packages before running these checks independently.
 
 ## 🎯 Areas We Need Help
 

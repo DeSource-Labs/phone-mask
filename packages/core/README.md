@@ -40,6 +40,30 @@ import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
 import { createPhoneFormatter, formatDigitsWithMap } from '@desource/phone-mask/kit';
 ```
 
+### Distribution formats
+
+Package imports use unminified ESM or CommonJS; application bundlers handle tree-shaking and minification. Both entries include TypeScript declarations for each module format.
+
+| Use case                              | Root entry                   | Kit entry             |
+| ------------------------------------- | ---------------------------- | --------------------- |
+| ESM, including native browser modules | `dist/esm/index.js`          | `dist/esm/kit.js`     |
+| CommonJS                              | `dist/phone-mask.cjs`        | `dist/kit.cjs`        |
+| Browser globals, readable             | `dist/phone-mask.umd.js`     | `dist/kit.umd.js`     |
+| Browser globals, minified             | `dist/phone-mask.umd.min.js` | `dist/kit.umd.min.js` |
+
+For browser usage without a build step, load both globals to combine country data with formatting helpers:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@desource/phone-mask/dist/phone-mask.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@desource/phone-mask/dist/kit.umd.min.js"></script>
+<script>
+  const result = phoneMaskKit.formatDigitsWithMap(phoneMask.MasksBaseMap.US[0], '2025551234');
+  console.log(result.display); // "+1 202-555-1234"
+</script>
+```
+
+Pin both CDN URLs to the same package version in production. UNPKG supports the same file paths.
+
 ## 🚀 Quick Start
 
 ### Basic Formatting

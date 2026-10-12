@@ -19,34 +19,22 @@ export default defineConfig(({ mode }) => {
     preserveModules: true,
     preserveModulesRoot: fileURLToPath(new URL('./src', import.meta.url)),
     entryFileNames: '[name].js',
-    chunkFileNames: 'chunks/[name]-[hash].js',
-    minify: false,
-    plugins: [
-      terser({
-        compress: { passes: 2 },
-        mangle: { toplevel: false },
-        keep_fnames: true,
-        keep_classnames: true,
-        format: { comments: false }
-      })
-    ]
+    chunkFileNames: 'chunks/[name]-[hash].js'
   };
 
   const cjsOutput = {
     format: 'cjs' as const,
     dir: fileURLToPath(new URL('./dist', import.meta.url)),
     entryFileNames: isKitBuild ? 'kit.cjs' : `${safeName}.cjs`,
-    exports: 'named' as const,
-    minify: true,
-    plugins: [
-      terser({
-        compress: { passes: 2 },
-        mangle: { toplevel: false },
-        keep_fnames: true,
-        keep_classnames: true,
-        format: { comments: false }
-      })
-    ]
+    exports: 'named' as const
+  };
+
+  const umdName = isKitBuild ? 'kit' : safeName;
+  const umdOutput = {
+    format: 'umd' as const,
+    name: isKitBuild ? `${camelName}Kit` : camelName,
+    dir: fileURLToPath(new URL('./dist', import.meta.url)),
+    entryFileNames: `${umdName}.umd.js`
   };
 
   return {
@@ -55,6 +43,7 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       emptyOutDir: shouldEmptyOutDir,
       sourcemap: false,
+      minify: false,
       target: 'es2020',
       lib: {
         entry: fileURLToPath(new URL(entryFile, import.meta.url)),
@@ -66,31 +55,27 @@ export default defineConfig(({ mode }) => {
         external: [],
         plugins: [],
 
-        output: isKitBuild
-          ? [esmOutput, cjsOutput]
-          : [
-              esmOutput,
-              cjsOutput,
-              // UMD single-file minified build for CDN (aggressive allowed)
-              {
-                format: 'umd',
-                name: camelName,
-                dir: fileURLToPath(new URL('./dist', import.meta.url)),
-                entryFileNames: `${safeName}.umd.min.js`,
-                minify: true,
-                plugins: [
-                  terser({
-                    compress: {
-                      passes: 3,
-                      drop_console: true,
-                      drop_debugger: true
-                    },
-                    mangle: { toplevel: true },
-                    format: { comments: false }
-                  })
-                ]
-              }
-            ],
+        output: [
+          esmOutput,
+          cjsOutput,
+          umdOutput,
+          {
+            ...umdOutput,
+            entryFileNames: `${umdName}.umd.min.js`,
+            minify: false,
+            plugins: [
+              terser({
+                compress: {
+                  passes: 3,
+                  drop_console: true,
+                  drop_debugger: true
+                },
+                mangle: { toplevel: true },
+                format: { comments: false }
+              })
+            ]
+          }
+        ],
 
         treeshake: {
           moduleSideEffects: false,

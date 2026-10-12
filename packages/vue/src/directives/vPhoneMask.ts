@@ -13,7 +13,7 @@ import {
   processPaste,
   createPhoneFormatter
 } from '@desource/phone-mask/kit';
-import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
+import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types.js';
 
 function parseParams(params: string | PMaskDirectiveOptions | undefined): PMaskDirectiveOptions {
   if (typeof params === 'string') return { country: params };

@@ -1,6 +1,6 @@
 import { computed, type Ref } from 'vue';
-import { useClipboard } from '../utility/useClipboard';
-import { useTimer } from '../utility/useTimer';
+import { useClipboard } from '../utility/useClipboard.js';
+import { useTimer } from '../utility/useTimer.js';
 
 interface UseCopyActionOptions {
   fullFormatted: Ref<string>;

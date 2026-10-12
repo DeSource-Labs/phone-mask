@@ -1,8 +1,8 @@
 import { shallowRef, watchEffect, onMounted, onUnmounted, type ShallowRef } from 'vue';
-import { useFormatter } from './internal/useFormatter';
-import { useCountry } from './internal/useCountry';
-import { useInputHandlers } from './internal/useInputHandlers';
-import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types';
+import { useFormatter } from './internal/useFormatter.js';
+import { useCountry } from './internal/useCountry.js';
+import { useInputHandlers } from './internal/useInputHandlers.js';
+import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types.js';
 
 /**
  * Vue composable for phone number masking.

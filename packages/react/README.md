@@ -585,7 +585,7 @@ function Example() {
 │   ├── core.mjs                # Core kit utilities and mask data subpath
 │   ├── core.cjs                # Core kit utilities and mask data CJS subpath
 │   ├── phone-mask-react.css    # Component styles
-│   └── types/                  # TypeScript declarations
+│   └── *.d.ts, *.d.cts         # ESM and CommonJS declarations
 ├── README.md                   # This file
 └── package.json                # Package manifest
 ```

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import type { Theme } from '../../types';
+import type { Theme } from '../../types.js';
 
 interface UseThemeOptions {
   theme: Theme;

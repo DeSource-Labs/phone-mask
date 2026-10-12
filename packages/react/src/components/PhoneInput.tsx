@@ -10,15 +10,15 @@ import {
   type ForwardedRef
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useFormatter } from '../hooks/internal/useFormatter';
-import { useCountry } from '../hooks/internal/useCountry';
-import { useValidationHint } from '../hooks/internal/useValidationHint';
-import { useInputHandlers } from '../hooks/internal/useInputHandlers';
-import { useCountrySelector } from '../hooks/internal/useCountrySelector';
-import { useCopyAction } from '../hooks/internal/useCopyAction';
-import { useTheme } from '../hooks/internal/useTheme';
+import { useFormatter } from '../hooks/internal/useFormatter.js';
+import { useCountry } from '../hooks/internal/useCountry.js';
+import { useValidationHint } from '../hooks/internal/useValidationHint.js';
+import { useInputHandlers } from '../hooks/internal/useInputHandlers.js';
+import { useCountrySelector } from '../hooks/internal/useCountrySelector.js';
+import { useCopyAction } from '../hooks/internal/useCopyAction.js';
+import { useTheme } from '../hooks/internal/useTheme.js';
 
-import type { PhoneInputProps, PhoneInputRef } from '../types';
+import type { PhoneInputProps, PhoneInputRef } from '../types.js';
 
 const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef>) => {
   const {

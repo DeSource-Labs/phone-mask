@@ -71,6 +71,7 @@ type RspackStatsLike = {
 };
 type SvelteMeasureInput = {
   pkg: string;
+  peerDeps: Set<string>;
   installSpec?: string;
   installOverrides?: InstallOverrides;
   installTimeout: number;
@@ -521,7 +522,7 @@ function addUnresolvedPackagesToExternalSet(unresolved: Set<string>, externalPac
 }
 
 async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<MeasuredSize | null> {
-  const { pkg, installSpec, installOverrides, installTimeout, entrySource } = input;
+  const { pkg, peerDeps, installSpec, installOverrides, installTimeout, entrySource } = input;
   const tmpRoot = await mkdtemp(path.join(tmpdir(), 'phone-mask-svelte-stats-'));
   const dependencySpec = installSpec ?? pkg;
 
@@ -547,7 +548,8 @@ async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<Measure
         "    outDir: 'dist',",
         '    emptyOutDir: true,',
         '    minify: true,',
-        '    sourcemap: false',
+        '    sourcemap: false,',
+        `    rolldownOptions: { external: ${createExternalPackagesRegex(peerDeps) ?? '[]'} }`,
         '  }',
         '});',
         ''
@@ -599,9 +601,10 @@ async function measurePackageFallback(pkg: string, options: NormalizedStatsOptio
   try {
     const entrySource = `import * as benchmarkPackage from ${JSON.stringify(pkg)};\nconsole.log(Object.keys(benchmarkPackage).length);\n`;
 
-    if (hasSvelteOnlyRootExport(manifest)) {
+    if (peerDeps.has('svelte') || hasSvelteOnlyRootExport(manifest)) {
       return await measureWithSvelteVite({
         pkg,
+        peerDeps,
         installSpec: options.installSpec,
         installOverrides: options.installOverrides,
         installTimeout: options.installTimeout,
