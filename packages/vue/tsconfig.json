@@ -4,7 +4,13 @@
     "rootDir": "src",
     "outDir": "dist",
     "declarationDir": "dist/types",
-    "declarationMap": false
+    "declarationMap": false,
+    "paths": {
+      "vue": ["./node_modules/vue-min"]
+    }
+  },
+  "vueCompilerOptions": {
+    "target": 3.4
   },
   "include": ["src/**/*"]
 }
