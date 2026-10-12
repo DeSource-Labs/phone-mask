@@ -398,6 +398,8 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   );
 };
 
-export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>(PhoneInputInner);
-
-PhoneInput.displayName = 'PhoneInput';
+export const PhoneInput = /* @__PURE__ */ (() => {
+  const component = forwardRef<PhoneInputRef, PhoneInputProps>(PhoneInputInner);
+  component.displayName = 'PhoneInput';
+  return component;
+})();
