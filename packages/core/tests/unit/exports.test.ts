@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
-import * as root from '../../src';
-import * as kit from '../../src/kit';
+import * as root from '@src/index';
+import * as kit from '@src/kit';
 
 describe('public exports', () => {
   it('keeps the root entry focused on mask data', () => {
