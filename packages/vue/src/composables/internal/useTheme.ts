@@ -9,23 +9,23 @@ export function useTheme({ theme }: UseThemeOptions) {
   const systemDark = ref<boolean>(false);
 
   const themeClass = computed<string>(() => {
-    const resolvedTheme = toValue(theme);
+    let resolvedTheme = toValue(theme);
 
     if (resolvedTheme === 'auto') {
-      return systemDark.value ? 'theme-dark' : 'theme-light';
+      resolvedTheme = systemDark.value ? 'dark' : 'light';
     }
 
     return `theme-${resolvedTheme}`;
   });
 
-  let mq: MediaQueryList | null = null;
+  let mq: MediaQueryList | undefined;
 
   const handler = (e: MediaQueryListEvent) => {
     systemDark.value = e.matches;
   };
 
   onMounted(() => {
-    mq = globalThis.matchMedia?.('(prefers-color-scheme: dark)') ?? null;
+    mq = globalThis.matchMedia?.('(prefers-color-scheme: dark)');
     if (!mq) return;
     systemDark.value = mq.matches;
     mq.addEventListener('change', handler);
