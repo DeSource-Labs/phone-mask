@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import typescript from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
+import angular from 'angular-eslint';
 import vue from 'eslint-plugin-vue';
 import vueParser from 'vue-eslint-parser';
 import svelte from 'eslint-plugin-svelte';
@@ -13,6 +14,8 @@ const TS_FILES = ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'];
 const JS_FILES = ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.jsx'];
 
 const REACT_FILES = ['packages/react/**/*.{ts,tsx,js,jsx}'];
+const ANGULAR_TS_FILES = ['packages/angular/**/*.ts'];
+const ANGULAR_TEMPLATE_FILES = ['packages/angular/**/*.html'];
 const VUE_SFC_FILES = ['packages/vue/**/*.vue', 'packages/nuxt/**/*.vue', 'demo/**/*.vue'];
 const VUE_TS_FILES = ['packages/vue/**/*.{ts,mts,cts}', 'packages/nuxt/**/*.{ts,mts,cts}', 'demo/**/*.{ts,mts,cts}'];
 const SVELTE_FILES = [
@@ -26,6 +29,7 @@ const BROWSER_FILES = [
   'packages/react/**/*.{ts,tsx,js,jsx}',
   'packages/vue/**/*.{ts,js,mts,cts,vue}',
   'packages/svelte/**/*.{ts,js,mts,cts,svelte}',
+  'packages/angular/**/*.{ts,js,mts,cts}',
   'demo/**/*.{ts,tsx,js,jsx,vue}'
 ];
 
@@ -134,6 +138,31 @@ export default [
       'react-hooks/set-state-in-effect': 'warn'
     }
   },
+
+  ...angular.configs.tsRecommended.map((config) => ({
+    ...config,
+    files: ANGULAR_TS_FILES
+  })),
+
+  {
+    files: ANGULAR_TS_FILES,
+    processor: angular.processInlineTemplates,
+    rules: {
+      '@angular-eslint/no-input-rename': 'off',
+      '@angular-eslint/no-output-native': 'off',
+      '@angular-eslint/no-output-rename': 'off'
+    }
+  },
+
+  ...angular.configs.templateRecommended.map((config) => ({
+    ...config,
+    files: ANGULAR_TEMPLATE_FILES
+  })),
+
+  ...angular.configs.templateAccessibility.map((config) => ({
+    ...config,
+    files: ANGULAR_TEMPLATE_FILES
+  })),
 
   {
     files: VUE_TS_FILES,
