@@ -158,6 +158,7 @@ export function testPhoneInput(
           await phoneInput.pressSequentially(DIGITS);
 
           await readonlyControl.check();
+          await expect(phoneInput).toHaveAttribute('readonly');
         });
 
         test('readonly checkbox adds readonly attribute to input', async () => {
@@ -213,6 +214,7 @@ export function testPhoneInput(
           await phoneInput.pressSequentially(DIGITS);
 
           await disabledControl.check();
+          await expect(phoneInput).toBeDisabled();
         });
 
         test('disabled checkbox adds disabled attribute to input', async () => {

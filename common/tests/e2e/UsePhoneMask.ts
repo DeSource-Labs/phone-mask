@@ -93,10 +93,8 @@ export function testUsePhoneMask(containerSelector: string, controls: UsePhoneMa
         const placeholderBefore = await phoneInput.getAttribute('placeholder');
 
         await setCountryUsBtn.click();
-
-        const placeholderAfter = await phoneInput.getAttribute('placeholder');
-        expect(placeholderAfter).toBeTruthy();
-        expect(placeholderAfter).not.toEqual(placeholderBefore);
+        await expect(phoneInput).not.toHaveAttribute('placeholder', placeholderBefore!);
+        expect(await phoneInput.getAttribute('placeholder')).toBeTruthy();
       });
     });
 

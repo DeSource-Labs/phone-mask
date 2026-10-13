@@ -9,6 +9,7 @@ node_modules
 .nuxt
 .svelte-kit
 .angular
+.demo-dist
 .output
 *.tsbuildinfo
 playwright-report

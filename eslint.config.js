@@ -58,6 +58,8 @@ export default [
       '**/.nuxt/**',
       '**/.output/**',
       '**/.svelte-kit/**',
+      '**/.angular/**',
+      '**/.demo-dist/**',
       '**/coverage/**',
       '**/*.fork.js',
       '**/*.min.js',
