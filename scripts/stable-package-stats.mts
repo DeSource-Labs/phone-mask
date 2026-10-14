@@ -4,6 +4,7 @@ import { builtinModules, createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
+import { pathToFileURL } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { build, type BuildResult, type OutputFile } from 'esbuild';
 import { rspack, type Configuration } from '@rspack/core';
@@ -19,11 +20,13 @@ type StatsOptions = {
   installTimeout?: number;
   installSpec?: string;
   installOverrides?: InstallOverrides;
+  entrypoint?: string;
 };
 type NormalizedStatsOptions = {
   installTimeout: number;
   installSpec?: string;
   installOverrides?: InstallOverrides;
+  entrypoint?: string;
 };
 type PackageStatsAsset = {
   name?: string;
@@ -106,7 +109,7 @@ function normalizeOptions(options: StatsOptions | undefined): NormalizedStatsOpt
     options?.installOverrides && Object.keys(options.installOverrides).length > 0
       ? options.installOverrides
       : undefined;
-  return { installTimeout, installSpec, installOverrides };
+  return { installTimeout, installSpec, installOverrides, entrypoint: options?.entrypoint };
 }
 
 function createTempInstallManifest(installOverrides: InstallOverrides | undefined): TempInstallManifest {
@@ -205,6 +208,59 @@ async function measureWithEsbuild(input: PackageMeasureInput): Promise<MeasuredS
     installRoot,
     entryFile,
     externalSet
+  });
+  return getEsbuildOutputMetrics(result);
+}
+
+async function measureWithAngular(input: PackageMeasureInput, installTimeout: number): Promise<MeasuredSize | null> {
+  const { installRoot, entrySource, peerDeps } = input;
+  // Use the public linker, as Angular CLI consumers do; raw APF is not the shipped application code.
+  await execFileAsync('pnpm', ['add', '-D', '--ignore-scripts', '@angular/compiler-cli@^22.0.0'], {
+    cwd: installRoot,
+    timeout: installTimeout
+  });
+  const require = createRequire(path.join(installRoot, 'package.json'));
+  const compilerRequire = createRequire(require.resolve('@angular/compiler-cli/package.json'));
+  const [{ transformAsync }, { default: linker }] = await Promise.all([
+    import(pathToFileURL(compilerRequire.resolve('@babel/core')).href),
+    import(pathToFileURL(require.resolve('@angular/compiler-cli/linker/babel')).href)
+  ]);
+  const result = await build({
+    absWorkingDir: installRoot,
+    stdin: { contents: entrySource, resolveDir: installRoot },
+    outfile: 'benchmark.js',
+    bundle: true,
+    minify: true,
+    format: 'esm',
+    platform: 'browser',
+    target: 'es2022',
+    write: false,
+    treeShaking: true,
+    legalComments: 'none',
+    define: { ngDevMode: 'false', ngJitMode: 'false' },
+    external: [...createExternalSet(peerDeps), '@angular/*', 'rxjs', 'rxjs/*'],
+    plugins: [
+      {
+        name: 'angular-linker',
+        setup(builder) {
+          builder.onLoad({ filter: /\.[cm]?js$/ }, async ({ path: filename }) => {
+            const source = await readFile(filename, 'utf8');
+            if (!source.includes('ɵɵngDeclare')) return;
+            const linked = await transformAsync(source, {
+              filename,
+              configFile: false,
+              babelrc: false,
+              compact: false,
+              plugins: [[linker, { linkerJitMode: false }]]
+            });
+            if (!linked?.code || linked.code.includes('ɵɵngDeclare')) {
+              throw new Error(`Angular linker did not compile ${filename}`);
+            }
+            return { contents: linked.code, loader: 'js' };
+          });
+        }
+      }
+    ]
   });
   return getEsbuildOutputMetrics(result);
 }
@@ -599,7 +655,12 @@ async function measureWithSvelteVite(input: SvelteMeasureInput): Promise<Measure
 async function measurePackageFallback(pkg: string, options: NormalizedStatsOptions): Promise<MeasuredSize | null> {
   const { installRoot, manifest, peerDeps } = await createInstallRoot(pkg, options);
   try {
-    const entrySource = `import * as benchmarkPackage from ${JSON.stringify(pkg)};\nconsole.log(Object.keys(benchmarkPackage).length);\n`;
+    const entrySource = `import * as benchmarkPackage from ${JSON.stringify(options.entrypoint ?? pkg)};\nconsole.log(Object.keys(benchmarkPackage).length);\n`;
+
+    if (peerDeps.has('@angular/core')) {
+      // Do not silently fall back to measuring unlinked Angular declarations if compilation fails.
+      return await measureWithAngular({ installRoot, entrySource, peerDeps }, options.installTimeout);
+    }
 
     if (peerDeps.has('svelte') || hasSvelteOnlyRootExport(manifest)) {
       return await measureWithSvelteVite({
@@ -646,7 +707,8 @@ async function discoverExportNames(pkg: string, installRoot: string, installTime
 async function measureExportSizesFallback(pkg: string, options: NormalizedStatsOptions): Promise<PackageStatsPayload> {
   const { installRoot, manifest, peerDeps } = await createInstallRoot(pkg, options);
   try {
-    if (hasSvelteOnlyRootExport(manifest)) {
+    // Angular per-export sizes additionally need CLI class-purity optimizations; do not report raw APF sizes.
+    if (hasSvelteOnlyRootExport(manifest) || peerDeps.has('@angular/core')) {
       return { assets: [] };
     }
 

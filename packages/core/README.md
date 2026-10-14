@@ -497,18 +497,19 @@ The root entry contains country metadata and mask data. Use `@desource/phone-mas
 
 ## 🔗 Related Packages
 
-- [@desource/phone-mask-vue](../vue) — Vue 3 component + composable + directive
-- [@desource/phone-mask-nuxt](../nuxt) — Nuxt module
-- [@desource/phone-mask-react](../react) — React component + hook
-- [@desource/phone-mask-svelte](../svelte) — Svelte component + composable + action + attachment
+- [@desource/phone-mask-angular](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/angular) — Angular component + directive + pipe + service
+- [@desource/phone-mask-react](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/react) — React component + hook
+- [@desource/phone-mask-svelte](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/svelte) — Svelte component + composable + action + attachment
+- [@desource/phone-mask-vue](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/vue) — Vue 3 component + composable + directive
+- [@desource/phone-mask-nuxt](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/nuxt) — Nuxt module
 
 ## 📄 License
 
-[MIT](../../LICENSE) © 2026 DeSource Labs
+[MIT](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE) © 2026 DeSource Labs
 
 ## 🤝 Contributing
 
-See [Contributing Guide](../../CONTRIBUTING.md)
+See [Contributing Guide](https://github.com/DeSource-Labs/phone-mask/blob/main/CONTRIBUTING.md) for development, testing, and publication checks.
 
 ---
 
