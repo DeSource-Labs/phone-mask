@@ -5,10 +5,17 @@ packages:
 overrides:
   glob: ^13.0.6
   # Less has no patched image-size release in its legacy range; this repo does not use its image helpers.
-  "less>image-size": "-"
+  'less>image-size': '-'
+
+packageExtensions:
+  '@analogjs/vite-plugin-angular@2.8.0':
+    peerDependencies:
+      typescript: '*'
 
 allowBuilds:
   '@parcel/watcher': true
   esbuild: true
+  lmdb: true
+  msgpackr-extract: true
   sharp: true
   vue-demi: true

@@ -1,0 +1,51 @@
+:host {
+  display: block;
+  color: #f3f4f6;
+  font-family: system-ui, sans-serif;
+}
+
+main {
+  max-width: 960px;
+  margin: auto;
+  padding: 32px 20px;
+}
+
+section {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid #374151;
+  border-radius: 8px;
+}
+
+h1,
+h2,
+p {
+  margin-bottom: 16px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+}
+
+label:has([type='checkbox']) {
+  display: flex;
+  align-items: center;
+}
+
+input:not(.pi-input),
+select,
+button {
+  font: inherit;
+  padding: 8px;
+}
+
+button {
+  cursor: pointer;
+}
