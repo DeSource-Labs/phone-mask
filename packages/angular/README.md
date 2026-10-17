@@ -48,7 +48,7 @@ The directive, headless masking function, and pipe do not require these styles.
 ### Importing
 
 ```ts
-import { PhoneInputComponent, PhoneMaskDirective, PhoneMaskPipe, usePhoneMask } from '@desource/phone-mask-angular';
+import { PhoneInputComponent, PhoneMaskDirective, PhonePipe, usePhoneMask } from '@desource/phone-mask-angular';
 ```
 
 Add the component, directive, or pipe to your standalone component's `imports`. Call `usePhoneMask()` in an injection context when building a custom input.
@@ -230,19 +230,31 @@ The return value exposes signals for `digits`, `displayValue`, `displayPlacehold
 
 ## 🔤 Pipe API
 
-Import `PhoneMaskPipe` to format a value without an interactive input:
+Import `PhonePipe` into your component's `imports` to display a phone number. Pass its ISO country code as the required first argument:
 
-```js
-{{ '2025550123' | phoneMask: 'US' }} // 202-555-0123
+```html
+{{ '+12345678888' | phone: 'US' }}
+<!-- +1 234 567 8888 -->
+{{ '+12345678888' | phone: 'US': { code: false } }}
+<!-- 234 567 8888 -->
+{{ '+12345678888' | phone: 'US': { flag: true } }}
+<!-- 🇺🇸 +1 234 567 8888 -->
+{{ '+12345678888' | phone: 'US': { code: false, flag: true } }}
+<!-- 🇺🇸 234 567 8888 -->
 ```
 
-Set the optional `includeCountryCode` argument to `true` to prepend the country calling code (`+1` for the US):
+National digits (`'2345678888'`) and preformatted values (`'234 567 8888'` or `'+1 234 567 8888'`) produce the same output. The pipe uses the selected country's mask groups, separated by spaces.
 
-```js
-{{ '2025550123' | phoneMask: 'US': true }} // +1 202-555-0123
-```
+The optional second argument accepts the exported `PhonePipeOptions` type:
 
-The pipe is pure: Angular only formats again when its arguments change. The input is national digits; provide the country explicitly when formatting numbers from different countries.
+| Option | Type      | Default | Effect                            |
+| ------ | --------- | ------- | --------------------------------- |
+| `code` | `boolean` | `true`  | Include the country calling code. |
+| `flag` | `boolean` | `false` | Prepend the country flag emoji.   |
+
+Only an explicit `+` calling code is removed from the input; bare digits are treated as national digits. The pipe preserves significant leading zeros and does not infer trunk prefixes or extensions. Empty, whitespace-only, `null`, and `undefined` values render as `''`. Unsupported countries, mismatched calling codes, invalid characters, extensions, and numbers exceeding the selected mask's length return the original value unchanged.
+
+The pipe is pure and works during SSR without browser APIs. Angular formats again when the value, country, or options reference changes. Inline options work as shown above; replace a stored options object when changing its properties.
 
 ## 🌐 SSR and Zoneless Applications
 

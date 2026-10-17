@@ -138,9 +138,10 @@
     <p data-testid="directive-value">{{ directivePhone() }}</p>
   </section>
 
+  }
   <section data-testid="pipe">
     <h2>Display pipe</h2>
-    <p>{{ '2025550123' | phoneMask: 'US' }}</p>
+    <p data-testid="pipe-full">{{ '+12345678888' | phone: 'US' }}</p>
+    <p data-testid="pipe-national">{{ '234 567 8888' | phone: 'US': { code: false, flag: true } }}</p>
   </section>
-  }
 </main>

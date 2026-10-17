@@ -190,7 +190,7 @@ phone-mask/
 │   │   │   ├── components/phone-input/  # Component class and HTML template
 │   │   │   ├── services/                # Signal-based state, internal helpers, and utilities
 │   │   │   ├── phone-mask.directive.ts
-│   │   │   ├── phone-mask.pipe.ts
+│   │   │   ├── phone.pipe.ts
 │   │   │   ├── types.ts
 │   │   │   ├── style.scss
 │   │   │   └── public-api.ts

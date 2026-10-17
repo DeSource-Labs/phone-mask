@@ -1,6 +1,6 @@
 export { PhoneInputComponent } from './components/phone-input/phone-input.component';
 export { PhoneMaskDirective } from './phone-mask.directive';
-export { PhoneMaskPipe } from './phone-mask.pipe';
+export { PhonePipe } from './phone.pipe';
 export { usePhoneMask } from './services/usePhoneMask.service';
 export type {
   MaybeGetter,
@@ -8,6 +8,7 @@ export type {
   PhoneInputProps,
   PhoneMaskDirectiveOptions,
   PhoneNumber,
+  PhonePipeOptions,
   Size,
   Theme,
   UsePhoneMaskOptions,

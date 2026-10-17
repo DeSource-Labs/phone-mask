@@ -5,7 +5,7 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {
   PhoneInputComponent,
   PhoneMaskDirective,
-  PhoneMaskPipe,
+  PhonePipe,
   usePhoneMask,
   type Size,
   type Theme
@@ -14,7 +14,7 @@ import type { CountryKey } from '@desource/phone-mask-angular/core';
 
 @Component({
   selector: 'demo-app',
-  imports: [FormsModule, ReactiveFormsModule, PhoneInputComponent, PhoneMaskDirective, PhoneMaskPipe],
+  imports: [FormsModule, ReactiveFormsModule, PhoneInputComponent, PhoneMaskDirective, PhonePipe],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush

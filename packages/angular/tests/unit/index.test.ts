@@ -6,7 +6,7 @@ testIndexImports({
   suiteName: 'angular',
   indexModule,
   coreModule,
-  expectedDefinedExports: ['PhoneInputComponent', 'PhoneMaskDirective', 'PhoneMaskPipe'],
+  expectedDefinedExports: ['PhoneInputComponent', 'PhoneMaskDirective', 'PhonePipe'],
   expectedFunctionExports: ['usePhoneMask']
 });
 

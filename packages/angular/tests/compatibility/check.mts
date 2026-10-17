@@ -88,6 +88,7 @@ const html = await renderApplication(
 );
 for (const value of ['202-555-0123', '415-555-2671', '650-555-1234', '212-555-7890']) assert.ok(html.includes('value="' + value + '"'));
 assert.ok(html.includes('+1 202-555-0123') && html.includes('theme-light'));
+assert.ok(html.includes('🇺🇸 +1 234 567 8888') && html.includes('🇺🇸 234 567 8888'));
 assert.equal(fetches, 0);
 assert.equal('Zone' in globalThis, false);
 console.log('Angular ' + core.VERSION.full + ': strict types, linker, and zoneless SSR passed');

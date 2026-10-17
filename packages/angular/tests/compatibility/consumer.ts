@@ -3,26 +3,29 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import {
   PhoneInputComponent,
   PhoneMaskDirective,
-  PhoneMaskPipe,
+  PhonePipe,
   usePhoneMask,
-  type PhoneNumber
+  type PhoneNumber,
+  type PhonePipeOptions
 } from '@desource/phone-mask-angular';
 import { getFlagEmoji } from '@desource/phone-mask-angular/core';
 
 @Component({
   selector: 'consumer-app',
-  imports: [PhoneInputComponent, PhoneMaskDirective, PhoneMaskPipe, ReactiveFormsModule],
+  imports: [PhoneInputComponent, PhoneMaskDirective, PhonePipe, ReactiveFormsModule],
   template: `
     <phone-input country="US" [value]="digits()" (valueChange)="digits.set($event)" (phoneChange)="changed($event)" />
     <phone-input country="US" [formControl]="control" />
     <phone-input value="2125557890" />
     <input [phoneMask]="{ country: 'US' }" [formControl]="directiveControl" />
-    <p>{{ '2025550123' | phoneMask: 'US' : true }}</p>
+    <p>{{ '+12345678888' | phone: 'US' : phoneOptions }}</p>
+    <p>{{ '234 567 8888' | phone: 'US' : { code: false, flag: true } }}</p>
     <p>{{ mask.fullFormatted() }}</p>
     <p>{{ flag('US') }}</p>
   `
 })
 export class Consumer {
+  readonly phoneOptions: PhonePipeOptions = { flag: true };
   readonly flag = getFlagEmoji;
   readonly digits = signal('2025550123');
   readonly control = new FormControl('4155552671', { nonNullable: true });

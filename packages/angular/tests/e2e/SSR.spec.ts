@@ -14,6 +14,8 @@ test('repeated SSR requests render formatted HTML without GeoIP requests', async
       expect(html).toMatch(/<input(?=[^>]*id="directive-phone")(?=[^>]*value="202-555-0123")[^>]*>/);
       expect(html).toContain('Selected country: United States');
       expect(html).toContain('theme-light');
+      expect(html).toContain('+1 234 567 8888');
+      expect(html).toContain('🇺🇸 234 567 8888');
       expect(html).not.toContain('role="dialog"');
       expect(html).not.toContain('ngSkipHydration');
       const ids = Array.from(html.matchAll(/\sid="([^"]+)"/g), (match) => match[1]);
@@ -49,8 +51,16 @@ for (const options of [
       await page.locator('#selectable-phone').waitFor();
       const originalInputs = await page.locator('input.pi-input, #directive-phone').elementHandles();
       expect(originalInputs).toHaveLength(4);
+      await expect(page.getByTestId('pipe-full')).toHaveText('+1 234 567 8888');
+      await expect(page.getByTestId('pipe-national')).toHaveText('🇺🇸 234 567 8888');
+      const originalPipe = await page.getByTestId('pipe-full').elementHandle();
       release();
       await expect(page.locator('html')).toHaveAttribute('data-hydrated', 'true');
+      expect(await originalPipe!.evaluate((node) => node === document.querySelector('[data-testid="pipe-full"]'))).toBe(
+        true
+      );
+      await expect(page.getByTestId('pipe-full')).toHaveText('+1 234 567 8888');
+      await expect(page.getByTestId('pipe-national')).toHaveText('🇺🇸 234 567 8888');
       const preserved = await Promise.all(
         originalInputs.map((input) => input.evaluate((node) => document.getElementById(node.id) === node))
       );
