@@ -114,6 +114,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     formatter,
     digits,
     inactive,
+    onCountryChange: setCountry,
     onChange,
     scheduleValidationHint
   });

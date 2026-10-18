@@ -1,4 +1,5 @@
 import { tick } from 'svelte';
+import type { CountryKey } from '@desource/phone-mask';
 import {
   processBeforeInput,
   processInput,
@@ -13,6 +14,7 @@ export interface UseInputHandlersOptions {
   digits: () => string;
   inactive?: () => boolean;
   onChange?: (newDigits: string) => void;
+  onCountryChange?: (country: CountryKey) => void;
   scheduleValidationHint?: (delay: number) => void;
 }
 
@@ -23,7 +25,7 @@ const HINT_DELAY_ACTION = 300;
  * Svelte composable that provides event handlers for phone input masking.
  */
 export function useInputHandlers(options: UseInputHandlersOptions) {
-  const { formatter, digits, inactive, onChange, scheduleValidationHint } = options;
+  const { formatter, digits, inactive, onChange, onCountryChange, scheduleValidationHint } = options;
 
   const scheduleCaretUpdate = (el: HTMLInputElement | null, digitIndex: number) => {
     tick().then(() => {
@@ -65,6 +67,7 @@ export function useInputHandlers(options: UseInputHandlersOptions) {
     const result = processPaste(e, { digits: digits(), formatter: formatter() });
     if (!result) return;
 
+    if (result.country) onCountryChange?.(result.country);
     onChange?.(result.newDigits);
     scheduleCaretUpdate(e.target as HTMLInputElement | null, result.caretDigitIndex);
     scheduleValidationHint?.(HINT_DELAY_ACTION);

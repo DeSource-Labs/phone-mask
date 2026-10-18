@@ -36,10 +36,10 @@ try {
     JSON.stringify({
       private: true,
       type: 'module',
-      dependencies,
-      pnpm: { overrides: { '@desource/phone-mask': 'file:./core.tgz' } }
+      dependencies
     })
   );
+  await writeFile(join(directory, 'pnpm-workspace.yaml'), "overrides:\n  '@desource/phone-mask': file:./core.tgz\n");
   run(['install', '--ignore-scripts']);
   await cp(join(import.meta.dirname, 'consumer.ts'), join(directory, 'consumer.ts'));
   await writeFile(
@@ -89,6 +89,7 @@ const html = await renderApplication(
 for (const value of ['202-555-0123', '415-555-2671', '650-555-1234', '212-555-7890']) assert.ok(html.includes('value="' + value + '"'));
 assert.ok(html.includes('+1 202-555-0123') && html.includes('theme-light'));
 assert.ok(html.includes('🇺🇸 +1 234 567 8888') && html.includes('🇺🇸 234 567 8888'));
+assert.ok(html.includes('🇰🇿 +7 12345 6 77 88'));
 assert.equal(fetches, 0);
 assert.equal('Zone' in globalThis, false);
 console.log('Angular ' + core.VERSION.full + ': strict types, linker, and zoneless SSR passed');

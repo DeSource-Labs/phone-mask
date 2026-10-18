@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import type { TestTools } from './setup/tools';
+import { internationalPasteCases, makePasteEvent } from './setup/paste';
 
 interface PhoneMaskBindingOptions {
   country?: string;
@@ -52,7 +53,7 @@ interface SetupConfig {
   detectByGeoIpMock: ReturnType<typeof vi.fn>;
 }
 
-export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act }: TestTools): void {
+export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act, waitFor }: TestTools): void {
   const { warnMessage, detectByGeoIpMock } = config;
 
   beforeEach(() => {
@@ -60,6 +61,54 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act 
     vi.unstubAllGlobals();
     detectByGeoIpMock.mockResolvedValue(null);
   });
+
+  it.each(internationalPasteCases)(
+    'selects $country from pasted $text before formatting',
+    async ({ text, country, digits, display }) => {
+      const { el, onChange, onCountryChange, unmount } = await setup('input', '2025550199')({ country: 'US' });
+      onChange.mockClear();
+
+      await act(() => {
+        el.setSelectionRange(3, 5);
+        el.dispatchEvent(makePasteEvent(text));
+      });
+
+      expect(el.__phoneMaskState?.country.id).toBe(country);
+      expect(el.__phoneMaskState?.digits).toBe(digits);
+      expect(el.value).toBe(display);
+      expect(onCountryChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: country }));
+      expect(onChange).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ digits }));
+      await waitFor(() => {
+        expect(el.selectionStart).toBe(display.length);
+        expect(el.selectionEnd).toBe(display.length);
+      });
+      unmount();
+    }
+  );
+
+  it.each(internationalPasteCases.filter(({ country }) => country === 'US' || country === 'KZ'))(
+    'keeps pasted $country when an earlier GeoIP request resolves',
+    async ({ text, country, digits, display }) => {
+      let resolveGeo!: (country: string) => void;
+      detectByGeoIpMock.mockImplementation(
+        () =>
+          new Promise<string>((resolve) => {
+            resolveGeo = resolve;
+          })
+      );
+      const { el, unmount } = await setup('input')({ detect: true });
+      await act(() => {
+        el.dispatchEvent(makePasteEvent(text));
+      });
+      await act(() => {
+        resolveGeo('DE');
+      });
+      expect(el.__phoneMaskState?.country.id).toBe(country);
+      expect(el.__phoneMaskState?.digits).toBe(digits);
+      expect(el.value).toBe(display);
+      unmount();
+    }
+  );
 
   it('warns and skips initialization on non-input elements', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});

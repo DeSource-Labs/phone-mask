@@ -388,9 +388,30 @@ function pickMaskVariant(masks: string[], digitLength: number): string;
 // Extract digits from any string
 function extractDigits(value: string, maxLength?: number): string;
 
+// Detect a complete international number from current masks
+function detectCountryFromPhone(value: string): CountryKey | undefined;
+
 // Format digits according to template
 function formatDigitsWithMap(value: string, digits: string): { display: string; map: number[] };
 ```
+
+`detectCountryFromPhone` requires a leading `+`. It first matches formatting exactly, then falls back to
+calling code and digit count excluding that code. Shared matches use the calling code's generated default country;
+for example, unformatted `+1` numbers default to US. Unsupported syntax, unknown calling codes, and
+unmatched lengths return `undefined`. Detection uses masks, not allocation prefixes or number validation.
+
+```ts
+import { detectCountryFromPhone } from '@desource/phone-mask/kit';
+
+detectCountryFromPhone('+7 12345 6 77 88'); // 'KZ': unique mask
+detectCountryFromPhone('+71234567788'); // 'RU': shared length, default country
+detectCountryFromPhone('1234567788'); // undefined: no international prefix
+```
+
+`processPaste` returns an optional `country` when detection succeeds. Apply that country before the
+returned `newDigits`, which excludes the calling code. A detected international paste replaces the whole input and places the
+caret at the end, without truncating to the previous country's mask. Other pastes retain normal
+selection and insertion behavior.
 
 ## 🎯 Use Cases
 

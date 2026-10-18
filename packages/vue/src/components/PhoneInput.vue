@@ -308,6 +308,7 @@ const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputH
   digits,
   inactive,
   onChange,
+  onCountryChange: setCountry,
   scheduleValidationHint
 });
 

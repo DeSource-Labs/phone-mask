@@ -27,6 +27,11 @@ Beautiful, accessible, extreme small & tree-shakeable React phone input with aut
 - 🪝 **Hook API** — For custom input implementations
 - ⚡ **Optimized** — Tree-shaking and code splitting
 
+Pasting a complete international number starting with `+` detects its country and replaces the whole input.
+Detection tries an exact mask, then calling code and digit count; shared matches use the calling code's default country.
+It uses mask data, not allocation prefixes, so an unformatted Canadian `+1` number defaults to US.
+Fragments without a calling code retain the selected country and paste at the caret. This works independently of `detect`, which controls GeoIP and locale detection.
+
 ## 📦 Installation
 
 ```bash

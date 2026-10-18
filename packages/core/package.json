@@ -82,7 +82,7 @@
     "clean:modules": "rimraf node_modules",
     "build": "pnpm clean && pnpm build:internal",
     "build:internal": "pnpm build:lib && pnpm build:types",
-    "build:lib": "vite build --mode kit && vite build --mode root",
+    "build:lib": "vite build --mode kit && vite build --mode root && node -e \"require('node:fs').copyFileSync('src/data.min.js', 'dist/esm/data.min.js')\"",
     "build:types": "tsc -p tsconfig.json && node ../../scripts/build-dual-types.mts index kit",
     "publish:check": "node ../../scripts/check-package.mts",
     "dev": "vite",

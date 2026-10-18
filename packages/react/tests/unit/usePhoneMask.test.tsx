@@ -41,6 +41,7 @@ function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
     getValue: () => currentValue,
     unmount: rendered.unmount,
     api: {
+      getCountry: () => getApi().country.id,
       getDigits: () => getApi().digits,
       getFull: () => getApi().full,
       getFullFormatted: () => getApi().fullFormatted,

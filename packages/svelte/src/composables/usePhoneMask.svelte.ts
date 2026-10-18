@@ -35,6 +35,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions) {
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter: () => formatterData.formatter,
     digits: () => formatterData.digits,
+    onCountryChange: countryData.setCountry,
     onChange: options.onChange
   });
 

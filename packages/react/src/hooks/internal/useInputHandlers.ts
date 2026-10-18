@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import type { CountryKey } from '@desource/phone-mask';
 import {
   processBeforeInput,
   processInput,
@@ -13,6 +14,7 @@ export interface UseInputHandlersOptions {
   digits: string;
   inactive?: boolean;
   onChange?: (newDigits: string) => void;
+  onCountryChange?: (country: CountryKey) => void;
   scheduleValidationHint?: (delay: number) => void;
 }
 
@@ -36,14 +38,14 @@ const HINT_DELAY_ACTION = 300;
  * Handlers are compatible with both native events and React synthetic events.
  */
 export function useInputHandlers(options: UseInputHandlersOptions): UseInputHandlersReturn {
-  const { formatter, digits, inactive, onChange, scheduleValidationHint } = options;
+  const { formatter, digits, inactive, onChange, onCountryChange, scheduleValidationHint } = options;
 
   // Helper: Schedule caret position update
   const scheduleCaretUpdate = useCallback(
-    (el: HTMLInputElement | null, digitIndex: number) => {
+    (el: HTMLInputElement | null, digitIndex: number, atEnd = false) => {
       setTimeout(() => {
         if (!el) return;
-        const pos = formatter.getCaretPosition(digitIndex);
+        const pos = atEnd ? el.value.length : formatter.getCaretPosition(digitIndex);
         setCaret(el, pos);
       });
     },
@@ -95,11 +97,12 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
 
       if (!result) return;
 
+      if (result.country) onCountryChange?.(result.country);
       onChange?.(result.newDigits);
-      scheduleCaretUpdate(evt.target as HTMLInputElement | null, result.caretDigitIndex);
+      scheduleCaretUpdate(evt.target as HTMLInputElement | null, result.caretDigitIndex, !!result.country);
       scheduleValidationHint?.(HINT_DELAY_ACTION);
     },
-    [inactive, digits, formatter, onChange, scheduleCaretUpdate, scheduleValidationHint]
+    [inactive, digits, formatter, onChange, onCountryChange, scheduleCaretUpdate, scheduleValidationHint]
   );
 
   return {

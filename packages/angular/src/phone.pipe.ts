@@ -1,22 +1,32 @@
 import { Pipe, type PipeTransform } from '@angular/core';
 import { MasksWithFlagMap, type CountryKey } from '@desource/phone-mask';
-import { countPlaceholders, extractDigits, formatDigitsWithMap, pickMaskVariant } from '@desource/phone-mask/kit';
+import {
+  countPlaceholders,
+  detectCountryFromPhone,
+  extractDigits,
+  formatDigitsWithMap,
+  pickMaskVariant
+} from '@desource/phone-mask/kit';
 import type { PhonePipeOptions } from './types';
 
-/** Format national or explicitly international phone numbers for display. */
+/** Format phone numbers with or without an explicit calling code for display. */
 @Pipe({ name: 'phone' })
 export class PhonePipe implements PipeTransform {
-  transform(value: string | null | undefined, country: CountryKey, options: PhonePipeOptions = {}): string {
+  transform(value: string | null | undefined, country?: CountryKey | null, options: PhonePipeOptions = {}): string {
     if (!value?.trim()) return '';
-    const resolved = MasksWithFlagMap[country?.toUpperCase() as CountryKey];
-    if (!resolved || !/^\+?[\d\s().-]+$/.test(value.trim())) return value;
+    let resolved = country == null ? undefined : MasksWithFlagMap[country.toUpperCase() as CountryKey];
+    if ((country != null && !resolved) || !/^\+?[\d\s().-]+$/.test(value.trim())) return value;
 
     let digits = extractDigits(value);
     if (value.trimStart().startsWith('+')) {
-      const prefix = resolved.code.slice(1);
-      if (!digits.startsWith(prefix)) return value;
-      digits = digits.slice(prefix.length);
+      if (!resolved || !digits.startsWith(resolved.code.slice(1))) {
+        const detected = detectCountryFromPhone(value);
+        resolved = detected ? MasksWithFlagMap[detected] : undefined;
+      }
+      if (!resolved) return value;
+      digits = digits.slice(resolved.code.length - 1);
     }
+    if (!resolved) return value;
 
     const mask = pickMaskVariant(resolved.mask, digits.length);
     if (!digits || digits.length > countPlaceholders(mask)) return value;

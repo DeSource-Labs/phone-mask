@@ -39,6 +39,7 @@ function setupUsePhoneMaskHarness(initialValue = '', options: UsePhoneMaskSetupO
     getValue: () => value.value,
     unmount: rendered.unmount,
     api: {
+      getCountry: () => api.country.value.id,
       getDigits: () => api.digits.value,
       getFull: () => api.full.value,
       getFullFormatted: () => api.fullFormatted.value,

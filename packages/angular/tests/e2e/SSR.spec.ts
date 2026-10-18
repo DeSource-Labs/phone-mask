@@ -52,7 +52,7 @@ for (const options of [
       const originalInputs = await page.locator('input.pi-input, #directive-phone').elementHandles();
       expect(originalInputs).toHaveLength(4);
       await expect(page.getByTestId('pipe-full')).toHaveText('+1 234 567 8888');
-      await expect(page.getByTestId('pipe-national')).toHaveText('🇺🇸 234 567 8888');
+      await expect(page.getByTestId('pipe-without-code')).toHaveText('🇺🇸 234 567 8888');
       const originalPipe = await page.getByTestId('pipe-full').elementHandle();
       release();
       await expect(page.locator('html')).toHaveAttribute('data-hydrated', 'true');
@@ -60,7 +60,7 @@ for (const options of [
         true
       );
       await expect(page.getByTestId('pipe-full')).toHaveText('+1 234 567 8888');
-      await expect(page.getByTestId('pipe-national')).toHaveText('🇺🇸 234 567 8888');
+      await expect(page.getByTestId('pipe-without-code')).toHaveText('🇺🇸 234 567 8888');
       const preserved = await Promise.all(
         originalInputs.map((input) => input.evaluate((node) => document.getElementById(node.id) === node))
       );

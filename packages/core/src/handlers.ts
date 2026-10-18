@@ -1,6 +1,10 @@
 // Framework-agnostic input handling utilities for phone mask inputs
 // These pure functions can be used across any framework (React, Vue, etc.)
 import type { FormatterHelpers } from './formatter.js';
+import type { CountryKey } from './data-types.js';
+import { detectCountryFromPhone } from './country-detection.js';
+// @ts-expect-error -- Generated JavaScript data
+import countries from './data.min.js';
 
 export const DELIMITERS = [' ', '-', '(', ')'];
 export const NAVIGATION_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'Tab'];
@@ -22,6 +26,7 @@ interface KeydownResult {
 interface PasteResult {
   newDigits: string;
   caretDigitIndex: number;
+  country?: CountryKey;
 }
 
 /** Parameters for processInput */
@@ -237,6 +242,13 @@ export function processPaste(e: ClipboardEvent, params: ProcessPasteParams): Pas
   const { digits, formatter } = params;
 
   const text = e.clipboardData?.getData('text') || '';
+  const country = detectCountryFromPhone(text);
+  if (country) {
+    // A complete international number replaces the value, including its selected country.
+    const newDigits = extractDigits(text).slice(countries[country].indexOf('|'));
+    return { newDigits, caretDigitIndex: newDigits.length, country };
+  }
+
   const maxDigits = formatter.getMaxDigits();
   const pastedDigits = extractDigits(text, maxDigits);
 
@@ -246,35 +258,10 @@ export function processPaste(e: ClipboardEvent, params: ProcessPasteParams): Pas
 
   const [selectionStart, selectionEnd] = getSelection(el);
 
-  // Replace selection with pasted digits
-  if (selectionStart !== selectionEnd) {
-    const range = formatter.getDigitRange(digits, selectionStart, selectionEnd);
-
-    if (range) {
-      const [start, end] = range;
-      const left = digits.slice(0, start);
-      const right = digits.slice(end);
-      const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
-
-      return {
-        newDigits,
-        caretDigitIndex: start + pastedDigits.length
-      };
-    }
-  }
-
-  // Insert at cursor position.
-  // `getDigitRange(selStart, selStart)` is always empty for collapsed carets,
-  // so derive insertion index from the digit range before the caret.
-  const beforeCaretRange = formatter.getDigitRange(digits, 0, selectionStart);
-  const insertIndex = beforeCaretRange ? beforeCaretRange[1] : 0;
-
-  const left = digits.slice(0, insertIndex);
-  const right = digits.slice(insertIndex);
-  const newDigits = extractDigits(left + pastedDigits + right, maxDigits);
-
-  return {
-    newDigits,
-    caretDigitIndex: insertIndex + pastedDigits.length
-  };
+  const range = selectionStart !== selectionEnd && formatter.getDigitRange(digits, selectionStart, selectionEnd);
+  // Empty selections and selections containing only separators insert at the caret.
+  const start = range ? range[0] : (formatter.getDigitRange(digits, 0, selectionStart)?.[1] ?? 0);
+  const end = range ? range[1] : start;
+  const newDigits = extractDigits(digits.slice(0, start) + pastedDigits + digits.slice(end), maxDigits);
+  return { newDigits, caretDigitIndex: start + pastedDigits.length };
 }

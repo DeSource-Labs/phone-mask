@@ -111,6 +111,31 @@ export function testPhoneInput(
       disableDefaultStylesControl = container.locator(playgroundControls.disableDefaultStyles);
     });
 
+    for (const { country, pasted, display, full } of [
+      { country: 'Kazakhstan', pasted: '+7 12345 6 77 88', display: '12345 6 77 88', full: '+7 12345 6 77 88' },
+      { country: 'Russia', pasted: '+71234567788', display: '123 456-77-88', full: '+7 123 456-77-88' },
+      { country: 'Germany', pasted: '+4915123456789', display: '1512 3456789', full: '+49 1512 3456789' }
+    ]) {
+      test(`detects ${country} from international paste and replaces the whole number`, async ({ page, context }) => {
+        await detectControl.uncheck();
+        await countrySelect.selectOption('US');
+        await localeSelect.selectOption('en-US');
+        await phoneInput.fill('2025550199');
+        await phoneInput.evaluate((input: HTMLInputElement) => input.setSelectionRange(1, 2));
+        await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        await page.evaluate((text) => navigator.clipboard.writeText(text), pasted);
+        await phoneInput.press('ControlOrMeta+V');
+
+        await expect(dropdownBtn).toHaveAttribute('aria-label', `Selected country: ${country}`);
+        await expect(phoneInput).toHaveValue(display);
+        await expect
+          .poll(() => phoneInput.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd]))
+          .toEqual([display.length, display.length]);
+        await copyBtn.click();
+        await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(full);
+      });
+    }
+
     test.describe('props', () => {
       test.describe('country', () => {
         const assertDropdownPresent = async (): Promise<void> => {

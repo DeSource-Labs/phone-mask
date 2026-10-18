@@ -487,7 +487,14 @@ async function fetchScenarioMetricWithTotals(
 
 async function buildLocalPackages(): Promise<void> {
   console.info('Building local workspace packages before creating publish-preview tarballs...');
-  await execFileAsync('pnpm', ['build'], { cwd: ROOT_DIR, maxBuffer: 20 * 1024 * 1024 });
+  const options = { cwd: ROOT_DIR, maxBuffer: 20 * 1024 * 1024 };
+  await execFileAsync('pnpm', ['prebuild'], options);
+  // Nuxt cleans generated types that Angular's build may be reading.
+  await execFileAsync(
+    'pnpm',
+    ['-r', '--filter', './packages/**', '--workspace-concurrency=1', 'run', 'build'],
+    options
+  );
   console.info('Local workspace build completed.');
   console.info('');
 }

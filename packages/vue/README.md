@@ -12,6 +12,8 @@
 
 Beautiful, accessible, extreme small & tree-shakeable Vue 3 phone input with auto-formatting, country selector, and validation.
 
+Pasting a complete international number beginning with `+` detects its country and replaces the input with the number without its calling code. Detection uses mask formatting, then digit count; ambiguous matches use the calling code's default country. Fragments without a calling code keep normal insertion behavior. The `detect` option controls GeoIP detection separately.
+
 ## ✨ Features
 
 - 🌐 **SSR Support** — `PhoneInput` renders formatted HTML on the server and hydrates in the browser

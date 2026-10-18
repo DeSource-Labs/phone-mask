@@ -140,6 +140,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputExpo
     formatter: this.mask.formatter,
     digits: this.mask.digits,
     inactive: this.inactive,
+    onCountryChange: this.countryState.setCountry,
     onChange: (digits) => this.changeValue(digits),
     scheduleValidationHint: this.hint.scheduleValidationHint
   });

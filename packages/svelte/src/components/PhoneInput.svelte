@@ -112,6 +112,7 @@
     digits: () => formatterData.digits,
     inactive: () => inactive,
     onChange: (v) => (value = v),
+    onCountryChange: countryData.setCountry,
     scheduleValidationHint: validationHint.scheduleValidationHint
   });
 

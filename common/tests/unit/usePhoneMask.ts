@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { Mock } from 'vitest';
 import type { TestTools } from './setup/tools';
+import { internationalPasteCases, makePasteEvent } from './setup/paste';
 
 export interface UsePhoneMaskSetupResult {
   inputEl: HTMLInputElement;
@@ -8,6 +9,7 @@ export interface UsePhoneMaskSetupResult {
   getValue: () => string;
   unmount: () => void;
   api: {
+    getCountry: () => string;
     getDigits: () => string;
     getFull: () => string;
     getFullFormatted: () => string;
@@ -27,8 +29,48 @@ export type UsePhoneMaskSetupFn = (
   options?: UsePhoneMaskSetupOptions
 ) => UsePhoneMaskSetupResult | Promise<UsePhoneMaskSetupResult>;
 
-export function testUsePhoneMask(setup: UsePhoneMaskSetupFn, { act }: Pick<TestTools, 'act'>): void {
+export function testUsePhoneMask(
+  setup: UsePhoneMaskSetupFn,
+  { act, waitFor }: Pick<TestTools, 'act' | 'waitFor'>
+): void {
   describe('usePhoneMask', () => {
+    it.each(internationalPasteCases)(
+      'detects $country from pasted $text before formatting',
+      async ({ text, country, digits, display }) => {
+        const { api, inputEl, onChange, getValue, unmount } = await setup('2025550199');
+        await act(() => {
+          inputEl.setSelectionRange(3, 5);
+          inputEl.dispatchEvent(makePasteEvent(text));
+        });
+
+        expect(api.getCountry()).toBe(country);
+        expect(api.getDigits()).toBe(digits);
+        expect(getValue()).toBe(digits);
+        expect(inputEl.value).toBe(display);
+        expect(onChange).toHaveBeenCalledExactlyOnceWith(digits);
+        await waitFor(() => {
+          expect(inputEl.selectionStart).toBe(display.length);
+          expect(inputEl.selectionEnd).toBe(display.length);
+        });
+        unmount();
+      }
+    );
+
+    it('keeps country and inserts a fragment without a calling code at the caret', async () => {
+      const { api, inputEl, onChange, getValue, unmount } = await setup('234567');
+      await act(() => {
+        inputEl.setSelectionRange(4, 4);
+        inputEl.dispatchEvent(makePasteEvent('99'));
+      });
+
+      expect(api.getCountry()).toBe('US');
+      expect(getValue()).toBe('23499567');
+      expect(inputEl.value).toBe('234-995-67');
+      expect(onChange).toHaveBeenCalledExactlyOnceWith('23499567');
+      await waitFor(() => expect(inputEl.selectionStart).toBe(6));
+      unmount();
+    });
+
     it('sets tel attrs and syncs formatted display to input element', async () => {
       const { api, inputEl, unmount } = await setup('20255501');
 

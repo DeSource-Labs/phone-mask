@@ -147,6 +147,23 @@ class TemplateFormHost {
 }
 
 describe('PhoneInput Angular forms', () => {
+  it('updates a form once with all digits when international paste changes to a longer country mask', async () => {
+    const { fixture } = await render(ReactiveFormHost, { autoDetectChanges: false });
+    const host = fixture.componentInstance;
+    const input = screen.getByRole('textbox') as HTMLInputElement;
+    const values = vi.fn();
+    host.control.valueChanges.subscribe(values);
+    input.setSelectionRange(3, 5);
+    fireEvent.paste(input, { clipboardData: { getData: () => '+49 1512 3456789' } });
+    await fixture.whenStable();
+    expect(input.value.replace(/\D/g, '')).toBe('15123456789');
+    expect(input.selectionStart).toBe(input.value.length);
+    expect(host.control.value).toBe('15123456789');
+    expect(host.changed).toHaveBeenCalledExactlyOnceWith('15123456789');
+    expect(values).toHaveBeenCalledExactlyOnceWith('15123456789');
+    expect(screen.getByRole('button', { name: /Selected country: Germany/ })).toBeDefined();
+  });
+
   it('writes model values without echoing them and reports user edits as digits', async () => {
     const { fixture } = await render(ReactiveFormHost, { autoDetectChanges: false });
     const host = fixture.componentInstance;

@@ -2,6 +2,7 @@
 import type { Mock } from 'vitest';
 
 import type { TestTools } from './setup/tools';
+import { makePasteEvent } from './setup/paste';
 
 export interface SetupOptions {
   /** Initial digits string. Defaults to ''. */
@@ -42,17 +43,6 @@ function makeBeforeInputEvent(data: string | null): InputEvent {
     inputType: 'insertText',
     data
   });
-}
-
-function makePasteEvent(text: string): ClipboardEvent {
-  // ClipboardEvent is not implemented in JSDOM — use a plain Event cast instead.
-  // processPaste only reads e.target, e.preventDefault(), and e.clipboardData?.getData('text').
-  const event = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
-  Object.defineProperty(event, 'clipboardData', {
-    value: { getData: () => text },
-    configurable: true
-  });
-  return event;
 }
 
 export function testUseInputHandlers(setup: SetupFn, { act }: TestTools): void {

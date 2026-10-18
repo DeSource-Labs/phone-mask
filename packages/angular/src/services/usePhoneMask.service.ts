@@ -13,6 +13,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
     formatter: state.formatter,
     digits: state.digits,
     inactive: () => !!(inputRef()?.disabled || inputRef()?.readOnly),
+    onCountryChange: setCountry,
     onChange: options.onChange
   });
 

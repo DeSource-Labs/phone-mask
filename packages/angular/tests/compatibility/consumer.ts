@@ -18,7 +18,8 @@ import { getFlagEmoji } from '@desource/phone-mask-angular/core';
     <phone-input country="US" [formControl]="control" />
     <phone-input value="2125557890" />
     <input [phoneMask]="{ country: 'US' }" [formControl]="directiveControl" />
-    <p>{{ '+12345678888' | phone: 'US' : phoneOptions }}</p>
+    <p>{{ '+12345678888' | phone: undefined : phoneOptions }}</p>
+    <p>{{ '+7 123 456 7788' | phone: 'US' : phoneOptions }}</p>
     <p>{{ '234 567 8888' | phone: 'US' : { code: false, flag: true } }}</p>
     <p>{{ mask.fullFormatted() }}</p>
     <p>{{ flag('US') }}</p>

@@ -22,7 +22,7 @@ export interface PhonePipeOptions {
 export interface UsePhoneMaskOptions {
   /** Native input getter, such as a viewChild query; optional for formatting without an input. */
   input?: () => HTMLInputElement | null | undefined;
-  /** Controlled national digits, without the country calling code. */
+  /** Controlled digits without the country calling code. */
   value: MaybeGetter<string>;
   onChange: (digits: string) => void;
   country?: MaybeGetter<string | undefined>;

@@ -66,7 +66,7 @@ import { PhoneInputComponent } from '@desource/phone-mask-angular';
   template: `
     <label for="mobile">Mobile number</label>
     <phone-input id="mobile" name="mobile" country="US" [(value)]="phone" />
-    <p>National digits: {{ phone() }}</p>
+    <p>Digits without calling code: {{ phone() }}</p>
   `
 })
 export class Profile {
@@ -74,11 +74,13 @@ export class Profile {
 }
 ```
 
-`value` contains national digits without the country calling code. Use `phoneChange` for the full international number:
+`value` contains digits without the country calling code. Use `phoneChange` for the full international number:
 
 ```html
 <phone-input [(value)]="phone" (phoneChange)="savePhone($event.full)" />
 ```
+
+Pasting a complete international number beginning with `+` detects its country from existing masks, replaces the whole input, and updates the country before formatting. This applies to the component, directive, and `usePhoneMask()`, even with `country` supplied or GeoIP `detect` disabled. Ambiguous masks use a default country, such as US for `+1`. Other pastes keep the current country and use normal insertion behavior.
 
 ## 📖 Component API
 
@@ -107,16 +109,16 @@ Setting `country` locks the country selector. Omit it to let users choose a coun
 
 ### Outputs
 
-| Output                    | Value                                          |
-| ------------------------- | ---------------------------------------------- |
-| `valueChange`             | National digits, for `[(value)]`               |
-| `phoneChange`             | `{ digits, full, fullFormatted }`              |
-| `countryChange`           | Country metadata (`PMaskFull`)                 |
-| `validationChange`        | Whether all required digits are present        |
-| `phoneFocus`, `phoneBlur` | Native `FocusEvent`                            |
-| `touchedChange`           | `true` on blur, for Signal Forms compatibility |
-| `copied`                  | Copied phone number                            |
-| `cleared`                 | No payload                                     |
+| Output                    | Value                                            |
+| ------------------------- | ------------------------------------------------ |
+| `valueChange`             | Digits without the calling code, for `[(value)]` |
+| `phoneChange`             | `{ digits, full, fullFormatted }`                |
+| `countryChange`           | Country metadata (`PMaskFull`)                   |
+| `validationChange`        | Whether all required digits are present          |
+| `phoneFocus`, `phoneBlur` | Native `FocusEvent`                              |
+| `touchedChange`           | `true` on blur, for Signal Forms compatibility   |
+| `copied`                  | Copied phone number                              |
+| `cleared`                 | No payload                                       |
 
 ### Exposed Methods
 
@@ -163,9 +165,9 @@ export class ContactForm {
 }
 ```
 
-Form values contain national digits. The component propagates changes, touched state, and disabled state. Add your application's validators to the control; visual completeness feedback does not register a form validator.
+Form values contain digits without the country calling code. The component propagates changes, touched state, and disabled state. Add your application's validators to the control; visual completeness feedback does not register a form validator.
 
-Supply national digits valid for the selected country. Programmatic values are formatted and clamped for display without rewriting your form model; use the `phoneChange` event's `digits` field to observe the canonical value.
+Supply digits valid for the selected country, excluding the calling code. Programmatic values are formatted and clamped for display without rewriting your form model; use the `phoneChange` event's `digits` field to observe the canonical value.
 
 Template-driven forms also work with `FormsModule` and `[(ngModel)]`. Choose a form binding or `[(value)]` for each input so one owner controls the value.
 
@@ -179,7 +181,7 @@ Use a native input with your own markup and styles. Import `PhoneMaskDirective` 
 <input [phoneMask]="{ country: 'US' }" [(ngModel)]="phone" />
 ```
 
-For a fixed country, `phoneMask="US"` is equivalent. The directive integrates with Angular Forms and emits national digits through its value accessor. Its options accept `country`, `locale`, `detect`, `onChange`, and `onCountryChange`. Detection defaults to `false` for the directive.
+For a fixed country, `phoneMask="US"` is equivalent. The directive integrates with Angular Forms and emits digits without the calling code through its value accessor. Its options accept `country`, `locale`, `detect`, `onChange`, and `onCountryChange`. Detection defaults to `false` for the directive.
 
 ```html
 <input [phoneMask]="{ country: selectedCountry(), onChange: onPhoneChange }" />
@@ -230,10 +232,10 @@ The return value exposes signals for `digits`, `displayValue`, `displayPlacehold
 
 ## 🔤 Pipe API
 
-Import `PhonePipe` into your component's `imports` to display a phone number. Pass its ISO country code as the required first argument:
+Import `PhonePipe` into your component's `imports` to display a phone number. International values beginning with `+` can detect the country from their mask and length. Pass an ISO country code for numbers without a calling code or to resolve countries sharing a calling code:
 
 ```html
-{{ '+12345678888' | phone: 'US' }}
+{{ '+12345678888' | phone }}
 <!-- +1 234 567 8888 -->
 {{ '+12345678888' | phone: 'US': { code: false } }}
 <!-- 234 567 8888 -->
@@ -243,7 +245,7 @@ Import `PhonePipe` into your component's `imports` to display a phone number. Pa
 <!-- 🇺🇸 234 567 8888 -->
 ```
 
-National digits (`'2345678888'`) and preformatted values (`'234 567 8888'` or `'+1 234 567 8888'`) produce the same output. The pipe uses the selected country's mask groups, separated by spaces.
+Digits without a calling code (`'2345678888'`) and preformatted values (`'234 567 8888'` or `'+1 234 567 8888'`) produce the same output. The pipe uses the selected country's mask groups, separated by spaces.
 
 The optional second argument accepts the exported `PhonePipeOptions` type:
 
@@ -252,7 +254,11 @@ The optional second argument accepts the exported `PhonePipeOptions` type:
 | `code` | `boolean` | `true`  | Include the country calling code. |
 | `flag` | `boolean` | `false` | Prepend the country flag emoji.   |
 
-Only an explicit `+` calling code is removed from the input; bare digits are treated as national digits. The pipe preserves significant leading zeros and does not infer trunk prefixes or extensions. Empty, whitespace-only, `null`, and `undefined` values render as `''`. Unsupported countries, mismatched calling codes, invalid characters, extensions, and numbers exceeding the selected mask's length return the original value unchanged.
+Only an explicit `+` calling code is removed from the input; bare digits are treated as a number without a calling code. Without a country, numbers lacking a calling code and unsuccessful detection return the original value. Mask detection uses a default country for ties, such as US for `+1`; it does not inspect area-code allocations. Pass `undefined` or `null` as the country to combine detection with options.
+
+A supplied country takes priority when its calling code matches the value, so `CA` keeps the Canadian flag for `+1`. If the calling code differs, successful detection takes priority: `'+7 123 456 7788' | phone: 'US'` displays `+7 12345 6 77 88` using KZ. If detection fails, the original value is preserved.
+
+The pipe preserves significant leading zeros and does not infer trunk prefixes or extensions. Empty, whitespace-only, `null`, and `undefined` values render as `''`. Unsupported countries, invalid characters, extensions, and numbers exceeding the selected mask's length return the original value unchanged.
 
 The pipe is pure and works during SSR without browser APIs. Angular formats again when the value, country, or options reference changes. Inline options work as shown above; replace a stored options object when changing its properties.
 

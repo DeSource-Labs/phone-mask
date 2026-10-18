@@ -25,6 +25,7 @@ export function useCountry({
   onCountryChange
 }: UseCountryOptions = {}) {
   let countryCode = $state<string>(parseCountryCode(countryOption?.(), 'US'));
+  let countryRevision = 0;
 
   const locale = $derived<string>(localeOption?.() || getNavigatorLang());
   const country = $derived<MaskFull>(getCountry(countryCode, locale));
@@ -32,6 +33,7 @@ export function useCountry({
   const setCountry = (code?: string | null): boolean => {
     const parsed = parseCountryCode(code);
     if (parsed) {
+      countryRevision++;
       countryCode = parsed;
       return true;
     }
@@ -39,7 +41,9 @@ export function useCountry({
   };
 
   const detectCountry = async () => {
+    const revision = countryRevision;
     const geoCountry = await detectByGeoIp();
+    if (revision !== countryRevision) return;
     if (setCountry(geoCountry)) return;
     const localeCountry = detectCountryFromLocale();
     setCountry(localeCountry);
@@ -48,7 +52,7 @@ export function useCountry({
   // Sync external country prop
   $effect(() => {
     const newCountry = countryOption?.();
-    if (newCountry && newCountry !== countryCode) {
+    if (newCountry) {
       setCountry(newCountry);
     }
   });

@@ -73,6 +73,27 @@ describe('PhoneMaskDirective', () => {
     expect(input.value).toBe('');
   });
 
+  it('changes country before storing a longer pasted international number in the form', async () => {
+    const { fixture } = await render(DirectiveFormHost, { autoDetectChanges: false });
+    const host = fixture.componentInstance;
+    const countryChanged = vi.fn();
+    host.options.set({ country: 'US', detect: false, onCountryChange: countryChanged });
+    await fixture.whenStable();
+    countryChanged.mockClear();
+    const input = screen.getByRole('textbox') as HTMLInputElement;
+    const values = vi.fn();
+    host.control.valueChanges.subscribe(values);
+    input.setSelectionRange(3, 5);
+    fireEvent.paste(input, { clipboardData: { getData: () => '+49 1512 3456789' } });
+    await fixture.whenStable();
+    expect(input.value.replace(/\D/g, '')).toBe('15123456789');
+    expect(input.selectionStart).toBe(input.value.length);
+    expect(host.control.value).toBe('15123456789');
+    expect(values).toHaveBeenCalledExactlyOnceWith('15123456789');
+    expect(countryChanged).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'DE' }));
+    expect(host.changed).toHaveBeenLastCalledWith(expect.objectContaining({ full: '+4915123456789' }));
+  });
+
   it('honors disabled controls and deferred blur updates', async () => {
     const control = new FormControl('2025550123', { nonNullable: true, updateOn: 'blur' });
     const { fixture } = await render(DirectiveFormHost, { componentProperties: { control }, autoDetectChanges: false });

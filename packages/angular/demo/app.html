@@ -141,7 +141,7 @@
   }
   <section data-testid="pipe">
     <h2>Display pipe</h2>
-    <p data-testid="pipe-full">{{ '+12345678888' | phone: 'US' }}</p>
-    <p data-testid="pipe-national">{{ '234 567 8888' | phone: 'US': { code: false, flag: true } }}</p>
+    <p data-testid="pipe-full">{{ '+12345678888' | phone }}</p>
+    <p data-testid="pipe-without-code">{{ '234 567 8888' | phone: 'US': { code: false, flag: true } }}</p>
   </section>
 </main>

@@ -118,6 +118,26 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
     });
 
     describe('countryOption reactivity', () => {
+      it('preserves an internal selection until the external country changes', async () => {
+        const { result, rerender, unmount } = setup({ countryOption: 'US', locale: 'en' });
+
+        await act(() => {
+          result.setCountry('KZ');
+        });
+        expect(toValue(result.country).id).toBe('KZ');
+
+        await act(() => {
+          rerender({ locale: 'fr' });
+        });
+        expect(toValue(result.country).id).toBe('KZ');
+
+        await act(() => {
+          rerender({ countryOption: 'FR' });
+        });
+        expect(toValue(result.country).id).toBe('FR');
+        unmount();
+      });
+
       it('updates country when countryOption prop changes', async () => {
         const { result, rerender, unmount } = setup({ countryOption: 'US', locale: 'en' });
 
@@ -174,6 +194,26 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
     });
 
     describe('detect', () => {
+      it.each(['US', 'KZ'])('does not overwrite a later %s selection when GeoIP resolves', async (country) => {
+        let resolveGeo!: (country: string) => void;
+        mocks.detectByGeoIp.mockImplementation(
+          () =>
+            new Promise<string>((resolve) => {
+              resolveGeo = resolve;
+            })
+        );
+        const { result, unmount } = setup({ detect: true, locale: 'en' });
+        await act(() => {
+          result.setCountry(country);
+        });
+        await act(() => {
+          resolveGeo('DE');
+        });
+        expect(toValue(result.country).id).toBe(country);
+        expect(mocks.detectCountryFromLocale).not.toHaveBeenCalled();
+        unmount();
+      });
+
       it('calls detectByGeoIp when detect=true and no countryOption', async () => {
         const { unmount } = setup({ detect: true, locale: 'en' });
 

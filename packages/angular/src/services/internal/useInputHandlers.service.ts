@@ -6,6 +6,7 @@ import {
   setCaret,
   type FormatterHelpers
 } from '@desource/phone-mask/kit';
+import type { CountryKey } from '@desource/phone-mask';
 import type { MaybeGetter } from '../../types';
 import { readOption } from '../utility/readOption';
 
@@ -14,6 +15,7 @@ export interface UseInputHandlersOptions {
   digits: MaybeGetter<string>;
   inactive?: MaybeGetter<boolean>;
   onChange?: (digits: string) => void;
+  onCountryChange?: (country: CountryKey) => void;
   scheduleValidationHint?: (delay: number) => void;
 }
 
@@ -22,10 +24,12 @@ export function useInputHandlers({
   digits,
   inactive,
   onChange,
+  onCountryChange,
   scheduleValidationHint
 }: UseInputHandlersOptions) {
-  const apply = (event: Event, result: { newDigits: string; caretDigitIndex: number } | undefined, delay: number) => {
+  const apply = (event: Event, result: ReturnType<typeof processPaste>, delay: number) => {
     if (!result) return;
+    if (result.country) onCountryChange?.(result.country);
     onChange?.(result.newDigits);
     const input = event.target as HTMLInputElement | null;
     if (input) {

@@ -29,6 +29,7 @@ function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
     getValue: () => valueState.value,
     unmount,
     api: {
+      getCountry: () => result.country.id,
       getInputRef: () => result.inputRef,
       getDigits: () => result.digits,
       getFull: () => result.full,

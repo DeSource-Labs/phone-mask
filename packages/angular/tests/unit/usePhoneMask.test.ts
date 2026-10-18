@@ -24,6 +24,7 @@ async function setup(initialValue = '', { attachRef = true }: UsePhoneMaskSetupO
     },
     api: {
       getDigits: api.digits,
+      getCountry: () => api.country().id,
       getFull: api.full,
       getFullFormatted: api.fullFormatted,
       isEmpty: api.isEmpty,
