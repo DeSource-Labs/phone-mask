@@ -16,22 +16,19 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
   const copyAriaLabel = $derived(clipboard.copied ? 'Copied' : `Copy ${fullFormatted()}`);
   const copyButtonTitle = $derived(clipboard.copied ? 'Copied' : 'Copy phone number');
 
-  const announceToScreenReader = (message: string) => {
-    const el = liveRef?.();
-    if (!el) return;
-    el.textContent = message;
-    liveTimer.set(() => {
-      const el = liveRef?.();
-      if (el) el.textContent = '';
-    }, DELAY);
-  };
-
   const onCopyClick = async () => {
     const valueToCopy = fullFormatted().trim();
     const success = await clipboard.copy(valueToCopy);
     if (success) {
       onCopy?.(valueToCopy);
-      announceToScreenReader('Phone number copied to clipboard');
+      const el = liveRef?.();
+      if (el) {
+        el.textContent = 'Phone number copied to clipboard';
+        liveTimer.set(() => {
+          const el = liveRef?.();
+          if (el) el.textContent = '';
+        }, DELAY);
+      }
     }
   };
 

@@ -34,12 +34,17 @@ const HINT_DELAY_ACTION = 300;
 export function useInputHandlers(options: UseInputHandlersOptions): UseInputHandlersReturn {
   const { formatter, digits, inactive, onChange, onCountryChange, scheduleValidationHint } = options;
 
-  const scheduleCaretUpdate = (el: HTMLInputElement | null, digitIndex: number) => {
+  const apply = (e: Event, result: ReturnType<typeof processPaste>, delay: number) => {
+    if (!result) return;
+    if (result.country) onCountryChange?.(result.country);
+    onChange?.(result.newDigits);
+    const el = e.target as HTMLInputElement | null;
     nextTick(() => {
       if (!el) return;
-      const pos = toValue(formatter).getCaretPosition(digitIndex);
+      const pos = toValue(formatter).getCaretPosition(result.caretDigitIndex);
       setCaret(el, pos);
     });
+    scheduleValidationHint?.(delay);
   };
 
   const handleBeforeInput = (e: InputEvent) => {
@@ -49,35 +54,19 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
   const handleInput = (e: Event) => {
     if (toValue(inactive)) return;
 
-    const result = processInput(e, { formatter: toValue(formatter) });
-    if (!result) return;
-
-    onChange?.(result.newDigits);
-    scheduleCaretUpdate(e.target as HTMLInputElement | null, result.caretDigitIndex);
-    scheduleValidationHint?.(HINT_DELAY_INPUT);
+    apply(e, processInput(e, { formatter: toValue(formatter) }), HINT_DELAY_INPUT);
   };
 
   const handleKeydown = (e: KeyboardEvent) => {
     if (toValue(inactive)) return;
 
-    const result = processKeydown(e, { digits: toValue(digits), formatter: toValue(formatter) });
-    if (!result) return;
-
-    onChange?.(result.newDigits);
-    scheduleCaretUpdate(e.target as HTMLInputElement | null, result.caretDigitIndex);
-    scheduleValidationHint?.(HINT_DELAY_ACTION);
+    apply(e, processKeydown(e, { digits: toValue(digits), formatter: toValue(formatter) }), HINT_DELAY_ACTION);
   };
 
   const handlePaste = (e: ClipboardEvent) => {
     if (toValue(inactive)) return;
 
-    const result = processPaste(e, { digits: toValue(digits), formatter: toValue(formatter) });
-    if (!result) return;
-
-    if (result.country) onCountryChange?.(result.country);
-    onChange?.(result.newDigits);
-    scheduleCaretUpdate(e.target as HTMLInputElement | null, result.caretDigitIndex);
-    scheduleValidationHint?.(HINT_DELAY_ACTION);
+    apply(e, processPaste(e, { digits: toValue(digits), formatter: toValue(formatter) }), HINT_DELAY_ACTION);
   };
 
   return {

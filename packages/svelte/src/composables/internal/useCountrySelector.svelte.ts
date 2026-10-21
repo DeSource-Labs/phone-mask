@@ -49,19 +49,15 @@ export function useCountrySelector({
     tick().then(() => searchRef()?.focus({ preventScroll: true }));
   };
 
-  const resetDropdownState = () => {
-    search = '';
-    setFocusedIndex(0);
-    openByKeyboard = false;
-  };
-
   const updateDropdownPosition = () => {
     positionCountryDropdown(rootRef(), dropdownRef());
   };
 
   const closeDropdown = () => {
     dropdownOpen = false;
-    resetDropdownState();
+    search = '';
+    setFocusedIndex(0);
+    openByKeyboard = false;
   };
 
   const openDropdown = () => {
@@ -96,13 +92,14 @@ export function useCountrySelector({
     setFocusedIndex(0);
   };
 
-  const scrollFocusedIntoView = (index: number) => {
-    tick().then(() => scrollCountryOptionIntoView(dropdownRef(), index));
-  };
-
   const handleSearchKeydown = (e: KeyboardEvent) => {
-    handleCountrySearchKeydown(e, focusedIndex, filteredCountries, setFocusedIndex, scrollFocusedIntoView, (country) =>
-      selectCountry(country.id)
+    handleCountrySearchKeydown(
+      e,
+      focusedIndex,
+      filteredCountries,
+      setFocusedIndex,
+      (index) => tick().then(() => scrollCountryOptionIntoView(dropdownRef(), index)),
+      (country) => selectCountry(country.id)
     );
   };
 
