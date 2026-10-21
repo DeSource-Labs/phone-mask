@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { prepareHydration } from '@common/tests/e2e/setup/hydration';
+import { checkInitialCallbacks, readInitialCallbacks } from '@common/tests/ssr/initialCallbacks';
 
 const origin = 'http://localhost:5174';
 const values = ['202-555-0123', '415-555-2671', '650-555-1234'];
@@ -35,22 +36,30 @@ for (const options of [
     try {
       await page.goto(`${origin}/ssr`, { waitUntil: 'commit' });
       await page.locator('#selectable-phone').waitFor();
-      const originalInputs = await page.locator('input.pi-input, #directive-phone').elementHandles();
-      expect(originalInputs).toHaveLength(4);
+      const originalNodes = await page.locator('input.pi-input, #directive-phone, #parent-validation').elementHandles();
+      expect(originalNodes).toHaveLength(5);
       await expect(page.getByTestId('pipe-full')).toHaveText('+1 234 567 8888');
       await expect(page.getByTestId('pipe-without-code')).toHaveText('🇺🇸 234 567 8888');
       const originalPipe = await page.getByTestId('pipe-full').elementHandle();
-      release();
-      await expect(page.locator('html')).toHaveAttribute('data-hydrated', 'true');
+      await checkInitialCallbacks({
+        render: () => page.evaluate(readInitialCallbacks),
+        hydrate: async () => {
+          release();
+          await expect(page.locator('html')).toHaveAttribute('data-hydrated', 'true');
+          return page.evaluate(readInitialCallbacks);
+        },
+        valueAfterHydration: '202555012345',
+        callbacksDuringSsr: true
+      });
       expect(await originalPipe!.evaluate((node) => node === document.querySelector('[data-testid="pipe-full"]'))).toBe(
         true
       );
       await expect(page.getByTestId('pipe-full')).toHaveText('+1 234 567 8888');
       await expect(page.getByTestId('pipe-without-code')).toHaveText('🇺🇸 234 567 8888');
       const preserved = await Promise.all(
-        originalInputs.map((input) => input.evaluate((node) => document.getElementById(node.id) === node))
+        originalNodes.map((node) => node.evaluate((element) => document.getElementById(element.id) === element))
       );
-      expect(preserved).toEqual([true, true, true, true]);
+      expect(preserved).toEqual([true, true, true, true, true]);
       await expect(page.locator(`.desource-phone-input.theme-${options.colorScheme}`)).toHaveCount(3);
       await expect(page.locator('.pi-selector-btn').first()).toHaveAttribute(
         'aria-label',

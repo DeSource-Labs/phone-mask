@@ -83,11 +83,11 @@ export function useCountry({
         void detectCountry();
       }
     });
-  });
 
-  // Emit onCountryChange
-  watchEffect(() => {
-    onCountryChange?.(country.value);
+    // Emit onCountryChange
+    watchEffect(() => {
+      onCountryChange?.(country.value);
+    });
   });
 
   return { country, setCountry, locale };

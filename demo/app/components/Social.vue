@@ -1,6 +1,7 @@
 <template>
-  <a class="social" :href="href" :target="target" rel="noopener noreferrer">
+  <a class="social" :href="href" :target="target" :aria-label="`Visit DeSource Labs ${type}`" rel="noopener noreferrer">
     <svg
+      aria-hidden="true"
       stroke-width="2"
       stroke-linecap="round"
       stroke-linejoin="round"

@@ -1,5 +1,7 @@
 /// <reference types="vitest/globals" />
 
+import { checkInitialCallbacks, readInitialCallbacks } from '../ssr/initialCallbacks';
+
 export interface SsrOptions {
   value?: string;
   detect?: boolean;
@@ -7,6 +9,8 @@ export interface SsrOptions {
   theme?: 'light' | 'dark' | 'auto';
   count?: number;
   customFlag?: boolean;
+  observeCallbacks?: boolean;
+  onNotify?: () => void;
 }
 
 export interface SsrAdapter {
@@ -80,6 +84,29 @@ export function testPhoneInputSsr(adapter: SsrAdapter): void {
       }
       expect(fetch).not.toHaveBeenCalled();
       expect(media).not.toHaveBeenCalled();
+    });
+
+    it('preserves parent state during SSR and delivers initial client callbacks', async () => {
+      const options = {
+        value: '202555012345',
+        detect: false,
+        locale: 'en',
+        observeCallbacks: true,
+        onNotify: vi.fn()
+      };
+      await checkInitialCallbacks({
+        async render() {
+          await render(options);
+          expect(options.onNotify).not.toHaveBeenCalled();
+          expect(container.querySelector<HTMLInputElement>('.pi-input')?.value).toBe('202-555-0123');
+          return readInitialCallbacks(container);
+        },
+        async hydrate() {
+          await hydrate(options);
+          expect(options.onNotify).toHaveBeenCalled();
+          return readInitialCallbacks(container);
+        }
+      });
     });
 
     it('hydrates multiple inputs after earlier requests and keeps their portals interactive', async () => {
