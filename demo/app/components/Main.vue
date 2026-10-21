@@ -132,6 +132,16 @@
               width="120px"
               height="50px"
             />
+            <NuxtImg
+              class="img-ng"
+              src="/img/cards/angular.png"
+              alt="Angular Logo"
+              quality="75"
+              format="webp"
+              loading="lazy"
+              width="60px"
+              height="60px"
+            />
           </div>
         </div>
       </template>
