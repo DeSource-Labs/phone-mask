@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { useCountrySelector } from '@src/hooks/internal/useCountrySelector';
 import {
-  createKeyboardOpenCountrySelectorSetupResult,
+  createCountrySelectorSetup,
   testUseCountrySelector,
   type SetupOptions
 } from '@common/tests/unit/useCountrySelector';
@@ -13,39 +13,24 @@ import {
 } from '@common/tests/unit/setup/countrySelectorDom';
 
 function setup(options: SetupOptions = {}) {
-  const { countryOption, inactive } = options;
+  return createCountrySelectorSetup((dom, callbacks) => {
+    const rootRef = { current: dom.rootEl };
+    const dropdownRef = { current: dom.dropdownEl };
+    const searchRef = { current: dom.searchEl };
+    const selectorRef = { current: dom.selectorEl };
 
-  const dom = createCountrySelectorDomFixture();
-  const rootRef = { current: dom.rootEl };
-  const dropdownRef = { current: dom.dropdownEl };
-  const searchRef = { current: dom.searchEl };
-  const selectorRef = { current: dom.selectorEl };
-
-  const onSelectCountry = vi.fn();
-  const onAfterSelect = vi.fn();
-
-  const hook = renderHookWithProxy(() =>
-    useCountrySelector({
-      rootRef,
-      dropdownRef,
-      searchRef,
-      selectorRef,
-      locale: 'en',
-      onSelectCountry,
-      onAfterSelect,
-      countryOption,
-      inactive
-    })
-  );
-
-  return createKeyboardOpenCountrySelectorSetupResult(
-    hook.result,
-    dom.cleanup,
-    hook.unmount,
-    onSelectCountry,
-    onAfterSelect,
-    dom.searchEl
-  );
+    return renderHookWithProxy(() =>
+      useCountrySelector({
+        rootRef,
+        dropdownRef,
+        searchRef,
+        selectorRef,
+        locale: 'en',
+        ...options,
+        ...callbacks
+      })
+    );
+  });
 }
 
 afterEach(() => {

@@ -2,7 +2,7 @@
 import { signal } from '@angular/core';
 import { useCountrySelector } from '@src/services/internal/useCountrySelector.service';
 import {
-  createKeyboardOpenCountrySelectorSetupResult,
+  createCountrySelectorSetup,
   testUseCountrySelector,
   type SetupOptions
 } from '@common/tests/unit/useCountrySelector';
@@ -14,41 +14,24 @@ import {
 } from '@common/tests/unit/setup/countrySelectorDom';
 
 function setup(options: SetupOptions = {}) {
-  const { countryOption, inactive } = options;
+  return createCountrySelectorSetup((dom, callbacks) => {
+    const rootRef = signal<HTMLDivElement | null>(dom.rootEl);
+    const dropdownRef = signal<HTMLDivElement | null>(dom.dropdownEl);
+    const searchRef = signal<HTMLInputElement | null>(dom.searchEl);
+    const selectorRef = signal<HTMLButtonElement | null>(dom.selectorEl);
 
-  const dom = createCountrySelectorDomFixture();
-  const rootRef = signal<HTMLDivElement | null>(dom.rootEl);
-  const dropdownRef = signal<HTMLDivElement | null>(dom.dropdownEl);
-  const searchRef = signal<HTMLInputElement | null>(dom.searchEl);
-  const selectorRef = signal<HTMLButtonElement | null>(dom.selectorEl);
-
-  const onCountrySelect = vi.fn();
-  const afterSelect = vi.fn();
-
-  const { result: rawResult, unmount } = withSetup(() =>
-    useCountrySelector({
-      rootRef,
-      dropdownRef,
-      searchRef,
-      selectorRef,
-      locale: 'en',
-      countryOption,
-      inactive,
-      onSelectCountry: onCountrySelect,
-      onAfterSelect: afterSelect
-    })
-  );
-
-  const resultSource = rawResult;
-
-  return createKeyboardOpenCountrySelectorSetupResult(
-    resultSource,
-    dom.cleanup,
-    unmount,
-    onCountrySelect,
-    afterSelect,
-    dom.searchEl
-  );
+    return withSetup(() =>
+      useCountrySelector({
+        rootRef,
+        dropdownRef,
+        searchRef,
+        selectorRef,
+        locale: 'en',
+        ...options,
+        ...callbacks
+      })
+    );
+  });
 }
 
 testUseCountrySelector(setup, tools);

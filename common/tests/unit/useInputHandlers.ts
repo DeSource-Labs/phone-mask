@@ -30,6 +30,46 @@ export interface InputHandlersSetupResult {
 
 export type SetupFn = (options?: SetupOptions) => InputHandlersSetupResult;
 
+interface InputHandlers {
+  handleBeforeInput: (event: InputEvent) => void;
+  handleInput: (event: Event) => void;
+  handleKeydown: (event: KeyboardEvent) => void;
+  handlePaste: (event: ClipboardEvent) => void;
+}
+
+export function createInputHandlersSetup(
+  mount: (options: { onChange: Mock; scheduleValidationHint: Mock }) => {
+    result: InputHandlers;
+    unmount: () => void;
+    rerender: InputHandlersSetupResult['rerender'];
+  }
+): InputHandlersSetupResult {
+  const onChange = vi.fn();
+  const scheduleValidationHint = vi.fn();
+  const inputEl = document.createElement('input');
+  document.body.appendChild(inputEl);
+
+  const { result, unmount, rerender } = mount({ onChange, scheduleValidationHint });
+
+  // Resolve handlers on each event so React's result proxy observes rerenders.
+  inputEl.addEventListener('beforeinput', (event) => result.handleBeforeInput(event));
+  inputEl.addEventListener('input', (event) => result.handleInput(event));
+  inputEl.addEventListener('keydown', (event) => result.handleKeydown(event));
+  inputEl.addEventListener('paste', (event) => result.handlePaste(event));
+
+  return {
+    unmount: () => {
+      inputEl.remove();
+      unmount();
+    },
+    rerender,
+    onChange,
+    scheduleValidationHint,
+    inputEl,
+    invokeInputWithoutTarget: () => result.handleInput({ target: null } as unknown as Event)
+  };
+}
+
 // US mask: "###-###-####", max 10 digits
 const DIGITS_COMPLETE = '2345678901';
 const DISPLAY_COMPLETE = '234-567-8901';

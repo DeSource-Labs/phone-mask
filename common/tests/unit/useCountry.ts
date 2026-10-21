@@ -138,25 +138,21 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
         unmount();
       });
 
-      it('updates country when countryOption prop changes', async () => {
+      it.each([
+        { name: 'updates country when countryOption prop changes', countryOption: 'JP', expected: 'JP' },
+        {
+          name: 'does not update country when countryOption changes to an invalid code',
+          countryOption: 'INVALID',
+          expected: 'US'
+        }
+      ])('$name', async ({ countryOption, expected }) => {
         const { result, rerender, unmount } = setup({ countryOption: 'US', locale: 'en' });
 
         await act(() => {
-          rerender({ countryOption: 'JP' });
+          rerender({ countryOption });
         });
 
-        expect(toValue(result.country).id).toBe('JP');
-        unmount();
-      });
-
-      it('does not update country when countryOption changes to an invalid code', async () => {
-        const { result, rerender, unmount } = setup({ countryOption: 'US', locale: 'en' });
-
-        await act(() => {
-          rerender({ countryOption: 'INVALID' });
-        });
-
-        expect(toValue(result.country).id).toBe('US');
+        expect(toValue(result.country).id).toBe(expected);
         unmount();
       });
     });

@@ -2,7 +2,7 @@
 import { nextTick, ref, shallowRef } from 'vue';
 import { useCountrySelector } from '@src/composables/internal/useCountrySelector';
 import {
-  createKeyboardOpenCountrySelectorSetupResult,
+  createCountrySelectorSetup,
   testUseCountrySelector,
   type SetupOptions
 } from '@common/tests/unit/useCountrySelector';
@@ -14,41 +14,24 @@ import {
 } from '@common/tests/unit/setup/countrySelectorDom';
 
 function setup(options: SetupOptions = {}) {
-  const { countryOption, inactive } = options;
+  return createCountrySelectorSetup((dom, callbacks) => {
+    const rootRef = shallowRef<HTMLDivElement | null>(dom.rootEl);
+    const dropdownRef = shallowRef<HTMLDivElement | null>(dom.dropdownEl);
+    const searchRef = shallowRef<HTMLInputElement | null>(dom.searchEl);
+    const selectorRef = shallowRef<HTMLButtonElement | null>(dom.selectorEl);
 
-  const dom = createCountrySelectorDomFixture();
-  const rootRef = shallowRef<HTMLDivElement | null>(dom.rootEl);
-  const dropdownRef = shallowRef<HTMLDivElement | null>(dom.dropdownEl);
-  const searchRef = shallowRef<HTMLInputElement | null>(dom.searchEl);
-  const selectorRef = shallowRef<HTMLButtonElement | null>(dom.selectorEl);
-
-  const onCountrySelect = vi.fn();
-  const afterSelect = vi.fn();
-
-  const { result: rawResult, unmount } = withSetup(() =>
-    useCountrySelector({
-      rootRef,
-      dropdownRef,
-      searchRef,
-      selectorRef,
-      locale: 'en',
-      countryOption,
-      inactive,
-      onSelectCountry: onCountrySelect,
-      onAfterSelect: afterSelect
-    })
-  );
-
-  const resultSource = rawResult;
-
-  return createKeyboardOpenCountrySelectorSetupResult(
-    resultSource,
-    dom.cleanup,
-    unmount,
-    onCountrySelect,
-    afterSelect,
-    dom.searchEl
-  );
+    return withSetup(() =>
+      useCountrySelector({
+        rootRef,
+        dropdownRef,
+        searchRef,
+        selectorRef,
+        locale: 'en',
+        ...options,
+        ...callbacks
+      })
+    );
+  });
 }
 
 testUseCountrySelector(setup, tools);

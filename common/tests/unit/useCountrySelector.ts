@@ -2,6 +2,7 @@
 import type { Mock } from 'vitest';
 
 import type { MaybeRef, TestTools } from './setup/tools';
+import { createCountrySelectorDomFixture, type CountrySelectorDomFixture } from './setup/countrySelectorDom';
 
 export interface SetupOptions {
   countryOption?: string;
@@ -42,25 +43,6 @@ type KeyboardOpenCountrySelectorResult = CountrySelectorSetupResult['result'] & 
   handleSelectorKeydown: (event: never) => void;
 };
 
-export function createCountrySelectorSetupResult(
-  setupResult: Omit<CountrySelectorSetupResult, 'simulateCloseComplete' | 'unmount'> & {
-    cleanup: () => void;
-    unmount: () => void;
-    simulateCloseComplete?: () => void;
-  }
-): CountrySelectorSetupResult {
-  const { cleanup, unmount, ...result } = setupResult;
-
-  return {
-    ...result,
-    simulateCloseComplete: setupResult.simulateCloseComplete ?? (() => {}),
-    unmount: () => {
-      cleanup();
-      unmount();
-    }
-  };
-}
-
 export function withKeyboardOpenProxy<T extends KeyboardOpenCountrySelectorResult>(target: T): T {
   return new Proxy(target, {
     get(source, key, receiver) {
@@ -78,22 +60,29 @@ export function withKeyboardOpenProxy<T extends KeyboardOpenCountrySelectorResul
   });
 }
 
-export function createKeyboardOpenCountrySelectorSetupResult(
-  rawResult: KeyboardOpenCountrySelectorResult,
-  cleanup: () => void,
-  unmount: () => void,
-  onSelectCountry: Mock,
-  onAfterSelect: Mock,
-  searchEl: HTMLInputElement
+export function createCountrySelectorSetup(
+  mount: (
+    dom: CountrySelectorDomFixture,
+    callbacks: { onSelectCountry: Mock; onAfterSelect: Mock }
+  ) => {
+    result: KeyboardOpenCountrySelectorResult;
+    unmount: () => void;
+  }
 ): CountrySelectorSetupResult {
-  return createCountrySelectorSetupResult({
-    result: withKeyboardOpenProxy(rawResult),
-    cleanup,
-    unmount,
-    onSelectCountry,
-    onAfterSelect,
-    searchEl
-  });
+  const dom = createCountrySelectorDomFixture();
+  const callbacks = { onSelectCountry: vi.fn(), onAfterSelect: vi.fn() };
+  const { result, unmount } = mount(dom, callbacks);
+
+  return {
+    result: withKeyboardOpenProxy(result),
+    ...callbacks,
+    searchEl: dom.searchEl,
+    simulateCloseComplete: () => {},
+    unmount: () => {
+      dom.cleanup();
+      unmount();
+    }
+  };
 }
 
 export function testUseCountrySelector(setup: SetupFn, { act, toValue }: TestTools): void {
