@@ -1,4 +1,4 @@
-import { computed, watchEffect, toValue, type MaybeRefOrGetter, type ComputedRef } from 'vue';
+import { computed, watchEffect, toValue, onMounted, type MaybeRefOrGetter, type ComputedRef } from 'vue';
 import type { MaskFull } from '@desource/phone-mask';
 import { extractDigits, createPhoneFormatter, type FormatterHelpers } from '@desource/phone-mask/kit';
 import type { PhoneNumber } from '../../types.js';
@@ -73,21 +73,23 @@ export function useFormatter({
     digits: digits.value
   }));
 
-  // Clamp digits on formatter changes
-  watchEffect(() => {
-    if (toValue(value) !== digits.value) {
-      onChange(digits.value);
-    }
-  });
+  onMounted(() => {
+    // Clamp digits on formatter changes
+    watchEffect(() => {
+      if (toValue(value) !== digits.value) {
+        onChange(digits.value);
+      }
+    });
 
-  // Emit onPhoneChange
-  watchEffect(() => {
-    onPhoneChange?.(phoneData.value);
-  });
+    // Emit onPhoneChange
+    watchEffect(() => {
+      onPhoneChange?.(phoneData.value);
+    });
 
-  // Emit onValidationChange
-  watchEffect(() => {
-    onValidationChange?.(isComplete.value);
+    // Emit onValidationChange
+    watchEffect(() => {
+      onValidationChange?.(isComplete.value);
+    });
   });
 
   return {
