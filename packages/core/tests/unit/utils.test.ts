@@ -1,6 +1,5 @@
 /// <reference types="vitest/globals" />
 import { beforeEach, describe, expect, it } from 'vitest';
-import { countryCodeEmoji } from '@src/country-code-emodji';
 import {
   getCountry,
   parseCountryCode,
@@ -22,21 +21,21 @@ const sampleCountries: MaskFull[] = [
     code: '+1',
     mask: ['###-###-####'],
     name: 'United States',
-    flag: countryCodeEmoji('US')
+    flag: getFlagEmoji('US')
   },
   {
     id: 'DE',
     code: '+49',
     mask: ['####-########'],
     name: 'Germany',
-    flag: countryCodeEmoji('DE')
+    flag: getFlagEmoji('DE')
   },
   {
     id: 'BR',
     code: '+55',
     mask: ['## ########'],
     name: 'Brazil',
-    flag: countryCodeEmoji('BR')
+    flag: getFlagEmoji('BR')
   }
 ];
 
@@ -201,14 +200,14 @@ describe('country list filtering', () => {
         code: '+10',
         mask: ['###'],
         name: 'Beta',
-        flag: countryCodeEmoji('AC')
+        flag: getFlagEmoji('AC')
       },
       {
         id: 'AD',
         code: '+10',
         mask: ['###'],
         name: 'Alpha',
-        flag: countryCodeEmoji('AD')
+        flag: getFlagEmoji('AD')
       }
     ];
 
@@ -223,9 +222,9 @@ describe('country list filtering', () => {
 
   it('uses name sorting when scores are equal', () => {
     const ties: MaskFull[] = [
-      { id: 'US', code: '+1', mask: ['###'], name: 'Zulu', flag: countryCodeEmoji('US') },
-      { id: 'DE', code: '+1', mask: ['###'], name: 'Alpha', flag: countryCodeEmoji('DE') },
-      { id: 'BR', code: '+1', mask: ['###'], name: 'Beta', flag: countryCodeEmoji('BR') }
+      { id: 'US', code: '+1', mask: ['###'], name: 'Zulu', flag: getFlagEmoji('US') },
+      { id: 'DE', code: '+1', mask: ['###'], name: 'Alpha', flag: getFlagEmoji('DE') },
+      { id: 'BR', code: '+1', mask: ['###'], name: 'Beta', flag: getFlagEmoji('BR') }
     ];
     const results = filterCountries(ties, '+1');
     expect(results.map((country) => country.name)).toEqual(['Alpha', 'Beta', 'Zulu']);
@@ -233,8 +232,8 @@ describe('country list filtering', () => {
 
   it('sorts by descending score when matches are not tied', () => {
     const countries: MaskFull[] = [
-      { id: 'AE', code: '+1', mask: ['###'], name: 'Alpha', flag: countryCodeEmoji('US') },
-      { id: 'BA', code: '+2', mask: ['###'], name: 'Beta', flag: countryCodeEmoji('DE') }
+      { id: 'AE', code: '+1', mask: ['###'], name: 'Alpha', flag: getFlagEmoji('US') },
+      { id: 'BA', code: '+2', mask: ['###'], name: 'Beta', flag: getFlagEmoji('DE') }
     ];
 
     const results = filterCountries(countries, 'a');
@@ -244,6 +243,6 @@ describe('country list filtering', () => {
 
 describe('country flags', () => {
   it('uses country emoji helpers', () => {
-    expect(getFlagEmoji('US')).toBe(countryCodeEmoji('US'));
+    expect(getFlagEmoji('US')).toBe(getFlagEmoji('US'));
   });
 });

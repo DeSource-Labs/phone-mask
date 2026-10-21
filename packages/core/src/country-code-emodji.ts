@@ -9,11 +9,14 @@ const CC_REGEX = /^[a-z]{2}$/i; // Country code regex
 const OFFSET = 127397; // Offset between uppercase ascii and regional indicator symbols
 
 /**
- * Convert country code to corresponding flag emoji
+ * Converts country ISO code to corresponding flag emoji.
+ * Throws a TypeError if the input is not a valid ISO 3166-1 alpha-2 country code.
+ *
+ * @example getFlagEmoji('US') // "🇺🇸"
  * @param {string} cc - country code string
  * @returns {string} flag emoji
  */
-export const countryCodeEmoji = (cc: string): string => {
+export const getFlagEmoji = (cc: string): string => {
   if (!CC_REGEX.test(cc)) {
     const type = typeof cc;
     throw new TypeError(
@@ -24,3 +27,7 @@ export const countryCodeEmoji = (cc: string): string => {
   const codePoints = [...cc.toUpperCase()].map((c) => (c.codePointAt(0) ?? 0) + OFFSET);
   return String.fromCodePoint(...codePoints);
 };
+
+/** INTERNAL: Converts country ISO code to flag emoji without validation */
+export const ccToEmoji = (cc: string): string =>
+  String.fromCodePoint(cc.charCodeAt(0) + OFFSET, cc.charCodeAt(1) + OFFSET);

@@ -570,6 +570,11 @@ function writeOutputs(mapping: MaskMapping, mainRegionByCode: Map<string, string
   const typesPath = path.join(outDir, 'data-types.ts');
 
   const min = buildMinifiedData(mapping);
+  // Group similar mask lists for compression; decoding restores alphabetical country order.
+  const rows = Object.entries(min.countries)
+    .sort(([, a], [, b]) => a.slice(a.indexOf('|')).localeCompare(b.slice(b.indexOf('|')), 'en'))
+    .map(([id, row]) => `${id}${row}`)
+    .join(' ');
   const codes = Object.values(min.countries).map((row) => row.split('|')[0]);
   const defaults = Object.fromEntries(
     [...mainRegionByCode].filter(
@@ -581,7 +586,7 @@ function writeOutputs(mapping: MaskMapping, mainRegionByCode: Map<string, string
 
   fs.writeFileSync(
     minPath,
-    `export const masks = ${serializeJsValue(min.masks)};\nexport const defaultCountryByCallingCode = ${serializeJsValue(defaults)};\nexport default ${serializeJsValue(min.countries)};\n`,
+    `export const masks = /* @__PURE__ */ ${serializeJsValue(min.masks.join('|'))}.split('|');\nexport const defaultCountryByCallingCode = ${serializeJsValue(defaults)};\nexport default /* @__PURE__ */ (() => {const countries = {};for (const row of ${serializeJsValue(rows)}.split(' ').sort()) countries[row.slice(0, 2)] = row.slice(2);return countries;})();\n`,
     'utf8'
   );
   fs.writeFileSync(typesPath, `export type CountryKey = ${countryKeyUnion};\n`, 'utf8');

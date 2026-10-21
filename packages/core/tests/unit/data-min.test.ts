@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { describe, expect, it } from 'vitest';
 import dataJson from '@src/data.json';
-import { countryCodeEmoji } from '@src/country-code-emodji';
+import { getFlagEmoji } from '@src/country-code-emodji';
 import { Masks, MasksBase, MasksBaseMap, MasksMap, MasksWithFlag, MasksWithFlagMap } from '@src/entries';
 import type { CountryKey } from '@src/data-types';
 
@@ -17,6 +17,22 @@ function splitBaseMask(baseMask: string) {
 }
 
 describe('entries parity', () => {
+  it('preserves country order and shared mask arrays across export shapes', () => {
+    expect(Masks.map(({ id }) => id)).toEqual(Object.keys(dataJson));
+    expect(MasksBase.map(({ id }) => id)).toEqual(Object.keys(dataJson));
+    expect(MasksWithFlag.map(({ id }) => id)).toEqual(Object.keys(dataJson));
+
+    for (const [index, entry] of Masks.entries()) {
+      expect(entry.mask).toBe(MasksMap[entry.id].mask);
+      expect(entry.mask).toBe(MasksWithFlag[index].mask);
+      expect(entry.mask).toBe(MasksWithFlagMap[entry.id].mask);
+      expect(MasksBase[index].mask).toBe(MasksBaseMap[entry.id]);
+      expect(MasksBase[index].mask).not.toBe(entry.mask);
+      expect(entry).not.toBe(MasksMap[entry.id]);
+      expect(MasksWithFlag[index]).not.toBe(MasksWithFlagMap[entry.id]);
+    }
+  });
+
   it('keeps entries exports in sync with data.json source of truth', () => {
     const expectedBaseMap = Object.entries(dataJson).reduce<Record<CountryKey, string[]>>(
       (acc, [id, value]) => {
@@ -49,7 +65,7 @@ describe('entries parity', () => {
       (acc, [id, value]) => {
         acc[id as CountryKey] = {
           ...value,
-          flag: countryCodeEmoji(id)
+          flag: getFlagEmoji(id)
         };
         return acc;
       },
