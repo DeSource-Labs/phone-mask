@@ -50,10 +50,11 @@ function checkDigitsUpdate(el: HTMLInputElement, state: PhoneMaskBindingState) {
 }
 
 function checkCountryUpdate(state: PhoneMaskBindingState) {
-  const oldCountry = state.country.id;
+  const oldCountry = state.countryOption;
   const newCountry = parseCountryCode(state.options.country);
+  state.countryOption = newCountry;
 
-  if (newCountry && newCountry !== oldCountry) {
+  if (newCountry && newCountry !== oldCountry && newCountry !== state.country.id) {
     state.setCountry(newCountry);
   }
 }
@@ -61,12 +62,13 @@ function checkCountryUpdate(state: PhoneMaskBindingState) {
 function createHandler<T>(
   el: HTMLInputElement,
   state: PhoneMaskBindingState,
-  handler: (e: T, state: PhoneMaskBindingState) => { newDigits: string; caretDigitIndex: number } | undefined
+  handler: (e: T, state: PhoneMaskBindingState) => ReturnType<typeof processPaste>
 ): (e: T) => void {
   return (e: T) => {
     const result = handler(e, state);
     if (!result) return;
 
+    if (result.country) state.setCountry(result.country, false);
     updateDigits(el, state, result.newDigits);
 
     void Promise.resolve().then(() => {
@@ -124,15 +126,17 @@ export function phoneMaskAction(
 
   const options = parseParams(params);
   const locale = options.locale || getNavigatorLang();
-  const country = getCountry(parseCountryCode(options.country, 'US'), locale);
+  const countryOption = parseCountryCode(options.country);
+  const country = getCountry(countryOption || 'US', locale);
 
   const state: PhoneMaskBindingState = {
     country,
+    countryOption,
     formatter: createPhoneFormatter(country),
     digits: '',
     locale,
     options,
-    setCountry(code: string) {
+    setCountry(code: string, updateValue = true) {
       const parsed = parseCountryCode(code);
 
       if (!parsed) return false;
@@ -145,7 +149,7 @@ export function phoneMaskAction(
       this.formatter = createPhoneFormatter(newCountry);
       el.placeholder = this.formatter.getPlaceholder();
 
-      checkDigitsUpdate(el, this);
+      if (updateValue) checkDigitsUpdate(el, this);
 
       return true;
     }
@@ -165,7 +169,12 @@ export function phoneMaskAction(
   // Update state with detected country & formatter, then run effects
   void detectInitialCountry(options).then((countryCode) => {
     // Guard against the directive being unmounted before the async detection resolves.
-    if ((el as PhoneMaskBindingElement).__phoneMaskState !== state) return;
+    if (
+      (el as PhoneMaskBindingElement).__phoneMaskState !== state ||
+      state.country !== country ||
+      state.countryOption !== countryOption
+    )
+      return;
     state.setCountry(countryCode);
   });
 

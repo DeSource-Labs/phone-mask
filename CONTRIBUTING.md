@@ -145,65 +145,99 @@ pnpm format:check
 
 ## 📁 Project Structure
 
-Source-oriented overview (`dist`, `.nuxt`, `coverage`, `node_modules`, and other generated folders are omitted):
+Source-oriented overview with key files (`dist`, `.nuxt`, `coverage`, `node_modules`, and other generated folders are omitted):
 
 ```
 phone-mask/
 ├── packages/
-│   ├── core/                    # Core package
+│   ├── core/                            # Framework-independent formatting, metadata, and shared helpers
 │   │   ├── src/
-│   │   │   ├── data.json        # Source-of-truth phone metadata
-│   │   │   ├── data.min.js      # Generated compact metadata
-│   │   │   ├── data-types.ts    # Generated metadata typings
-│   │   │   ├── entries.ts       # Static maps/entries exports
+│   │   │   ├── data.json                # Source-of-truth phone metadata
+│   │   │   ├── data.min.js              # Generated compact metadata
+│   │   │   ├── data-types.ts            # Generated metadata typings
+│   │   │   ├── entries.ts               # Static maps/entries exports
 │   │   │   ├── formatter.ts
 │   │   │   ├── handlers.ts
-│   │   │   ├── services/
+│   │   │   ├── country-selector.ts
+│   │   │   ├── services/                # GeoIP detection
 │   │   │   ├── utils.ts
+│   │   │   ├── kit.ts                   # /kit entrypoint for framework adapters
 │   │   │   └── index.ts
-│   │   ├── scripts/
-│   │   │   └── gen.mts          # Metadata generator (Google libphonenumber release artifacts)
-│   │   └── tests/
-│   │       └── unit/
-│
-│   ├── react/                   # React package
-│   │   ├── src/                 # components/, hooks/, types.ts, index.ts
-│   │   └── tests/               # unit + e2e
+│   │   ├── scripts/gen.mts              # Metadata generator (Google libphonenumber release artifacts)
+│   │   ├── tests/unit/
+│   │   └── vite.config.ts
 │   │
-│   ├── vue/                     # Vue package
-│   │   ├── src/                 # components/, composables/, directives/, types.ts, index.ts
-│   │   └── tests/               # unit + e2e
+│   ├── react/                           # React package
+│   │   ├── src/                         # components/, hooks/, types.ts, style.scss, index.ts, core.ts
+│   │   ├── demo/                        # Vite app used by browser tests
+│   │   ├── tests/                       # unit/ (including SSR/hydration) + e2e/
+│   │   └── vite.config.ts
 │   │
-│   ├── svelte/                  # Svelte package
-│   │   ├── src/                 # components/, composables/, directives/, types.ts, index.ts
-│   │   └── tests/               # unit + e2e
+│   ├── vue/                             # Vue package
+│   │   ├── src/                         # components/, composables/, directives/, types.ts, style.scss, index.ts, core.ts
+│   │   ├── demo/                        # Vite app used by browser tests
+│   │   ├── tests/                       # unit/ (including SSR/hydration) + e2e/
+│   │   └── vite.config.ts
 │   │
-│   └── nuxt/                    # Nuxt module package
-│       ├── src/                 # module.ts + runtime/
-│       └── tests/               # unit + e2e fixtures
+│   ├── svelte/                          # Svelte package
+│   │   ├── src/                         # components/, composables/, directives/ (action + attachment), types.ts, style.scss, index.ts, core.ts
+│   │   ├── demo/                        # Vite app used by browser tests
+│   │   ├── tests/                       # unit/, e2e/, ssr/ (server/client hydration fixture)
+│   │   └── svelte.config.js             # Native @sveltejs/package build
+│   │
+│   ├── angular/                         # Angular package
+│   │   ├── src/
+│   │   │   ├── components/phone-input/  # Component class and HTML template
+│   │   │   ├── services/                # Signal-based state, internal helpers, and utilities
+│   │   │   ├── phone-mask.directive.ts
+│   │   │   ├── phone.pipe.ts
+│   │   │   ├── types.ts
+│   │   │   ├── style.scss
+│   │   │   └── public-api.ts
+│   │   ├── core/                        # /core secondary entrypoint: public-api.ts + ng-package.json
+│   │   ├── demo/                        # Angular SSR app used by browser tests
+│   │   ├── scripts/build-types.mts      # Bundled public declarations
+│   │   ├── tests/                       # unit/, e2e/ (including SSR/hydration)
+│   │   ├── angular.json
+│   │   └── ng-package.json              # ng-packagr build
+│   │
+│   └── nuxt/                            # Nuxt module package
+│       ├── src/                         # module.ts + runtime/
+│       └── tests/                       # unit/, e2e/, fixtures/ (Nuxt SSR apps)
 │
 ├── common/
-│   └── tests/                   # Shared test contracts/utilities for framework packages
-│       ├── unit/
+│   ├── styles/                          # Shared phone input styles and package demo CSS
+│   └── tests/                           # Shared test contracts/utilities for framework packages
+│       ├── unit/                        # Includes SSR/hydration contracts and setup/
 │       └── e2e/
 │
 ├── scripts/
-│   ├── update-readme-benchmarks.mts
+│   ├── build-dual-types.mts             # ESM/CJS declaration outputs
+│   ├── check-package.mts                # Packed-package publication checks
+│   ├── compare-local-vs-npm.mts         # Bundle size comparison and budgets
+│   ├── update-readme-benchmarks.mts     # README competitor benchmarks
+│   ├── stable-package-stats.mts         # Shared bundle measurement
 │   ├── build-coverage-pr-report.mts
-│   └── comment-coverage-pr.mts
-
-├── demo/                        # Nuxt playground/demo app
-│   ├── app/
+│   ├── comment-coverage-pr.mts
+│   ├── create-mask-sync-changeset.mts
+│   ├── format-changelog-dependencies.mts
+│   └── prepare-github-release.mts
+│
+├── demo/                                # Nuxt landing page and interactive examples
+│   ├── app/                             # Pages, components, composables, and styles
+│   ├── shared/                          # Shared types and utilities
+│   ├── public/                          # Static assets
 │   └── nuxt.config.ts
 │
-├── .changeset/                  # Changesets entries for release notes/versioning
+├── .changeset/                          # Changesets entries for release notes/versioning
 └── .github/
     ├── PULL_REQUEST_TEMPLATE.md
     └── workflows/
-        ├── coverage.yml         # Coverage on main + optional manual PR report
-        ├── release.yml          # Changesets publish workflow
-        ├── gen.yml              # Metadata sync PR
-        └── weekly-benchmarks.yml # Weekly README benchmark refresh PR
+        ├── coverage.yml                 # Coverage on main + optional manual PR report
+        ├── release.yml                  # Changesets publish workflow
+        ├── release-mask-sync.yml        # Metadata release PR
+        ├── gen.yml                      # Metadata sync PR
+        └── weekly-benchmarks.yml        # Weekly README benchmark refresh PR
 ```
 
 ## 🔄 Development Workflow
@@ -228,6 +262,9 @@ git checkout -b fix/bug-description
 ```bash
 # Build packages
 pnpm build
+
+# Check the packed packages before publishing
+pnpm publish:check
 
 # Run demo to verify visually
 pnpm dev:prepare
@@ -378,6 +415,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 - **vue:** Vue components (`@desource/phone-mask-vue`)
 - **svelte:** Svelte package (`@desource/phone-mask-svelte`)
 - **nuxt:** Nuxt module (`@desource/phone-mask-nuxt`)
+- **angular:** Angular package (`@desource/phone-mask-angular`)
 - **demo:** Demo application
 - **docs:** Documentation
 - **ci:** CI/CD workflows
@@ -503,10 +541,15 @@ All public packages are configured as a Changesets fixed group, so they always u
 version and bump type. Include all packages in the changeset to copy the release summary to every
 package changelog.
 
-After the release pull request is squash-merged, the release workflow builds and publishes every
+After the release pull request is squash-merged, the release workflow builds, checks, and publishes every
 package to npm without package-specific Git tags. It then creates one `X.Y.Z` Git tag and one GitHub
 release using the matching entry from `packages/core/CHANGELOG.md`. The workflow also supports
 manual dispatch from GitHub Actions if recovery is needed.
+
+`pnpm publish:check` runs strict publint and Are the Types Wrong? checks on temporary `pnpm pack`
+tarballs. Core, React, and Vue check all TypeScript resolution modes. Angular, Svelte, and Nuxt use the
+ESM-only profile to match their native package formats. CSS and package metadata are excluded
+from TypeScript entrypoint checks. Build the packages before running these checks independently.
 
 ## 🎯 Areas We Need Help
 

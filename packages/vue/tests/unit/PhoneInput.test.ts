@@ -9,7 +9,10 @@ import type { SetupFn } from '@common/tests/unit/PhoneInput';
 import type { CountryKey } from '@desource/phone-mask';
 
 const setup: SetupFn = async (options = {}) => {
-  const onChange = vi.fn();
+  const value = shallowRef(options.value ?? '');
+  const onChange = vi.fn((digits: string) => {
+    value.value = digits;
+  });
   const onCountryChange = vi.fn();
   const onCopy = vi.fn();
   const onFocus = vi.fn();
@@ -31,7 +34,7 @@ const setup: SetupFn = async (options = {}) => {
         PhoneInput,
         {
           ref: phoneRef,
-          modelValue: options.value ?? '',
+          modelValue: value.value,
           id: options.id,
           name: options.name,
           'onUpdate:modelValue': onChange,

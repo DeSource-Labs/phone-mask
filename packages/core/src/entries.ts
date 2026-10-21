@@ -1,7 +1,7 @@
 // @ts-expect-error -- Ignore import of JS file
 import countries, { masks } from './data.min.js';
-import { countryCodeEmoji } from './country-code-emodji';
-import type { CountryKey } from './data-types';
+import { ccToEmoji } from './country-code-emodji.js';
+import type { CountryKey } from './data-types.js';
 
 interface MaskBase {
   id: CountryKey;
@@ -44,28 +44,27 @@ const getDisplayNames = (lang: string): Intl.DisplayNames => {
 
 const countryRows = Object.entries(countries) as Array<[CountryKey, string]>;
 
-const masksBaseMapValue = {} as MaskBaseMap;
-const masksMapValue = {} as MaskMap;
-const masksWithFlagMapValue = {} as MaskWithFlagMap;
-const masksBaseValue: MaskBase[] = [];
-const masksValue: Mask[] = [];
-const masksWithFlagValue: MaskWithFlag[] = [];
-
-for (const [id, row] of countryRows) {
-  const rowEntries = row.split('|');
-  const code = `+${rowEntries[0]}`;
-  const mask = rowEntries.slice(1).map<string>((index) => masks[Number(index)]);
-  const flag = countryCodeEmoji(id);
-  const baseMask = mask.map((item) => `${code} ${item}`);
-
-  masksBaseMapValue[id] = baseMask;
-  masksMapValue[id] = { code, mask };
-  masksWithFlagMapValue[id] = { code, mask, flag };
-
-  masksBaseValue.push({ id, mask: baseMask });
-  masksValue.push({ id, code, mask });
-  masksWithFlagValue.push({ id, code, mask, flag });
-}
+const masksWithFlagValue: MaskWithFlag[] = /* @__PURE__ */ countryRows.map(([id, row]) => {
+  const [code, ...indices] = row.split('|');
+  return { id, code: `+${code}`, mask: indices.map((index) => masks[Number(index)]), flag: ccToEmoji(id) };
+});
+const masksBaseValue: MaskBase[] = /* @__PURE__ */ masksWithFlagValue.map(({ id, code, mask }) => ({
+  id,
+  mask: mask.map((item) => `${code} ${item}`)
+}));
+const masksValue: Mask[] = /* @__PURE__ */ masksWithFlagValue.map(({ id, code, mask }) => ({ id, code, mask }));
+const masksBaseMapValue = /* @__PURE__ */ masksBaseValue.reduce((map, { id, mask }) => {
+  map[id] = mask;
+  return map;
+}, {} as MaskBaseMap);
+const masksMapValue = /* @__PURE__ */ masksValue.reduce((map, { id, code, mask }) => {
+  map[id] = { code, mask };
+  return map;
+}, {} as MaskMap);
+const masksWithFlagMapValue = /* @__PURE__ */ masksWithFlagValue.reduce((map, { id, code, mask, flag }) => {
+  map[id] = { code, mask, flag };
+  return map;
+}, {} as MaskWithFlagMap);
 
 /**
  * Base masks (including country code) map
@@ -146,7 +145,5 @@ export const MasksFullMapEn = MasksFullMap(DEFAULT_LANG);
  * MasksFullEn[0] // { id: 'AC', code: "+247", mask: ["#####"], name: "Ascension Island", flag: "🇦🇨" }
  */
 export const MasksFullEn = MasksFull(DEFAULT_LANG);
-/** Get flag emoji by country ISO code */
-export const getFlagEmoji = countryCodeEmoji;
 
 export type { CountryKey, MaskBaseMap, MaskBase, MaskMap, Mask, MaskWithFlagMap, MaskWithFlag, MaskFullMap, MaskFull };

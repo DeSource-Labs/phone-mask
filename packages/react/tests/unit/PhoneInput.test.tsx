@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { createRef, type RefObject } from 'react';
+import { createRef, useState, type RefObject } from 'react';
 import { render } from '@testing-library/react';
 import { PhoneInput } from '@src/components/PhoneInput';
 import type { PhoneInputRef } from '@src/types';
@@ -43,25 +43,33 @@ const setup: SetupFn = ({
         onBlur
       };
 
-  const { container, unmount } = render(
-    <PhoneInput
-      ref={inputRef}
-      value={value}
-      id={id}
-      name={name}
-      onChange={onChange}
-      onCountryChange={onCountryChange}
-      onCopy={onCopy}
-      detect={detect}
-      showClear={showClear}
-      showCopy={showCopy}
-      disabled={disabled}
-      readonly={readonly}
-      country={country as CountryKey | undefined}
-      disableDefaultStyles={disableDefaultStyles}
-      {...customRenderProps}
-    />
-  );
+  function Harness() {
+    const [digits, setDigits] = useState(value);
+    return (
+      <PhoneInput
+        ref={inputRef}
+        value={digits}
+        id={id}
+        name={name}
+        onChange={(nextDigits) => {
+          onChange(nextDigits);
+          setDigits(nextDigits);
+        }}
+        onCountryChange={onCountryChange}
+        onCopy={onCopy}
+        detect={detect}
+        showClear={showClear}
+        showCopy={showCopy}
+        disabled={disabled}
+        readonly={readonly}
+        country={country as CountryKey | undefined}
+        disableDefaultStyles={disableDefaultStyles}
+        {...customRenderProps}
+      />
+    );
+  }
+
+  const { container, unmount } = render(<Harness />);
 
   if (!inputRef.current) throw new Error('PhoneInput ref is not created');
 

@@ -1,0 +1,148 @@
+<main>
+  @if (ssr) {
+  <section data-testid="ssr">
+    <phone-input id="fixed-phone" country="US" [value]="'2025550123'" />
+    <phone-input id="detected-phone" [value]="'4155552671'" />
+    <phone-input id="selectable-phone" [detect]="false" [value]="'6505551234'" [flagTemplate]="flag" />
+    <label for="directive-phone">Phone number</label>
+    <input id="directive-phone" [phoneMask]="{ country: 'US' }" [formControl]="phoneControl" />
+    <ng-template #flag let-country>
+      <span class="country-name">
+        @if (country.name.length > 15) {
+        <abbr [title]="country.name">{{ country.name.slice(0, 15) }}…</abbr>
+        } @else { {{ country.name }} }
+      </span>
+    </ng-template>
+  </section>
+  } @else {
+  <h1>Phone mask for Angular</h1>
+  <p>Component, headless masking function, directive, pipe, and Angular Forms.</p>
+
+  <section data-testid="playground">
+    <h2>Component playground</h2>
+    <phone-input
+      [(value)]="digits"
+      [country]="country()"
+      [locale]="locale()"
+      [detect]="detect()"
+      [showCopy]="showCopy()"
+      [showClear]="showClear()"
+      [size]="size()"
+      [theme]="theme()"
+      [withValidity]="withValidity()"
+      [disabled]="disabled()"
+      [readonly]="readonly()"
+      [searchPlaceholder]="searchPlaceholder() || 'Search country or code...'"
+      [noResultsText]="noResultsText() || 'No countries found'"
+      [clearButtonLabel]="clearButtonLabel() || 'Clear phone number'"
+      [dropdownClass]="dropdownClass()"
+      [disableDefaultStyles]="disableDefaultStyles()"
+    />
+    <p data-testid="phone-input-value">Digits: {{ digits() || '—' }}</p>
+    <div class="controls">
+      <label
+        >Country
+        <select
+          data-testid="props-country"
+          [ngModel]="country() || ''"
+          (ngModelChange)="country.set($event || undefined)"
+        >
+          <option value="">Not selected</option>
+          @for (code of countries; track code) {
+          <option [value]="code">{{ code }}</option>
+          }
+        </select>
+      </label>
+      <label
+        >Locale
+        <select data-testid="props-locale" [ngModel]="locale() || ''" (ngModelChange)="locale.set($event || undefined)">
+          <option value="">Browser language</option>
+          <option value="en-US">English</option>
+          <option value="de-DE">German</option>
+          <option value="ru-RU">Russian</option>
+        </select>
+      </label>
+      <label
+        >Size
+        <select data-testid="props-size" [(ngModel)]="size">
+          <option value="compact">Compact</option>
+          <option value="normal">Normal</option>
+          <option value="large">Large</option>
+        </select>
+      </label>
+      <label
+        >Theme
+        <select data-testid="props-theme" [(ngModel)]="theme">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+          <option value="auto">Auto</option>
+        </select>
+      </label>
+      @for (control of textControls; track control.id) {
+      <label
+        >{{ control.label }}
+        <input
+          [attr.data-testid]="control.id"
+          [ngModel]="control.value()"
+          (ngModelChange)="control.value.set($event)"
+        />
+      </label>
+      }
+      <label data-testid="props-detect">
+        <input type="checkbox" [ngModel]="detect()" (ngModelChange)="setDetect($event)" /> Auto-detect country
+      </label>
+      @for (control of toggles; track control.id) {
+      <label [attr.data-testid]="control.id">
+        <input type="checkbox" [ngModel]="control.value()" (ngModelChange)="control.value.set($event)" /> {{
+        control.label }}
+      </label>
+      }
+    </div>
+  </section>
+
+  <section data-testid="hook">
+    <h2>Signal factory</h2>
+    <input
+      #customInput
+      type="tel"
+      [value]="mask.displayValue()"
+      [placeholder]="mask.displayPlaceholder()"
+      data-testid="phone-input"
+      aria-label="Custom phone input"
+    />
+    <button data-testid="control-country-us" (click)="mask.setCountry('US')">US</button>
+    <button data-testid="control-country-de" (click)="mask.setCountry('DE')">DE</button>
+    <button data-testid="control-clear" (click)="mask.clear()">Clear</button>
+    <p data-testid="meta-digits">Digits: {{ mask.digits() || '—' }}</p>
+    <p data-testid="meta-full">Full: {{ mask.full() || '—' }}</p>
+    <p data-testid="meta-formatted">Formatted: {{ mask.fullFormatted() || '—' }}</p>
+    <p data-testid="meta-valid">Valid: {{ mask.isComplete() ? 'Yes' : 'No' }}</p>
+  </section>
+
+  <section data-testid="forms">
+    <h2>Reactive forms</h2>
+    <phone-input [country]="formCountry()" [detect]="false" [formControl]="phoneControl" [showClear]="true" />
+    <p data-testid="form-value">{{ formValue() }}</p>
+    <p data-testid="form-touched">{{ phoneControl.touched }}</p>
+    <button data-testid="form-reset" (click)="phoneControl.reset()">Reset</button>
+    <button data-testid="form-disable" (click)="phoneControl.disable()">Disable</button>
+    <button data-testid="form-enable" (click)="phoneControl.enable()">Enable</button>
+    <button data-testid="form-country-unlock" (click)="formCountry.set(undefined)">Choose country</button>
+    <h2>Template-driven forms</h2>
+    <phone-input country="US" [(ngModel)]="modelPhone" />
+    <p data-testid="model-value">{{ modelPhone() }}</p>
+  </section>
+
+  <section data-testid="directive">
+    <h2>Directive</h2>
+    <input [phoneMask]="{ country: 'US' }" [(ngModel)]="directivePhone" aria-label="Directive phone input" />
+    <p data-testid="directive-value">{{ directivePhone() }}</p>
+  </section>
+
+  }
+  <section data-testid="pipe">
+    <h2>Display pipe</h2>
+    <p data-testid="pipe-full">{{ '+12345678888' | phone }}</p>
+    <p data-testid="pipe-without-code">{{ '234 567 8888' | phone: 'US': { code: false, flag: true } }}</p>
+  </section>
+</main>

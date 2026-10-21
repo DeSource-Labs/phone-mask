@@ -9,9 +9,9 @@ import {
   processInput,
   processKeydown,
   processPaste
-} from '../../src/handlers';
-import { createPhoneFormatter } from '../../src/formatter';
-import type { CountryKey } from '../../src/entries';
+} from '@src/handlers';
+import { createPhoneFormatter } from '@src/formatter';
+import type { CountryKey } from '@src/entries';
 
 const createFormatter = () =>
   createPhoneFormatter({
@@ -344,6 +344,36 @@ describe('processKeydown', () => {
 });
 
 describe('processPaste', () => {
+  it.each([
+    ['+7 12345 6 77 88', 'KZ', '1234567788'],
+    ['+71234567788', 'RU', '1234567788'],
+    ['+4915123456789', 'DE', '15123456789'],
+    ['+39 06 1234 5678', 'IT', '0612345678'],
+    ['+11234567890', 'US', '1234567890']
+  ])('replaces the entire value for detected international paste %s', (text, country, newDigits) => {
+    const formatter = createFormatter(); // Five digits: must not truncate the detected country's number.
+    const input = createInput(formatter.formatDisplay('12345'));
+    input.setSelectionRange(2, 4);
+    const event = createPasteEvent(input, text);
+
+    expect(processPaste(event, { digits: '12345', formatter })).toEqual({
+      country,
+      newDigits,
+      caretDigitIndex: newDigits.length
+    });
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps existing insertion behavior when international detection fails', () => {
+    const formatter = createFormatter();
+    const input = createInput('1-2');
+    input.setSelectionRange(1, 1);
+    expect(processPaste(createPasteEvent(input, '+999'), { digits: '12', formatter })).toEqual({
+      newDigits: '19992',
+      caretDigitIndex: 4
+    });
+  });
+
   it('returns undefined when target is missing', () => {
     const formatter = createFormatter();
     const event = createPasteEvent(null, '99');

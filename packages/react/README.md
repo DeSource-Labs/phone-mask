@@ -27,6 +27,11 @@ Beautiful, accessible, extreme small & tree-shakeable React phone input with aut
 - 🪝 **Hook API** — For custom input implementations
 - ⚡ **Optimized** — Tree-shaking and code splitting
 
+Pasting a complete international number starting with `+` detects its country and replaces the whole input.
+Detection tries an exact mask, then calling code and digit count; shared matches use the calling code's default country.
+It uses mask data, not allocation prefixes, so an unformatted Canadian `+1` number defaults to US.
+Fragments without a calling code retain the selected country and paste at the caret. This works independently of `detect`, which controls GeoIP and locale detection.
+
 ## 📦 Installation
 
 ```bash
@@ -221,6 +226,23 @@ export function TenantPhoneInput({ tenantId }: { tenantId: string }) {
   );
 }
 ```
+
+## 🔤 Display Formatting
+
+Call `formatPhone(value, country?, options?)` directly in JSX. It returns text and requires no CSS.
+
+```tsx
+import { formatPhone } from '@desource/phone-mask-react/core';
+
+function Contact({ phone }: { phone: string }) {
+  return <span>{formatPhone(phone, 'US', { code: false, flag: true })}</span>;
+}
+// '+12345678888' displays as '🇺🇸 234 567 8888'.
+```
+
+Omit `country` to detect a complete international number beginning with `+`; pass it for numbers without a calling code or to resolve shared calling codes such as US/CA. The optional `PhoneFormatOptions` argument accepts `code` (default `true`) and `flag` (default `false`).
+
+The function works during SSR. Unsupported values remain unchanged; empty, whitespace-only, `null`, and `undefined` values return empty text. See the [formatting rules](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core/README.md#formatphonevalue-country-options) for detection limits and examples.
 
 ## 📖 Component API
 
@@ -585,25 +607,26 @@ function Example() {
 │   ├── core.mjs                # Core kit utilities and mask data subpath
 │   ├── core.cjs                # Core kit utilities and mask data CJS subpath
 │   ├── phone-mask-react.css    # Component styles
-│   └── types/                  # TypeScript declarations
+│   └── *.d.ts, *.d.cts         # ESM and CommonJS declarations
 ├── README.md                   # This file
 └── package.json                # Package manifest
 ```
 
-## 🔗 Related
+## 🔗 Related Packages
 
-- [@desource/phone-mask](../core) — Core library
-- [@desource/phone-mask-nuxt](../nuxt) — Nuxt module
-- [@desource/phone-mask-vue](../vue) — Vue 3 bindings
-- [@desource/phone-mask-svelte](../svelte) — Svelte bindings
+- [@desource/phone-mask](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core) — Core library
+- [@desource/phone-mask-angular](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/angular) — Angular bindings
+- [@desource/phone-mask-svelte](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/svelte) — Svelte bindings
+- [@desource/phone-mask-vue](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/vue) — Vue 3 bindings
+- [@desource/phone-mask-nuxt](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/nuxt) — Nuxt module
 
 ## 📄 License
 
-[MIT](../../LICENSE) © 2026 DeSource Labs
+[MIT](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE) © 2026 DeSource Labs
 
 ## 🤝 Contributing
 
-See [Contributing Guide](../../CONTRIBUTING.md)
+See [Contributing Guide](https://github.com/DeSource-Labs/phone-mask/blob/main/CONTRIBUTING.md) for development, testing, and publication checks.
 
 ---
 

@@ -19,7 +19,8 @@
     { "path": "./packages/vue/tsconfig.json" },
     { "path": "./packages/nuxt/tsconfig.json" },
     { "path": "./packages/react/tsconfig.json" },
-    { "path": "./packages/svelte/tsconfig.json" }
+    { "path": "./packages/svelte/tsconfig.json" },
+    { "path": "./packages/angular/tsconfig.json" }
   ],
   "include": [],
   "exclude": ["node_modules", "dist"]

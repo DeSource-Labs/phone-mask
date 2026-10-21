@@ -1,14 +1,8 @@
 /// <reference types="vitest/globals" />
 import { describe, expect, it, vi } from 'vitest';
-import { countryCodeEmoji } from '../../src/country-code-emodji';
-import { MasksFull, MasksFullMap } from '../../src/entries';
+import { MasksFull, MasksFullMap } from '@src/entries';
 
 describe('entries helpers', () => {
-  it('throws for invalid country code inputs', () => {
-    expect(() => countryCodeEmoji('USA')).toThrow(TypeError);
-    expect(() => countryCodeEmoji(123 as unknown as string)).toThrow(TypeError);
-  });
-
   it('handles display names cache growth and keeps producing maps', () => {
     const locales = ['de', 'fr', 'es', 'it', 'pt', 'ru', 'uk', 'ar', 'zh', 'ja', 'ko', 'tr'];
 

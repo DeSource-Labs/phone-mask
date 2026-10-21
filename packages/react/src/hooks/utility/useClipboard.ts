@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useTimer } from './useTimer';
+import { useTimer } from './useTimer.js';
 
 export function useClipboard(delay = 1_800) {
   const [copied, setCopied] = useState(false);

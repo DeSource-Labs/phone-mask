@@ -8,6 +8,7 @@
             :key="item.id"
             class="lib-item"
             :class="{ selected: selected === item.id }"
+            :aria-pressed="selected === item.id"
             type="button"
             @click="onSelected(item.id)"
           >
@@ -129,7 +130,7 @@ $dropdown: '.phone-dropdown-main.desource-phone-dropdown';
 .lib-item {
   flex: 1;
   text-align: center;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.6rem;
   background-color: transparent;
   color: var(--color-primary);
   cursor: pointer;

@@ -212,6 +212,8 @@ export interface PhoneMaskBindingOptions {
 export interface PhoneMaskBindingState {
   /** Current selected country */
   country: MaskFull;
+  /** Last country option applied by the action. */
+  countryOption?: string;
   /** Formatter instance for current country */
   formatter: FormatterHelpers;
   /** Raw digits without formatting */
@@ -221,7 +223,7 @@ export interface PhoneMaskBindingState {
   /** Current binding options */
   options: PhoneMaskBindingOptions;
   /** Programmatically change country by ISO code */
-  setCountry: (code: string) => boolean;
+  setCountry: (code: string, updateValue?: boolean) => boolean;
 }
 
 /** Extended HTMLInputElement carrying phone-mask internal state */

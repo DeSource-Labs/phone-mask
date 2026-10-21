@@ -3,8 +3,6 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { inspect } from 'node:util';
 import { mapLimit, retry } from './benchmark-async.mts';
-// Note: this script requires `esbuild`, `@rspack/core` & `css-loader` to be installed
-// (e.g. as a dev dependency: `pnpm add -w -D esbuild @rspack/core css-loader`).
 import { getPackageExportSizes, getPackageStats } from './stable-package-stats.mts';
 import {
   calculateComparableGzip,
@@ -55,6 +53,7 @@ type PackageSizeMetrics = {
   sizeAvailable: boolean;
 };
 type PackageMetrics = {
+  published: boolean;
   lastPublished: string | null;
   repositoryUrl: string | null;
   minified: number | null;
@@ -101,6 +100,16 @@ const GROUPS: GroupDefinition[] = [
     rows: [{ pkg: '@desource/phone-mask-svelte', highlight: true }, { pkg: 'svelte-tel-input' }]
   },
   {
+    title: 'Angular',
+    rows: [
+      { pkg: '@desource/phone-mask-angular', highlight: true },
+      { pkg: '@intl-tel-input/angular' },
+      { pkg: 'ngx-material-intl-tel-input' },
+      { pkg: 'ngx-intl-tel-input' }
+    ],
+    note: 'Angular measurements cover complete JavaScript entrypoints after public Angular linking and minification, with Angular (including Material/CDK), RxJS and declared peers external. Required phone-engine peers are added under `Data overhead`. These are not complete application download sizes: component-inlined CSS/images count; separately imported styles/assets do not. `@intl-tel-input/angular` uses its `/with-utils` entry to include formatting and validation. `ngx-material-intl-tel-input` includes embedded flag images and publishes a separate major for each Angular major; this table measures npm latest. `ngx-intl-tel-input` declares Angular >=17 compatibility; that declaration is not a compatibility test.'
+  },
+  {
     title: 'Nuxt',
     rows: [{ pkg: '@desource/phone-mask-nuxt', highlight: true }],
     note: 'Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input modules with stable npm + size signals comparable to React/Vue/Svelte peers; most Nuxt apps use Vue phone input packages directly.'
@@ -116,7 +125,8 @@ const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 10_000;
 const PACKAGE_STATS_CONCURRENCY = 3;
 const PHONE_DATA_SOURCE_LABEL_OVERRIDES: Record<string, string> = {
-  'react-international-phone': 'None'
+  'react-international-phone': 'None',
+  '@intl-tel-input/angular': '[intl-tel-input utilities](https://intl-tel-input.com/docs/angular-component) (included)'
 };
 const PACKAGES_WITHOUT_PHONE_DATA_SOURCE = new Set(
   Object.entries(PHONE_DATA_SOURCE_LABEL_OVERRIDES)
@@ -264,7 +274,7 @@ function formatErrorDetails(error: unknown): string {
   return parts.join(' | ');
 }
 
-async function fetchJson<T>(url: string): Promise<T> {
+async function fetchJson<T>(url: string): Promise<T | null> {
   try {
     return await retry(async () => {
       const response = await fetch(url, {
@@ -274,6 +284,7 @@ async function fetchJson<T>(url: string): Promise<T> {
         }
       });
 
+      if (response.status === 404) return null;
       if (!response.ok) {
         throw new Error(`HTTP ${response.status} for ${url}: ${response.statusText}`);
       }
@@ -295,7 +306,10 @@ function fetchPackageSizeMetrics(pkg: string): Promise<PackageSizeMetrics> {
 
   const task: Promise<PackageSizeMetrics> = (async () => {
     try {
-      const payload = await getPackageStats(pkg, { installTimeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS });
+      const payload = await getPackageStats(pkg, {
+        installTimeout: PACKAGE_STATS_INSTALL_TIMEOUT_MS,
+        entrypoint: pkg === '@intl-tel-input/angular' ? `${pkg}/with-utils` : undefined
+      });
 
       const minified = typeof payload.size === 'number' && Number.isFinite(payload.size) ? payload.size : null;
       const gzip = typeof payload.gzip === 'number' && Number.isFinite(payload.gzip) ? payload.gzip : null;
@@ -366,8 +380,9 @@ async function resolveOverrideGzip(entry: ExportOverheadOverride): Promise<numbe
   }
 }
 
-async function fetchNpmPublishInfo(pkg: string): Promise<PublishInfo> {
+async function fetchNpmPublishInfo(pkg: string): Promise<PublishInfo | null> {
   const metadata = await fetchJson<NpmMetadata>(`${SOURCES.npmRegistry}/${encodeURIComponent(pkg)}`);
+  if (!metadata) return null;
   const latest = metadata?.['dist-tags']?.latest;
   const latestManifest = latest ? (metadata?.versions?.[latest] ?? {}) : {};
   const lastPublished = latest ? (metadata?.time?.[latest] ?? null) : null;
@@ -384,15 +399,18 @@ async function fetchNpmPublishInfo(pkg: string): Promise<PublishInfo> {
 
 async function fetchPackageMetrics(pkg: string): Promise<PackageMetrics> {
   const publishInfo = await fetchNpmPublishInfo(pkg);
-  const sizeMetrics = await fetchPackageSizeMetrics(pkg);
-  const dependencyNames = Object.keys(publishInfo.dependencies);
-  const peerDependencyNames = Object.keys(publishInfo.peerDependencies);
+  const sizeMetrics = publishInfo
+    ? await fetchPackageSizeMetrics(pkg)
+    : { minified: null, gzip: null, sizeAvailable: false };
+  const dependencyNames = Object.keys(publishInfo?.dependencies ?? {});
+  const peerDependencyNames = Object.keys(publishInfo?.peerDependencies ?? {});
   const phoneEngineDeps = dependencyNames.filter((dep) => PHONE_ENGINE_PACKAGES.has(dep));
   const phoneEnginePeers = peerDependencyNames.filter((dep) => PHONE_ENGINE_PACKAGES.has(dep));
 
   return {
-    lastPublished: publishInfo.lastPublished ?? null,
-    repositoryUrl: publishInfo.repositoryUrl ?? null,
+    published: publishInfo !== null,
+    lastPublished: publishInfo?.lastPublished ?? null,
+    repositoryUrl: publishInfo?.repositoryUrl ?? null,
     minified: sizeMetrics.minified,
     gzip: sizeMetrics.gzip,
     sizeAvailable: sizeMetrics.sizeAvailable,
@@ -493,6 +511,9 @@ async function collectMetrics(): Promise<Map<string, PackageMetrics>> {
 function renderMetricRow(row: GroupRow, metric: PackageMetrics | undefined): string {
   if (!metric) {
     throw new Error(`Missing metrics for ${row.pkg}`);
+  }
+  if (!metric.published) {
+    return `| ${markdownPkgWithRepo(row.pkg, row.highlight, metric.repositoryUrl)} | ${EMPTY_DATA} | ${EMPTY_DATA} | ${EMPTY_DATA} | ${EMPTY_DATA} | ${EMPTY_DATA} |`;
   }
 
   const gzipCell = metric.sizeAvailable ? formatKb(metric.gzip) : EMPTY_DATA;

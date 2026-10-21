@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { prepareHydration } from '@common/tests/e2e/setup/hydration';
 
 const origin = 'http://localhost:5174';
 const values = ['202-555-0123', '415-555-2671', '650-555-1234'];
@@ -27,22 +28,7 @@ for (const options of [
     browser
   }) => {
     const page = await browser.newPage(options);
-    const diagnostics: string[] = [];
-    page.on('console', (message) => {
-      if (message.type() === 'warning' || message.type() === 'error') diagnostics.push(message.text());
-    });
-    page.on('pageerror', (error) => diagnostics.push(error.message));
-    let geoRequests = 0;
-    await page.route('https://ipapi.co/json/', async (route) => {
-      geoRequests++;
-      await route.fulfill({ json: { country_code: 'DE' } });
-    });
-    let release!: () => void;
-    const scripts = new Promise<void>((resolve) => (release = resolve));
-    await page.route('**/client.ts', async (route) => {
-      await scripts;
-      await route.continue();
-    });
+    const { diagnostics, release, getGeoRequests } = await prepareHydration(page, '**/client.ts');
     try {
       await page.goto(origin, { waitUntil: 'commit' });
       await page.locator('#selectable-phone').waitFor();
@@ -68,7 +54,7 @@ for (const options of [
         'aria-label',
         `Selected country: ${options.locale === 'de-DE' ? 'Vereinigte Staaten' : 'United States'}`
       );
-      await expect.poll(() => geoRequests).toBe(1);
+      await expect.poll(getGeoRequests).toBe(1);
       await expect(page.locator('.desource-phone-input').nth(1).locator('.pi-code')).toHaveText('+49');
 
       const selectors = page.locator('.pi-selector-btn[aria-haspopup="dialog"]');

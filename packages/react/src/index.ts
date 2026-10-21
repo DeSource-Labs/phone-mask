@@ -1,5 +1,5 @@
-export { PhoneInput } from './components/PhoneInput';
-export { usePhoneMask } from './hooks/usePhoneMask';
+export { PhoneInput } from './components/PhoneInput.js';
+export { usePhoneMask } from './hooks/usePhoneMask.js';
 
 export type {
   PhoneInputProps,
@@ -9,7 +9,7 @@ export type {
   UsePhoneMaskReturn,
   Size as PhoneInputSize,
   Theme as PhoneInputTheme
-} from './types';
+} from './types.js';
 
 export type {
   CountryKey as PCountryKey,

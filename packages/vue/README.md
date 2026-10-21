@@ -12,6 +12,8 @@
 
 Beautiful, accessible, extreme small & tree-shakeable Vue 3 phone input with auto-formatting, country selector, and validation.
 
+Pasting a complete international number beginning with `+` detects its country and replaces the input with the number without its calling code. Detection uses mask formatting, then digit count; ambiguous matches use the calling code's default country. Fragments without a calling code keep normal insertion behavior. The `detect` option controls GeoIP detection separately.
+
 ## ✨ Features
 
 - 🌐 **SSR Support** — `PhoneInput` renders formatted HTML on the server and hydrates in the browser
@@ -281,6 +283,27 @@ const isTenantValid = computed(() => {
   <p>Tenant validation: {{ isTenantValid ? 'pass' : 'fail' }}</p>
 </template>
 ```
+
+## 🔤 Display Formatting
+
+Call `formatPhone(value, country?, options?)` directly in your template. It returns text and requires no CSS.
+
+```vue
+<script setup lang="ts">
+import { formatPhone } from '@desource/phone-mask-vue/core';
+
+defineProps<{ phone: string }>();
+</script>
+
+<template>
+  <span>{{ formatPhone(phone, 'US', { code: false, flag: true }) }}</span>
+</template>
+<!-- '+12345678888' displays as '🇺🇸 234 567 8888'. -->
+```
+
+Omit `country` to detect a complete international number beginning with `+`; pass it for numbers without a calling code or to resolve shared calling codes such as US/CA. The optional `PhoneFormatOptions` argument accepts `code` (default `true`) and `flag` (default `false`).
+
+The function works during SSR. Unsupported values remain unchanged; empty, whitespace-only, `null`, and `undefined` values return empty text. See the [formatting rules](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core/README.md#formatphonevalue-country-options) for detection limits and examples.
 
 ## 📖 Component API
 
@@ -797,24 +820,26 @@ const form = reactive({
 │   ├── core.mjs            # Core kit utilities and mask data subpath
 │   ├── core.cjs            # Core kit utilities and mask data CJS subpath
 │   ├── phone-mask-vue.css  # Component styles
-│   └── types/              # TypeScript declarations
+│   └── *.d.ts, *.d.cts     # ESM and CommonJS declarations
 ├── README.md               # This file
 └── package.json            # Package manifest
 ```
 
-## 🔗 Related
+## 🔗 Related Packages
 
-- [@desource/phone-mask](../core) — Core library
-- [@desource/phone-mask-nuxt](../nuxt) — Nuxt module
-- [@desource/phone-mask-react](../react) — React bindings
+- [@desource/phone-mask](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core) — Core library
+- [@desource/phone-mask-nuxt](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/nuxt) — Nuxt module
+- [@desource/phone-mask-angular](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/angular) — Angular bindings
+- [@desource/phone-mask-react](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/react) — React bindings
+- [@desource/phone-mask-svelte](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/svelte) — Svelte bindings
 
 ## 📄 License
 
-[MIT](../../LICENSE) © 2026 DeSource Labs
+[MIT](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE) © 2026 DeSource Labs
 
 ## 🤝 Contributing
 
-See [Contributing Guide](../../CONTRIBUTING.md)
+See [Contributing Guide](https://github.com/DeSource-Labs/phone-mask/blob/main/CONTRIBUTING.md) for development, testing, and publication checks.
 
 ---
 

@@ -1,0 +1,7 @@
+@use '../../../common/styles/phone-input' as shared;
+
+@include shared.phone-input(
+  '.desource-phone-input:where(:not(.is-unstyled))',
+  '.desource-phone-dropdown:where(:not(.is-unstyled))',
+  '.desource-phone-input'
+);

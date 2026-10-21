@@ -10,15 +10,15 @@ import {
   type ForwardedRef
 } from 'react';
 import { createPortal } from 'react-dom';
-import { useFormatter } from '../hooks/internal/useFormatter';
-import { useCountry } from '../hooks/internal/useCountry';
-import { useValidationHint } from '../hooks/internal/useValidationHint';
-import { useInputHandlers } from '../hooks/internal/useInputHandlers';
-import { useCountrySelector } from '../hooks/internal/useCountrySelector';
-import { useCopyAction } from '../hooks/internal/useCopyAction';
-import { useTheme } from '../hooks/internal/useTheme';
+import { useFormatter } from '../hooks/internal/useFormatter.js';
+import { useCountry } from '../hooks/internal/useCountry.js';
+import { useValidationHint } from '../hooks/internal/useValidationHint.js';
+import { useInputHandlers } from '../hooks/internal/useInputHandlers.js';
+import { useCountrySelector } from '../hooks/internal/useCountrySelector.js';
+import { useCopyAction } from '../hooks/internal/useCopyAction.js';
+import { useTheme } from '../hooks/internal/useTheme.js';
 
-import type { PhoneInputProps, PhoneInputRef } from '../types';
+import type { PhoneInputProps, PhoneInputRef } from '../types.js';
 
 const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef>) => {
   const {
@@ -114,6 +114,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     formatter,
     digits,
     inactive,
+    onCountryChange: setCountry,
     onChange,
     scheduleValidationHint
   });
@@ -171,7 +172,6 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
 
   const rootClasses = [
     'desource-phone-input',
-    'phone-input', // [TODO 2.0.0] .phone-dropdown & .phone-input will be removed in 2.0.0+
     `size-${size}`,
     themeClass,
     disabled && 'is-disabled',
@@ -336,7 +336,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
           <div
             id={dropdownElementId}
             ref={dropdownRef}
-            className={`desource-phone-dropdown phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass} ${
+            className={`desource-phone-dropdown ${dropdownOpen ? 'is-open' : ''} ${dropdownClass} ${themeClass} ${
               disableDefaultStyles ? 'is-unstyled' : ''
             }`}
             role="dialog"
@@ -398,6 +398,8 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   );
 };
 
-export const PhoneInput = forwardRef<PhoneInputRef, PhoneInputProps>(PhoneInputInner);
-
-PhoneInput.displayName = 'PhoneInput';
+export const PhoneInput = /* @__PURE__ */ (() => {
+  const component = forwardRef<PhoneInputRef, PhoneInputProps>(PhoneInputInner);
+  component.displayName = 'PhoneInput';
+  return component;
+})();

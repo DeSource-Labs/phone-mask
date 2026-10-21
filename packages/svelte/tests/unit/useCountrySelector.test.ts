@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { useCountrySelector } from '@src/composables/internal/useCountrySelector.svelte';
 import {
-  createKeyboardOpenCountrySelectorSetupResult,
+  createCountrySelectorSetup,
   testUseCountrySelector,
   type SetupOptions
 } from '@common/tests/unit/useCountrySelector';
@@ -14,35 +14,19 @@ import {
 
 function setup(options: SetupOptions = {}) {
   const { countryOption, inactive } = options;
-  const countryOptionGetter = countryOption === undefined ? undefined : () => countryOption;
-  const inactiveGetter = inactive === undefined ? undefined : () => inactive;
-
-  const dom = createCountrySelectorDomFixture();
-  const cleanup = dom.cleanup;
-  const onSelectCountry = vi.fn();
-  const onAfterSelect = vi.fn();
-
-  const { result: rawResult, unmount } = withSetup(() =>
-    useCountrySelector({
-      rootRef: () => dom.rootEl,
-      dropdownRef: () => dom.dropdownEl,
-      searchRef: () => dom.searchEl,
-      selectorRef: () => dom.selectorEl,
-      locale: () => 'en',
-      onSelectCountry,
-      onAfterSelect,
-      countryOption: countryOptionGetter,
-      inactive: inactiveGetter
-    })
-  );
-
-  return createKeyboardOpenCountrySelectorSetupResult(
-    rawResult,
-    cleanup,
-    unmount,
-    onSelectCountry,
-    onAfterSelect,
-    dom.searchEl
+  return createCountrySelectorSetup((dom, callbacks) =>
+    withSetup(() =>
+      useCountrySelector({
+        rootRef: () => dom.rootEl,
+        dropdownRef: () => dom.dropdownEl,
+        searchRef: () => dom.searchEl,
+        selectorRef: () => dom.selectorEl,
+        locale: () => 'en',
+        countryOption: countryOption === undefined ? undefined : () => countryOption,
+        inactive: inactive === undefined ? undefined : () => inactive,
+        ...callbacks
+      })
+    )
   );
 }
 

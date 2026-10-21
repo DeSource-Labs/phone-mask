@@ -12,6 +12,8 @@
 
 Beautiful, accessible, extreme small & tree-shakeable Svelte 5 phone input with auto-formatting, country selector, and validation.
 
+Pasting a complete international number beginning with `+` detects its country and replaces the input with the number without its calling code. Detection uses mask formatting, then digit count; ambiguous matches use the calling code's default country. Fragments without a calling code keep normal insertion behavior. The `detect` option controls GeoIP detection separately.
+
 ## ✨ Features
 
 - 🌐 **SSR Support** — `PhoneInput` renders formatted HTML on the server and hydrates in the browser
@@ -303,6 +305,25 @@ With auto-detection:
 <p>Default country: {policy.defaultCountry}</p>
 <p>Tenant validation: {isTenantValid ? 'pass' : 'fail'}</p>
 ```
+
+## 🔤 Display Formatting
+
+Call `formatPhone(value, country?, options?)` directly in your template. It returns text and requires no CSS.
+
+```svelte
+<script lang="ts">
+  import { formatPhone } from '@desource/phone-mask-svelte/core';
+
+  let { phone }: { phone: string } = $props();
+</script>
+
+<span>{formatPhone(phone, 'US', { code: false, flag: true })}</span>
+<!-- '+12345678888' displays as '🇺🇸 234 567 8888'. -->
+```
+
+Omit `country` to detect a complete international number beginning with `+`; pass it for numbers without a calling code or to resolve shared calling codes such as US/CA. The optional `PhoneFormatOptions` argument accepts `code` (default `true`) and `flag` (default `false`).
+
+The function works during SSR. Unsupported values remain unchanged; empty, whitespace-only, `null`, and `undefined` values return empty text. See the [formatting rules](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core/README.md#formatphonevalue-country-options) for detection limits and examples.
 
 ## 📖 Component API
 
@@ -904,20 +925,21 @@ Or with CSS:
 
 The package ships native Svelte components and rune modules so your Svelte build compiles them for the browser or server. It requires Svelte-aware tooling; there is no precompiled CommonJS component entry.
 
-## 🔗 Related
+## 🔗 Related Packages
 
-- [@desource/phone-mask](../core) — Core library
-- [@desource/phone-mask-nuxt](../nuxt) — Nuxt module
-- [@desource/phone-mask-vue](../vue) — Vue 3 bindings
-- [@desource/phone-mask-react](../react) — React bindings
+- [@desource/phone-mask](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core) — Core library
+- [@desource/phone-mask-angular](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/angular) — Angular bindings
+- [@desource/phone-mask-react](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/react) — React bindings
+- [@desource/phone-mask-vue](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/vue) — Vue 3 bindings
+- [@desource/phone-mask-nuxt](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/nuxt) — Nuxt module
 
 ## 📄 License
 
-[MIT](../../LICENSE) © 2026 DeSource Labs
+[MIT](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE) © 2026 DeSource Labs
 
 ## 🤝 Contributing
 
-See [Contributing Guide](../../CONTRIBUTING.md)
+See [Contributing Guide](https://github.com/DeSource-Labs/phone-mask/blob/main/CONTRIBUTING.md) for development, testing, and publication checks.
 
 ---
 

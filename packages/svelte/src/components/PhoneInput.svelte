@@ -112,6 +112,7 @@
     digits: () => formatterData.digits,
     inactive: () => inactive,
     onChange: (v) => (value = v),
+    onCountryChange: countryData.setCountry,
     scheduleValidationHint: validationHint.scheduleValidationHint
   });
 
@@ -165,7 +166,6 @@
   const rootClasses = $derived(
     [
       'desource-phone-input',
-      'phone-input', // [TODO 2.0.0] .phone-dropdown & .phone-input will be removed in 2.0.0+
       `size-${size}`,
       themeData.themeClass,
       disabled && 'is-disabled',
@@ -327,7 +327,7 @@
       id={dropdownElementId}
       bind:this={dropdownEl}
       use:portalToBody
-      class="desource-phone-dropdown phone-dropdown {dropdownClass} {themeData.themeClass}"
+      class="desource-phone-dropdown {dropdownClass} {themeData.themeClass}"
       class:is-open={selectorData.dropdownOpen}
       class:is-unstyled={disableDefaultStyles}
       role="dialog"

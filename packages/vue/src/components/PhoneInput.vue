@@ -117,7 +117,7 @@
         v-if="renderDropdown"
         :id="dropdownElementId"
         ref="dropdownRef"
-        class="desource-phone-dropdown phone-dropdown"
+        class="desource-phone-dropdown"
         :class="[{ 'is-open': dropdownOpen, 'is-unstyled': disableDefaultStyles }, dropdownClass, themeClass]"
         role="dialog"
         aria-modal="false"
@@ -179,14 +179,14 @@
 <script setup lang="ts">
 import { computed, getCurrentInstance, nextTick, onMounted, ref, shallowRef, type CSSProperties } from 'vue';
 
-import { useCountry } from '../composables/internal/useCountry';
-import { useFormatter } from '../composables/internal/useFormatter';
-import { useValidationHint } from '../composables/internal/useValidationHint';
-import { useInputHandlers } from '../composables/internal/useInputHandlers';
-import { useCountrySelector } from '../composables/internal/useCountrySelector';
-import { useCopyAction } from '../composables/internal/useCopyAction';
-import { useTheme } from '../composables/internal/useTheme';
-import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots, PhoneNumber } from '../types';
+import { useCountry } from '../composables/internal/useCountry.js';
+import { useFormatter } from '../composables/internal/useFormatter.js';
+import { useValidationHint } from '../composables/internal/useValidationHint.js';
+import { useInputHandlers } from '../composables/internal/useInputHandlers.js';
+import { useCountrySelector } from '../composables/internal/useCountrySelector.js';
+import { useCopyAction } from '../composables/internal/useCopyAction.js';
+import { useTheme } from '../composables/internal/useTheme.js';
+import type { PhoneInputEmits, PhoneInputExposed, PhoneInputProps, PhoneInputSlots, PhoneNumber } from '../types.js';
 
 const props = withDefaults(defineProps<PhoneInputProps>(), {
   detect: true,
@@ -308,6 +308,7 @@ const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputH
   digits,
   inactive,
   onChange,
+  onCountryChange: setCountry,
   scheduleValidationHint
 });
 
@@ -348,7 +349,6 @@ const { themeClass } = useTheme({
 
 const rootClasses = computed(() => [
   'desource-phone-input',
-  'phone-input', // [TODO 2.0.0] .phone-dropdown & .phone-input will be removed in 2.0.0+
   `size-${props.size}`,
   themeClass.value,
   {

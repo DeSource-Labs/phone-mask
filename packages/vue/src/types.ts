@@ -199,6 +199,7 @@ export interface PMaskDirectiveOptions {
 /** Internal state stored on the input element of the directive */
 export interface PMaskDirectiveState {
   country: MaskFull;
+  countryOption?: string;
   formatter: FormatterHelpers;
   digits: string; // Raw digits without formatting
   locale: string;

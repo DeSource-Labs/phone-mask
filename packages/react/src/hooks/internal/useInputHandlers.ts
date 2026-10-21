@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import type { CountryKey } from '@desource/phone-mask';
 import {
   processBeforeInput,
   processInput,
@@ -13,6 +14,7 @@ export interface UseInputHandlersOptions {
   digits: string;
   inactive?: boolean;
   onChange?: (newDigits: string) => void;
+  onCountryChange?: (country: CountryKey) => void;
   scheduleValidationHint?: (delay: number) => void;
 }
 
@@ -36,18 +38,20 @@ const HINT_DELAY_ACTION = 300;
  * Handlers are compatible with both native events and React synthetic events.
  */
 export function useInputHandlers(options: UseInputHandlersOptions): UseInputHandlersReturn {
-  const { formatter, digits, inactive, onChange, scheduleValidationHint } = options;
+  const { formatter, digits, inactive, onChange, onCountryChange, scheduleValidationHint } = options;
 
-  // Helper: Schedule caret position update
-  const scheduleCaretUpdate = useCallback(
-    (el: HTMLInputElement | null, digitIndex: number) => {
+  const apply = useCallback(
+    (evt: Event, result: ReturnType<typeof processPaste>, delay: number) => {
+      if (!result) return;
+      if (result.country) onCountryChange?.(result.country);
+      onChange?.(result.newDigits);
+      const el = evt.target as HTMLInputElement | null;
       setTimeout(() => {
-        if (!el) return;
-        const pos = formatter.getCaretPosition(digitIndex);
-        setCaret(el, pos);
+        if (el) setCaret(el, result.country ? el.value.length : formatter.getCaretPosition(result.caretDigitIndex));
       });
+      scheduleValidationHint?.(delay);
     },
-    [formatter]
+    [formatter, onChange, onCountryChange, scheduleValidationHint]
   );
 
   const handleBeforeInput = useCallback((e: React.SyntheticEvent<HTMLInputElement> | InputEvent) => {
@@ -59,15 +63,9 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
       if (inactive) return;
 
       const evt = getNativeEvent(e);
-      const result = processInput(evt, { formatter });
-
-      if (!result) return;
-
-      onChange?.(result.newDigits);
-      scheduleCaretUpdate(evt.target as HTMLInputElement | null, result.caretDigitIndex);
-      scheduleValidationHint?.(HINT_DELAY_INPUT);
+      apply(evt, processInput(evt, { formatter }), HINT_DELAY_INPUT);
     },
-    [inactive, formatter, onChange, scheduleCaretUpdate, scheduleValidationHint]
+    [inactive, formatter, apply]
   );
 
   const handleKeydown = useCallback(
@@ -75,15 +73,9 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
       if (inactive) return;
 
       const evt = getNativeEvent(e) as KeyboardEvent;
-      const result = processKeydown(evt, { digits, formatter });
-
-      if (!result) return;
-
-      onChange?.(result.newDigits);
-      scheduleCaretUpdate(evt.target as HTMLInputElement | null, result.caretDigitIndex);
-      scheduleValidationHint?.(HINT_DELAY_ACTION);
+      apply(evt, processKeydown(evt, { digits, formatter }), HINT_DELAY_ACTION);
     },
-    [inactive, digits, formatter, onChange, scheduleCaretUpdate, scheduleValidationHint]
+    [inactive, digits, formatter, apply]
   );
 
   const handlePaste = useCallback(
@@ -91,15 +83,9 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
       if (inactive) return;
 
       const evt = getNativeEvent(e) as ClipboardEvent;
-      const result = processPaste(evt, { digits, formatter });
-
-      if (!result) return;
-
-      onChange?.(result.newDigits);
-      scheduleCaretUpdate(evt.target as HTMLInputElement | null, result.caretDigitIndex);
-      scheduleValidationHint?.(HINT_DELAY_ACTION);
+      apply(evt, processPaste(evt, { digits, formatter }), HINT_DELAY_ACTION);
     },
-    [inactive, digits, formatter, onChange, scheduleCaretUpdate, scheduleValidationHint]
+    [inactive, digits, formatter, apply]
   );
 
   return {

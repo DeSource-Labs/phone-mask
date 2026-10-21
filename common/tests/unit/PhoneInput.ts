@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import type { TestTools } from './setup/tools';
+import { internationalPasteCases, makePasteEvent } from './setup/paste';
 
 import type { Mock } from 'vitest';
 
@@ -64,6 +65,75 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
   };
 
   describe('PhoneInput API', () => {
+    it.each(internationalPasteCases)(
+      'selects $country from pasted $text before formatting',
+      async ({ text, country, digits, display }) => {
+        const { container, ref, onChange, onCountryChange, unmount } = await setup({
+          value: '2025550199',
+          country: 'US',
+          detect: false
+        });
+        const input = container.querySelector<HTMLInputElement>('.pi-input')!;
+        onChange.mockClear();
+
+        await act(() => {
+          input.setSelectionRange(3, 5);
+          input.dispatchEvent(makePasteEvent(text));
+        });
+
+        expect(onCountryChange).toHaveBeenLastCalledWith(expect.objectContaining({ id: country }));
+        expect(ref.getDigits()).toBe(digits);
+        expect(input.value).toBe(display);
+        expect(onChange).toHaveBeenCalledExactlyOnceWith(digits);
+        await waitFor(() => {
+          expect(input.selectionStart).toBe(display.length);
+          expect(input.selectionEnd).toBe(display.length);
+        });
+        unmount();
+      }
+    );
+
+    it('keeps country when inserting fragments without a calling code', async () => {
+      const { container, ref, onCountryChange, unmount } = await setup({
+        value: '234567',
+        country: 'US',
+        detect: false
+      });
+      const input = container.querySelector<HTMLInputElement>('.pi-input')!;
+      onCountryChange.mockClear();
+
+      await act(() => {
+        input.setSelectionRange(4, 4);
+        input.dispatchEvent(makePasteEvent('99'));
+      });
+
+      expect(ref.getDigits()).toBe('23499567');
+      expect(input.value).toBe('234-995-67');
+      expect(onCountryChange).not.toHaveBeenCalled();
+      await waitFor(() => expect(input.selectionStart).toBe(6));
+      unmount();
+    });
+
+    it.each(['disabled', 'readonly'] as const)('ignores international paste while %s', async (option) => {
+      const { container, ref, onChange, onCountryChange, unmount } = await setup({
+        value: '2025550199',
+        country: 'US',
+        detect: false,
+        [option]: true
+      });
+      onChange.mockClear();
+      onCountryChange.mockClear();
+
+      await act(() => {
+        container.querySelector('.pi-input')!.dispatchEvent(makePasteEvent('+4915123456789'));
+      });
+
+      expect(ref.getFullNumber()).toBe('+12025550199');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onCountryChange).not.toHaveBeenCalled();
+      unmount();
+    });
+
     it('uses the shared component structure and style scope markers', async () => {
       const { container, unmount } = await setup({ detect: false });
 
@@ -324,12 +394,9 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
       await setInputValue(input, '202-555-0199');
       await fireEvent.keyDown(input, { key: 'Backspace' });
 
-      const pasteEvent = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
-      Object.defineProperty(pasteEvent, 'clipboardData', {
-        value: { getData: () => '99' },
-        configurable: true
+      await act(() => {
+        input.dispatchEvent(makePasteEvent('99'));
       });
-      input.dispatchEvent(pasteEvent);
 
       let copyButton!: HTMLButtonElement;
       await waitFor(() => {

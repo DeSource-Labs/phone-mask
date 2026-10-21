@@ -5,8 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
+    minify: false,
     lib: {
-      name: 'PhoneMaskReact',
       entry: {
         index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
         core: fileURLToPath(new URL('./src/core.ts', import.meta.url))
@@ -21,15 +21,7 @@ export default defineConfig({
       external: ['@desource/phone-mask', '@desource/phone-mask/kit', 'react', 'react-dom', 'react/jsx-runtime'],
       output: {
         exports: 'named',
-        postBanner: (chunk) => (chunk.isEntry && chunk.name === 'index' ? "'use client';" : ''),
-        globals: {
-          '@desource/phone-mask': 'phoneMask',
-          '@desource/phone-mask/kit': 'phoneMaskKit',
-          react: 'React',
-          'react-dom': 'ReactDOM',
-          'react/jsx-runtime': 'jsxRuntime'
-        },
-        minify: true
+        postBanner: (chunk) => (chunk.isEntry && chunk.name === 'index' ? "'use client';" : '')
       }
     }
   }

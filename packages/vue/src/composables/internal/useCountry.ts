@@ -38,6 +38,7 @@ export function useCountry({
   const locale = computed<string>(() => toValue(localeOption) || browserLocale.value);
 
   const countryCode = ref<string>(parseCountryCode(toValue(countryOption), 'US'));
+  let countryRevision = 0;
 
   const country = computed<MaskFull>(() => getCountry(countryCode.value, locale.value));
 
@@ -45,6 +46,7 @@ export function useCountry({
     const parsed = parseCountryCode(code);
 
     if (parsed) {
+      countryRevision++;
       countryCode.value = parsed;
       return true;
     }
@@ -53,7 +55,9 @@ export function useCountry({
   };
 
   const detectCountry = async () => {
+    const revision = countryRevision;
     const geoCountry = await detectByGeoIp();
+    if (revision !== countryRevision) return;
 
     if (setCountry(geoCountry)) return;
 
@@ -65,7 +69,7 @@ export function useCountry({
   // Sync external country prop
   watchEffect(() => {
     const newCountry = toValue(countryOption);
-    if (newCountry && newCountry !== countryCode.value) {
+    if (newCountry) {
       setCountry(newCountry);
     }
   });

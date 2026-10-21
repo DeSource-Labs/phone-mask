@@ -88,6 +88,19 @@ Best choice in Vue: **@desource/phone-mask-vue** (10.8 KB).
 
 Best choice in Svelte: **@desource/phone-mask-svelte** (11.3 KB).
 
+#### Angular
+
+| Package                                                                                                                                                          | Last published | Phone data source                                                                        | Data overhead |     Gzip | Total gzip |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------: | ---------------------------------------------------------------------------------------- | ------------: | -------: | ---------: |
+| [@intl-tel-input/angular](https://www.npmjs.com/package/@intl-tel-input/angular) · [Repo](https://github.com/jackocnr/intl-tel-input)                            |     2026-10-11 | [intl-tel-input utilities](https://intl-tel-input.com/docs/angular-component) (included) |        0.0 KB |  76.3 KB |    76.3 KB |
+| [ngx-intl-tel-input](https://www.npmjs.com/package/ngx-intl-tel-input) · [Repo](https://github.com/webcat12345/ngx-intl-tel-input)                               |     2025-02-24 | [google-libphonenumber](https://www.npmjs.com/package/google-libphonenumber) (peer)      |      115.0 KB |  11.9 KB |   126.9 KB |
+| [ngx-material-intl-tel-input](https://www.npmjs.com/package/ngx-material-intl-tel-input) · [Repo](https://github.com/juanjotorres90/ngx-material-intl-tel-input) |     2026-08-01 | [google-libphonenumber](https://www.npmjs.com/package/google-libphonenumber) (dep)       |        0.0 KB | 404.9 KB |   404.9 KB |
+| [**@desource/phone-mask-angular**](https://www.npmjs.com/package/@desource/phone-mask-angular) · [Repo](https://github.com/DeSource-Labs/phone-mask)             |            N/A | [@desource/phone-mask](https://www.npmjs.com/package/@desource/phone-mask) (dep)         |           N/A |      N/A |        N/A |
+
+Smallest measured bundle in Angular: **@intl-tel-input/angular** (76.3 KB).
+
+Angular measurements cover complete JavaScript entrypoints after public Angular linking and minification, with Angular (including Material/CDK), RxJS and declared peers external. Required phone-engine peers are added under `Data overhead`. These are not complete application download sizes: component-inlined CSS/images count; separately imported styles/assets do not. `@intl-tel-input/angular` uses its `/with-utils` entry to include formatting and validation. `ngx-material-intl-tel-input` includes embedded flag images and publishes a separate major for each Angular major; this table measures npm latest. `ngx-intl-tel-input` declares Angular >=17 compatibility; that declaration is not a compatibility test.
+
 #### Nuxt
 
 | Package                                                                                                                                        | Last published | Phone data source                                                                                     | Data overhead |   Gzip | Total gzip |
@@ -104,23 +117,25 @@ Nuxt ecosystem note: there are currently no widely adopted Nuxt-only phone input
 
 Ready-made plugins for your stack:
 
-- ✅ **Vue 3** — Component, composable, and directive
-- ✅ **Nuxt** — Auto-imported, SSR-compatible
+- ✅ **TypeScript/Vanilla JS** — Framework-agnostic core
+- ✅ **Angular 19–22** — Component, headless masking function, directive, and pipe with SSR and zoneless support
 - ✅ **React** — Component & hook with modern React patterns
 - ✅ **Svelte** — Component, composable, action, and attachment for Svelte 5
-- ✅ **TypeScript/Vanilla JS** — Framework-agnostic core
+- ✅ **Vue 3** — Component, composable, and directive
+- ✅ **Nuxt** — Auto-imported, SSR-compatible
 
 ---
 
 ## 📦 Packages
 
-| Package                                          | Version                                                                                 | Description                                           |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| [@desource/phone-mask](./packages/core)          | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)    | Core library — TypeScript/JS                          |
-| [@desource/phone-mask-react](./packages/react)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue&logo=react)   | React component + hook                                |
-| [@desource/phone-mask-vue](./packages/vue)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue&logo=vuedotjs)  | Vue 3 component + composable + directive              |
-| [@desource/phone-mask-svelte](./packages/svelte) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte) | Svelte 5 component + composable + action + attachment |
-| [@desource/phone-mask-nuxt](./packages/nuxt)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)     | Nuxt module                                           |
+| Package                                            | Version                                                                                   | Description                                               |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| [@desource/phone-mask](./packages/core)            | ![npm](https://img.shields.io/npm/v/@desource/phone-mask?color=blue&logo=typescript)      | Core library — TypeScript/JS                              |
+| [@desource/phone-mask-react](./packages/react)     | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-react?color=blue&logo=react)     | React component + hook                                    |
+| [@desource/phone-mask-vue](./packages/vue)         | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-vue?color=blue&logo=vuedotjs)    | Vue 3 component + composable + directive                  |
+| [@desource/phone-mask-svelte](./packages/svelte)   | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-svelte?color=blue&logo=svelte)   | Svelte 5 component + composable + action + attachment     |
+| [@desource/phone-mask-nuxt](./packages/nuxt)       | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-nuxt?color=blue&logo=nuxt)       | Nuxt module                                               |
+| [@desource/phone-mask-angular](./packages/angular) | ![npm](https://img.shields.io/npm/v/@desource/phone-mask-angular?color=blue&logo=angular) | Angular 19–22 component + headless API + directive + pipe |
 
 ---
 
@@ -180,6 +195,29 @@ npm install @desource/phone-mask-svelte
 
 <PhoneInput bind:value={phone} country="US" />
 ```
+
+### Angular 19–22
+
+```bash
+npm install @desource/phone-mask-angular
+```
+
+```ts
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { PhoneInputComponent } from '@desource/phone-mask-angular';
+
+@Component({
+  selector: 'app-profile',
+  imports: [PhoneInputComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<phone-input country="US" [(value)]="phone" />`
+})
+export class Profile {
+  readonly phone = signal('');
+}
+```
+
+Import `@desource/phone-mask-angular/assets/lib.css` in your global stylesheet.
 
 ### Nuxt
 
@@ -256,10 +294,11 @@ Try the interactive playground with:
 ## 📚 Documentation
 
 - [Core](./packages/core/README.md)
+- [Angular](./packages/angular/README.md)
 - [React](./packages/react/README.md)
+- [Svelte](./packages/svelte/README.md)
 - [Vue](./packages/vue/README.md)
 - [Nuxt](./packages/nuxt/README.md)
-- [Svelte](./packages/svelte/README.md)
 
 ---
 

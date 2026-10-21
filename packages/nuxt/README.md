@@ -496,20 +496,21 @@ No changes needed in your components!
 - `vPhoneMaskSetCountry` and `PMaskHelpers` (optional via `phoneMask.helpers`)
 - `usePhoneMask` (optional via `phoneMask.composable`)
 
-## 🔗 Related
+## 🔗 Related Packages
 
-- [@desource/phone-mask](../core) — Core library
-- [@desource/phone-mask-vue](../vue) — Vue 3 component
-- [@desource/phone-mask-react](../react) — React bindings
-- [@desource/phone-mask-svelte](../svelte) — Svelte bindings
+- [@desource/phone-mask](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core) — Core library
+- [@desource/phone-mask-vue](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/vue) — Vue 3 component
+- [@desource/phone-mask-angular](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/angular) — Angular bindings
+- [@desource/phone-mask-react](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/react) — React bindings
+- [@desource/phone-mask-svelte](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/svelte) — Svelte bindings
 
 ## 📄 License
 
-[MIT](../../LICENSE) © 2026 DeSource Labs
+[MIT](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE) © 2026 DeSource Labs
 
 ## 🤝 Contributing
 
-See [Contributing Guide](../../CONTRIBUTING.md)
+See [Contributing Guide](https://github.com/DeSource-Labs/phone-mask/blob/main/CONTRIBUTING.md) for development, testing, and publication checks.
 
 ---
 

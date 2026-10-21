@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useSyncExternalStore } from 'react';
+import { useState, useEffect, useMemo, useCallback, useSyncExternalStore, useRef } from 'react';
 import type { MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
@@ -47,11 +47,13 @@ export function useCountry({
   const country = useMemo<MaskFull>(() => getCountry(countryCode, locale), [countryCode, locale]);
 
   const shouldDetect = !!detect && !countryOption;
+  const countryRevision = useRef(0);
 
   const setCountry = useCallback((countryCode?: string | null) => {
     const code = parseCountryCode(countryCode);
 
     if (code) {
+      countryRevision.current++;
       setCountryCode(code);
       return true;
     }
@@ -60,7 +62,9 @@ export function useCountry({
   }, []);
 
   const detectCountry = useCallback(async () => {
+    const revision = countryRevision.current;
     const geoCountry = await detectByGeoIp();
+    if (revision !== countryRevision.current) return;
 
     if (setCountry(geoCountry)) return;
 
@@ -70,10 +74,8 @@ export function useCountry({
   }, [setCountry]);
 
   useEffect(() => {
-    if (countryOption && countryOption !== countryCode) {
-      setCountry(countryOption);
-    }
-  }, [countryCode, countryOption, setCountry]);
+    setCountry(countryOption);
+  }, [countryOption, setCountry]);
 
   // Effect: Country detection
   useEffect(() => {

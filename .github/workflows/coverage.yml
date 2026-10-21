@@ -131,6 +131,7 @@ jobs:
             ./packages/react/coverage/lcov.info
             ./packages/svelte/coverage/lcov.info
             ./packages/nuxt/coverage/lcov.info
+            ./packages/angular/coverage/lcov.info
 
       - name: Cleanup baseline worktree
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != '' && steps.baseline-worktree.outputs.path != '' }}

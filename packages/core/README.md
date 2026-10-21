@@ -33,14 +33,49 @@ pnpm add @desource/phone-mask
 
 ## Import Paths
 
-The root entry contains country metadata and mask data. Formatter, input handling, detection, and utility helpers live in the `kit` subpath.
+The root entry contains country metadata and mask data. Display formatting, lower-level formatters, input handling, detection, and utility helpers live in the `kit` subpath.
 
 ```ts
 import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
-import { createPhoneFormatter, formatDigitsWithMap } from '@desource/phone-mask/kit';
+import { formatPhone, createPhoneFormatter, formatDigitsWithMap } from '@desource/phone-mask/kit';
 ```
 
+### Distribution formats
+
+Package imports use unminified ESM or CommonJS; application bundlers handle tree-shaking and minification. Both entries include TypeScript declarations for each module format.
+
+| Use case                              | Root entry                   | Kit entry             |
+| ------------------------------------- | ---------------------------- | --------------------- |
+| ESM, including native browser modules | `dist/esm/index.js`          | `dist/esm/kit.js`     |
+| CommonJS                              | `dist/phone-mask.cjs`        | `dist/kit.cjs`        |
+| Browser globals, readable             | `dist/phone-mask.umd.js`     | `dist/kit.umd.js`     |
+| Browser globals, minified             | `dist/phone-mask.umd.min.js` | `dist/kit.umd.min.js` |
+
+For browser usage without a build step, load both globals to combine country data with formatting helpers:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@desource/phone-mask/dist/phone-mask.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@desource/phone-mask/dist/kit.umd.min.js"></script>
+<script>
+  const result = phoneMaskKit.formatDigitsWithMap(phoneMask.MasksBaseMap.US[0], '2025551234');
+  console.log(result.display); // "+1 202-555-1234"
+</script>
+```
+
+Pin both CDN URLs to the same package version in production. UNPKG supports the same file paths.
+
 ## 🚀 Quick Start
+
+### Display Formatting
+
+```ts
+import { formatPhone } from '@desource/phone-mask/kit';
+
+formatPhone('+12345678888'); // '+1 234 567 8888'
+formatPhone('2345678888', 'US', { code: false, flag: true }); // '🇺🇸 234 567 8888'
+```
+
+See [`formatPhone`](#formatphonevalue-country-options) for options and supported input formats.
 
 ### Basic Formatting
 
@@ -364,9 +399,63 @@ function pickMaskVariant(masks: string[], digitLength: number): string;
 // Extract digits from any string
 function extractDigits(value: string, maxLength?: number): string;
 
+// Detect a complete international number from current masks
+function detectCountryFromPhone(value: string): CountryKey | undefined;
+
 // Format digits according to template
 function formatDigitsWithMap(value: string, digits: string): { display: string; map: number[] };
 ```
+
+`detectCountryFromPhone` requires a leading `+`. It first matches formatting exactly, then falls back to
+calling code and digit count excluding that code. Shared matches use the calling code's generated default country;
+for example, unformatted `+1` numbers default to US. Unsupported syntax, unknown calling codes, and
+unmatched lengths return `undefined`. Detection uses masks, not allocation prefixes or number validation.
+
+```ts
+import { detectCountryFromPhone } from '@desource/phone-mask/kit';
+
+detectCountryFromPhone('+7 12345 6 77 88'); // 'KZ': unique mask
+detectCountryFromPhone('+71234567788'); // 'RU': shared length, default country
+detectCountryFromPhone('1234567788'); // undefined: no international prefix
+```
+
+`processPaste` returns an optional `country` when detection succeeds. Apply that country before the
+returned `newDigits`, which excludes the calling code. A detected international paste replaces the whole input and places the
+caret at the end, without truncating to the previous country's mask. Other pastes retain normal
+selection and insertion behavior.
+
+#### `formatPhone(value, country?, options?)`
+
+Format a phone number for display using the country's mask groups, separated by spaces. This pure function works in the browser and during SSR. React, Vue, and Svelte re-export this function for use in templates and JSX. Angular’s `PhonePipe` delegates to it. Each framework package also exposes it through its `/core` subpath.
+
+```ts
+import { formatPhone, type PhoneFormatOptions } from '@desource/phone-mask/kit';
+
+formatPhone('+12345678888'); // '+1 234 567 8888'
+formatPhone('2345678888', 'US'); // '+1 234 567 8888'
+formatPhone('+1 (234) 567-8888', 'US', { code: false }); // '234 567 8888'
+formatPhone('+12345678888', 'US', { flag: true }); // '🇺🇸 +1 234 567 8888'
+formatPhone('234 567 8888', 'US', { code: false, flag: true }); // '🇺🇸 234 567 8888'
+```
+
+```ts
+interface PhoneFormatOptions {
+  readonly code?: boolean; // Include the calling code; defaults to true.
+  readonly flag?: boolean; // Prepend the flag emoji; defaults to false.
+}
+
+function formatPhone(
+  value: string | null | undefined,
+  country?: CountryKey | null,
+  options?: PhoneFormatOptions
+): string;
+```
+
+Only an explicit `+` calling code is removed; bare digits are treated as a number without a calling code. Pass an ISO country code for those values. With no country, detection requires a complete international number and uses mask shape, calling code, and length. Shared matches use a default country, such as US for `+1`; detection does not inspect area-code allocations. Pass `undefined` or `null` as the country to combine detection with options.
+
+A supplied country takes priority when its calling code matches, so `formatPhone('+12345678888', 'CA', { flag: true })` retains the Canadian flag. If codes conflict, successful detection takes priority: `formatPhone('+442079460958', 'US')` returns `'+44 207 946 0958'`. Unsuccessful detection preserves the original value.
+
+Significant leading zeros are preserved. Empty, whitespace-only, `null`, and `undefined` values return `''`. Unsupported countries, invalid characters, extensions, and values exceeding the selected mask's length remain unchanged. The function does not infer trunk prefixes or validate whether a number is assigned. Render its result as text, as with any user-provided value.
 
 ## 🎯 Use Cases
 
@@ -469,22 +558,23 @@ Measured by bundling the packed package in a real consumer build with tree-shaki
 | `import { extractDigits } from '@desource/phone-mask/kit'`        |         0.08 KB | 0.10 KB | 0.08 KB |
 | `import { getCountry } from '@desource/phone-mask/kit'`           |         5.84 KB | 2.72 KB | 2.18 KB |
 
-The root entry contains country metadata and mask data. Use `@desource/phone-mask/kit` when you need formatter, input handling, detection, or utility helpers. Data-dependent helpers such as `getCountry` include mask data; pure formatter and input helpers tree-shake to small standalone bundles.
+The root entry contains country metadata and mask data. Use `@desource/phone-mask/kit` when you need display formatting, lower-level formatters, input handling, detection, or utility helpers. Data-dependent helpers such as `getCountry` include mask data; pure formatter and input helpers tree-shake to small standalone bundles.
 
 ## 🔗 Related Packages
 
-- [@desource/phone-mask-vue](../vue) — Vue 3 component + composable + directive
-- [@desource/phone-mask-nuxt](../nuxt) — Nuxt module
-- [@desource/phone-mask-react](../react) — React component + hook
-- [@desource/phone-mask-svelte](../svelte) — Svelte component + composable + action + attachment
+- [@desource/phone-mask-angular](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/angular) — Angular component + directive + pipe + service
+- [@desource/phone-mask-react](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/react) — React component + hook
+- [@desource/phone-mask-svelte](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/svelte) — Svelte component + composable + action + attachment
+- [@desource/phone-mask-vue](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/vue) — Vue 3 component + composable + directive
+- [@desource/phone-mask-nuxt](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/nuxt) — Nuxt module
 
 ## 📄 License
 
-[MIT](../../LICENSE) © 2026 DeSource Labs
+[MIT](https://github.com/DeSource-Labs/phone-mask/blob/main/LICENSE) © 2026 DeSource Labs
 
 ## 🤝 Contributing
 
-See [Contributing Guide](../../CONTRIBUTING.md)
+See [Contributing Guide](https://github.com/DeSource-Labs/phone-mask/blob/main/CONTRIBUTING.md) for development, testing, and publication checks.
 
 ---
 

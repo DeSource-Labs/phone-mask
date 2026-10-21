@@ -13,7 +13,7 @@ import {
   processPaste,
   createPhoneFormatter
 } from '@desource/phone-mask/kit';
-import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types';
+import type { PMaskDirectiveOptions, PMaskDirectiveState, DirectiveHTMLInputElement } from '../types.js';
 
 function parseParams(params: string | PMaskDirectiveOptions | undefined): PMaskDirectiveOptions {
   if (typeof params === 'string') return { country: params };
@@ -50,10 +50,11 @@ function checkDigitsUpdate(el: HTMLInputElement, state: PMaskDirectiveState) {
 }
 
 function checkCountryUpdate(el: HTMLInputElement, state: PMaskDirectiveState) {
-  const oldCountry = state.country.id;
+  const oldCountry = state.countryOption;
   const newCountry = parseCountryCode(state.options.country);
+  state.countryOption = newCountry;
 
-  if (newCountry && newCountry !== oldCountry) {
+  if (newCountry && newCountry !== oldCountry && newCountry !== state.country.id) {
     setCountry(el, state, newCountry);
   }
 }
@@ -61,12 +62,13 @@ function checkCountryUpdate(el: HTMLInputElement, state: PMaskDirectiveState) {
 function createHandler<T>(
   el: HTMLInputElement,
   state: PMaskDirectiveState,
-  handler: (e: T, state: PMaskDirectiveState) => { newDigits: string; caretDigitIndex: number } | undefined
+  handler: (e: T, state: PMaskDirectiveState) => ReturnType<typeof processPaste>
 ): (e: T) => void {
   return (e: T) => {
     const result = handler(e, state);
     if (!result) return;
 
+    if (result.country) setCountry(el, state, result.country, false);
     updateDigits(el, state, result.newDigits);
 
     nextTick(() => {
@@ -98,7 +100,12 @@ async function detectInitialCountry(options: PMaskDirectiveOptions): Promise<str
  * Update country and reformat existing input.
  * Updates formatter, placeholder, truncates digits if needed, and triggers callbacks
  */
-export function setCountry(el: HTMLInputElement, state: PMaskDirectiveState, newCountryCode: string): void {
+export function setCountry(
+  el: HTMLInputElement,
+  state: PMaskDirectiveState,
+  newCountryCode: string,
+  updateValue = true
+): void {
   const parsed = parseCountryCode(newCountryCode);
 
   if (!parsed) return;
@@ -111,7 +118,7 @@ export function setCountry(el: HTMLInputElement, state: PMaskDirectiveState, new
   state.formatter = createPhoneFormatter(newCountry);
   el.placeholder = state.formatter.getPlaceholder();
 
-  checkDigitsUpdate(el, state);
+  if (updateValue) checkDigitsUpdate(el, state);
 }
 
 export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDirectiveOptions | undefined> = {
@@ -128,10 +135,12 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
 
     const options = parseParams(binding.value);
     const locale = options.locale || getNavigatorLang();
-    const country = getCountry(parseCountryCode(options.country, 'US'), locale);
+    const countryOption = parseCountryCode(options.country);
+    const country = getCountry(countryOption || 'US', locale);
 
     const state = {
       country,
+      countryOption,
       formatter: createPhoneFormatter(country),
       digits: '',
       locale,
@@ -153,7 +162,7 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
     // Update state with detected country & formatter, then run effects.
     void detectInitialCountry(options).then((countryCode) => {
       // Guard against the directive being unmounted before the async detection resolves.
-      if (el.__phoneMaskState !== state) return;
+      if (el.__phoneMaskState !== state || state.country !== country || state.countryOption !== countryOption) return;
       setCountry(el, state, countryCode);
     });
   },

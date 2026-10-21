@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../.demo-dist/types",
+    "types": ["node"],
+    "declaration": false,
+    "baseUrl": ".",
+    "paths": {
+      "@desource/phone-mask-angular": ["../dist"],
+      "@desource/phone-mask-angular/core": ["../dist/core"]
+    }
+  },
+  "angularCompilerOptions": {
+    "compilationMode": "full"
+  },
+  "include": ["./**/*.ts"],
+  "exclude": []
+}

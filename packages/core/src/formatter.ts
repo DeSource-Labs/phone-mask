@@ -1,6 +1,6 @@
 // Phone number formatter utilities
-import { countPlaceholders, pickMaskVariant, formatDigitsWithMap } from './utils';
-import type { MaskFull } from './entries';
+import { countPlaceholders, pickMaskVariant, formatDigitsWithMap } from './utils.js';
+import type { MaskFull } from './entries.js';
 
 /**
  * Formatter interface for digit range and caret calculations
@@ -41,7 +41,7 @@ export interface FormatterHelpers {
 /**
  * Create a phone formatter for a given country
  */
-export function createPhoneFormatter(country: MaskFull): FormatterHelpers {
+export function createPhoneFormatter(country: Pick<MaskFull, 'mask'>): FormatterHelpers {
   const variants = country.mask;
   const variantsDigits = variants.map((m) => countPlaceholders(m));
   const maxDigits = Math.max(0, ...variantsDigits);

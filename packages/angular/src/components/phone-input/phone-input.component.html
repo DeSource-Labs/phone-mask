@@ -1,0 +1,217 @@
+@let selected = countryState.country();
+@let canOpen = canOpenDropdown();
+@let isOpen = selector.dropdownOpen();
+@let copiedValue = copy.copied();
+@let disabled = isDisabled();
+@let isReadOnly = readonly();
+@let unstyled = disableDefaultStyles();
+@let showValidity = withValidity();
+@let isIncomplete = incomplete();
+@let showCopyAction = showCopyButton();
+@let showClearAction = showClearButton();
+@let themeClass = resolvedTheme.themeClass();
+@let clearLabel = clearButtonLabel();
+@let flagContent = flagTemplate();
+@let actionsContent = actionsTemplate();
+@let showDropdown = mounted() && canOpen;
+<div
+  #root
+  role="group"
+  aria-label="Phone input"
+  [class]="'desource-phone-input size-' + size() + ' ' + themeClass"
+  [class.is-disabled]="disabled"
+  [class.is-readonly]="isReadOnly"
+  [class.is-unstyled]="unstyled"
+  [class.is-incomplete]="showValidity && isIncomplete"
+  [class.is-complete]="showValidity && mask.isComplete()"
+  [style.--pi-actions-count]="+showCopyAction + +showClearAction + +!!actionsContent"
+>
+  <div class="pi-selector">
+    <button
+      #selectorButton
+      type="button"
+      class="pi-selector-btn"
+      [class.no-dropdown]="!canOpen"
+      [disabled]="disabled"
+      [attr.tabindex]="canOpen ? null : -1"
+      [attr.aria-label]="'Selected country: ' + selected.name"
+      [attr.aria-expanded]="canOpen ? isOpen : null"
+      [attr.aria-haspopup]="canOpen ? 'dialog' : null"
+      [attr.aria-controls]="showDropdown ? dropdownId : null"
+      (pointerdown)="selector.handleSelectorPointerDown($event)"
+      (keydown)="selector.handleSelectorKeydown($event)"
+      (click)="selector.toggleDropdown()"
+    >
+      <span class="pi-flag" role="img" [attr.aria-label]="selected.name + ' flag'">
+        @if (flagContent; as flag) {
+          <ng-container
+            [ngTemplateOutlet]="flag"
+            [ngTemplateOutletContext]="{ $implicit: selected, country: selected }"
+          />
+        } @else {
+          {{ selected.flag }}
+        }
+      </span>
+      <span class="pi-code">{{ selected.code }}</span>
+      @if (canOpen) {
+        <svg
+          class="pi-chevron"
+          [class.is-open]="isOpen"
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M2.5 4.5L6 8L9.5 4.5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      }
+    </button>
+  </div>
+  <div class="pi-input-wrap">
+    <input
+      #tel
+      type="tel"
+      inputmode="tel"
+      autocomplete="tel-national"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      class="pi-input"
+      [attr.id]="id()"
+      [attr.name]="name()"
+      [placeholder]="mask.displayPlaceholder()"
+      [value]="mask.displayValue()"
+      [disabled]="disabled"
+      [readOnly]="isReadOnly"
+      [attr.aria-invalid]="isIncomplete"
+      (beforeinput)="handlers.handleBeforeInput($any($event))"
+      (input)="handlers.handleInput($event)"
+      (keydown)="handlers.handleKeydown($event)"
+      (paste)="handlers.handlePaste($event)"
+      (focus)="handleFocus($event)"
+      (blur)="handleBlur($event)"
+    />
+    <div class="pi-actions" role="toolbar" aria-label="Phone input actions">
+      @if (actionsContent; as actions) {
+        <ng-container [ngTemplateOutlet]="actions" />
+      }
+      @if (showCopyAction) {
+        <button
+          type="button"
+          class="pi-btn pi-btn-copy"
+          [class.is-copied]="copiedValue"
+          [attr.aria-label]="copy.copyAriaLabel()"
+          [title]="copy.copyButtonTitle()"
+          (click)="copy.onCopyClick()"
+        >
+          @if (copyTemplate(); as customCopy) {
+            <ng-container
+              [ngTemplateOutlet]="customCopy"
+              [ngTemplateOutletContext]="{ $implicit: copiedValue, copied: copiedValue }"
+            />
+          } @else {
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              @if (copiedValue) {
+                <path d="M6.5 11.5 3 8 4.06 6.94 6.5 9.38 11.94 3.94 13 5 6.5 11.5Z" fill="currentColor" />
+              } @else {
+                <path
+                  d="M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM9 1H1V11H2.5V2.5H9V1Z"
+                  fill="currentColor"
+                />
+              }
+            </svg>
+          }
+        </button>
+      }
+      @if (showClearAction) {
+        <button
+          type="button"
+          class="pi-btn pi-btn-clear"
+          [attr.aria-label]="clearLabel"
+          [title]="clearLabel"
+          (click)="clearAndFocus()"
+        >
+          @if (clearTemplate(); as customClear) {
+            <ng-container [ngTemplateOutlet]="customClear" />
+          } @else {
+            <svg width="11" height="11" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path
+                d="M14 1.41 12.59 0 7 5.59 1.41 0 0 1.41 5.59 7 0 12.59 1.41 14 7 8.41 12.59 14 14 12.59 8.41 7Z"
+                fill="currentColor"
+              />
+            </svg>
+          }
+        </button>
+      }
+    </div>
+  </div>
+  <div #live class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+</div>
+@if (showDropdown) {
+  <div
+    #dropdown
+    [id]="dropdownId"
+    [class]="'desource-phone-dropdown ' + dropdownClass() + ' ' + themeClass"
+    [class.is-open]="isOpen"
+    [class.is-unstyled]="unstyled"
+    role="dialog"
+    aria-modal="false"
+    aria-label="Country"
+  >
+    @if (isOpen) {
+      <div class="pi-search-wrap">
+        <input
+          #search
+          name="search"
+          type="search"
+          class="pi-search"
+          aria-label="Search"
+          [attr.aria-controls]="listboxId"
+          [attr.aria-activedescendant]="activeOptionId()"
+          [placeholder]="searchPlaceholder()"
+          [value]="selector.search()"
+          (keydown)="selector.handleSearchKeydown($event)"
+          (input)="selector.handleSearchChange($event)"
+        />
+      </div>
+      @let focusedIndex = selector.focusedIndex();
+      <ul [id]="listboxId" class="pi-options" role="listbox" tabindex="-1">
+        @for (country of selector.filteredCountries(); track country.id; let index = $index) {
+          @let isSelected = country.id === selected.id;
+          <li
+            [id]="optionId(index)"
+            class="pi-option"
+            role="option"
+            [class.is-focused]="index === focusedIndex"
+            [class.is-selected]="isSelected"
+            [attr.aria-selected]="isSelected"
+            [title]="country.name"
+            tabindex="-1"
+            (click)="selector.selectCountry(country.id)"
+            (keydown.enter)="selector.selectCountry(country.id)"
+            (mouseenter)="selector.setFocusedIndex(index)"
+          >
+            <span class="pi-flag" role="img" [attr.aria-label]="country.name + ' flag'">
+              @if (flagContent; as flag) {
+                <ng-container [ngTemplateOutlet]="flag" [ngTemplateOutletContext]="{ $implicit: country, country }" />
+              } @else {
+                {{ country.flag }}
+              }
+            </span>
+            <span class="pi-opt-name">{{ country.name }}</span
+            ><span class="pi-opt-code">{{ country.code }}</span>
+          </li>
+        } @empty {
+          <li class="pi-empty">{{ noResultsText() }}</li>
+        }
+      </ul>
+    }
+  </div>
+}

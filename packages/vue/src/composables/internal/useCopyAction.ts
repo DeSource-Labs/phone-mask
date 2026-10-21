@@ -1,6 +1,6 @@
 import { computed, type Ref } from 'vue';
-import { useClipboard } from '../utility/useClipboard';
-import { useTimer } from '../utility/useTimer';
+import { useClipboard } from '../utility/useClipboard.js';
+import { useTimer } from '../utility/useTimer.js';
 
 interface UseCopyActionOptions {
   fullFormatted: Ref<string>;
@@ -17,20 +17,17 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
   const copyAriaLabel = computed(() => (copied.value ? 'Copied' : `Copy ${fullFormatted.value}`));
   const copyButtonTitle = computed(() => (copied.value ? 'Copied' : 'Copy phone number'));
 
-  const announceToScreenReader = (message: string) => {
-    if (!liveRef?.value) return;
-    liveRef.value.textContent = message;
-    liveTimer.set(() => {
-      if (liveRef.value) liveRef.value.textContent = '';
-    }, DELAY);
-  };
-
   const onCopyClick = async () => {
     const valueToCopy = fullFormatted.value.trim();
     const success = await copy(valueToCopy);
     if (success) {
       onCopy?.(valueToCopy);
-      announceToScreenReader('Phone number copied to clipboard');
+      if (liveRef?.value) {
+        liveRef.value.textContent = 'Phone number copied to clipboard';
+        liveTimer.set(() => {
+          if (liveRef.value) liveRef.value.textContent = '';
+        }, DELAY);
+      }
     }
   };
 

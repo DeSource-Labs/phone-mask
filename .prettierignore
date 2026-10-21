@@ -3,6 +3,8 @@ node_modules
 .nuxt
 .output
 .cache
+.angular
+.demo-dist
 coverage
 *.min.js
 *.min.css

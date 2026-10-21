@@ -66,6 +66,11 @@ type ReportHeaderParams = {
 
 const PACKAGE_REPORTS: PackageReport[] = [
   {
+    label: 'phone-mask-angular',
+    file: 'packages/angular/coverage/lcov.info',
+    packagePath: 'packages/angular/src'
+  },
+  {
     label: 'phone-mask',
     file: 'packages/core/coverage/lcov.info',
     packagePath: 'packages/core/src'

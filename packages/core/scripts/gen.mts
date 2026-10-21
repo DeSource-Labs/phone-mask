@@ -275,7 +275,7 @@ function matchesLeadingDigits(number: string, leadingDigits: string[]): boolean 
   }
 }
 
-function formatNationalNumber(number: string, formats: NumberFormat[]): string {
+function formatNumber(number: string, formats: NumberFormat[]): string {
   for (const entry of formats) {
     if (!matchesLeadingDigits(number, entry.leadingDigits)) continue;
 
@@ -298,8 +298,8 @@ function formatNationalNumber(number: string, formats: NumberFormat[]): string {
   return number;
 }
 
-function maskNationalNumber(nationalFormatted: string): string {
-  return nationalFormatted.replaceAll(/\d/g, '#').replaceAll(/\s+/g, ' ').trim();
+function maskNumber(formattedNumber: string): string {
+  return formattedNumber.replaceAll(/\d/g, '#').replaceAll(/\s+/g, ' ').trim();
 }
 
 function pushMaskForExample(
@@ -309,10 +309,10 @@ function pushMaskForExample(
   acc: string[]
 ): void {
   if (!exampleDigits) return;
-  const formattedNational = formatNationalNumber(exampleDigits, formats);
-  const maskedNational = maskNationalNumber(formattedNational);
-  if (!maskedNational) return;
-  acc.push(`+${countryCode} ${maskedNational}`.trim());
+  const formattedNumber = formatNumber(exampleDigits, formats);
+  const maskedNumber = maskNumber(formattedNumber);
+  if (!maskedNumber) return;
+  acc.push(`+${countryCode} ${maskedNumber}`.trim());
 }
 
 function buildRegionMasks(countryCode: string, formats: NumberFormat[], examplesByType: ExamplesByType): string[] {
@@ -417,12 +417,12 @@ function sortMappingByCountryCode(mapping: MaskMapping): MaskMapping {
   return Object.fromEntries(sortedEntries);
 }
 
-function parseMetadataXmlToMasks(xml: string): MaskMapping {
+function parseMetadataXmlToMasks(xml: string): { mapping: MaskMapping; mainRegionByCode: Map<string, string> } {
   const territories = parseTerritories(xml);
   const territoryById = new Map(territories.map((territory) => [territory.id, territory]));
   const mainRegionByCode = buildMainRegionByCode(territories);
   const mapping = buildMapping(territories, territoryById, mainRegionByCode);
-  return sortMappingByCountryCode(mapping);
+  return { mapping: sortMappingByCountryCode(mapping), mainRegionByCode };
 }
 
 function parseMaskEntity(maskEntity: string): ParsedMaskEntity {
@@ -559,7 +559,7 @@ function releaseArchiveUrl(validatedTag: string): URL {
   return new URL(`/google/libphonenumber/archive/refs/tags/${encodeURIComponent(validatedTag)}.tar.gz`, GITHUB_ORIGIN);
 }
 
-function writeOutputs(mapping: MaskMapping): void {
+function writeOutputs(mapping: MaskMapping, mainRegionByCode: Map<string, string>): void {
   const outDir = path.join(PACKAGE_ROOT, 'src');
   fs.mkdirSync(outDir, { recursive: true });
 
@@ -570,12 +570,23 @@ function writeOutputs(mapping: MaskMapping): void {
   const typesPath = path.join(outDir, 'data-types.ts');
 
   const min = buildMinifiedData(mapping);
+  // Group similar mask lists for compression; decoding restores alphabetical country order.
+  const rows = Object.entries(min.countries)
+    .sort(([, a], [, b]) => a.slice(a.indexOf('|')).localeCompare(b.slice(b.indexOf('|')), 'en'))
+    .map(([id, row]) => `${id}${row}`)
+    .join(' ');
+  const codes = Object.values(min.countries).map((row) => row.split('|')[0]);
+  const defaults = Object.fromEntries(
+    [...mainRegionByCode].filter(
+      ([code, country]) => codes.indexOf(code) !== codes.lastIndexOf(code) && country in mapping
+    )
+  );
 
   fs.writeFileSync(jsonPath, `${JSON.stringify(mapping, null, 2)}\n`, 'utf8');
 
   fs.writeFileSync(
     minPath,
-    `export const masks = ${serializeJsValue(min.masks)};\nexport default ${serializeJsValue(min.countries)};\n`,
+    `export const masks = /* @__PURE__ */ ${serializeJsValue(min.masks.join('|'))}.split('|');\nexport const defaultCountryByCallingCode = ${serializeJsValue(defaults)};\nexport default /* @__PURE__ */ (() => {const countries = {};for (const row of ${serializeJsValue(rows)}.split(' ').sort()) countries[row.slice(0, 2)] = row.slice(2);return countries;})();\n`,
     'utf8'
   );
   fs.writeFileSync(typesPath, `export type CountryKey = ${countryKeyUnion};\n`, 'utf8');
@@ -595,13 +606,13 @@ async function main(): Promise<void> {
 
   const archiveBuffer = Buffer.from(await fetchArrayBuffer(archiveUrl));
   const metadataXml = extractFileFromTarGz(archiveBuffer, METADATA_PATH_SUFFIX);
-  const mapping = parseMetadataXmlToMasks(metadataXml);
+  const { mapping, mainRegionByCode } = parseMetadataXmlToMasks(metadataXml);
 
   if (Object.keys(mapping).length === 0) {
     throw new Error('Generated mapping is empty');
   }
 
-  writeOutputs(mapping);
+  writeOutputs(mapping, mainRegionByCode);
 }
 
 try {

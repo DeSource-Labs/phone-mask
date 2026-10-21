@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": { "analytics": false },
+  "projects": {
+    "phone-mask": {
+      "projectType": "library",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "phone",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "options": { "project": "ng-package.json", "tsConfig": "tsconfig.json" }
+        }
+      }
+    },
+    "demo": {
+      "projectType": "application",
+      "root": "demo",
+      "sourceRoot": "demo",
+      "prefix": "demo",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "outputPath": ".demo-dist",
+            "index": "demo/index.html",
+            "browser": "demo/main.ts",
+            "server": "demo/main.server.ts",
+            "ssr": { "entry": "demo/server.ts" },
+            "prerender": false,
+            "tsConfig": "demo/tsconfig.json",
+            "styles": ["dist/phone-mask-angular.css", "../../common/styles/demo.css"],
+            "outputHashing": "none"
+          },
+          "configurations": { "development": { "optimization": false, "sourceMap": true } }
+        },
+        "serve": { "builder": "@angular/build:dev-server", "options": { "buildTarget": "demo:build:development" } }
+      }
+    }
+  }
+}
