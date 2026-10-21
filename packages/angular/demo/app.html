@@ -1,7 +1,20 @@
 <main>
   @if (ssr) {
   <section data-testid="ssr">
-    <phone-input id="fixed-phone" country="US" [value]="'2025550123'" />
+    <phone-input
+      id="fixed-phone"
+      country="US"
+      [(value)]="ssrValue"
+      (countryChange)="ssrCountry.set($event.id)"
+      (phoneChange)="ssrPhone.set($event.fullFormatted)"
+      (validationChange)="ssrValid.set($event)"
+    />
+    <p id="parent-country">{{ ssrCountry() || 'pending' }}</p>
+    <p id="parent-phone">{{ ssrPhone() || 'pending' }}</p>
+    <p id="parent-value">{{ ssrValue() }}</p>
+    @if (ssrValid() !== undefined) {
+    <span id="parent-validation">{{ ssrValid() }}</span>
+    }
     <phone-input id="detected-phone" [value]="'4155552671'" />
     <phone-input id="selectable-phone" [detect]="false" [value]="'6505551234'" [flagTemplate]="flag" />
     <label for="directive-phone">Phone number</label>

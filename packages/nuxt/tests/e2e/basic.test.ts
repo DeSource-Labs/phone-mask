@@ -36,6 +36,10 @@ describe('Nuxt module contract: basic fixture', () => {
         expect(input).toContain(`value="${value}"`);
       }
       expect(html).not.toContain('role="dialog"');
+      expect(html).toContain('id="parent-country">pending</div>');
+      expect(html).toContain('id="parent-phone">pending</div>');
+      expect(html).toContain('id="parent-value">202555012345</div>');
+      expect(html).not.toContain('id="parent-validation"');
     }
   });
 
@@ -77,12 +81,17 @@ describe('Nuxt module contract: basic fixture', () => {
         '415-555-2671',
         '650-555-1234'
       ]);
+      await expect.poll(() => page.locator('#parent-value').textContent()).toBe('2025550123');
+      await expect.poll(() => page.locator('#parent-phone').textContent()).toBe('+1 202-555-0123');
+      await expect.poll(() => page.locator('#parent-validation').textContent()).toBe('true');
       await page.locator('#fixed-phone').fill('2125557890');
       await expect.poll(() => page.locator('#fixed-phone').inputValue()).toBe('212-555-7890');
+      await expect.poll(() => page.locator('#parent-phone').textContent()).toBe('+1 212-555-7890');
       await expect.poll(() => page.locator(`.desource-phone-input.theme-${options.colorScheme}`).count()).toBe(3);
       const countryName = await page.evaluate(() =>
         new Intl.DisplayNames([navigator.language], { type: 'region' }).of('US')
       );
+      await expect.poll(() => page.locator('#parent-country').textContent()).toBe(countryName);
       await expect.poll(() => page.locator('.pi-selector .country-name').textContent()).toBe(countryName);
 
       const selectors = page.locator('.pi-selector-btn[aria-controls]');

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { hydrateRoot, type Root } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { testPhoneInputSsr, type SsrOptions } from '@common/tests/unit/PhoneInput.ssr';
@@ -5,34 +6,92 @@ import { PhoneInput } from '@src/components/PhoneInput';
 import { usePhoneMask } from '@src/hooks/usePhoneMask';
 import { tools } from './setup/tools';
 
-const page = ({ value = '2025550123', detect = false, count = 1, customFlag, ...props }: SsrOptions) => (
-  <main>
-    <p id="before">Before</p>
-    {Array.from({ length: count }, (_, index) => (
-      <PhoneInput
-        key={index}
-        value={value}
-        detect={detect}
-        onChange={() => {}}
-        {...props}
-        renderFlag={
-          customFlag
-            ? (country) =>
-                country.name.length > 15 ? <abbr title={country.name}>{country.name.slice(0, 15)}…</abbr> : country.name
-            : undefined
-        }
-      />
-    ))}
-    <p id="after">After</p>
-  </main>
-);
+function Page({
+  value = '2025550123',
+  detect = false,
+  count = 1,
+  customFlag,
+  observeCallbacks,
+  onNotify,
+  ...props
+}: SsrOptions) {
+  const [modelValue, setModelValue] = useState(value);
+  const [country, setCountry] = useState('pending');
+  const [phone, setPhone] = useState('pending');
+  const [valid, setValid] = useState<boolean>();
+
+  return (
+    <main>
+      <p id="before">Before</p>
+      {Array.from({ length: count }, (_, index) => (
+        <PhoneInput
+          key={index}
+          value={observeCallbacks ? modelValue : value}
+          detect={detect}
+          onChange={
+            observeCallbacks
+              ? (value) => {
+                  setModelValue(value);
+                  onNotify?.();
+                }
+              : () => {}
+          }
+          onCountryChange={
+            observeCallbacks
+              ? (country) => {
+                  setCountry(country.id);
+                  onNotify?.();
+                }
+              : undefined
+          }
+          onPhoneChange={
+            observeCallbacks
+              ? (phone) => {
+                  setPhone(phone.fullFormatted);
+                  onNotify?.();
+                }
+              : undefined
+          }
+          onValidationChange={
+            observeCallbacks
+              ? (valid) => {
+                  setValid(valid);
+                  onNotify?.();
+                }
+              : undefined
+          }
+          {...props}
+          renderFlag={
+            customFlag
+              ? (country) =>
+                  country.name.length > 15 ? (
+                    <abbr title={country.name}>{country.name.slice(0, 15)}…</abbr>
+                  ) : (
+                    country.name
+                  )
+              : undefined
+          }
+        />
+      ))}
+      {observeCallbacks && (
+        <>
+          <p id="parent-country">{country}</p>
+          <p id="parent-phone">{phone}</p>
+          <p id="parent-value">{modelValue}</p>
+          {valid !== undefined && <span id="parent-validation">{String(valid)}</span>}
+        </>
+      )}
+      <p id="after">After</p>
+    </main>
+  );
+}
 
 let root: Root | undefined;
 testPhoneInputSsr({
-  render: (options) => renderToString(page(options)),
+  render: (options) => renderToString(<Page {...options} />),
   hydrate: (container, options, onRecoverableError) =>
     tools.act(() => {
-      root = hydrateRoot(container, page(options), { onRecoverableError });
+      root = hydrateRoot(container, <Page {...options} />, { onRecoverableError });
     }),
   act: tools.act,
   unmount: () =>

@@ -21,6 +21,10 @@ import type { CountryKey } from '@desource/phone-mask-angular/core';
 })
 export class App {
   readonly ssr = inject(DOCUMENT).location.pathname === '/ssr';
+  readonly ssrValue = signal('202555012345');
+  readonly ssrCountry = signal('');
+  readonly ssrPhone = signal('');
+  readonly ssrValid = signal<boolean | undefined>(undefined);
   readonly countries = ['US', 'GB', 'DE', 'FR', 'UA', 'CA', 'AU', 'JP'];
   readonly digits = signal('');
   readonly country = signal<CountryKey | undefined>(undefined);
