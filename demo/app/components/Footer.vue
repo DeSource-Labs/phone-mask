@@ -9,7 +9,6 @@
             v-once
             :key="social.type"
             size="1.2rem"
-            :aria-label="`Visit DeSource Labs ${social.type}`"
             :type="social.type"
             :href="social.href"
           />
