@@ -6,4 +6,6 @@ import { appConfig } from './app.config';
 
 const config = mergeApplicationConfig(appConfig, { providers: [provideServerRendering()] });
 
-export default (context: BootstrapContext) => bootstrapApplication(App, config, context);
+export default function bootstrap(context: BootstrapContext) {
+  return bootstrapApplication(App, config, context);
+}

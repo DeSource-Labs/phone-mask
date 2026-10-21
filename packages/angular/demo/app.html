@@ -4,6 +4,7 @@
     <phone-input id="fixed-phone" country="US" [value]="'2025550123'" />
     <phone-input id="detected-phone" [value]="'4155552671'" />
     <phone-input id="selectable-phone" [detect]="false" [value]="'6505551234'" [flagTemplate]="flag" />
+    <label for="directive-phone">Phone number</label>
     <input id="directive-phone" [phoneMask]="{ country: 'US' }" [formControl]="phoneControl" />
     <ng-template #flag let-country>
       <span class="country-name">

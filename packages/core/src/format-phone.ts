@@ -24,7 +24,7 @@ export function formatPhone(
   if (value.trimStart().startsWith('+')) {
     if (!resolved || !digits.startsWith(resolved.code.slice(1))) {
       const detected = detectCountryFromPhone(value);
-      resolved = detected ? MasksWithFlagMap[detected] : undefined;
+      resolved = detected && MasksWithFlagMap[detected];
     }
     if (!resolved) return value;
     digits = digits.slice(resolved.code.length - 1);
