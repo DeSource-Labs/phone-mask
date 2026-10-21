@@ -12,12 +12,7 @@ export interface PhoneNumber {
   digits: string;
 }
 
-export interface PhonePipeOptions {
-  /** Include the country calling code. Defaults to true. */
-  readonly code?: boolean;
-  /** Prefix the formatted number with the country's flag emoji. Defaults to false. */
-  readonly flag?: boolean;
-}
+export type { PhoneFormatOptions as PhonePipeOptions } from '@desource/phone-mask/kit';
 
 export interface UsePhoneMaskOptions {
   /** Native input getter, such as a viewChild query; optional for formatting without an input. */

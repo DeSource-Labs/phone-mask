@@ -33,7 +33,7 @@ test('template-driven forms and the directive emit digits', async ({ page }) => 
 });
 
 test('the pipe formats a display value', async ({ page }) => {
-  await expect(page.getByTestId('pipe')).toContainText('202-555-0123');
+  await expect(page.getByTestId('pipe')).toContainText('+1 234 567 8888');
 });
 
 test('choosing a shorter country mask updates the form value with the displayed digits', async ({ page }) => {

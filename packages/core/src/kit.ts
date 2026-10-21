@@ -4,3 +4,4 @@ export * from './handlers.js';
 export * from './formatter.js';
 export * from './country-selector.js';
 export * from './country-detection.js';
+export * from './format-phone.js';

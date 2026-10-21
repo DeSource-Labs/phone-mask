@@ -33,11 +33,11 @@ pnpm add @desource/phone-mask
 
 ## Import Paths
 
-The root entry contains country metadata and mask data. Formatter, input handling, detection, and utility helpers live in the `kit` subpath.
+The root entry contains country metadata and mask data. Display formatting, lower-level formatters, input handling, detection, and utility helpers live in the `kit` subpath.
 
 ```ts
 import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
-import { createPhoneFormatter, formatDigitsWithMap } from '@desource/phone-mask/kit';
+import { formatPhone, createPhoneFormatter, formatDigitsWithMap } from '@desource/phone-mask/kit';
 ```
 
 ### Distribution formats
@@ -65,6 +65,17 @@ For browser usage without a build step, load both globals to combine country dat
 Pin both CDN URLs to the same package version in production. UNPKG supports the same file paths.
 
 ## 🚀 Quick Start
+
+### Display Formatting
+
+```ts
+import { formatPhone } from '@desource/phone-mask/kit';
+
+formatPhone('+12345678888'); // '+1 234 567 8888'
+formatPhone('2345678888', 'US', { code: false, flag: true }); // '🇺🇸 234 567 8888'
+```
+
+See [`formatPhone`](#formatphonevalue-country-options) for options and supported input formats.
 
 ### Basic Formatting
 
@@ -413,6 +424,39 @@ returned `newDigits`, which excludes the calling code. A detected international 
 caret at the end, without truncating to the previous country's mask. Other pastes retain normal
 selection and insertion behavior.
 
+#### `formatPhone(value, country?, options?)`
+
+Format a phone number for display using the country's mask groups, separated by spaces. This pure function works in the browser and during SSR. React, Vue, and Svelte re-export this function for use in templates and JSX. Angular’s `PhonePipe` delegates to it. Each framework package also exposes it through its `/core` subpath.
+
+```ts
+import { formatPhone, type PhoneFormatOptions } from '@desource/phone-mask/kit';
+
+formatPhone('+12345678888'); // '+1 234 567 8888'
+formatPhone('2345678888', 'US'); // '+1 234 567 8888'
+formatPhone('+1 (234) 567-8888', 'US', { code: false }); // '234 567 8888'
+formatPhone('+12345678888', 'US', { flag: true }); // '🇺🇸 +1 234 567 8888'
+formatPhone('234 567 8888', 'US', { code: false, flag: true }); // '🇺🇸 234 567 8888'
+```
+
+```ts
+interface PhoneFormatOptions {
+  readonly code?: boolean; // Include the calling code; defaults to true.
+  readonly flag?: boolean; // Prepend the flag emoji; defaults to false.
+}
+
+function formatPhone(
+  value: string | null | undefined,
+  country?: CountryKey | null,
+  options?: PhoneFormatOptions
+): string;
+```
+
+Only an explicit `+` calling code is removed; bare digits are treated as a number without a calling code. Pass an ISO country code for those values. With no country, detection requires a complete international number and uses mask shape, calling code, and length. Shared matches use a default country, such as US for `+1`; detection does not inspect area-code allocations. Pass `undefined` or `null` as the country to combine detection with options.
+
+A supplied country takes priority when its calling code matches, so `formatPhone('+12345678888', 'CA', { flag: true })` retains the Canadian flag. If codes conflict, successful detection takes priority: `formatPhone('+442079460958', 'US')` returns `'+44 207 946 0958'`. Unsuccessful detection preserves the original value.
+
+Significant leading zeros are preserved. Empty, whitespace-only, `null`, and `undefined` values return `''`. Unsupported countries, invalid characters, extensions, and values exceeding the selected mask's length remain unchanged. The function does not infer trunk prefixes or validate whether a number is assigned. Render its result as text, as with any user-provided value.
+
 ## 🎯 Use Cases
 
 ### Custom Input Formatting
@@ -514,7 +558,7 @@ Measured by bundling the packed package in a real consumer build with tree-shaki
 | `import { extractDigits } from '@desource/phone-mask/kit'`        |         0.08 KB | 0.10 KB | 0.08 KB |
 | `import { getCountry } from '@desource/phone-mask/kit'`           |         5.84 KB | 2.72 KB | 2.18 KB |
 
-The root entry contains country metadata and mask data. Use `@desource/phone-mask/kit` when you need formatter, input handling, detection, or utility helpers. Data-dependent helpers such as `getCountry` include mask data; pure formatter and input helpers tree-shake to small standalone bundles.
+The root entry contains country metadata and mask data. Use `@desource/phone-mask/kit` when you need display formatting, lower-level formatters, input handling, detection, or utility helpers. Data-dependent helpers such as `getCountry` include mask data; pure formatter and input helpers tree-shake to small standalone bundles.
 
 ## 🔗 Related Packages
 

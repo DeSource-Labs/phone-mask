@@ -306,6 +306,25 @@ With auto-detection:
 <p>Tenant validation: {isTenantValid ? 'pass' : 'fail'}</p>
 ```
 
+## 🔤 Display Formatting
+
+Call `formatPhone(value, country?, options?)` directly in your template. It returns text and requires no CSS.
+
+```svelte
+<script lang="ts">
+  import { formatPhone } from '@desource/phone-mask-svelte/core';
+
+  let { phone }: { phone: string } = $props();
+</script>
+
+<span>{formatPhone(phone, 'US', { code: false, flag: true })}</span>
+<!-- '+12345678888' displays as '🇺🇸 234 567 8888'. -->
+```
+
+Omit `country` to detect a complete international number beginning with `+`; pass it for numbers without a calling code or to resolve shared calling codes such as US/CA. The optional `PhoneFormatOptions` argument accepts `code` (default `true`) and `flag` (default `false`).
+
+The function works during SSR. Unsupported values remain unchanged; empty, whitespace-only, `null`, and `undefined` values return empty text. See the [formatting rules](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core/README.md#formatphonevalue-country-options) for detection limits and examples.
+
 ## 📖 Component API
 
 ### Props
