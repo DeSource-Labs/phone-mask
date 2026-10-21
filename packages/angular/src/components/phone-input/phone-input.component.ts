@@ -50,7 +50,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputExpo
   readonly size = input<Size>('normal');
   readonly theme = input<Theme>('auto');
   readonly disabled = input(false, { transform: booleanAttribute });
-  readonly readOnly = input(false, { alias: 'readonly', transform: booleanAttribute });
+  readonly readonly = input(false, { transform: booleanAttribute });
   readonly showCopy = input(true, { transform: booleanAttribute });
   readonly showClear = input(false, { transform: booleanAttribute });
   readonly withValidity = input(true, { transform: booleanAttribute });
@@ -92,7 +92,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputExpo
   protected readonly searchRef = viewChild<ElementRef<HTMLInputElement>>('search');
   protected readonly selectorRef = viewChild<ElementRef<HTMLButtonElement>>('selectorButton');
   protected readonly isDisabled = computed(() => this.disabled() || this.formDisabled());
-  protected readonly inactive = computed(() => this.isDisabled() || this.readOnly());
+  protected readonly inactive = computed(() => this.isDisabled() || this.readonly());
   protected readonly countryState = useCountry({
     country: this.country,
     locale: this.locale,
