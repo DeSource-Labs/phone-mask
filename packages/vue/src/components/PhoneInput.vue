@@ -117,7 +117,7 @@
         v-if="renderDropdown"
         :id="dropdownElementId"
         ref="dropdownRef"
-        class="desource-phone-dropdown phone-dropdown"
+        class="desource-phone-dropdown"
         :class="[{ 'is-open': dropdownOpen, 'is-unstyled': disableDefaultStyles }, dropdownClass, themeClass]"
         role="dialog"
         aria-modal="false"
@@ -349,7 +349,6 @@ const { themeClass } = useTheme({
 
 const rootClasses = computed(() => [
   'desource-phone-input',
-  'phone-input', // [TODO 2.0.0] .phone-dropdown & .phone-input will be removed in 2.0.0+
   `size-${props.size}`,
   themeClass.value,
   {
