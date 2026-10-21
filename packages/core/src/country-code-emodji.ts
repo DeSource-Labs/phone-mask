@@ -30,4 +30,4 @@ export const getFlagEmoji = (cc: string): string => {
 
 /** INTERNAL: Converts country ISO code to flag emoji without validation */
 export const ccToEmoji = (cc: string): string =>
-  String.fromCodePoint(cc.charCodeAt(0) + OFFSET, cc.charCodeAt(1) + OFFSET);
+  String.fromCodePoint(cc.codePointAt(0)! + OFFSET, cc.codePointAt(1)! + OFFSET);
