@@ -9,5 +9,5 @@ export const meta = {
   ogImage: 'https://mask.desourcelabs.com/og.jpg',
   ogImageWidth: '1200',
   ogImageHeight: '630',
-  x: '@desource-labs'
+  x: '@desourcelabs'
 };

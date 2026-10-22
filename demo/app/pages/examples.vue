@@ -3,7 +3,7 @@
     <div class="container">
       <header class="page-header">
         <h1>Interactive Examples</h1>
-        <p>Explore real-world use cases and copy-paste code snippets</p>
+        <p>Try the examples and choose your framework in any code snippet</p>
         <div class="page-header__actions">
           <LiquidGlass actionable width="200">
             <NuxtLink class="link" to="/">← Back to Home</NuxtLink>
@@ -97,12 +97,12 @@
               />
             </div>
 
-            <div class="code-box">
-              <button class="copy-btn" type="button" @click="copyCode('playground')">
-                {{ copiedSnippet === 'playground' ? '✓ Copied!' : '📋 Copy' }}
-              </button>
-              <pre><code>{{ playgroundCode }}</code></pre>
-            </div>
+            <ExampleCode
+              v-model:framework="selectedFramework"
+              :code="playgroundCode"
+              label="Playground"
+              class="code-box"
+            />
           </div>
         </div>
       </div>
@@ -120,12 +120,7 @@
             </div>
           </div>
 
-          <div class="code">
-            <button class="copy-btn" type="button" @click="copyCode('basic')">
-              {{ copiedSnippet === 'basic' ? '✓ Copied!' : '📋 Copy' }}
-            </button>
-            <pre><code>{{ snippets.basic }}</code></pre>
-          </div>
+          <ExampleCode v-model:framework="selectedFramework" :code="snippets.basic" label="Basic usage" />
         </div>
       </div>
 
@@ -154,12 +149,7 @@
             </div>
           </div>
 
-          <div class="code">
-            <button class="copy-btn" type="button" @click="copyCode('validation')">
-              {{ copiedSnippet === 'validation' ? '✓ Copied!' : '📋 Copy' }}
-            </button>
-            <pre><code>{{ snippets.validation }}</code></pre>
-          </div>
+          <ExampleCode v-model:framework="selectedFramework" :code="snippets.validation" label="Validation" />
         </div>
       </div>
 
@@ -181,12 +171,7 @@
             </div>
           </div>
 
-          <div class="code">
-            <button class="copy-btn" type="button" @click="copyCode('detection')">
-              {{ copiedSnippet === 'detection' ? '✓ Copied!' : '📋 Copy' }}
-            </button>
-            <pre><code>{{ snippets.detection }}</code></pre>
-          </div>
+          <ExampleCode v-model:framework="selectedFramework" :code="snippets.detection" label="Country detection" />
         </div>
       </div>
 
@@ -213,12 +198,7 @@
             </div>
           </div>
 
-          <div class="code">
-            <button class="copy-btn" type="button" @click="copyCode('sizes')">
-              {{ copiedSnippet === 'sizes' ? '✓ Copied!' : '📋 Copy' }}
-            </button>
-            <pre><code>{{ snippets.sizes }}</code></pre>
-          </div>
+          <ExampleCode v-model:framework="selectedFramework" :code="snippets.sizes" label="Sizes" />
         </div>
       </div>
 
@@ -246,12 +226,7 @@
             <PhoneInput id="phone-input-theme-modes" v-model="themePhone" :theme="selectedTheme" />
           </div>
 
-          <div class="code">
-            <button class="copy-btn" type="button" @click="copyCode('themes')">
-              {{ copiedSnippet === 'themes' ? '✓ Copied!' : '📋 Copy' }}
-            </button>
-            <pre><code>{{ snippets.themes }}</code></pre>
-          </div>
+          <ExampleCode v-model:framework="selectedFramework" :code="snippets.themes" label="Themes" />
         </div>
       </div>
 
@@ -275,12 +250,7 @@
             </div>
           </div>
 
-          <div class="code">
-            <button class="copy-btn" type="button" @click="copyCode('actions')">
-              {{ copiedSnippet === 'actions' ? '✓ Copied!' : '📋 Copy' }}
-            </button>
-            <pre><code>{{ snippets.actions }}</code></pre>
-          </div>
+          <ExampleCode v-model:framework="selectedFramework" :code="snippets.actions" label="Copy and clear" />
         </div>
       </div>
 
@@ -303,12 +273,11 @@
             </div>
           </div>
 
-          <div class="code">
-            <button class="copy-btn" type="button" @click="copyCode('disabledAndReadonly')">
-              {{ copiedSnippet === 'disabledAndReadonly' ? '✓ Copied!' : '📋 Copy' }}
-            </button>
-            <pre><code>{{ snippets.disabledAndReadonly }}</code></pre>
-          </div>
+          <ExampleCode
+            v-model:framework="selectedFramework"
+            :code="snippets.disabledAndReadonly"
+            label="Disabled and readonly"
+          />
         </div>
       </div>
 
@@ -350,23 +319,21 @@
             </div>
           </div>
 
-          <div class="code">
-            <button class="copy-btn" type="button" @click="copyCode('form')">
-              {{ copiedSnippet === 'form' ? '✓ Copied!' : '📋 Copy' }}
-            </button>
-            <pre><code>{{ snippets.form }}</code></pre>
-          </div>
+          <ExampleCode v-model:framework="selectedFramework" :code="snippets.form" label="Form" />
         </div>
       </div>
 
-      <!-- Directive Examples Section -->
+      <!-- Custom Input Examples -->
       <div class="directive-section">
-        <h2>🎯 Vue Directive Examples</h2>
-        <p>Use <code>v-phone-mask</code> directive for custom inputs</p>
+        <h2>🎯 Custom Input Examples</h2>
+        <p>
+          Use directives in Vue and Angular, a hook in React, or actions and attachments in Svelte. Attachments require
+          Svelte 5.29 or later.
+        </p>
 
         <!-- Directive Example 1: Basic -->
         <div class="example">
-          <h3>9. Basic Directive Usage</h3>
+          <h3>9. Basic Custom Input</h3>
           <p>Apply phone masking to any input element</p>
 
           <div class="example-container">
@@ -383,18 +350,17 @@
               </div>
             </div>
 
-            <div class="code">
-              <button class="copy-btn" type="button" @click="copyCode('directiveBasic')">
-                {{ copiedSnippet === 'directiveBasic' ? '✓ Copied!' : '📋 Copy' }}
-              </button>
-              <pre><code>{{ snippets.directiveBasic }}</code></pre>
-            </div>
+            <ExampleCode
+              v-model:framework="selectedFramework"
+              :code="snippets.directiveBasic"
+              label="Basic custom input"
+            />
           </div>
         </div>
 
         <!-- Directive Example 2: With Options -->
         <div class="example">
-          <h3>10. Directive with Options</h3>
+          <h3>10. Country and Change Events</h3>
           <p>Configure country and handle change events</p>
 
           <div class="example-container">
@@ -421,18 +387,17 @@
               </div>
             </div>
 
-            <div class="code">
-              <button class="copy-btn" type="button" @click="copyCode('directiveOptions')">
-                {{ copiedSnippet === 'directiveOptions' ? '✓ Copied!' : '📋 Copy' }}
-              </button>
-              <pre><code>{{ snippets.directiveOptions }}</code></pre>
-            </div>
+            <ExampleCode
+              v-model:framework="selectedFramework"
+              :code="snippets.directiveOptions"
+              label="Custom input options"
+            />
           </div>
         </div>
 
         <!-- Directive Example 3: Auto-detect -->
         <div class="example">
-          <h3>11. Directive with Auto-detect</h3>
+          <h3>11. Automatic Country Detection</h3>
           <p>Automatically detect country from IP/locale</p>
 
           <div class="example-container">
@@ -452,15 +417,67 @@
               </div>
             </div>
 
-            <div class="code">
-              <button class="copy-btn" type="button" @click="copyCode('directiveDetect')">
-                {{ copiedSnippet === 'directiveDetect' ? '✓ Copied!' : '📋 Copy' }}
-              </button>
-              <pre><code>{{ snippets.directiveDetect }}</code></pre>
-            </div>
+            <ExampleCode
+              v-model:framework="selectedFramework"
+              :code="snippets.directiveDetect"
+              label="Custom input detection"
+            />
           </div>
         </div>
       </div>
+
+      <section class="formatting-section" aria-labelledby="formatting-heading">
+        <h2 id="formatting-heading">🔤 Display Formatting</h2>
+        <p>
+          Format phone numbers for text, tables, and contact cards. Choose whether to show the country code and flag.
+        </p>
+
+        <div class="example-container">
+          <div class="demo">
+            <fieldset class="formatting-presets" aria-label="Sample phone numbers">
+              <button
+                v-for="sample in displaySamples"
+                :key="sample.label"
+                type="button"
+                @click="
+                  displayPhone = sample.value;
+                  displayCountry = sample.country;
+                "
+              >
+                {{ sample.label }}
+              </button>
+            </fieldset>
+            <div class="control-group">
+              <label for="display-phone">Phone number</label>
+              <input id="display-phone" v-model="displayPhone" type="text" />
+            </div>
+            <div class="control-group">
+              <label for="display-country">Country</label>
+              <select id="display-country" v-model="displayCountry">
+                <option :value="undefined">Auto-detect from + prefix</option>
+                <option value="US">US</option>
+                <option value="CA">CA</option>
+                <option value="GB">GB</option>
+                <option value="DE">DE</option>
+                <option value="FR">FR</option>
+              </select>
+            </div>
+            <div class="control-group checkbox-group">
+              <label><input v-model="displayCode" type="checkbox" /> Show country code</label>
+              <label><input v-model="displayFlag" type="checkbox" /> Show flag</label>
+            </div>
+            <div class="result">
+              <label for="formatted-phone">Formatted phone</label>
+              <output id="formatted-phone" for="display-phone display-country">{{ formattedPhone || '—' }}</output>
+            </div>
+            <p class="formatting-note">
+              Choose a country for numbers without a country code. Complete numbers starting with + can be detected
+              automatically; unrecognized values stay unchanged.
+            </p>
+          </div>
+          <ExampleCode v-model:framework="selectedFramework" :code="displayCodeSnippet" label="Display formatting" />
+        </div>
+      </section>
 
       <!-- Resources -->
       <div class="resources">
@@ -492,10 +509,13 @@
 </template>
 
 <script setup lang="ts">
+import { formatPhone } from '@desource/phone-mask-vue/core';
+import { getComponentExamples, getPlaygroundCode, type ExampleFramework } from '~/data/component-examples';
+import { getCustomExamples, getDisplayCode } from '~/data/custom-examples';
+
 const context7Button = useTemplateRef<Context7ButtonExpose>('context7Button');
 const { context7Ready, toggleContext7 } = useContext7([context7Button]);
 
-/* eslint-disable no-useless-escape */
 // Example states
 const basicPhone = ref('');
 const validationPhone = ref('');
@@ -542,267 +562,65 @@ const onPlaygroundDetectClick = () => {
 const sizeOptions = ['compact', 'normal', 'large'] as const;
 const themeOptions = ['auto', 'light', 'dark'] as const;
 
-// Code snippets
-const snippets: Record<string, string> = {
-  basic: `<script setup lang="ts">
-import { ref } from 'vue'
+// One selection controls every code example on this page.
+const selectedFramework = ref<ExampleFramework>('vue');
 
-const phone = ref('')
-<\/script>
-
-<template>
-  <PhoneInput v-model="phone" />
-</template>`,
-
-  validation: `<script setup lang="ts">
-import { ref } from 'vue'
-
-const phone = ref('')
-const isValid = ref(false)
-
-function onValidation(valid: boolean) {
-  isValid.value = valid
-}
-<\/script>
-
-<template>
-  <PhoneInput
-    v-model="phone"
-    @validation-change="onValidation"
-  />
-  <p v-if="!isValid && phone" class="error">
-    Please enter a complete phone number
-  </p>
-</template>`,
-
-  detection: `<script setup lang="ts">
-import { ref } from 'vue'
-
-const phone = ref('')
-const countryName = ref('')
-
-function onCountry(country: PMaskFull) {
-  countryName.value = country.name
-}
-<\/script>
-
-<template>
-  <PhoneInput
-    v-model="phone"
-    detect
-    @country-change="onCountry"
-  />
-  <p>Detected: {{ countryName }}</p>
-</template>`,
-
-  sizes: `<template>
-  <!-- Compact -->\n  <PhoneInput v-model="phone" size="compact" />
-
-  <!-- Normal (default) -->\n  <PhoneInput v-model="phone" size="normal" />
-
-  <!-- Large -->\n  <PhoneInput v-model="phone" size="large" />
-</template>`,
-
-  themes: `<template>
-  <!-- Auto (system preference) -->\n  <PhoneInput v-model="phone" theme="auto" />
-
-  <!-- Light -->\n  <PhoneInput v-model="phone" theme="light" />
-
-  <!-- Dark -->\n  <PhoneInput v-model="phone" theme="dark" />
-</template>`,
-
-  actions: `<script setup lang="ts">
-import { ref } from 'vue'
-
-const phone = ref('')
-
-function handleCopy(value: string) {
-  console.log('Copied:', value)
+function forFrameworks<T>(create: (framework: ExampleFramework) => T) {
+  return { vue: create('vue'), react: create('react'), svelte: create('svelte'), angular: create('angular') };
 }
 
-function handleClear() {
-  console.log('Input cleared')
-}
-<\/script>
+const allSnippets = forFrameworks((framework) => ({
+  ...getComponentExamples(framework),
+  ...getCustomExamples(framework)
+}));
+const snippets = Object.fromEntries(
+  (Object.keys(allSnippets.vue) as (keyof typeof allSnippets.vue)[]).map(
+    (key) => [key, forFrameworks((framework) => allSnippets[framework][key])] as const
+  )
+);
+const playgroundCode = computed(() =>
+  forFrameworks((framework) =>
+    getPlaygroundCode(framework, {
+      value: playgroundPhone.value,
+      country: playgroundCountry.value,
+      size: playgroundSize.value,
+      theme: playgroundTheme.value,
+      disabled: playgroundDisabled.value,
+      readonly: playgroundReadonly.value,
+      showCopy: playgroundShowCopy.value,
+      showClear: playgroundShowClear.value,
+      detect: playgroundDetect.value,
+      withValidity: playgroundValidity.value
+    })
+  )
+);
 
-<template>
-  <PhoneInput
-    v-model="phone"
-    show-copy
-    show-clear
-    @copy="handleCopy"
-    @clear="handleClear"
-  />
-</template>`,
-
-  disabledAndReadonly: `<script setup lang="ts">
-import { ref } from 'vue'
-const disabledPhone = ref('1234567890')
-const readonlyPhone = ref('9876543210')
-<\/script>
-
-<template>
-  <PhoneInput v-model="disabledPhone" disabled />
-  <PhoneInput v-model="readonlyPhone" readonly />
-</template>`,
-
-  form: `<script setup lang="ts">
-import { ref } from 'vue'
-
-const formData = ref({
-  name: '',
-  email: '',
-  phone: ''
-})
-
-const formErrors = ref({ phone: '' })
-
-function onValidation(isValid: boolean) {
-  formErrors.value.phone = isValid
-    ? ''
-    : 'Invalid phone'
-}
-
-function handleSubmit() {
-  if (!formErrors.value.phone) {
-    console.log(formData.value)
-  }
-}
-<\/script>
-
-<template>
-  <form @submit.prevent="handleSubmit">
-    <input
-      id="name"
-      v-model="formData.name"
-      name="name"
-      type="text"
-      autocomplete="name"
-      placeholder="Name"
-    />
-    <input
-      id="email"
-      v-model="formData.email"
-      name="email"
-      type="email"
-      autocomplete="email"
-      placeholder="Email"
-    />
-    <PhoneInput
-      id="phone"
-      v-model="formData.phone"
-      name="phone"
-      @validation-change="onValidation"
-    />
-    <span v-if="formErrors.phone" class="error">
-      {{ formErrors.phone }}
-    </span>
-
-    <button type="submit">Submit</button>
-  </form>
-</template>`,
-
-  directiveBasic: `<script setup lang="ts">
-import { ref } from 'vue'
-
-const phone = ref('')
-<\/script>
-
-<template>
-  <input v-model="phone" v-phone-mask />
-</template>`,
-
-  directiveOptions: `<script setup lang="ts">
-import { ref } from 'vue'
-
-const country = ref('GB')
-const phoneData = ref<PMaskPhoneNumber>({
-  full: '',
-  fullFormatted: '',
-  digits: ''
-})
-
-function onChange(data: PMaskPhoneNumber) {
-  phoneData.value = data
-}
-<\/script>
-
-<template>
-  <input
-    v-phone-mask="{
-      country: country,
-      onChange
-    }"
-  />
-  <p>Full: {{ phoneData.full }}</p>
-  <p>Formatted: {{ phoneData.fullFormatted }}</p>
-  <p>Digits: {{ phoneData.digits }}</p>
-</template>`,
-
-  directiveDetect: `<script setup lang="ts">
-import { ref } from 'vue'
-
-const phone = ref('')
-const detected = ref('')
-
-function onCountryChange(country: PMaskFull) {
-  detected.value = country.name
-}
-<\/script>
-
-<template>
-  <input
-    v-model="phone"
-    v-phone-mask="{
-      detect: true,
-      onCountryChange,
-    }"
-  />
-  <p v-if="detected">Country: {{ detected }}</p>
-</template>`
-};
-
-const copiedSnippet = ref('');
-
-const copyCode = async (key: string) => {
-  try {
-    const snippet = snippets[key];
-    if (!snippet) return;
-    await navigator.clipboard.writeText(snippet);
-    copiedSnippet.value = key;
-    setTimeout(() => {
-      copiedSnippet.value = '';
-    }, 2_000);
-  } catch (err) {
-    console.error('Failed to copy:', err);
-  }
-};
-
-const playgroundCode = computed(() => {
-  const props = [];
-
-  if (playgroundCountry.value) props.push(`country="${playgroundCountry.value}"`);
-  if (playgroundSize.value !== 'normal') props.push(`size="${playgroundSize.value}"`);
-  if (playgroundTheme.value !== 'auto') props.push(`theme="${playgroundTheme.value}"`);
-  if (playgroundDisabled.value) props.push('disabled');
-  if (playgroundReadonly.value) props.push('readonly');
-  if (!playgroundShowCopy.value) props.push(':show-copy="false"');
-  if (playgroundShowClear.value) props.push('show-clear');
-  if (!playgroundValidity.value) props.push(':with-validity="false"');
-  if (playgroundDetect.value) props.push('detect');
-
-  return `<script setup lang="ts">
-import { ref } from 'vue'
-
-const phone = ref('${playgroundPhone.value}')
-<\/script>
-
-<template>
-  <PhoneInput
-    v-model="phone"${props.length > 0 ? '\n    ' + props.join('\n    ') : ''}
-  />
-</template>`;
-});
+// Display formatting
+const displayPhone = ref('+12345678888');
+const displayCountry = ref<PCountryKey>();
+const displayCode = ref(true);
+const displayFlag = ref(false);
+const displaySamples: { label: string; value: string; country?: PCountryKey }[] = [
+  { label: 'With country code', value: '+12345678888' },
+  { label: 'Without country code', value: '2345678888', country: 'US' },
+  { label: 'Already formatted', value: '+44 740 012 3456', country: 'GB' }
+];
+const formattedPhone = computed(() =>
+  formatPhone(displayPhone.value, displayCountry.value, {
+    code: displayCode.value,
+    flag: displayFlag.value
+  })
+);
+const displayCodeSnippet = computed(() =>
+  forFrameworks((framework) =>
+    getDisplayCode(framework, {
+      value: displayPhone.value,
+      country: displayCountry.value,
+      code: displayCode.value,
+      flag: displayFlag.value
+    })
+  )
+);
 
 const handleCopy = (value: string) => {
   copyNotification.value = `Copied: ${value}`;
@@ -888,7 +706,8 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 .playground,
 .example,
 .resources,
-.directive-section {
+.directive-section,
+.formatting-section {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -902,7 +721,8 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 .example h2,
 .example h3,
 .resources h2,
-.directive-section h2 {
+.directive-section h2,
+.formatting-section h2 {
   color: white;
   margin-bottom: 0.5rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -910,7 +730,8 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 
 .playground h2,
 .resources h2,
-.directive-section h2 {
+.directive-section h2,
+.formatting-section h2 {
   font-size: 1.75rem;
 }
 
@@ -924,12 +745,14 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 
 .playground p,
 .example p,
-.directive-section > p {
+.directive-section > p,
+.formatting-section > p {
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 1.5rem;
 }
 
-.directive-section {
+.directive-section,
+.formatting-section {
   border: 2px solid rgba(102, 126, 234, 0.5);
 }
 
@@ -948,7 +771,7 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 
 .playground-container {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 2rem;
 }
 
@@ -1000,6 +823,7 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 }
 
 .playground-preview {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -1015,11 +839,12 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 
 .example-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2rem;
 }
 
 .demo {
+  min-width: 0;
   padding: 1.5rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
@@ -1184,48 +1009,45 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
   font-size: 0.875rem;
 }
 
-.code {
-  position: relative;
+.formatting-presets {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.code-box {
-  position: relative;
+.formatting-section {
+  min-height: 0;
 }
 
-.copy-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: rgba(67, 56, 202, 0.92);
-  color: white;
+.formatting-presets button {
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
   border: 1px solid rgba(129, 140, 248, 0.55);
   border-radius: 6px;
+  background: rgba(67, 56, 202, 0.92);
+  color: white;
+  font: inherit;
   font-size: 0.875rem;
   cursor: pointer;
-  z-index: 10;
-  transition: all 0.3s;
-  backdrop-filter: blur(10px);
 }
 
-.copy-btn:hover {
+.formatting-presets button:hover {
   background: rgba(55, 48, 163, 0.98);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(67, 56, 202, 0.45);
 }
 
-.code pre,
-.code-box pre {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
-  padding: 1.5rem;
-  padding-top: 3rem;
-  border-radius: 12px;
-  overflow-x: auto;
+.formatting-note {
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.875rem;
   line-height: 1.6;
   margin: 0;
-  user-select: text;
+}
+
+.formatting-section output {
+  overflow-wrap: anywhere;
 }
 
 .resource-cards {
@@ -1268,7 +1090,7 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 @media (max-width: 880px) {
   .playground-container,
   .example-container {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .page-header h1 {
@@ -1276,16 +1098,11 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
   }
 }
 @media (max-width: 640px) {
-  .code pre,
-  .code-box pre {
-    padding: 1rem;
-    padding-top: 2.5rem;
-    font-size: 0.75rem;
-  }
   .playground,
   .example,
   .resources,
-  .directive-section {
+  .directive-section,
+  .formatting-section {
     padding: 1rem;
   }
 }
@@ -1293,13 +1110,6 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
   .page-header__actions {
     flex-direction: column;
     gap: 0.55rem;
-  }
-  .code pre,
-  .code-box pre {
-    text-wrap: wrap;
-    padding: 0.5rem;
-    padding-top: 2.5rem;
-    font-size: 0.625rem;
   }
   .demo {
     padding: 0.5rem;

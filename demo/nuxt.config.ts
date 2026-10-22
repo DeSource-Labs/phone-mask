@@ -28,15 +28,6 @@ const config: NuxtConfig = {
         { rel: 'apple-touch-icon', href: '/logo/apple-touch-icon.png', sizes: '180x180' },
         { rel: 'manifest', href: '/site.webmanifest' }
       ],
-      // TODO: Add analytics later
-      // script: [
-      //   {
-      //     key: 'plausible',
-      //     defer: true,
-      //     src: 'https://plausible.io/js/script.js',
-      //     'data-domain': meta.domain,
-      //   },
-      // ],
       script: [
         {
           key: 'context7-widget',
@@ -81,10 +72,10 @@ const config: NuxtConfig = {
           name: 'twitter:card',
           content: 'summary_large_image'
         },
-        // {
-        //   name: 'twitter:site',
-        //   content: meta.x,
-        // },
+        {
+          name: 'twitter:site',
+          content: meta.x
+        },
         {
           property: 'og:title',
           content: meta.title

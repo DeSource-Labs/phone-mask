@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@desource/phone-mask-nuxt": "workspace:*",
+    "@desource/phone-mask-vue": "workspace:*",
     "@nuxt/image": "^2.1.0",
     "gsap": "^3.15.0",
     "ogl": "^1.0.11",

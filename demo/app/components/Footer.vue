@@ -77,12 +77,12 @@ const { context7Ready, toggleContext7 } = useContext7([context7Small, context7Me
   color: var(--color-secondary);
   letter-spacing: 0.03em;
 }
-@media (max-width: 839px) {
+@media (max-width: 860px) {
   .legal {
     display: none;
   }
 }
-@media (max-width: 565px) {
+@media (max-width: 590px) {
   .footer {
     flex-direction: column-reverse;
     gap: 0.75rem;
