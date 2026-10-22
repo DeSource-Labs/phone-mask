@@ -14,7 +14,7 @@
         :disabled="copying"
         @click="copyCode"
       >
-        {{ copied ? '✓ Copied!' : '📋 Copy' }}
+        {{ copyButtonText }}
       </button>
     </div>
     <pre
@@ -35,8 +35,14 @@ const maxLines = computed(() => Math.max(...Object.values(props.code).map((snipp
 
 const copying = ref(false);
 const copied = ref(false);
+const failed = ref(false);
 let feedbackTimer: ReturnType<typeof setTimeout> | undefined;
 let copyRequest = 0;
+
+const copyButtonText = computed(() => {
+  if (failed.value) return '⚠ Failed';
+  return copied.value ? '✓ Copied!' : '📋 Copy';
+});
 
 function resetCopyStatus() {
   copyRequest += 1;
@@ -44,6 +50,7 @@ function resetCopyStatus() {
   feedbackTimer = undefined;
   copying.value = false;
   copied.value = false;
+  failed.value = false;
 }
 
 async function copyCode() {
@@ -56,12 +63,15 @@ async function copyCode() {
     await navigator.clipboard.writeText(snippet);
     if (request !== copyRequest) return;
     copied.value = true;
-    feedbackTimer = setTimeout(resetCopyStatus, 3000);
   } catch {
     if (request !== copyRequest) return;
     copied.value = false;
+    failed.value = true;
   } finally {
-    if (request === copyRequest) copying.value = false;
+    if (request === copyRequest) {
+      feedbackTimer = setTimeout(resetCopyStatus, 3000);
+      copying.value = false;
+    }
   }
 }
 
