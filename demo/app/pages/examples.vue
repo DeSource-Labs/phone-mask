@@ -434,7 +434,7 @@
 
         <div class="example-container">
           <div class="demo">
-            <div class="formatting-presets" role="group" aria-label="Sample phone numbers">
+            <fieldset class="formatting-presets" aria-label="Sample phone numbers">
               <button
                 v-for="sample in displaySamples"
                 :key="sample.label"
@@ -446,7 +446,7 @@
               >
                 {{ sample.label }}
               </button>
-            </div>
+            </fieldset>
             <div class="control-group">
               <label for="display-phone">Phone number</label>
               <input id="display-phone" v-model="displayPhone" type="text" />
@@ -1010,6 +1010,10 @@ const handleDirectiveCountryChange = (country: PMaskFull) => {
 }
 
 .formatting-presets {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;

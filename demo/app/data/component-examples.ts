@@ -364,7 +364,7 @@ export function getComponentExamples(framework: ExampleFramework) {
 
 export function getPlaygroundCode(framework: ExampleFramework, options: PlaygroundOptions) {
   // Escaping '<' keeps a pasted value from closing a Vue or Svelte script block.
-  const value = JSON.stringify(options.value).replaceAll('<', '\\u003c');
+  const value = JSON.stringify(options.value).replaceAll('<', String.raw`\u003c`);
   const attributes = [
     ...(options.country ? [['country', options.country] as const] : []),
     ['size', options.size],

@@ -1,7 +1,7 @@
 <template>
   <div class="code">
     <div class="code-toolbar">
-      <select v-model="framework" class="pkg-select" :aria-label="`Framework for ${props.label} code`">
+      <select v-model="framework" name="framework" class="pkg-select" :aria-label="`Framework for ${props.label} code`">
         <option value="vue">Vue</option>
         <option value="react">React</option>
         <option value="svelte">Svelte</option>
