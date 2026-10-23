@@ -1,4 +1,4 @@
-import { test, expect, type Locator } from '@playwright/test';
+import { test, expect, type Locator, type Route } from '@playwright/test';
 
 type PlaygroundControls = {
   country: string;
@@ -134,6 +134,32 @@ export function testPhoneInput(
           .toEqual([display.length, display.length]);
         await copyBtn.click();
         await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(full);
+      });
+    }
+
+    for (const readonly of [false, true]) {
+      test(`keeps entered digits and country when GeoIP arrives late (readonly=${readonly})`, async ({ page }) => {
+        const pending: Route[] = [];
+        await page.clock.install();
+        await page.route('https://ipapi.co/json/', (route) => {
+          pending.push(route);
+        });
+        await page.evaluate(() => localStorage.removeItem('@desource/phone-mask:geo'));
+        await page.reload();
+        await expect.poll(() => pending.length).toBeGreaterThan(0);
+
+        await phoneInput.fill('2025550199');
+        await expect(phoneInput).toHaveValue('202-555-0199');
+        await page.clock.runFor(1);
+        await phoneInput.evaluate((input: HTMLInputElement) => input.setSelectionRange(4, 4));
+        if (readonly) await readonlyControl.check();
+
+        await Promise.all(pending.map((route) => route.fulfill({ json: { country_code: 'AD' } })));
+        await expect.poll(() => page.evaluate(() => localStorage.getItem('@desource/phone-mask:geo'))).toContain('AD');
+        await expect(phoneInput).toHaveValue('202-555-0199');
+        await expect(dropdownBtn).toHaveAttribute('aria-label', /United States \+1$/);
+        await expect(copyBtn).toHaveAttribute('aria-label', 'Copy +1 202-555-0199');
+        expect(await phoneInput.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(4);
       });
     }
 

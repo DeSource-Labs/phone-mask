@@ -140,7 +140,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputExpo
     formatter: this.mask.formatter,
     digits: this.mask.digits,
     inactive: this.inactive,
-    onCountryChange: this.countryState.setCountry,
+    onEdit: this.countryState.onEdit,
     onChange: (digits) => this.changeValue(digits),
     scheduleValidationHint: this.hint.scheduleValidationHint
   });
@@ -204,6 +204,7 @@ export class PhoneInputComponent implements ControlValueAccessor, PhoneInputExpo
     this.telRef()?.nativeElement.blur();
   }
   clear(): void {
+    this.countryState.onEdit();
     this.changeValue('');
     this.hint.clearValidationHint();
     this.cleared.emit();

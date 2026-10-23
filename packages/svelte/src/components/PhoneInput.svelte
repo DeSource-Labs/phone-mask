@@ -112,8 +112,7 @@
     digits: () => formatterData.digits,
     inactive: () => inactive,
     onChange: (v) => (value = v),
-    onCountryChange: countryData.setCountry,
-    onEdit: countryData.cancelDetection,
+    onEdit: countryData.onEdit,
     scheduleValidationHint: validationHint.scheduleValidationHint
   });
 
@@ -132,7 +131,7 @@
     telEl?.blur();
   }
   export function clear() {
-    countryData.cancelDetection();
+    countryData.onEdit();
     value = '';
     validationHint.clearValidationHint();
     onclear?.();

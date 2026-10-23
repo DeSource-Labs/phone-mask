@@ -4,7 +4,7 @@ import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/u
 import { createState, tools, withSetup } from './setup/tools.svelte';
 
 function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
-  const { attachRef = true } = options;
+  const { attachRef = true, detect = false } = options;
   const valueState = createState(initialValue);
   const onChange = vi.fn((nextDigits: string) => {
     valueState.value = nextDigits;
@@ -14,7 +14,7 @@ function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
   const { result, unmount } = withSetup(() => {
     const api = usePhoneMask({
       value: () => valueState.value,
-      detect: () => false,
+      detect: () => detect,
       onChange
     });
     if (attachRef) {

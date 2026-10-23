@@ -6,7 +6,7 @@ import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/u
 import { tools } from './setup/tools';
 
 function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
-  const { attachRef = true } = options;
+  const { attachRef = true, detect = false } = options;
   const onChange = vi.fn();
   let currentValue = initialValue;
   let api: ReturnType<typeof usePhoneMask> | null = null;
@@ -17,7 +17,7 @@ function setup(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
 
     api = usePhoneMask({
       value,
-      detect: false,
+      detect,
       onChange: (nextDigits) => {
         onChange(nextDigits);
         setValue(nextDigits);

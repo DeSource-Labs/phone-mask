@@ -1,4 +1,4 @@
-import type { MaskFull } from '@desource/phone-mask';
+import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
   getCountry,
@@ -29,9 +29,6 @@ export function useCountry({
 
   const locale = $derived<string>(localeOption?.() || getNavigatorLang());
   const country = $derived<MaskFull>(getCountry(countryCode, locale));
-  const cancelDetection = () => {
-    countryRevision++;
-  };
 
   const setCountry = (code?: string | null): boolean => {
     const parsed = parseCountryCode(code);
@@ -41,6 +38,12 @@ export function useCountry({
       return true;
     }
     return false;
+  };
+
+  // Preserve explicit edits and apply an optional country detected from pasted text.
+  const onEdit = (country?: CountryKey) => {
+    countryRevision++;
+    if (country) setCountry(country);
   };
 
   const detectCountry = async () => {
@@ -64,7 +67,7 @@ export function useCountry({
   $effect(() => {
     if (detect?.() && !countryOption?.()) {
       void detectCountry();
-      return cancelDetection;
+      return onEdit;
     }
   });
 
@@ -81,6 +84,6 @@ export function useCountry({
       return locale;
     },
     setCountry,
-    cancelDetection
+    onEdit
   };
 }

@@ -1,5 +1,5 @@
 import { ref, computed, watchEffect, toValue, onMounted, type MaybeRefOrGetter, type ComputedRef } from 'vue';
-import type { MaskFull } from '@desource/phone-mask';
+import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
   getCountry,
@@ -24,8 +24,8 @@ export interface UseCountryReturn {
   country: ComputedRef<MaskFull>;
   /** Change country programmatically */
   setCountry: (countryCode?: string | null) => boolean;
-  /** Ignore pending detection after an explicit edit. */
-  cancelDetection: () => void;
+  /** Preserve explicit edits and apply an optional country detected from pasted text. */
+  onEdit: (country?: CountryKey) => void;
   /** Computed locale value */
   locale: ComputedRef<string>;
 }
@@ -43,9 +43,6 @@ export function useCountry({
   let countryRevision = 0;
 
   const country = computed<MaskFull>(() => getCountry(countryCode.value, locale.value));
-  const cancelDetection = () => {
-    countryRevision++;
-  };
 
   const setCountry = (code?: string | null): boolean => {
     const parsed = parseCountryCode(code);
@@ -57,6 +54,11 @@ export function useCountry({
     }
 
     return false;
+  };
+
+  const onEdit = (country?: CountryKey) => {
+    countryRevision++;
+    if (country) setCountry(country);
   };
 
   const detectCountry = async () => {
@@ -85,7 +87,7 @@ export function useCountry({
     // Auto-detect country
     watchEffect((onCleanup) => {
       if (toValue(detect) && !toValue(countryOption)) {
-        onCleanup(cancelDetection);
+        onCleanup(onEdit);
         void detectCountry();
       }
     });
@@ -96,5 +98,5 @@ export function useCountry({
     });
   });
 
-  return { country, setCountry, locale, cancelDetection };
+  return { country, setCountry, locale, onEdit };
 }

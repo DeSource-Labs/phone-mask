@@ -7,13 +7,13 @@ import { useInputHandlers } from './internal/useInputHandlers.service';
 /** Create per-input state in an Angular injection context; the caller owns the digits. */
 export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const inputRef = options.input ?? (() => null);
-  const { country, locale, setCountry } = useCountry(options);
+  const { country, locale, setCountry, onEdit } = useCountry(options);
   const state = useFormatter({ ...options, country });
   const handlers = useInputHandlers({
     formatter: state.formatter,
     digits: state.digits,
     inactive: () => !!(inputRef()?.disabled || inputRef()?.readOnly),
-    onCountryChange: setCountry,
+    onEdit,
     onChange: options.onChange
   });
 
@@ -45,5 +45,14 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
     });
   });
 
-  return { ...state, country, locale, setCountry, clear: () => options.onChange('') };
+  return {
+    ...state,
+    country,
+    locale,
+    setCountry,
+    clear: () => {
+      onEdit();
+      options.onChange('');
+    }
+  };
 }

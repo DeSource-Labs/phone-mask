@@ -6,7 +6,7 @@ import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/u
 import { tools, withSetup } from './setup/tools';
 
 function setupUsePhoneMaskHarness(initialValue = '', options: UsePhoneMaskSetupOptions = {}) {
-  const { attachRef = true } = options;
+  const { attachRef = true, detect = false } = options;
   const value = ref(initialValue);
   const onChange = vi.fn((nextDigits: string) => {
     value.value = nextDigits;
@@ -18,7 +18,7 @@ function setupUsePhoneMaskHarness(initialValue = '', options: UsePhoneMaskSetupO
     setup() {
       api = usePhoneMask({
         value,
-        detect: false,
+        detect,
         onChange
       });
 

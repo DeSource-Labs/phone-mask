@@ -54,7 +54,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     renderClearSvg
   } = props;
 
-  const { country, setCountry, locale } = useCountry({
+  const { country, setCountry, locale, onEdit } = useCountry({
     country: propCountry,
     locale: propLocale,
     detect,
@@ -114,7 +114,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     formatter,
     digits,
     inactive,
-    onCountryChange: setCountry,
+    onEdit,
     onChange,
     scheduleValidationHint
   });
@@ -147,10 +147,11 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   });
 
   const clear = useCallback(() => {
+    onEdit();
     onChange?.('');
     clearValidationHint();
     onClear?.();
-  }, [onChange, onClear, clearValidationHint]);
+  }, [onChange, onClear, clearValidationHint, onEdit]);
 
   // Imperative handle
   useImperativeHandle(

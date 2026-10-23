@@ -190,6 +190,51 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
     });
 
     describe('detect', () => {
+      it.each(['explicit country', 'detection disabled', 'unmount'] as const)(
+        'ignores pending detection after %s',
+        async (change) => {
+          let resolveGeo!: (country: null) => void;
+          mocks.detectByGeoIp.mockImplementation(
+            () =>
+              new Promise<null>((resolve) => {
+                resolveGeo = resolve;
+              })
+          );
+          mocks.detectCountryFromLocale.mockReturnValue('DE');
+          const { result, rerender, unmount, onCountryChange } = setup({ detect: true, locale: 'en' });
+          await act(() => {
+            if (change === 'explicit country') rerender({ countryOption: 'GB' });
+            if (change === 'detection disabled') rerender({ detect: false });
+            if (change === 'unmount') unmount();
+          });
+          onCountryChange.mockClear();
+          await act(() => resolveGeo(null));
+          expect(mocks.detectCountryFromLocale).not.toHaveBeenCalled();
+          expect(onCountryChange).not.toHaveBeenCalled();
+          if (change !== 'unmount') {
+            expect(toValue(result.country).id).toBe(change === 'explicit country' ? 'GB' : 'US');
+            unmount();
+          }
+        }
+      );
+
+      it.each(['INVALID', null, undefined])('keeps pending detection after setCountry(%s)', async (code) => {
+        let resolveGeo!: (country: string) => void;
+        mocks.detectByGeoIp.mockImplementation(
+          () =>
+            new Promise<string>((resolve) => {
+              resolveGeo = resolve;
+            })
+        );
+        const { result, unmount } = setup({ detect: true, locale: 'en' });
+        await act(() => {
+          expect(result.setCountry(code)).toBe(false);
+          resolveGeo('DE');
+        });
+        expect(toValue(result.country).id).toBe('DE');
+        unmount();
+      });
+
       it.each(['US', 'KZ'])('does not overwrite a later %s selection when GeoIP resolves', async (country) => {
         let resolveGeo!: (country: string) => void;
         mocks.detectByGeoIp.mockImplementation(

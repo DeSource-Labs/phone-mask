@@ -132,11 +132,11 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
 
     el.setAttribute('type', 'tel');
     el.setAttribute('inputmode', 'tel');
-    el.setAttribute('placeholder', '');
 
     const options = parseParams(binding.value);
     const locale = options.locale || getNavigatorLang();
     const countryOption = parseCountryCode(options.country);
+    const detecting = options.detect && !countryOption;
     const country = getCountry(countryOption || 'US', locale);
 
     const state = {
@@ -149,6 +149,7 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
     } as PMaskDirectiveState;
 
     el.__phoneMaskState = state;
+    el.placeholder = state.formatter.getPlaceholder();
 
     // Create and attach handlers
     state.inputHandler = createHandler(el, state, processInput);
@@ -168,8 +169,9 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
         state.country !== country ||
         state.countryOption !== countryOption ||
         state.edited ||
-        (options.detect && !state.options.detect)
-      ) return;
+        (detecting && !state.options.detect)
+      )
+        return;
       setCountry(el, state, countryCode);
     });
   },

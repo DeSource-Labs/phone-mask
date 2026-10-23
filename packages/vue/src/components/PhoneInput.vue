@@ -216,7 +216,7 @@ const onChange = (v: string) => {
   model.value = v;
 };
 
-const { country, setCountry, locale, cancelDetection } = useCountry({
+const { country, setCountry, locale, onEdit } = useCountry({
   country: () => props.country,
   locale: () => props.locale,
   detect: () => props.detect,
@@ -312,8 +312,7 @@ const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputH
   digits,
   inactive,
   onChange,
-  onCountryChange: setCountry,
-  onEdit: cancelDetection,
+  onEdit,
   scheduleValidationHint
 });
 
@@ -326,7 +325,7 @@ const handleFocus = (e: FocusEvent) => {
 const handleBlur = (e: FocusEvent) => emit('blur', e);
 
 const clear = () => {
-  cancelDetection();
+  onEdit();
   onChange('');
   clearValidationHint();
   emit('clear');

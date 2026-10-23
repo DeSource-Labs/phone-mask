@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useSyncExternalStore, useRef } from 'react';
-import type { MaskFull } from '@desource/phone-mask';
+import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
   getCountry,
@@ -26,6 +26,8 @@ export interface UseCountryReturn {
   country: MaskFull;
   /** Change country programmatically */
   setCountry: (countryCode?: string | null) => boolean;
+  /** Keep user edits over pending detection and apply a pasted country when present. */
+  onEdit: (country?: CountryKey) => void;
   /** Computed locale value */
   locale: string;
 }
@@ -61,6 +63,14 @@ export function useCountry({
     return false;
   }, []);
 
+  const onEdit = useCallback(
+    (country?: CountryKey) => {
+      countryRevision.current++;
+      if (country) setCountry(country);
+    },
+    [setCountry]
+  );
+
   useEffect(() => {
     setCountry(countryOption);
   }, [countryOption, setCountry]);
@@ -69,25 +79,18 @@ export function useCountry({
   useEffect(() => {
     if (!shouldDetect) return;
 
-    async function detectCountry() {
-      const revision = countryRevision.current;
-      const geoCountry = await detectByGeoIp();
+    const revision = countryRevision.current;
+    void detectByGeoIp().then((geoCountry) => {
       if (revision !== countryRevision.current) return;
-
-      if (setCountry(geoCountry)) return;
-
-      const localeCountry = detectCountryFromLocale();
-
-      setCountry(localeCountry);
-    }
-
-    detectCountry();
-  }, [shouldDetect, setCountry]);
+      if (!setCountry(geoCountry)) setCountry(detectCountryFromLocale());
+    });
+    return onEdit;
+  }, [shouldDetect, setCountry, onEdit]);
 
   // Effect: Emit onCountryChange
   useEffect(() => {
     onCountryChange?.(country);
   }, [country, onCountryChange]);
 
-  return { country, setCountry, locale };
+  return { country, setCountry, locale, onEdit };
 }
