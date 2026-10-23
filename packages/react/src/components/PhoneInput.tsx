@@ -211,7 +211,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
           className={`pi-selector-btn ${canOpenDropdown ? '' : 'no-dropdown'}`}
           disabled={disabled}
           tabIndex={canOpenDropdown ? undefined : -1}
-          aria-label={`Selected country: ${country.name}`}
+          aria-label={`Selected country: ${country.name} ${country.code}`}
           aria-expanded={canOpenDropdown && dropdownOpen}
           aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
           aria-controls={canOpenDropdown ? dropdownElementId : undefined}
@@ -351,7 +351,10 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     name="search"
                     type="search"
                     className="pi-search"
+                    role="combobox"
                     aria-label="Search"
+                    aria-expanded="true"
+                    aria-autocomplete="list"
                     aria-controls={listboxId}
                     aria-activedescendant={activeOptionId}
                     placeholder={searchPlaceholder}
@@ -360,32 +363,33 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     onKeyDown={handleSearchKeydown}
                   />
                 </div>
-                <ul id={listboxId} className="pi-options" role="listbox" tabIndex={-1}>
-                  {filteredCountries.length > 0 ? (
-                    filteredCountries.map((c, idx) => (
-                      <li
-                        key={c.id}
-                        id={`${optionIdPrefix}-${idx}`}
-                        role="option"
-                        className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
-                          c.id === country.id ? 'is-selected' : ''
-                        }`}
-                        aria-selected={c.id === country.id}
-                        title={c.name}
-                        onClick={() => selectCountry(c.id)}
-                        onMouseEnter={() => setFocusedIndex(idx)}
-                      >
-                        <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
-                          {renderFlag ? renderFlag(c) : c.flag}
-                        </span>
-                        <span className="pi-opt-name">{c.name}</span>
-                        <span className="pi-opt-code">{c.code}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="pi-empty">{noResultsText}</li>
-                  )}
+                <ul id={listboxId} className="pi-options" role="listbox" aria-label="Countries" tabIndex={-1}>
+                  {filteredCountries.map((c, idx) => (
+                    <li
+                      key={c.id}
+                      id={`${optionIdPrefix}-${idx}`}
+                      role="option"
+                      className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
+                        c.id === country.id ? 'is-selected' : ''
+                      }`}
+                      aria-selected={c.id === country.id}
+                      title={c.name}
+                      onClick={() => selectCountry(c.id)}
+                      onMouseEnter={() => setFocusedIndex(idx)}
+                    >
+                      <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
+                        {renderFlag ? renderFlag(c) : c.flag}
+                      </span>
+                      <span className="pi-opt-name">{c.name}</span>
+                      <span className="pi-opt-code">{c.code}</span>
+                    </li>
+                  ))}
                 </ul>
+                {filteredCountries.length === 0 && (
+                  <div className="pi-empty" role="status">
+                    {noResultsText}
+                  </div>
+                )}
               </>
             )}
           </div>,

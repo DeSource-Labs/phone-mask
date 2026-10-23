@@ -206,7 +206,7 @@
       class:no-dropdown={!canOpenDropdown}
       {disabled}
       tabindex={canOpenDropdown ? undefined : -1}
-      aria-label="Selected country: {countryData.country.name}"
+      aria-label="Selected country: {countryData.country.name} {countryData.country.code}"
       aria-expanded={canOpenDropdown && selectorData.dropdownOpen}
       aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
       aria-controls={dropdownId && canOpenDropdown ? dropdownElementId : undefined}
@@ -341,7 +341,10 @@
             name="search"
             type="search"
             class="pi-search"
+            role="combobox"
             aria-label="Search"
+            aria-expanded="true"
+            aria-autocomplete="list"
             placeholder={searchPlaceholder}
             aria-controls={listboxId}
             aria-activedescendant={activeOptionId}
@@ -350,7 +353,7 @@
             oninput={selectorData.handleSearchChange}
           />
         </div>
-        <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
+        <ul id={listboxId} class="pi-options" role="listbox" aria-label="Countries" tabindex="-1">
           {#each selectorData.filteredCountries as c, idx (c.id)}
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <li
@@ -370,10 +373,11 @@
               <span class="pi-opt-name">{c.name}</span>
               <span class="pi-opt-code">{c.code}</span>
             </li>
-          {:else}
-            <li class="pi-empty">{noResultsText}</li>
           {/each}
         </ul>
+        {#if selectorData.filteredCountries.length === 0}
+          <div class="pi-empty" role="status">{noResultsText}</div>
+        {/if}
       {/if}
     </div>
   {/if}

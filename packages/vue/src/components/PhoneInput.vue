@@ -9,7 +9,7 @@
         :class="{ 'no-dropdown': !canOpenDropdown }"
         :disabled="disabled"
         :tabindex="canOpenDropdown ? undefined : -1"
-        :aria-label="`Selected country: ${country.name}`"
+        :aria-label="`Selected country: ${country.name} ${country.code}`"
         :aria-expanded="canOpenDropdown && dropdownOpen"
         :aria-haspopup="canOpenDropdown ? 'dialog' : undefined"
         :aria-controls="mounted && canOpenDropdown ? dropdownElementId : undefined"
@@ -130,7 +130,10 @@
               name="search"
               type="search"
               class="pi-search"
+              role="combobox"
               aria-label="Search"
+              aria-expanded="true"
+              aria-autocomplete="list"
               :aria-controls="listboxId"
               :aria-activedescendant="activeOptionId"
               :placeholder="searchPlaceholder"
@@ -139,7 +142,7 @@
               @input="handleSearchChange"
             />
           </div>
-          <ul :id="listboxId" class="pi-options" role="listbox" tabindex="-1">
+          <ul :id="listboxId" class="pi-options" role="listbox" aria-label="Countries" tabindex="-1">
             <li
               v-for="(c, idx) in filteredCountries"
               :id="getOptionId(idx)"
@@ -163,10 +166,10 @@
               <span class="pi-opt-name">{{ c.name }}</span>
               <span class="pi-opt-code">{{ c.code }}</span>
             </li>
-            <li v-if="filteredCountries.length === 0" class="pi-empty">
-              {{ noResultsText }}
-            </li>
           </ul>
+          <div v-if="filteredCountries.length === 0" class="pi-empty" role="status">
+            {{ noResultsText }}
+          </div>
         </template>
       </div>
     </Teleport>

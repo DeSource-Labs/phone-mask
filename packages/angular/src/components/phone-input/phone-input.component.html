@@ -34,7 +34,7 @@
       [class.no-dropdown]="!canOpen"
       [disabled]="disabled"
       [attr.tabindex]="canOpen ? null : -1"
-      [attr.aria-label]="'Selected country: ' + selected.name"
+      [attr.aria-label]="'Selected country: ' + selected.name + ' ' + selected.code"
       [attr.aria-expanded]="canOpen ? isOpen : null"
       [attr.aria-haspopup]="canOpen ? 'dialog' : null"
       [attr.aria-controls]="showDropdown ? dropdownId : null"
@@ -172,7 +172,10 @@
           name="search"
           type="search"
           class="pi-search"
+          role="combobox"
           aria-label="Search"
+          aria-expanded="true"
+          aria-autocomplete="list"
           [attr.aria-controls]="listboxId"
           [attr.aria-activedescendant]="activeOptionId()"
           [placeholder]="searchPlaceholder()"
@@ -182,7 +185,7 @@
         />
       </div>
       @let focusedIndex = selector.focusedIndex();
-      <ul [id]="listboxId" class="pi-options" role="listbox" tabindex="-1">
+      <ul [id]="listboxId" class="pi-options" role="listbox" aria-label="Countries" tabindex="-1">
         @for (country of selector.filteredCountries(); track country.id; let index = $index) {
           @let isSelected = country.id === selected.id;
           <li
@@ -208,10 +211,11 @@
             <span class="pi-opt-name">{{ country.name }}</span
             ><span class="pi-opt-code">{{ country.code }}</span>
           </li>
-        } @empty {
-          <li class="pi-empty">{{ noResultsText() }}</li>
         }
       </ul>
+      @if (selector.filteredCountries().length === 0) {
+        <div class="pi-empty" role="status">{{ noResultsText() }}</div>
+      }
     }
   </div>
 }
