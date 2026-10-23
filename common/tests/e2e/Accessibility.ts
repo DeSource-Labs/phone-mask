@@ -68,11 +68,34 @@ export function testAccessibility() {
           await scan(page);
         });
 
-        test('empty search results pass axe', async ({ page }) => {
+        test('empty search results update an existing live region and pass axe', async ({ page }) => {
           await page.locator(COMPONENT).locator('.pi-selector-btn').press('Enter');
-          await page.locator(DROPDOWN).locator('.pi-search').fill('no-such-country');
-          await expect(page.locator(DROPDOWN).locator('.pi-empty')).toBeVisible();
+          const dropdown = page.locator(DROPDOWN);
+          const search = dropdown.getByRole('combobox');
+          const status = dropdown.getByRole('status');
+          await expect(search).toBeFocused();
+          await expect(status).toHaveCount(1);
+          await expect(status).toHaveText('');
+          await expect(status).not.toHaveClass(/pi-empty/);
+          await expect(status).not.toHaveCSS('display', 'none');
+          await expect(status).toHaveCSS('visibility', 'visible');
+          const originalStatus = await status.elementHandle();
+
+          await search.fill('no-such-country');
+          await expect(status).toHaveText('No countries found');
+          await expect(status).toHaveClass(/pi-empty/);
+          await expect(status).toBeVisible();
           await scan(page);
+
+          await search.fill('Germany');
+          await expect(dropdown.getByRole('option')).toHaveCount(1);
+          await expect(status).toHaveText('');
+          await expect(status).not.toHaveClass(/pi-empty/);
+          await search.fill('no-such-country-again');
+          await expect(status).toHaveText('No countries found');
+          // Recreating a populated region can pass axe but miss the live announcement.
+          expect(await originalStatus!.evaluate((node) => node.isConnected)).toBe(true);
+          await expect(search).toBeFocused();
         });
 
         for (const state of ['readonly', 'disabled']) {

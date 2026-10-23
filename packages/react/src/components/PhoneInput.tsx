@@ -385,11 +385,9 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     </li>
                   ))}
                 </ul>
-                {filteredCountries.length === 0 && (
-                  <div className="pi-empty" role="status">
-                    {noResultsText}
-                  </div>
-                )}
+                <div className={filteredCountries.length === 0 ? 'pi-empty' : undefined} role="status">
+                  {filteredCountries.length === 0 ? noResultsText : null}
+                </div>
               </>
             )}
           </div>,

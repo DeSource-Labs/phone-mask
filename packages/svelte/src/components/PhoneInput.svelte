@@ -375,9 +375,9 @@
             </li>
           {/each}
         </ul>
-        {#if selectorData.filteredCountries.length === 0}
-          <div class="pi-empty" role="status">{noResultsText}</div>
-        {/if}
+        <div class:pi-empty={selectorData.filteredCountries.length === 0} role="status">
+          {selectorData.filteredCountries.length === 0 ? noResultsText : ''}
+        </div>
       {/if}
     </div>
   {/if}

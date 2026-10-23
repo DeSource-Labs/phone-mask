@@ -167,8 +167,8 @@
               <span class="pi-opt-code">{{ c.code }}</span>
             </li>
           </ul>
-          <div v-if="filteredCountries.length === 0" class="pi-empty" role="status">
-            {{ noResultsText }}
+          <div :class="{ 'pi-empty': filteredCountries.length === 0 }" role="status">
+            {{ filteredCountries.length === 0 ? noResultsText : '' }}
           </div>
         </template>
       </div>

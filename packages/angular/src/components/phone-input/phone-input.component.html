@@ -213,9 +213,9 @@
           </li>
         }
       </ul>
-      @if (selector.filteredCountries().length === 0) {
-        <div class="pi-empty" role="status">{{ noResultsText() }}</div>
-      }
+      <div [class.pi-empty]="selector.filteredCountries().length === 0" role="status">
+        {{ selector.filteredCountries().length === 0 ? noResultsText() : '' }}
+      </div>
     }
   </div>
 }
