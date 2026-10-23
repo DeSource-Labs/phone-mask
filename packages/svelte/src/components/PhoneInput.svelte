@@ -339,7 +339,7 @@
           <input
             bind:this={searchEl}
             name="search"
-            type="search"
+            type="text"
             class="pi-search"
             role="combobox"
             aria-label="Search"

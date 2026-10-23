@@ -125,7 +125,7 @@ export function testPhoneInputSsr(adapter: SsrAdapter): void {
         expect(dropdown?.parentElement).toBe(document.body);
         await adapter.act(() => selector.click());
         expect(selector.getAttribute('aria-expanded')).toBe('true');
-        const search = dropdown.querySelector<HTMLInputElement>('input[type="search"]')!;
+        const search = dropdown.querySelector<HTMLInputElement>('input[role="combobox"]')!;
         const listbox = dropdown.querySelector('[role="listbox"]')!;
         expect(search.getAttribute('aria-controls')).toBe(listbox.id);
         await adapter.act(() => {

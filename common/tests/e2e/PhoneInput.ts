@@ -48,7 +48,7 @@ export function testPhoneInput(
   const COPY_BTN_SELECTOR = 'button.pi-btn-copy';
   const CLEAR_BTN_SELECTOR = 'button.pi-btn-clear';
   const CHEVRON_SELECTOR = '.pi-chevron';
-  const DROPDOWN_SEARCH_SELECTOR = 'input.pi-search[type="search"]';
+  const DROPDOWN_SEARCH_SELECTOR = 'input.pi-search[role="combobox"]';
   const DROPDOWN_NO_RESULTS_SELECTOR = '.pi-empty';
   const DROPDOWN_OPTION_SELECTOR = '.pi-option';
 

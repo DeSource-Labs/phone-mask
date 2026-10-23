@@ -349,7 +349,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                   <input
                     ref={searchRef}
                     name="search"
-                    type="search"
+                    type="text"
                     className="pi-search"
                     role="combobox"
                     aria-label="Search"

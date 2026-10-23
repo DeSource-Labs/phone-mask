@@ -59,6 +59,7 @@ export function testAccessibility() {
           await page.locator(COMPONENT).locator('.pi-selector-btn').press('Enter');
           const dropdown = page.locator(DROPDOWN);
           await expect(dropdown.locator('.pi-search')).toBeFocused();
+          await expect(dropdown.getByRole('combobox')).toHaveAttribute('type', 'text');
           // Bring the selected option into view so contrast checks cover its background.
           await dropdown.getByRole('option', { selected: true }).scrollIntoViewIfNeeded();
           await scan(page);

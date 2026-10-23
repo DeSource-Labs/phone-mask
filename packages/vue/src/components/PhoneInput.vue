@@ -128,7 +128,7 @@
             <input
               ref="searchRef"
               name="search"
-              type="search"
+              type="text"
               class="pi-search"
               role="combobox"
               aria-label="Search"
