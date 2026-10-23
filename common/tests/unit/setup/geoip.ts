@@ -13,11 +13,14 @@ export function deferGeoIp({ act, waitFor }: Pick<TestTools, 'act' | 'waitFor'>)
 
   return {
     fetch,
-    resolve: (country: string) =>
-      act(async () => {
+    resolve: async (country: string) => {
+      await act(() => {
         resolveResponse(new Response(JSON.stringify({ country_code: country })));
-        await waitFor(() => expect(localStorage.getItem(cacheKey)).toContain(country));
-      }),
+      });
+      await waitFor(() => expect(localStorage.getItem(cacheKey)).toContain(country));
+      // Flush framework updates scheduled after the asynchronous response is parsed.
+      await act(() => {});
+    },
     restore: () => {
       fetch.mockRestore();
       if (cached === null) localStorage.removeItem(cacheKey);
