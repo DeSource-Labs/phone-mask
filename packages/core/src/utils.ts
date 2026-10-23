@@ -101,12 +101,10 @@ export function formatDigitsWithMap(maskTemplate: string, digitStr: string): For
       } else {
         break; // No more digits to insert
       }
-    } else {
+    } else if (output || (digitIndex < digitLength && maskTemplate.includes('#', i + 1))) {
       // Only add separator if we have output or will fill next placeholder
-      if (output || (digitIndex < digitLength && maskTemplate.indexOf('#', i + 1) !== -1)) {
-        output += char;
-        map.push(-1);
-      }
+      output += char;
+      map.push(-1);
     }
   }
 
