@@ -210,10 +210,12 @@ export function testUseCountry(setup: SetupFn, { act, toValue }: TestTools, mock
         unmount();
       });
 
-      it('calls detectByGeoIp when detect=true and no countryOption', async () => {
-        const { unmount } = setup({ detect: true, locale: 'en' });
+      it('calls detectByGeoIp once across locale updates when detect=true and no countryOption', async () => {
+        const { unmount, rerender } = setup({ detect: true, locale: 'en' });
 
-        await act(async () => {});
+        await act(() => {
+          rerender({ locale: 'fr' });
+        });
 
         expect(mocks.detectByGeoIp).toHaveBeenCalledOnce();
         unmount();

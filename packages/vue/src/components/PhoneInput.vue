@@ -128,7 +128,6 @@
             <input
               ref="searchRef"
               name="search"
-              type="text"
               class="pi-search"
               role="combobox"
               aria-label="Search"
@@ -141,6 +140,7 @@
               @keydown="handleSearchKeydown"
               @input="handleSearchChange"
             />
+            <button v-if="search" type="button" aria-label="Clear search" @click="clearSearch">×</button>
           </div>
           <ul :id="listboxId" class="pi-options" role="listbox" aria-label="Countries" tabindex="-1">
             <li
@@ -216,7 +216,7 @@ const onChange = (v: string) => {
   model.value = v;
 };
 
-const { country, setCountry, locale } = useCountry({
+const { country, setCountry, locale, cancelDetection } = useCountry({
   country: () => props.country,
   locale: () => props.locale,
   detect: () => props.detect,
@@ -285,6 +285,7 @@ const {
   selectCountry,
   setFocusedIndex,
   handleSearchChange,
+  clearSearch,
   handleSearchKeydown,
   handleSelectorPointerDown,
   handleSelectorKeydown
@@ -312,6 +313,7 @@ const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputH
   inactive,
   onChange,
   onCountryChange: setCountry,
+  onEdit: cancelDetection,
   scheduleValidationHint
 });
 
@@ -324,6 +326,7 @@ const handleFocus = (e: FocusEvent) => {
 const handleBlur = (e: FocusEvent) => emit('blur', e);
 
 const clear = () => {
+  cancelDetection();
   onChange('');
   clearValidationHint();
   emit('clear');

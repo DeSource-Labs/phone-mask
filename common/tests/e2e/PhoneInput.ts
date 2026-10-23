@@ -83,6 +83,7 @@ export function testPhoneInput(
     let disableDefaultStylesControl: Locator;
 
     test.beforeEach(async ({ page }) => {
+      await page.route('https://ipapi.co/json/', (route) => route.fulfill({ json: { country_code: 'US' } }));
       await page.goto('/');
 
       container = page.locator(containerSelector);
@@ -501,7 +502,7 @@ export function testPhoneInput(
         // Playground default: detect=true (checked)
         // detect only controls GeoIP/locale detection on init — hasDropdown stays true
         // regardless of detect value (hasDropdown=false only when country prop is set)
-        // Tests are structural only — do not assert which country is selected (GeoIP is non-deterministic in CI)
+        // Country detection results are covered by useCountry tests.
 
         test('selector button shows chevron with detect=true', async () => {
           // chevron is present when !inactive && hasDropdown

@@ -113,6 +113,7 @@
     inactive: () => inactive,
     onChange: (v) => (value = v),
     onCountryChange: countryData.setCountry,
+    onEdit: countryData.cancelDetection,
     scheduleValidationHint: validationHint.scheduleValidationHint
   });
 
@@ -131,6 +132,7 @@
     telEl?.blur();
   }
   export function clear() {
+    countryData.cancelDetection();
     value = '';
     validationHint.clearValidationHint();
     onclear?.();
@@ -339,7 +341,6 @@
           <input
             bind:this={searchEl}
             name="search"
-            type="text"
             class="pi-search"
             role="combobox"
             aria-label="Search"
@@ -352,6 +353,9 @@
             onkeydown={selectorData.handleSearchKeydown}
             oninput={selectorData.handleSearchChange}
           />
+          {#if selectorData.search}
+            <button type="button" aria-label="Clear search" onclick={selectorData.clearSearch}> × </button>
+          {/if}
         </div>
         <ul id={listboxId} class="pi-options" role="listbox" aria-label="Countries" tabindex="-1">
           {#each selectorData.filteredCountries as c, idx (c.id)}

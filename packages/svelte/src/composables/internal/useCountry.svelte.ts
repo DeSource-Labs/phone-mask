@@ -29,6 +29,9 @@ export function useCountry({
 
   const locale = $derived<string>(localeOption?.() || getNavigatorLang());
   const country = $derived<MaskFull>(getCountry(countryCode, locale));
+  const cancelDetection = () => {
+    countryRevision++;
+  };
 
   const setCountry = (code?: string | null): boolean => {
     const parsed = parseCountryCode(code);
@@ -61,6 +64,7 @@ export function useCountry({
   $effect(() => {
     if (detect?.() && !countryOption?.()) {
       void detectCountry();
+      return cancelDetection;
     }
   });
 
@@ -76,6 +80,7 @@ export function useCountry({
     get locale() {
       return locale;
     },
-    setCountry
+    setCountry,
+    cancelDetection
   };
 }

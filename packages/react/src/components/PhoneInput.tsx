@@ -130,6 +130,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
+    clearSearch,
     handleSearchKeydown,
     handleSelectorPointerDown,
     handleSelectorKeydown
@@ -349,7 +350,6 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                   <input
                     ref={searchRef}
                     name="search"
-                    type="text"
                     className="pi-search"
                     role="combobox"
                     aria-label="Search"
@@ -362,6 +362,11 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     onChange={handleSearchChange}
                     onKeyDown={handleSearchKeydown}
                   />
+                  {search && (
+                    <button type="button" aria-label="Clear search" onClick={clearSearch}>
+                      ×
+                    </button>
+                  )}
                 </div>
                 <ul id={listboxId} className="pi-options" role="listbox" aria-label="Countries" tabIndex={-1}>
                   {filteredCountries.map((c, idx) => (

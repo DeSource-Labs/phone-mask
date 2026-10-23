@@ -15,6 +15,7 @@ export interface UseInputHandlersOptions {
   inactive?: MaybeRefOrGetter<boolean>;
   onChange?: (newDigits: string) => void;
   onCountryChange?: (country: CountryKey) => void;
+  onEdit?: () => void;
   scheduleValidationHint?: (delay: number) => void;
 }
 
@@ -32,10 +33,11 @@ const HINT_DELAY_ACTION = 300;
  * Vue composable that provides event handlers for phone input masking.
  */
 export function useInputHandlers(options: UseInputHandlersOptions): UseInputHandlersReturn {
-  const { formatter, digits, inactive, onChange, onCountryChange, scheduleValidationHint } = options;
+  const { formatter, digits, inactive, onChange, onCountryChange, onEdit, scheduleValidationHint } = options;
 
   const apply = (e: Event, result: ReturnType<typeof processPaste>, delay: number) => {
     if (!result) return;
+    onEdit?.();
     if (result.country) onCountryChange?.(result.country);
     onChange?.(result.newDigits);
     const el = e.target as HTMLInputElement | null;

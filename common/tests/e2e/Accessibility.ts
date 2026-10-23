@@ -55,18 +55,28 @@ export function testAccessibility() {
           await scan(page);
         });
 
-        test('open dropdown, selected option, and filtered results pass axe', async ({ page }) => {
+        test('open dropdown, filtered results, and search clearing pass axe', async ({ page }) => {
           await page.locator(COMPONENT).locator('.pi-selector-btn').press('Enter');
           const dropdown = page.locator(DROPDOWN);
-          await expect(dropdown.locator('.pi-search')).toBeFocused();
-          await expect(dropdown.getByRole('combobox')).toHaveAttribute('type', 'text');
+          const search = dropdown.getByRole('combobox');
+          const clear = dropdown.getByRole('button', { name: 'Clear search' });
+          await expect(search).toBeFocused();
+          await expect(search).toHaveJSProperty('type', 'text');
+          await expect(clear).toHaveCount(0);
+          const countryCount = await dropdown.getByRole('option').count();
           // Bring the selected option into view so contrast checks cover its background.
           await dropdown.getByRole('option', { selected: true }).scrollIntoViewIfNeeded();
           await scan(page);
-          await dropdown.locator('.pi-search').fill('Germany');
+          await search.fill('Germany');
           await expect(dropdown.getByRole('option')).toHaveCount(1);
           await expect(dropdown.getByRole('option')).toBeInViewport();
+          await expect(clear).toBeVisible();
           await scan(page);
+          await clear.click();
+          await expect(search).toHaveValue('');
+          await expect(search).toBeFocused();
+          await expect(dropdown.getByRole('option')).toHaveCount(countryCount);
+          await expect(clear).toHaveCount(0);
         });
 
         test('empty search results update an existing live region and pass axe', async ({ page }) => {
@@ -75,6 +85,7 @@ export function testAccessibility() {
           const search = dropdown.getByRole('combobox');
           const status = dropdown.getByRole('status');
           await expect(search).toBeFocused();
+          const countryCount = await dropdown.getByRole('option').count();
           await expect(status).toHaveCount(1);
           await expect(status).toHaveText('');
           await expect(status).not.toHaveClass(/pi-empty/);
@@ -86,10 +97,16 @@ export function testAccessibility() {
           await expect(status).toHaveText('No countries found');
           await expect(status).toHaveClass(/pi-empty/);
           await expect(status).toBeVisible();
+          await search.press('Tab');
+          const clear = dropdown.getByRole('button', { name: 'Clear search' });
+          await expect(clear).toBeFocused();
           await scan(page);
 
-          await search.fill('Germany');
-          await expect(dropdown.getByRole('option')).toHaveCount(1);
+          await clear.press('Enter');
+          await expect(search).toHaveValue('');
+          await expect(search).toBeFocused();
+          await expect(clear).toHaveCount(0);
+          await expect(dropdown.getByRole('option')).toHaveCount(countryCount);
           await expect(status).toHaveText('');
           await expect(status).not.toHaveClass(/pi-empty/);
           await search.fill('no-such-country-again');

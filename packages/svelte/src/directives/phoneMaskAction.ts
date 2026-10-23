@@ -67,6 +67,7 @@ function createHandler<T>(
   return (e: T) => {
     const result = handler(e, state);
     if (!result) return;
+    state.edited = true;
 
     if (result.country) state.setCountry(result.country, false);
     updateDigits(el, state, result.newDigits);
@@ -172,7 +173,9 @@ export function phoneMaskAction(
     if (
       (el as PhoneMaskBindingElement).__phoneMaskState !== state ||
       state.country !== country ||
-      state.countryOption !== countryOption
+      state.countryOption !== countryOption ||
+      state.edited ||
+      (options.detect && !state.options.detect)
     )
       return;
     state.setCountry(countryCode);

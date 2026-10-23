@@ -36,6 +36,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions) {
     formatter: () => formatterData.formatter,
     digits: () => formatterData.digits,
     onCountryChange: countryData.setCountry,
+    onEdit: countryData.cancelDetection,
     onChange: options.onChange
   });
 
@@ -67,6 +68,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions) {
   });
 
   const clear = () => {
+    countryData.cancelDetection();
     options.onChange('');
   };
 

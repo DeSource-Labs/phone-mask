@@ -24,6 +24,8 @@ export interface UseCountryReturn {
   country: ComputedRef<MaskFull>;
   /** Change country programmatically */
   setCountry: (countryCode?: string | null) => boolean;
+  /** Ignore pending detection after an explicit edit. */
+  cancelDetection: () => void;
   /** Computed locale value */
   locale: ComputedRef<string>;
 }
@@ -41,6 +43,9 @@ export function useCountry({
   let countryRevision = 0;
 
   const country = computed<MaskFull>(() => getCountry(countryCode.value, locale.value));
+  const cancelDetection = () => {
+    countryRevision++;
+  };
 
   const setCountry = (code?: string | null): boolean => {
     const parsed = parseCountryCode(code);
@@ -78,8 +83,9 @@ export function useCountry({
     browserLocale.value = getNavigatorLang();
 
     // Auto-detect country
-    watchEffect(() => {
+    watchEffect((onCleanup) => {
       if (toValue(detect) && !toValue(countryOption)) {
+        onCleanup(cancelDetection);
         void detectCountry();
       }
     });
@@ -90,5 +96,5 @@ export function useCountry({
     });
   });
 
-  return { country, setCountry, locale };
+  return { country, setCountry, locale, cancelDetection };
 }

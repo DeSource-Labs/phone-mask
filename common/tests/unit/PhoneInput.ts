@@ -65,6 +65,64 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
   };
 
   describe('PhoneInput API', () => {
+    it.each([
+      { interaction: 'typing', country: 'US', digits: '2025550199' },
+      { interaction: 'pasting without a calling code', country: 'US', digits: '2025550199' },
+      { interaction: 'manual country selection', country: 'US', digits: '' },
+      { interaction: 'leaving the field untouched', country: 'AD', digits: '' }
+    ])('uses $country after delayed GeoIP following $interaction', async ({ interaction, country, digits }) => {
+      const cacheKey = '@desource/phone-mask:geo';
+      const cached = localStorage.getItem(cacheKey);
+      localStorage.removeItem(cacheKey);
+      let resolveGeoIp!: (response: Response) => void;
+      const response = new Promise<Response>((resolve) => {
+        resolveGeoIp = resolve;
+      });
+      const fetch = vi.spyOn(globalThis, 'fetch').mockReturnValue(response);
+      let rendered: SetupResult | undefined;
+
+      try {
+        rendered = await setup({ detect: true });
+        const { container, ref, onChange } = rendered;
+        const input = container.querySelector<HTMLInputElement>('.pi-input')!;
+        await waitFor(() => expect(fetch).toHaveBeenCalledOnce());
+
+        if (interaction === 'typing') await setInputValue(input, digits);
+        if (interaction === 'pasting without a calling code') {
+          await act(() => {
+            input.dispatchEvent(makePasteEvent(digits));
+          });
+        }
+        if (interaction === 'manual country selection') {
+          await act(() => ref.selectCountry('US'));
+        }
+
+        if (digits) await waitFor(() => expect(input.value).toBe('202-555-0199'));
+        input.setSelectionRange(4, 4);
+        const caret = input.selectionStart;
+        onChange.mockClear();
+
+        await act(async () => {
+          resolveGeoIp(new Response(JSON.stringify({ country_code: 'AD' })));
+          await waitFor(() => expect(localStorage.getItem(cacheKey)).toContain('AD'));
+        });
+
+        expect(ref.getDigits()).toBe(digits);
+        expect(screen.getByRole('button', { name: /Selected country:/ }).getAttribute('aria-label')).toContain(
+          country === 'US' ? 'United States' : 'Andorra'
+        );
+        expect(input.value).toBe(digits ? '202-555-0199' : '');
+        expect(input.selectionStart).toBe(caret);
+        if (digits) expect(ref.getFullNumber()).toBe('+12025550199');
+        expect(onChange).not.toHaveBeenCalled();
+      } finally {
+        rendered?.unmount();
+        fetch.mockRestore();
+        if (cached === null) localStorage.removeItem(cacheKey);
+        else localStorage.setItem(cacheKey, cached);
+      }
+    });
+
     it.each(internationalPasteCases)(
       'selects $country from pasted $text before formatting',
       async ({ text, country, digits, display }) => {

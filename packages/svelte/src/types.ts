@@ -210,6 +210,7 @@ export interface PhoneMaskBindingOptions {
 
 /** Internal state stored on bound input element */
 export interface PhoneMaskBindingState {
+  edited?: boolean;
   /** Current selected country */
   country: MaskFull;
   /** Last country option applied by the action. */

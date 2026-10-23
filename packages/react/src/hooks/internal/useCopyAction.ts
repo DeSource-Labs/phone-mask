@@ -1,4 +1,4 @@
-import { useCallback, type RefObject } from 'react';
+import type { RefObject } from 'react';
 import { useClipboard } from '../utility/useClipboard.js';
 import { useTimer } from '../utility/useTimer.js';
 
@@ -17,7 +17,7 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
   const copyAriaLabel = copied ? 'Copied' : `Copy ${fullFormatted}`;
   const copyButtonTitle = copied ? 'Copied' : 'Copy phone number';
 
-  const onCopyClick = useCallback(async () => {
+  const onCopyClick = async () => {
     const valueToCopy = fullFormatted.trim();
     const success = await copy(valueToCopy);
     if (success) {
@@ -29,7 +29,7 @@ export function useCopyAction({ liveRef, fullFormatted, onCopy }: UseCopyActionO
         }, DELAY);
       }
     }
-  }, [fullFormatted, copy, onCopy, liveRef, liveTimer]);
+  };
 
   return {
     copied,

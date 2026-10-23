@@ -61,28 +61,28 @@ export function useCountry({
     return false;
   }, []);
 
-  const detectCountry = useCallback(async () => {
-    const revision = countryRevision.current;
-    const geoCountry = await detectByGeoIp();
-    if (revision !== countryRevision.current) return;
-
-    if (setCountry(geoCountry)) return;
-
-    const localeCountry = detectCountryFromLocale();
-
-    setCountry(localeCountry);
-  }, [setCountry]);
-
   useEffect(() => {
     setCountry(countryOption);
   }, [countryOption, setCountry]);
 
   // Effect: Country detection
   useEffect(() => {
-    if (shouldDetect) {
-      detectCountry();
+    if (!shouldDetect) return;
+
+    async function detectCountry() {
+      const revision = countryRevision.current;
+      const geoCountry = await detectByGeoIp();
+      if (revision !== countryRevision.current) return;
+
+      if (setCountry(geoCountry)) return;
+
+      const localeCountry = detectCountryFromLocale();
+
+      setCountry(localeCountry);
     }
-  }, [shouldDetect, detectCountry]);
+
+    detectCountry();
+  }, [shouldDetect, setCountry]);
 
   // Effect: Emit onCountryChange
   useEffect(() => {
