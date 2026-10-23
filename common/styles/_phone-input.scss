@@ -367,6 +367,10 @@
         background: var(--pi-border);
         font-weight: 500;
       }
+
+      &:is(:hover, .is-focused, .is-selected) .pi-opt-code {
+        color: var(--pi-fg);
+      }
     }
 
     .pi-opt-name {
