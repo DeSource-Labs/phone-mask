@@ -5,6 +5,8 @@ import { dts } from 'rolldown-plugin-dts';
 
 const previousDeclarations = globSync('dist/**/*.d.ts');
 const result = await build({
+  // These declarations are already compiled; avoid unrelated workspace tsconfig discovery.
+  tsconfig: false,
   input: { index: 'dist/index.d.ts', 'core/index': 'dist/core/index.d.ts' },
   external: (id) => !id.startsWith('.') && !isAbsolute(id),
   plugins: [dts({ dtsInput: true, sourcemap: false })],
