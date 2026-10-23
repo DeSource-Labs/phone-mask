@@ -4,6 +4,8 @@
     "noEmit": false,
     "types": ["vitest/globals", "node"],
     "paths": {
+      "@desource/phone-mask-angular": ["../src/public-api.ts"],
+      "@desource/phone-mask-angular/core": ["../core/public-api.ts"],
       "@src/*": ["../src/*"],
       "@core/*": ["../core/*"],
       "@common/*": ["../../../common/*"]

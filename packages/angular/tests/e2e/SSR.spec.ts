@@ -42,11 +42,11 @@ for (const options of [
       await expect(page.getByTestId('pipe-without-code')).toHaveText('🇺🇸 234 567 8888');
       const originalPipe = await page.getByTestId('pipe-full').elementHandle();
       await checkInitialCallbacks({
-        render: () => page.evaluate(readInitialCallbacks),
+        render: () => page.evaluate(readInitialCallbacks, undefined),
         hydrate: async () => {
           release();
           await expect(page.locator('html')).toHaveAttribute('data-hydrated', 'true');
-          return page.evaluate(readInitialCallbacks);
+          return page.evaluate(readInitialCallbacks, undefined);
         },
         valueAfterHydration: '202555012345',
         callbacksDuringSsr: true
@@ -57,7 +57,9 @@ for (const options of [
       await expect(page.getByTestId('pipe-full')).toHaveText('+1 234 567 8888');
       await expect(page.getByTestId('pipe-without-code')).toHaveText('🇺🇸 234 567 8888');
       const preserved = await Promise.all(
-        originalNodes.map((node) => node.evaluate((element) => document.getElementById(element.id) === element))
+        originalNodes.map((node) =>
+          node.evaluate((element: Element) => document.getElementById(element.id) === element)
+        )
       );
       expect(preserved).toEqual([true, true, true, true, true]);
       await expect(page.locator(`.desource-phone-input.theme-${options.colorScheme}`)).toHaveCount(3);
