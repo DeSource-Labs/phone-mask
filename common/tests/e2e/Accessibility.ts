@@ -161,6 +161,11 @@ export function testAccessibility() {
       const copy = component.locator('.pi-btn-copy');
       const clear = component.locator('.pi-btn-clear');
       await input.fill('2025550123');
+      const icon = copy.locator('svg');
+      const path = icon.locator('path');
+      const originalPath = await path.elementHandle();
+      const defaultShape = (await path.getAttribute('d'))!;
+      await expect(icon).toHaveAttribute('aria-hidden', 'true');
       await component.locator('.pi-selector-btn').focus();
       await page.keyboard.press('Tab');
       await expect(input).toBeFocused();
@@ -170,6 +175,10 @@ export function testAccessibility() {
       const status = component.getByRole('status');
       await expect(status).toHaveAttribute('aria-live', 'polite');
       await expect(status).toHaveText('Phone number copied to clipboard');
+      await expect(path).not.toHaveAttribute('d', defaultShape);
+      await expect(copy).toHaveAttribute('title', 'Copy phone number');
+      await expect(path).toHaveAttribute('d', defaultShape);
+      expect(await originalPath!.evaluate((node) => node.isConnected)).toBe(true);
       await page.keyboard.press('Tab');
       await expect(clear).toBeFocused();
       await page.keyboard.press('Enter');
