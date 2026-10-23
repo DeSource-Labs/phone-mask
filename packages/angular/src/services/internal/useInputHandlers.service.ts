@@ -14,8 +14,8 @@ export interface UseInputHandlersOptions {
   formatter: MaybeGetter<FormatterHelpers>;
   digits: MaybeGetter<string>;
   inactive?: MaybeGetter<boolean>;
+  onEdit?: (country?: CountryKey) => void;
   onChange?: (digits: string) => void;
-  onCountryChange?: (country: CountryKey) => void;
   scheduleValidationHint?: (delay: number) => void;
 }
 
@@ -23,13 +23,13 @@ export function useInputHandlers({
   formatter,
   digits,
   inactive,
+  onEdit,
   onChange,
-  onCountryChange,
   scheduleValidationHint
 }: UseInputHandlersOptions) {
   const apply = (event: Event, result: ReturnType<typeof processPaste>, delay: number) => {
     if (!result) return;
-    if (result.country) onCountryChange?.(result.country);
+    onEdit?.(result.country);
     onChange?.(result.newDigits);
     const input = event.target as HTMLInputElement | null;
     if (input) {

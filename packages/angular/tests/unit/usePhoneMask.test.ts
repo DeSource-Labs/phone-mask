@@ -5,13 +5,13 @@ import { usePhoneMask } from '@src/services/usePhoneMask.service';
 import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { tools, withSetup, stabilize } from './setup/tools';
 
-async function setup(initialValue = '', { attachRef = true }: UsePhoneMaskSetupOptions = {}) {
+async function setup(initialValue = '', { attachRef = true, detect = false }: UsePhoneMaskSetupOptions = {}) {
   const value = signal(initialValue);
   const onChange = vi.fn((digits: string) => value.set(digits));
   const inputEl = document.createElement('input');
   document.body.append(inputEl);
   const input = signal<HTMLInputElement | null>(attachRef ? inputEl : null);
-  const { raw: api, unmount } = withSetup(() => usePhoneMask({ value, input, detect: false, onChange }));
+  const { raw: api, unmount } = withSetup(() => usePhoneMask({ value, input, detect, onChange }));
   await stabilize();
   return {
     inputEl,

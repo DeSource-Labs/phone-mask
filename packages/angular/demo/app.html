@@ -33,7 +33,9 @@
 
   <section data-testid="playground">
     <h2>Component playground</h2>
+    <label for="playground-phone">Phone number</label>
     <phone-input
+      id="playground-phone"
       [(value)]="digits"
       [country]="country()"
       [locale]="locale()"

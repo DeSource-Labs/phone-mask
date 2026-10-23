@@ -305,13 +305,14 @@
     }
 
     .pi-search-wrap {
+      position: relative;
       padding: 8px;
       border-bottom: 1px solid var(--pi-border);
     }
 
     .pi-search {
       width: 100%;
-      padding: 8px 12px;
+      padding: 8px 44px 8px 12px;
       font-size: 16px;
       border: 1px solid var(--pi-border);
       border-radius: calc(var(--pi-radius) - 2px);
@@ -320,6 +321,26 @@
 
       &:focus {
         border-color: var(--pi-border-focus);
+      }
+    }
+
+    .pi-search-wrap > button {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 20px;
+
+      &:hover {
+        background: var(--pi-disabled-bg);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--pi-border-focus);
+        outline-offset: -2px;
       }
     }
 
@@ -366,6 +387,10 @@
       &.is-selected {
         background: var(--pi-border);
         font-weight: 500;
+      }
+
+      &:is(:hover, .is-focused, .is-selected) .pi-opt-code {
+        color: var(--pi-fg);
       }
     }
 

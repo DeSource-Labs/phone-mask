@@ -57,22 +57,22 @@ export function useCountrySelector({
     openByKeyboardRef.current = false;
   }, []);
 
-  const openDropdown = useCallback(() => {
+  const openDropdown = () => {
     if (inactive || !hasDropdown || dropdownOpen || !dropdownRef.current || !selectorRef.current) return;
 
     updateDropdownPosition();
     setFocusedIndex(0);
     setDropdownOpen(true);
-  }, [dropdownOpen, dropdownRef, hasDropdown, inactive, selectorRef, updateDropdownPosition]);
+  };
 
-  const toggleDropdown = useCallback(() => {
+  const toggleDropdown = () => {
     if (inactive || !hasDropdown) return;
     if (dropdownOpen) {
       closeDropdown();
     } else {
       openDropdown();
     }
-  }, [inactive, dropdownOpen, hasDropdown, openDropdown, closeDropdown]);
+  };
 
   const selectCountry = useCallback(
     (code: CountryKey) => {
@@ -83,43 +83,43 @@ export function useCountrySelector({
     [onSelectCountry, closeDropdown, onAfterSelect]
   );
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     setFocusedIndex(0);
-  }, []);
+  };
 
-  const handleSearchKeydown = useCallback(
-    (e: React.KeyboardEvent) => {
-      handleCountrySearchKeydown(
-        e,
-        focusedIndex,
-        filteredCountries,
-        setFocusedIndex,
-        (index) => setTimeout(() => scrollCountryOptionIntoView(dropdownRef.current, index)),
-        (country) => selectCountry(country.id)
-      );
-    },
-    [filteredCountries, focusedIndex, selectCountry, dropdownRef]
-  );
+  const clearSearch = () => {
+    setSearch('');
+    setFocusedIndex(0);
+    searchRef.current?.focus({ preventScroll: true });
+  };
 
-  const handleSelectorPointerDown = useCallback((e: React.PointerEvent) => {
+  const handleSearchKeydown = (e: React.KeyboardEvent) => {
+    handleCountrySearchKeydown(
+      e,
+      focusedIndex,
+      filteredCountries,
+      setFocusedIndex,
+      (index) => setTimeout(() => scrollCountryOptionIntoView(dropdownRef.current, index)),
+      (country) => selectCountry(country.id)
+    );
+  };
+
+  const handleSelectorPointerDown = (e: React.PointerEvent) => {
     openByKeyboardRef.current = e.pointerType === 'mouse';
-  }, []);
+  };
 
-  const handleSelectorKeydown = useCallback(
-    (e: React.KeyboardEvent<HTMLButtonElement>) => {
-      handleCountryButtonKeydown(
-        e,
-        dropdownOpen,
-        () => {
-          openByKeyboardRef.current = true;
-        },
-        focusSearch,
-        openDropdown
-      );
-    },
-    [dropdownOpen, openDropdown, focusSearch]
-  );
+  const handleSelectorKeydown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    handleCountryButtonKeydown(
+      e,
+      dropdownOpen,
+      () => {
+        openByKeyboardRef.current = true;
+      },
+      focusSearch,
+      openDropdown
+    );
+  };
 
   useEffect(() => {
     if ((inactive || !hasDropdown) && dropdownOpen) {
@@ -158,6 +158,7 @@ export function useCountrySelector({
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
+    clearSearch,
     handleSearchKeydown,
     handleSelectorPointerDown,
     handleSelectorKeydown

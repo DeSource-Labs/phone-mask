@@ -54,7 +54,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     renderClearSvg
   } = props;
 
-  const { country, setCountry, locale } = useCountry({
+  const { country, setCountry, locale, onEdit } = useCountry({
     country: propCountry,
     locale: propLocale,
     detect,
@@ -114,7 +114,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     formatter,
     digits,
     inactive,
-    onCountryChange: setCountry,
+    onEdit,
     onChange,
     scheduleValidationHint
   });
@@ -130,6 +130,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
+    clearSearch,
     handleSearchKeydown,
     handleSelectorPointerDown,
     handleSelectorKeydown
@@ -146,10 +147,11 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
   });
 
   const clear = useCallback(() => {
+    onEdit();
     onChange?.('');
     clearValidationHint();
     onClear?.();
-  }, [onChange, onClear, clearValidationHint]);
+  }, [onChange, onClear, clearValidationHint, onEdit]);
 
   // Imperative handle
   useImperativeHandle(
@@ -211,7 +213,7 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
           className={`pi-selector-btn ${canOpenDropdown ? '' : 'no-dropdown'}`}
           disabled={disabled}
           tabIndex={canOpenDropdown ? undefined : -1}
-          aria-label={`Selected country: ${country.name}`}
+          aria-label={`Selected country: ${country.name} ${country.code}`}
           aria-expanded={canOpenDropdown && dropdownOpen}
           aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
           aria-controls={canOpenDropdown ? dropdownElementId : undefined}
@@ -288,14 +290,14 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
             >
               {renderCopySvg ? (
                 renderCopySvg(copied)
-              ) : copied ? (
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M6.5 11.5 3 8 4.06 6.94 6.5 9.38 11.94 3.94 13 5 6.5 11.5Z" fill="currentColor" />
-                </svg>
               ) : (
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <path
-                    d="M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM9 1H1V11H2.5V2.5H9V1Z"
+                    d={
+                      copied
+                        ? 'M6.5 11.5 3 8 4.06 6.94 6.5 9.38 11.94 3.94 13 5 6.5 11.5Z'
+                        : 'M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM9 1H1V11H2.5V2.5H9V1Z'
+                    }
                     fill="currentColor"
                   />
                 </svg>
@@ -349,9 +351,11 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                   <input
                     ref={searchRef}
                     name="search"
-                    type="search"
                     className="pi-search"
+                    role="combobox"
                     aria-label="Search"
+                    aria-expanded="true"
+                    aria-autocomplete="list"
                     aria-controls={listboxId}
                     aria-activedescendant={activeOptionId}
                     placeholder={searchPlaceholder}
@@ -359,33 +363,37 @@ const PhoneInputInner = (props: PhoneInputProps, ref: ForwardedRef<PhoneInputRef
                     onChange={handleSearchChange}
                     onKeyDown={handleSearchKeydown}
                   />
-                </div>
-                <ul id={listboxId} className="pi-options" role="listbox" tabIndex={-1}>
-                  {filteredCountries.length > 0 ? (
-                    filteredCountries.map((c, idx) => (
-                      <li
-                        key={c.id}
-                        id={`${optionIdPrefix}-${idx}`}
-                        role="option"
-                        className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
-                          c.id === country.id ? 'is-selected' : ''
-                        }`}
-                        aria-selected={c.id === country.id}
-                        title={c.name}
-                        onClick={() => selectCountry(c.id)}
-                        onMouseEnter={() => setFocusedIndex(idx)}
-                      >
-                        <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
-                          {renderFlag ? renderFlag(c) : c.flag}
-                        </span>
-                        <span className="pi-opt-name">{c.name}</span>
-                        <span className="pi-opt-code">{c.code}</span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="pi-empty">{noResultsText}</li>
+                  {search && (
+                    <button type="button" aria-label="Clear search" onClick={clearSearch}>
+                      ×
+                    </button>
                   )}
+                </div>
+                <ul id={listboxId} className="pi-options" role="listbox" aria-label="Countries" tabIndex={-1}>
+                  {filteredCountries.map((c, idx) => (
+                    <li
+                      key={c.id}
+                      id={`${optionIdPrefix}-${idx}`}
+                      role="option"
+                      className={`pi-option ${idx === focusedIndex ? 'is-focused' : ''} ${
+                        c.id === country.id ? 'is-selected' : ''
+                      }`}
+                      aria-selected={c.id === country.id}
+                      title={c.name}
+                      onClick={() => selectCountry(c.id)}
+                      onMouseEnter={() => setFocusedIndex(idx)}
+                    >
+                      <span className="pi-flag" role="img" aria-label={`${c.name} flag`}>
+                        {renderFlag ? renderFlag(c) : c.flag}
+                      </span>
+                      <span className="pi-opt-name">{c.name}</span>
+                      <span className="pi-opt-code">{c.code}</span>
+                    </li>
+                  ))}
                 </ul>
+                <div className={filteredCountries.length === 0 ? 'pi-empty' : undefined} role="status">
+                  {filteredCountries.length === 0 ? noResultsText : null}
+                </div>
               </>
             )}
           </div>,

@@ -1,4 +1,4 @@
-import type { MaskFull } from '@desource/phone-mask';
+import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
   getCountry,
@@ -40,6 +40,12 @@ export function useCountry({
     return false;
   };
 
+  // Preserve explicit edits and apply an optional country detected from pasted text.
+  const onEdit = (country?: CountryKey) => {
+    countryRevision++;
+    if (country) setCountry(country);
+  };
+
   const detectCountry = async () => {
     const revision = countryRevision;
     const geoCountry = await detectByGeoIp();
@@ -61,6 +67,7 @@ export function useCountry({
   $effect(() => {
     if (detect?.() && !countryOption?.()) {
       void detectCountry();
+      return onEdit;
     }
   });
 
@@ -76,6 +83,7 @@ export function useCountry({
     get locale() {
       return locale;
     },
-    setCountry
+    setCountry,
+    onEdit
   };
 }

@@ -74,7 +74,7 @@ export class PhoneMaskDirective implements ControlValueAccessor {
     formatter: this.mask.formatter,
     digits: this.mask.digits,
     inactive: () => this.element.nativeElement.disabled || this.element.nativeElement.readOnly,
-    onCountryChange: this.country.setCountry,
+    onEdit: this.country.onEdit,
     onChange: (digits) => {
       this.internalValue.set(digits);
       this.valueChange.emit(digits);

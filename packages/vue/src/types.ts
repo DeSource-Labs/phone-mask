@@ -198,6 +198,7 @@ export interface PMaskDirectiveOptions {
 
 /** Internal state stored on the input element of the directive */
 export interface PMaskDirectiveState {
+  edited?: boolean;
   country: MaskFull;
   countryOption?: string;
   formatter: FormatterHelpers;

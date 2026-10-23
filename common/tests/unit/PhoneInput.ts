@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { TestTools } from './setup/tools';
 import { internationalPasteCases, makePasteEvent } from './setup/paste';
+import { deferGeoIp } from './setup/geoip';
 
 import type { Mock } from 'vitest';
 
@@ -65,6 +66,70 @@ export function testPhoneInput(setup: SetupFn, { act, screen, fireEvent, waitFor
   };
 
   describe('PhoneInput API', () => {
+    it.each([
+      { interaction: 'typing', country: 'US', digits: '2025550199' },
+      { interaction: 'pasting without a calling code', country: 'US', digits: '2025550199' },
+      { interaction: 'typing then clearing', country: 'US', digits: '' },
+      { interaction: 'clearing an initial value', country: 'US', digits: '', options: { value: '2025550199' } },
+      { interaction: 'manual country selection', country: 'US', digits: '' },
+      { interaction: 'leaving the field untouched', country: 'AD', digits: '' },
+      {
+        interaction: 'initializing a readonly value',
+        country: 'AD',
+        digits: '202555',
+        options: { value: '202555', readonly: true }
+      }
+    ])(
+      'uses $country after delayed GeoIP following $interaction',
+      async ({ interaction, country, digits, options }) => {
+        const geoIp = deferGeoIp({ act, waitFor });
+        let rendered: SetupResult | undefined;
+
+        try {
+          rendered = await setup({ ...options, detect: true });
+          const { container, ref, onChange } = rendered;
+          const input = container.querySelector<HTMLInputElement>('.pi-input')!;
+          await waitFor(() => expect(geoIp.fetch).toHaveBeenCalledOnce());
+
+          if (interaction === 'typing') await setInputValue(input, digits);
+          if (interaction === 'pasting without a calling code') {
+            await act(() => {
+              input.dispatchEvent(makePasteEvent(digits));
+            });
+          }
+          if (interaction === 'manual country selection') {
+            await act(() => ref.selectCountry('US'));
+          }
+          if (interaction === 'typing then clearing') {
+            await setInputValue(input, '2025550199');
+            await setInputValue(input, '');
+          }
+          if (interaction === 'clearing an initial value') await act(() => ref.clear());
+
+          if (digits && country === 'US') await waitFor(() => expect(input.value).toBe('202-555-0199'));
+          input.setSelectionRange(4, 4);
+          const caret = input.selectionStart;
+          onChange.mockClear();
+
+          await geoIp.resolve('AD');
+
+          expect(ref.getDigits()).toBe(digits);
+          expect(screen.getByRole('button', { name: /Selected country:/ }).getAttribute('aria-label')).toContain(
+            country === 'US' ? 'United States' : 'Andorra'
+          );
+          const formatted = country === 'US' ? '202-555-0199' : '202 555';
+          expect(input.value).toBe(digits ? formatted : '');
+          if (country === 'US') expect(input.selectionStart).toBe(caret);
+          const code = country === 'US' ? '+1' : '+376';
+          expect(ref.getFullNumber()).toBe(digits ? `${code}${digits}` : '');
+          if (country === 'US') expect(onChange).not.toHaveBeenCalled();
+        } finally {
+          rendered?.unmount();
+          geoIp.restore();
+        }
+      }
+    );
+
     it.each(internationalPasteCases)(
       'selects $country from pasted $text before formatting',
       async ({ text, country, digits, display }) => {

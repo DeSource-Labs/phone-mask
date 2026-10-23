@@ -112,7 +112,7 @@
     digits: () => formatterData.digits,
     inactive: () => inactive,
     onChange: (v) => (value = v),
-    onCountryChange: countryData.setCountry,
+    onEdit: countryData.onEdit,
     scheduleValidationHint: validationHint.scheduleValidationHint
   });
 
@@ -131,6 +131,7 @@
     telEl?.blur();
   }
   export function clear() {
+    countryData.onEdit();
     value = '';
     validationHint.clearValidationHint();
     onclear?.();
@@ -206,7 +207,7 @@
       class:no-dropdown={!canOpenDropdown}
       {disabled}
       tabindex={canOpenDropdown ? undefined : -1}
-      aria-label="Selected country: {countryData.country.name}"
+      aria-label="Selected country: {countryData.country.name} {countryData.country.code}"
       aria-expanded={canOpenDropdown && selectorData.dropdownOpen}
       aria-haspopup={canOpenDropdown ? 'dialog' : undefined}
       aria-controls={dropdownId && canOpenDropdown ? dropdownElementId : undefined}
@@ -283,14 +284,12 @@
         >
           {#if copysvg}
             {@render copysvg(copyData.copied)}
-          {:else if copyData.copied}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M6.5 11.5 3 8 4.06 6.94 6.5 9.38 11.94 3.94 13 5 6.5 11.5Z" fill="currentColor" />
-            </svg>
           {:else}
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path
-                d="M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM9 1H1V11H2.5V2.5H9V1Z"
+                d={copyData.copied
+                  ? 'M6.5 11.5 3 8 4.06 6.94 6.5 9.38 11.94 3.94 13 5 6.5 11.5Z'
+                  : 'M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM9 1H1V11H2.5V2.5H9V1Z'}
                 fill="currentColor"
               />
             </svg>
@@ -339,9 +338,11 @@
           <input
             bind:this={searchEl}
             name="search"
-            type="search"
             class="pi-search"
+            role="combobox"
             aria-label="Search"
+            aria-expanded="true"
+            aria-autocomplete="list"
             placeholder={searchPlaceholder}
             aria-controls={listboxId}
             aria-activedescendant={activeOptionId}
@@ -349,8 +350,11 @@
             onkeydown={selectorData.handleSearchKeydown}
             oninput={selectorData.handleSearchChange}
           />
+          {#if selectorData.search}
+            <button type="button" aria-label="Clear search" onclick={selectorData.clearSearch}> × </button>
+          {/if}
         </div>
-        <ul id={listboxId} class="pi-options" role="listbox" tabindex="-1">
+        <ul id={listboxId} class="pi-options" role="listbox" aria-label="Countries" tabindex="-1">
           {#each selectorData.filteredCountries as c, idx (c.id)}
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <li
@@ -370,10 +374,11 @@
               <span class="pi-opt-name">{c.name}</span>
               <span class="pi-opt-code">{c.code}</span>
             </li>
-          {:else}
-            <li class="pi-empty">{noResultsText}</li>
           {/each}
         </ul>
+        <div class:pi-empty={selectorData.filteredCountries.length === 0} role="status">
+          {selectorData.filteredCountries.length === 0 ? noResultsText : ''}
+        </div>
       {/if}
     </div>
   {/if}

@@ -9,7 +9,7 @@
         :class="{ 'no-dropdown': !canOpenDropdown }"
         :disabled="disabled"
         :tabindex="canOpenDropdown ? undefined : -1"
-        :aria-label="`Selected country: ${country.name}`"
+        :aria-label="`Selected country: ${country.name} ${country.code}`"
         :aria-expanded="canOpenDropdown && dropdownOpen"
         :aria-haspopup="canOpenDropdown ? 'dialog' : undefined"
         :aria-controls="mounted && canOpenDropdown ? dropdownElementId : undefined"
@@ -81,14 +81,15 @@
           @click="onCopyClick"
         >
           <slot v-if="slots['copy-svg']" name="copy-svg" :copied="copied"></slot>
-          <svg v-else-if="!copied" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path
-              d="M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM9 1H1V11H2.5V2.5H9V1Z"
+              :d="
+                copied
+                  ? 'M6.5 11.5 3 8 4.06 6.94 6.5 9.38 11.94 3.94 13 5 6.5 11.5Z'
+                  : 'M13.5 5.5V13.5H5.5V5.5H13.5ZM13.5 4H5.5C4.67 4 4 4.67 4 5.5V13.5C4 14.33 4.67 15 5.5 15H13.5C14.33 15 15 14.33 15 13.5V5.5C15 4.67 14.33 4 13.5 4ZM9 1H1V11H2.5V2.5H9V1Z'
+              "
               fill="currentColor"
             />
-          </svg>
-          <svg v-else width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M6.5 11.5 3 8 4.06 6.94 6.5 9.38 11.94 3.94 13 5 6.5 11.5Z" fill="currentColor" />
           </svg>
         </button>
 
@@ -128,9 +129,11 @@
             <input
               ref="searchRef"
               name="search"
-              type="search"
               class="pi-search"
+              role="combobox"
               aria-label="Search"
+              aria-expanded="true"
+              aria-autocomplete="list"
               :aria-controls="listboxId"
               :aria-activedescendant="activeOptionId"
               :placeholder="searchPlaceholder"
@@ -138,8 +141,9 @@
               @keydown="handleSearchKeydown"
               @input="handleSearchChange"
             />
+            <button v-if="search" type="button" aria-label="Clear search" @click="clearSearch">×</button>
           </div>
-          <ul :id="listboxId" class="pi-options" role="listbox" tabindex="-1">
+          <ul :id="listboxId" class="pi-options" role="listbox" aria-label="Countries" tabindex="-1">
             <li
               v-for="(c, idx) in filteredCountries"
               :id="getOptionId(idx)"
@@ -163,10 +167,10 @@
               <span class="pi-opt-name">{{ c.name }}</span>
               <span class="pi-opt-code">{{ c.code }}</span>
             </li>
-            <li v-if="filteredCountries.length === 0" class="pi-empty">
-              {{ noResultsText }}
-            </li>
           </ul>
+          <div :class="{ 'pi-empty': filteredCountries.length === 0 }" role="status">
+            {{ filteredCountries.length === 0 ? noResultsText : '' }}
+          </div>
         </template>
       </div>
     </Teleport>
@@ -213,7 +217,7 @@ const onChange = (v: string) => {
   model.value = v;
 };
 
-const { country, setCountry, locale } = useCountry({
+const { country, setCountry, locale, onEdit } = useCountry({
   country: () => props.country,
   locale: () => props.locale,
   detect: () => props.detect,
@@ -282,6 +286,7 @@ const {
   selectCountry,
   setFocusedIndex,
   handleSearchChange,
+  clearSearch,
   handleSearchKeydown,
   handleSelectorPointerDown,
   handleSelectorKeydown
@@ -308,7 +313,7 @@ const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputH
   digits,
   inactive,
   onChange,
-  onCountryChange: setCountry,
+  onEdit,
   scheduleValidationHint
 });
 
@@ -321,6 +326,7 @@ const handleFocus = (e: FocusEvent) => {
 const handleBlur = (e: FocusEvent) => emit('blur', e);
 
 const clear = () => {
+  onEdit();
   onChange('');
   clearValidationHint();
   emit('clear');

@@ -13,7 +13,7 @@ import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types.js';
 export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { country, setCountry } = useCountry(options);
+  const { country, setCountry, onEdit } = useCountry(options);
 
   const {
     digits,
@@ -36,7 +36,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter,
     digits,
-    onCountryChange: setCountry,
+    onEdit,
     onChange: options.onChange
   });
 
@@ -82,9 +82,10 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   }, [handleBeforeInput, handleInput, handleKeydown, handlePaste]);
 
   const clear = useCallback(() => {
+    onEdit();
     options.onChange('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options.onChange]); // no need to listen for changes in the entire options, just onChange callback
+  }, [options.onChange, onEdit]); // no need to listen for changes in the entire options, just onChange callback
 
   return {
     ref: inputRef,

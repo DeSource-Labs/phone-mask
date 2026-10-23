@@ -35,7 +35,14 @@ function setInputRef(el: Element | ComponentPublicInstance | null) {
   <section class="hook-demo" data-testid="hook">
     <h2 class="heading">usePhoneMask Composable</h2>
     <div class="controls">
-      <input :ref="setInputRef" type="tel" placeholder="Phone number" data-testid="phone-input" class="hook-input" />
+      <input
+        :ref="setInputRef"
+        type="tel"
+        placeholder="Phone number"
+        aria-label="Custom phone input"
+        data-testid="phone-input"
+        class="hook-input"
+      />
       <button class="btn" type="button" data-testid="control-country-us" @click="setCountry('US')">US</button>
       <button class="btn" type="button" data-testid="control-country-de" @click="setCountry('DE')">DE</button>
       <button class="btn" type="button" data-testid="control-clear" @click="clear()">Clear</button>
@@ -99,7 +106,7 @@ function setInputRef(el: Element | ComponentPublicInstance | null) {
   font-size: 14px;
   font-weight: 600;
   font-family: 'Nunito', sans-serif;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .btn:hover {

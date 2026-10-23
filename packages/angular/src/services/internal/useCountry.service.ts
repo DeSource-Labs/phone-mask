@@ -1,5 +1,5 @@
 import { afterNextRender, computed, effect, linkedSignal, signal, untracked } from '@angular/core';
-import type { MaskFull } from '@desource/phone-mask';
+import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import {
   detectByGeoIp,
   detectCountryFromLocale,
@@ -32,13 +32,17 @@ export function useCountry({
   });
   const country = computed(() => getCountry(countryCode(), locale()));
   let selection = 0;
-
   const setCountry = (code?: string | null): boolean => {
     const parsed = parseCountryCode(code);
     if (!parsed) return false;
     selection++;
     countryCode.set(parsed);
     return true;
+  };
+
+  const onEdit = (code?: CountryKey) => {
+    selection++;
+    if (code) setCountry(code);
   };
 
   afterNextRender(() => {
@@ -64,5 +68,5 @@ export function useCountry({
     });
   }
 
-  return { country, locale, setCountry };
+  return { country, locale, setCountry, onEdit };
 }

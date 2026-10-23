@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useSyncExternalStore, useRef } from 'react';
-import type { MaskFull } from '@desource/phone-mask';
+import type { CountryKey, MaskFull } from '@desource/phone-mask';
 import {
   getNavigatorLang,
   getCountry,
@@ -26,6 +26,8 @@ export interface UseCountryReturn {
   country: MaskFull;
   /** Change country programmatically */
   setCountry: (countryCode?: string | null) => boolean;
+  /** Keep user edits over pending detection and apply a pasted country when present. */
+  onEdit: (country?: CountryKey) => void;
   /** Computed locale value */
   locale: string;
 }
@@ -61,17 +63,13 @@ export function useCountry({
     return false;
   }, []);
 
-  const detectCountry = useCallback(async () => {
-    const revision = countryRevision.current;
-    const geoCountry = await detectByGeoIp();
-    if (revision !== countryRevision.current) return;
-
-    if (setCountry(geoCountry)) return;
-
-    const localeCountry = detectCountryFromLocale();
-
-    setCountry(localeCountry);
-  }, [setCountry]);
+  const onEdit = useCallback(
+    (country?: CountryKey) => {
+      countryRevision.current++;
+      if (country) setCountry(country);
+    },
+    [setCountry]
+  );
 
   useEffect(() => {
     setCountry(countryOption);
@@ -79,15 +77,20 @@ export function useCountry({
 
   // Effect: Country detection
   useEffect(() => {
-    if (shouldDetect) {
-      detectCountry();
-    }
-  }, [shouldDetect, detectCountry]);
+    if (!shouldDetect) return;
+
+    const revision = countryRevision.current;
+    void detectByGeoIp().then((geoCountry) => {
+      if (revision !== countryRevision.current) return;
+      if (!setCountry(geoCountry)) setCountry(detectCountryFromLocale());
+    });
+    return onEdit;
+  }, [shouldDetect, setCountry, onEdit]);
 
   // Effect: Emit onCountryChange
   useEffect(() => {
     onCountryChange?.(country);
   }, [country, onCountryChange]);
 
-  return { country, setCountry, locale };
+  return { country, setCountry, locale, onEdit };
 }

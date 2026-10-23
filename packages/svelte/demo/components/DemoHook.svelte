@@ -32,6 +32,7 @@
       bind:this={phoneMask.inputRef}
       type="tel"
       placeholder="Phone number"
+      aria-label="Custom phone input"
       data-testid="phone-input"
       class="hook-input"
     />
@@ -101,7 +102,7 @@
     font-size: 14px;
     font-weight: 600;
     font-family: 'Nunito', sans-serif;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease;
   }
 
   .btn:hover {

@@ -43,13 +43,9 @@ export function hasCountry(code: string): boolean {
 /** Get country data by ISO code and locale with fallback to US */
 export function getCountry(code: string, locale: string): MaskFull {
   const map = MasksFullMap(locale);
-  const id = code.toUpperCase() as CountryKey;
-
-  if (id in map) {
-    return { id, ...map[id] };
-  } else {
-    return { id: 'US', ...map.US };
-  }
+  let id = code.toUpperCase() as CountryKey;
+  if (!(id in map)) id = 'US';
+  return { id, ...map[id] };
 }
 
 export function parseCountryCode(code?: string | null, fallback?: string): string {
@@ -105,16 +101,10 @@ export function formatDigitsWithMap(maskTemplate: string, digitStr: string): For
       } else {
         break; // No more digits to insert
       }
-    } else {
+    } else if (output || (digitIndex < digitLength && maskTemplate.includes('#', i + 1))) {
       // Only add separator if we have output or will fill next placeholder
-      const nextHashIndex = maskTemplate.indexOf('#', i + 1);
-      const hasMoreDigits = digitIndex < digitLength;
-      const willFillNext = nextHashIndex !== -1 && hasMoreDigits;
-
-      if (output.length > 0 || willFillNext) {
-        output += char;
-        map.push(-1);
-      }
+      output += char;
+      map.push(-1);
     }
   }
 
@@ -152,7 +142,7 @@ export function filterCountries(countries: MaskFull[], search: string): MaskFull
 
       return { country: c, score };
     })
-    .filter((x) => x.score > 0)
-    .sort((a, b) => (b.score === a.score ? a.country.name.localeCompare(b.country.name) : b.score - a.score))
+    .filter((x) => x.score)
+    .sort((a, b) => b.score - a.score || a.country.name.localeCompare(b.country.name))
     .map((x) => x.country);
 }

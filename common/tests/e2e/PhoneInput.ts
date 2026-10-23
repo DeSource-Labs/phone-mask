@@ -1,4 +1,4 @@
-import { test, expect, type Locator } from '@playwright/test';
+import { test, expect, type Locator, type Route } from '@playwright/test';
 
 type PlaygroundControls = {
   country: string;
@@ -48,7 +48,7 @@ export function testPhoneInput(
   const COPY_BTN_SELECTOR = 'button.pi-btn-copy';
   const CLEAR_BTN_SELECTOR = 'button.pi-btn-clear';
   const CHEVRON_SELECTOR = '.pi-chevron';
-  const DROPDOWN_SEARCH_SELECTOR = 'input.pi-search[type="search"]';
+  const DROPDOWN_SEARCH_SELECTOR = 'input.pi-search[role="combobox"]';
   const DROPDOWN_NO_RESULTS_SELECTOR = '.pi-empty';
   const DROPDOWN_OPTION_SELECTOR = '.pi-option';
 
@@ -83,6 +83,7 @@ export function testPhoneInput(
     let disableDefaultStylesControl: Locator;
 
     test.beforeEach(async ({ page }) => {
+      await page.route('https://ipapi.co/json/', (route) => route.fulfill({ json: { country_code: 'US' } }));
       await page.goto('/');
 
       container = page.locator(containerSelector);
@@ -126,13 +127,39 @@ export function testPhoneInput(
         await page.evaluate((text) => navigator.clipboard.writeText(text), pasted);
         await phoneInput.press('ControlOrMeta+V');
 
-        await expect(dropdownBtn).toHaveAttribute('aria-label', `Selected country: ${country}`);
+        await expect(dropdownBtn).toHaveAttribute('aria-label', `Selected country: ${country} ${full.split(' ')[0]}`);
         await expect(phoneInput).toHaveValue(display);
         await expect
           .poll(() => phoneInput.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd]))
           .toEqual([display.length, display.length]);
         await copyBtn.click();
         await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(full);
+      });
+    }
+
+    for (const readonly of [false, true]) {
+      test(`keeps entered digits and country when GeoIP arrives late (readonly=${readonly})`, async ({ page }) => {
+        const pending: Route[] = [];
+        await page.clock.install();
+        await page.route('https://ipapi.co/json/', (route) => {
+          pending.push(route);
+        });
+        await page.evaluate(() => localStorage.removeItem('@desource/phone-mask:geo'));
+        await page.reload();
+        await expect.poll(() => pending.length).toBeGreaterThan(0);
+
+        await phoneInput.fill('2025550199');
+        await expect(phoneInput).toHaveValue('202-555-0199');
+        await page.clock.runFor(1);
+        await phoneInput.evaluate((input: HTMLInputElement) => input.setSelectionRange(4, 4));
+        if (readonly) await readonlyControl.check();
+
+        await Promise.all(pending.map((route) => route.fulfill({ json: { country_code: 'AD' } })));
+        await expect.poll(() => page.evaluate(() => localStorage.getItem('@desource/phone-mask:geo'))).toContain('AD');
+        await expect(phoneInput).toHaveValue('202-555-0199');
+        await expect(dropdownBtn).toHaveAttribute('aria-label', /United States \+1$/);
+        await expect(copyBtn).toHaveAttribute('aria-label', 'Copy +1 202-555-0199');
+        expect(await phoneInput.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(4);
       });
     }
 
@@ -501,7 +528,7 @@ export function testPhoneInput(
         // Playground default: detect=true (checked)
         // detect only controls GeoIP/locale detection on init — hasDropdown stays true
         // regardless of detect value (hasDropdown=false only when country prop is set)
-        // Tests are structural only — do not assert which country is selected (GeoIP is non-deterministic in CI)
+        // Country detection results are covered by useCountry tests.
 
         test('selector button shows chevron with detect=true', async () => {
           // chevron is present when !inactive && hasDropdown

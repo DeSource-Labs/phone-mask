@@ -2,6 +2,7 @@
 import type { Mock } from 'vitest';
 import type { TestTools } from './setup/tools';
 import { internationalPasteCases, makePasteEvent } from './setup/paste';
+import { deferGeoIp } from './setup/geoip';
 
 export interface UsePhoneMaskSetupResult {
   inputEl: HTMLInputElement;
@@ -22,6 +23,7 @@ export interface UsePhoneMaskSetupResult {
 
 export interface UsePhoneMaskSetupOptions {
   attachRef?: boolean;
+  detect?: boolean;
 }
 
 export type UsePhoneMaskSetupFn = (
@@ -34,6 +36,42 @@ export function testUsePhoneMask(
   { act, waitFor }: Pick<TestTools, 'act' | 'waitFor'>
 ): void {
   describe('usePhoneMask', () => {
+    it.each(['input', 'clear'] as const)('preserves a user %s when delayed GeoIP resolves', async (edit) => {
+      const geoIp = deferGeoIp({ act, waitFor });
+      let rendered: UsePhoneMaskSetupResult | undefined;
+      try {
+        rendered = await setup(edit === 'clear' ? '2025550199' : '', { detect: true });
+        const { api, inputEl, onChange, getValue } = rendered;
+        await waitFor(() => expect(geoIp.fetch).toHaveBeenCalledOnce());
+        await act(async () => {
+          if (edit === 'clear') api.clear();
+          else {
+            inputEl.value = '2025550199';
+            inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+          await new Promise<void>((resolve) => setTimeout(resolve));
+        });
+        const digits = edit === 'clear' ? '' : '2025550199';
+        expect(getValue()).toBe(digits);
+        inputEl.setSelectionRange(4, 4);
+        const caret = inputEl.selectionStart;
+        onChange.mockClear();
+
+        await geoIp.resolve('AD');
+
+        expect(api.getCountry()).toBe('US');
+        expect(api.getDigits()).toBe(digits);
+        expect(getValue()).toBe(digits);
+        expect(api.getFull()).toBe(digits ? '+12025550199' : '');
+        expect(inputEl.value).toBe(digits ? '202-555-0199' : '');
+        expect(inputEl.selectionStart).toBe(caret);
+        expect(onChange).not.toHaveBeenCalled();
+      } finally {
+        rendered?.unmount();
+        geoIp.restore();
+      }
+    });
+
     it.each(internationalPasteCases)(
       'detects $country from pasted $text before formatting',
       async ({ text, country, digits, display }) => {

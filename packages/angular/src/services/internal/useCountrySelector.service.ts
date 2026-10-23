@@ -79,6 +79,12 @@ export function useCountrySelector({
     focusedIndex.set(0);
   };
 
+  const clearSearch = () => {
+    search.set('');
+    focusedIndex.set(0);
+    focusSearch();
+  };
+
   const handleSearchKeydown = (event: KeyboardEvent) => {
     handleCountrySearchKeydown(
       event,
@@ -117,6 +123,7 @@ export function useCountrySelector({
     selectCountry,
     setFocusedIndex,
     handleSearchChange,
+    clearSearch,
     handleSearchKeydown,
     handleSelectorPointerDown,
     handleSelectorKeydown

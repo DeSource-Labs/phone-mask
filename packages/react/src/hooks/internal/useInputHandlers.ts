@@ -14,7 +14,7 @@ export interface UseInputHandlersOptions {
   digits: string;
   inactive?: boolean;
   onChange?: (newDigits: string) => void;
-  onCountryChange?: (country: CountryKey) => void;
+  onEdit?: (country?: CountryKey) => void;
   scheduleValidationHint?: (delay: number) => void;
 }
 
@@ -38,12 +38,12 @@ const HINT_DELAY_ACTION = 300;
  * Handlers are compatible with both native events and React synthetic events.
  */
 export function useInputHandlers(options: UseInputHandlersOptions): UseInputHandlersReturn {
-  const { formatter, digits, inactive, onChange, onCountryChange, scheduleValidationHint } = options;
+  const { formatter, digits, inactive, onChange, onEdit, scheduleValidationHint } = options;
 
   const apply = useCallback(
     (evt: Event, result: ReturnType<typeof processPaste>, delay: number) => {
       if (!result) return;
-      if (result.country) onCountryChange?.(result.country);
+      onEdit?.(result.country);
       onChange?.(result.newDigits);
       const el = evt.target as HTMLInputElement | null;
       setTimeout(() => {
@@ -51,7 +51,7 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
       });
       scheduleValidationHint?.(delay);
     },
-    [formatter, onChange, onCountryChange, scheduleValidationHint]
+    [formatter, onChange, onEdit, scheduleValidationHint]
   );
 
   const handleBeforeInput = useCallback((e: React.SyntheticEvent<HTMLInputElement> | InputEvent) => {

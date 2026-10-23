@@ -67,6 +67,7 @@ function createHandler<T>(
   return (e: T) => {
     const result = handler(e, state);
     if (!result) return;
+    state.edited = true;
 
     if (result.country) setCountry(el, state, result.country, false);
     updateDigits(el, state, result.newDigits);
@@ -131,11 +132,11 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
 
     el.setAttribute('type', 'tel');
     el.setAttribute('inputmode', 'tel');
-    el.setAttribute('placeholder', '');
 
     const options = parseParams(binding.value);
     const locale = options.locale || getNavigatorLang();
     const countryOption = parseCountryCode(options.country);
+    const detecting = options.detect && !countryOption;
     const country = getCountry(countryOption || 'US', locale);
 
     const state = {
@@ -148,6 +149,7 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
     } as PMaskDirectiveState;
 
     el.__phoneMaskState = state;
+    el.placeholder = state.formatter.getPlaceholder();
 
     // Create and attach handlers
     state.inputHandler = createHandler(el, state, processInput);
@@ -162,7 +164,14 @@ export const vPhoneMask: Directive<DirectiveHTMLInputElement, string | PMaskDire
     // Update state with detected country & formatter, then run effects.
     void detectInitialCountry(options).then((countryCode) => {
       // Guard against the directive being unmounted before the async detection resolves.
-      if (el.__phoneMaskState !== state || state.country !== country || state.countryOption !== countryOption) return;
+      if (
+        el.__phoneMaskState !== state ||
+        state.country !== country ||
+        state.countryOption !== countryOption ||
+        state.edited ||
+        (detecting && !state.options.detect)
+      )
+        return;
       setCountry(el, state, countryCode);
     });
   },

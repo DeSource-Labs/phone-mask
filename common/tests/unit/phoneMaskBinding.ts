@@ -110,6 +110,56 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act,
     }
   );
 
+  it.each(['typing', 'pasting digits', 'typing then clearing'])(
+    'keeps user input after %s when an earlier GeoIP request resolves',
+    async (edit) => {
+      let resolveGeo!: (country: string) => void;
+      detectByGeoIpMock.mockImplementation(() => new Promise((resolve) => (resolveGeo = resolve)));
+      const { el, onChange, onCountryChange, unmount } = await setup('input')({ detect: true });
+      await act(() => {
+        if (edit === 'pasting digits') {
+          el.dispatchEvent(makePasteEvent('2025550199'));
+        } else {
+          el.value = '2025550199';
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        if (edit === 'typing then clearing') {
+          el.value = '';
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      });
+      const digits = edit === 'typing then clearing' ? '' : '2025550199';
+      expect(el.__phoneMaskState?.digits).toBe(digits);
+      onChange.mockClear();
+      onCountryChange.mockClear();
+
+      await act(() => resolveGeo('AD'));
+
+      expect(el.__phoneMaskState?.country.id).toBe('US');
+      expect(el.__phoneMaskState?.digits).toBe(digits);
+      expect(el.value).toBe(digits ? '202-555-0199' : '');
+      expect(el.placeholder).toBe('###-###-####');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onCountryChange).not.toHaveBeenCalled();
+      unmount();
+    }
+  );
+
+  it('ignores a pending GeoIP result after detection is disabled', async () => {
+    let resolveGeo!: (country: string) => void;
+    detectByGeoIpMock.mockImplementation(() => new Promise((resolve) => (resolveGeo = resolve)));
+    const { el, onCountryChange, update, unmount } = await setup('input')({ detect: true });
+    await update({ detect: false });
+    onCountryChange.mockClear();
+
+    await act(() => resolveGeo('AD'));
+
+    expect(el.__phoneMaskState?.country.id).toBe('US');
+    expect(el.placeholder).toBe('###-###-####');
+    expect(onCountryChange).not.toHaveBeenCalled();
+    unmount();
+  });
+
   it('warns and skips initialization on non-input elements', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 

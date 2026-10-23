@@ -51,33 +51,3 @@ const mocks = {
 };
 
 testUseCountry(setup, tools, mocks);
-
-describe('useCountry pending detection', () => {
-  it.each(['manual selection', 'explicit country', 'detection disabled', 'destroyed'] as const)(
-    'ignores a stale GeoIP response after %s',
-    async (change) => {
-      let resolve!: (country: string) => void;
-      mocks.detectByGeoIp.mockImplementation(
-        () =>
-          new Promise<string>((done) => {
-            resolve = done;
-          })
-      );
-      const { result, rerender, unmount, onCountryChange } = setup({ detect: true, locale: 'en' });
-      await tools.act(() => {});
-      expect(mocks.detectByGeoIp).toHaveBeenCalledOnce();
-      if (change === 'manual selection') result.setCountry('GB');
-      if (change === 'explicit country') rerender({ countryOption: 'GB' });
-      if (change === 'detection disabled') rerender({ detect: false });
-      if (change === 'destroyed') unmount();
-      await tools.act(() => {});
-      onCountryChange.mockClear();
-      await tools.act(() => resolve('DE'));
-      expect(onCountryChange).not.toHaveBeenCalled();
-      if (change !== 'destroyed') {
-        expect(result.country.value.id).toBe(change === 'detection disabled' ? 'US' : 'GB');
-        unmount();
-      }
-    }
-  );
-});

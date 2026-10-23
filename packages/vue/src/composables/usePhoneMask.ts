@@ -12,7 +12,7 @@ import type { UsePhoneMaskOptions, UsePhoneMaskReturn } from '../types.js';
 export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const inputRef: ShallowRef<HTMLInputElement | null> = shallowRef(null);
 
-  const { country, setCountry } = useCountry(options);
+  const { country, setCountry, onEdit } = useCountry(options);
 
   const {
     digits,
@@ -34,7 +34,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   const { handleBeforeInput, handleInput, handleKeydown, handlePaste } = useInputHandlers({
     formatter,
     digits,
-    onCountryChange: setCountry,
+    onEdit,
     onChange: options.onChange
   });
 
@@ -77,6 +77,7 @@ export function usePhoneMask(options: UsePhoneMaskOptions): UsePhoneMaskReturn {
   });
 
   const clear = () => {
+    onEdit();
     options.onChange('');
   };
 

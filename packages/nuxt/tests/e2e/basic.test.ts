@@ -107,7 +107,7 @@ describe('Nuxt module contract: basic fixture', () => {
         expect(await dialog.getAttribute('role')).toBe('dialog');
         await selectors.nth(index).click();
         await expect.poll(() => dialog.getByRole('option').count()).toBeGreaterThan(200);
-        const search = dialog.getByRole('searchbox');
+        const search = dialog.getByRole('combobox');
         expect(await search.getAttribute('aria-controls')).toBe(await dialog.getByRole('listbox').getAttribute('id'));
         expect(await page.locator(`#${await search.getAttribute('aria-activedescendant')}`).count()).toBe(1);
         await search.fill('+49');

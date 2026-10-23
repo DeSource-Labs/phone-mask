@@ -67,6 +67,7 @@ function createHandler<T>(
   return (e: T) => {
     const result = handler(e, state);
     if (!result) return;
+    state.edited = true;
 
     if (result.country) state.setCountry(result.country, false);
     updateDigits(el, state, result.newDigits);
@@ -122,11 +123,11 @@ export function phoneMaskAction(
 
   el.setAttribute('type', 'tel');
   el.setAttribute('inputmode', 'tel');
-  el.setAttribute('placeholder', '');
 
   const options = parseParams(params);
   const locale = options.locale || getNavigatorLang();
   const countryOption = parseCountryCode(options.country);
+  const detecting = options.detect && !countryOption;
   const country = getCountry(countryOption || 'US', locale);
 
   const state: PhoneMaskBindingState = {
@@ -156,6 +157,7 @@ export function phoneMaskAction(
   };
 
   (el as PhoneMaskBindingElement).__phoneMaskState = state;
+  el.placeholder = state.formatter.getPlaceholder();
 
   // Create and attach handlers
   const inputHandler = createHandler(el, state, processInput);
@@ -172,7 +174,9 @@ export function phoneMaskAction(
     if (
       (el as PhoneMaskBindingElement).__phoneMaskState !== state ||
       state.country !== country ||
-      state.countryOption !== countryOption
+      state.countryOption !== countryOption ||
+      state.edited ||
+      (detecting && !state.options.detect)
     )
       return;
     state.setCountry(countryCode);

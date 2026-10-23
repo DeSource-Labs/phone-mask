@@ -1,4 +1,4 @@
-import { testUsePhoneMask } from '../../../../common/tests/e2e/UsePhoneMask';
+import { testUsePhoneMask } from '@common/tests/e2e/UsePhoneMask';
 
 testUsePhoneMask(
   '[data-testid="hook"]',

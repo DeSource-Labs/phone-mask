@@ -1,3 +1,3 @@
-import { testPhoneInput } from '../../../../common/tests/e2e/PhoneInput';
+import { testPhoneInput } from '@common/tests/e2e/PhoneInput';
 
 testPhoneInput();
