@@ -333,13 +333,14 @@
       height: 32px;
       border-radius: 50%;
       font-size: 20px;
+      text-align: center;
 
       &:hover {
         background: var(--pi-disabled-bg);
       }
 
       &:focus-visible {
-        outline: 2px solid var(--pi-border-focus);
+        outline: 1px solid var(--pi-border-focus);
         outline-offset: -2px;
       }
     }
