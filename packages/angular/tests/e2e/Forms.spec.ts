@@ -43,7 +43,7 @@ test('choosing a shorter country mask updates the form value with the displayed 
   await expect(selector).toHaveAttribute('aria-haspopup', 'dialog');
   await selector.click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByRole('searchbox').fill('Andorra');
+  await dialog.getByRole('combobox').fill('Andorra');
   await dialog.getByRole('option', { name: /Andorra/ }).click();
   await expect(form.locator('input.pi-input').first()).toHaveValue('2025 5501');
   await expect(page.getByTestId('form-value')).toHaveText('20255501');

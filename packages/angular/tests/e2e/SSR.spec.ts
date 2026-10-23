@@ -14,7 +14,7 @@ test('repeated SSR requests render formatted HTML without GeoIP requests', async
       const html = await response.text();
       for (const value of values) expect(html).toContain(`value="${value}"`);
       expect(html).toMatch(/<input(?=[^>]*id="directive-phone")(?=[^>]*value="202-555-0123")[^>]*>/);
-      expect(html).toContain('Selected country: United States');
+      expect(html).toContain('Selected country: United States +1');
       expect(html).toContain('theme-light');
       expect(html).toContain('+1 234 567 8888');
       expect(html).toContain('🇺🇸 234 567 8888');
@@ -63,7 +63,7 @@ for (const options of [
       await expect(page.locator(`.desource-phone-input.theme-${options.colorScheme}`)).toHaveCount(3);
       await expect(page.locator('.pi-selector-btn').first()).toHaveAttribute(
         'aria-label',
-        `Selected country: ${options.locale === 'de-DE' ? 'Vereinigte Staaten' : 'United States'}`
+        `Selected country: ${options.locale === 'de-DE' ? 'Vereinigte Staaten' : 'United States'} +1`
       );
       await expect.poll(getGeoRequests).toBe(1);
       await expect(page.locator('.desource-phone-input').nth(1).locator('.pi-code')).toHaveText('+49');
@@ -87,7 +87,7 @@ for (const options of [
       await expect(dialog).toBeVisible();
       expect(await dialog.evaluate((element) => element.parentElement === document.body)).toBe(true);
       await expect(selector).toHaveAttribute('aria-controls', (await dialog.getAttribute('id'))!);
-      const search = dialog.getByRole('searchbox');
+      const search = dialog.getByRole('combobox');
       await search.press('ArrowDown');
       const activeId = await search.getAttribute('aria-activedescendant');
       await expect(dialog.locator(`[id="${activeId}"][role="option"]`)).toHaveCount(1);

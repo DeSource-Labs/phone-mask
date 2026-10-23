@@ -1,6 +1,6 @@
 import { testIndexImports } from '@common/tests/unit/index';
-import * as indexModule from '../../src/public-api';
-import * as coreModule from '../../core/public-api';
+import * as indexModule from '@src/public-api';
+import * as coreModule from '@core/public-api';
 
 testIndexImports({
   suiteName: 'angular',

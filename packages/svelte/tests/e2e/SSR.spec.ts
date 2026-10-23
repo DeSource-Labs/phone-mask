@@ -52,7 +52,7 @@ for (const options of [
       }
       await expect(page.locator('.pi-selector-btn').first()).toHaveAttribute(
         'aria-label',
-        `Selected country: ${options.locale === 'de-DE' ? 'Vereinigte Staaten' : 'United States'}`
+        `Selected country: ${options.locale === 'de-DE' ? 'Vereinigte Staaten' : 'United States'} +1`
       );
       await expect.poll(getGeoRequests).toBe(1);
       await expect(page.locator('.desource-phone-input').nth(1).locator('.pi-code')).toHaveText('+49');
@@ -67,7 +67,7 @@ for (const options of [
       await expect(page.locator('#fixed-phone')).toHaveValue('212-555-7890');
       await selectors.last().click();
       const dialog = page.locator(`#${ids[1]}`);
-      const search = dialog.getByRole('searchbox');
+      const search = dialog.getByRole('combobox');
       const listbox = dialog.getByRole('listbox');
       await expect(search).toHaveAttribute('aria-controls', (await listbox.getAttribute('id'))!);
       await search.press('ArrowDown');

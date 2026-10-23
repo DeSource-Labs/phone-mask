@@ -77,7 +77,7 @@ export function testPhoneInputSsr(adapter: SsrAdapter): void {
         const inputs = [...container.querySelectorAll<HTMLInputElement>('input[type="tel"]')];
         expect(inputs.map((input) => input.value)).toEqual(['202-555-0123', '202-555-0123']);
         expect(container.querySelectorAll('.theme-light')).toHaveLength(2);
-        expect(container.querySelectorAll('[aria-label="Selected country: United States"]')).toHaveLength(2);
+        expect(container.querySelectorAll('[aria-label="Selected country: United States +1"]')).toHaveLength(2);
         expect(container.querySelector('[role="dialog"]')).toBeNull();
         const ids = [...container.querySelectorAll('[id]')].map((node) => node.id);
         expect(new Set(ids).size).toBe(ids.length);
@@ -149,13 +149,13 @@ export function testPhoneInputSsr(adapter: SsrAdapter): void {
       const options = { customFlag };
       await render(options);
       expect(container.querySelector('.pi-selector-btn')?.getAttribute('aria-label')).toBe(
-        'Selected country: United States'
+        'Selected country: United States +1'
       );
       if (customFlag) expect(container.querySelector('.pi-flag abbr')).toBeNull();
       vi.spyOn(navigator, 'language', 'get').mockReturnValue('de-DE');
       await hydrate(options);
       expect(container.querySelector('.pi-selector-btn')?.getAttribute('aria-label')).toBe(
-        'Selected country: Vereinigte Staaten'
+        'Selected country: Vereinigte Staaten +1'
       );
       expect(container.querySelector<HTMLInputElement>('.pi-input')?.value).toBe('202-555-0123');
       if (customFlag) {

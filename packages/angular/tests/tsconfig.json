@@ -5,9 +5,10 @@
     "types": ["vitest/globals", "node"],
     "paths": {
       "@src/*": ["../src/*"],
+      "@core/*": ["../core/*"],
       "@common/*": ["../../../common/*"]
     }
   },
-  "include": ["../src/**/*.ts", "unit/**/*.ts"],
+  "include": ["./**/*", "../src/**/*.ts"],
   "exclude": []
 }

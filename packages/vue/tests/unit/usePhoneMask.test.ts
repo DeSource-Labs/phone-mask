@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { defineComponent, h, nextTick, ref } from 'vue';
 import { render } from '@testing-library/vue';
-import { usePhoneMask } from '../../src/composables/usePhoneMask';
+import { usePhoneMask } from '@src/composables/usePhoneMask';
 import { testUsePhoneMask, type UsePhoneMaskSetupOptions } from '@common/tests/unit/usePhoneMask';
 import { tools, withSetup } from './setup/tools';
 

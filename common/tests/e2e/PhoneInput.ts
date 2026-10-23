@@ -126,7 +126,7 @@ export function testPhoneInput(
         await page.evaluate((text) => navigator.clipboard.writeText(text), pasted);
         await phoneInput.press('ControlOrMeta+V');
 
-        await expect(dropdownBtn).toHaveAttribute('aria-label', `Selected country: ${country}`);
+        await expect(dropdownBtn).toHaveAttribute('aria-label', `Selected country: ${country} ${full.split(' ')[0]}`);
         await expect(phoneInput).toHaveValue(display);
         await expect
           .poll(() => phoneInput.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd]))
