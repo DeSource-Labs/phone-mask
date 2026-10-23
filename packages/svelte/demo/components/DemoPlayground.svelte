@@ -46,7 +46,9 @@
     <div class="panel preview-panel">
       <h3 class="subheading">Preview</h3>
       <div class="preview-area">
+        <label for="playground-phone">Phone number</label>
         <PhoneInput
+          id="playground-phone"
           bind:value={digits}
           {country}
           {locale}

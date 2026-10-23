@@ -36,7 +36,14 @@ function DemoHook() {
     <section style={sectionStyle} data-testid="hook">
       <h2 style={headingStyle}>usePhoneMask Hook</h2>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <input ref={ref} type="tel" placeholder="Phone number" style={inputStyle} data-testid="phone-input" />
+        <input
+          ref={ref}
+          type="tel"
+          placeholder="Phone number"
+          aria-label="Custom phone input"
+          style={inputStyle}
+          data-testid="phone-input"
+        />
         <button type="button" onClick={() => setCountry('US')} style={btnStyle} data-testid="control-country-us">
           US
         </button>
@@ -107,7 +114,9 @@ function Playground() {
         <div style={previewPanelStyle}>
           <h3 style={subheadingStyle}>Preview</h3>
           <div style={previewAreaStyle}>
+            <label htmlFor="playground-phone">Phone number</label>
             <PhoneInput
+              id="playground-phone"
               value={digits}
               onChange={setDigits}
               onCountryChange={onCountryChange}

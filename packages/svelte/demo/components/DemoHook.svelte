@@ -32,6 +32,7 @@
       bind:this={phoneMask.inputRef}
       type="tel"
       placeholder="Phone number"
+      aria-label="Custom phone input"
       data-testid="phone-input"
       class="hook-input"
     />
