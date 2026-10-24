@@ -70,7 +70,8 @@ const GROUPS: GroupDefinition[] = [
       { pkg: '@desource/phone-mask', highlight: true },
       { pkg: 'libphonenumber-js' },
       { pkg: 'google-libphonenumber' },
-      { pkg: 'awesome-phonenumber' }
+      { pkg: 'awesome-phonenumber' },
+      { pkg: 'intl-tel-input' }
     ]
   },
   {
