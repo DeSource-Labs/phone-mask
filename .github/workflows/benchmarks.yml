@@ -1,4 +1,4 @@
-name: Weekly README benchmarks update
+name: Competitor comparison update
 
 on:
   schedule:
@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: weekly-benchmarks
+  group: benchmarks
   cancel-in-progress: false
 
 jobs:
@@ -35,9 +35,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Update README benchmark section
+      - name: Update competitor comparison
         run: |
-          pnpm readme:benchmarks
+          pnpm comparison:update
           git restore package.json pnpm-lock.yaml
 
       - name: Create Pull Request
@@ -46,16 +46,16 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           add-paths: |
-            README.md
-          commit-message: "docs(readme): weekly benchmark refresh"
-          title: "docs(readme): weekly benchmark refresh"
+            COMPARISON.md
+          commit-message: 'docs(comparison): Refresh comparison data'
+          title: 'docs(comparison): Refresh comparison data'
           body: |
-            Automated weekly README benchmark refresh via GitHub Actions.
+            Automated competitor comparison refresh via GitHub Actions.
 
-            This PR was created automatically after running `pnpm readme:benchmarks`.
+            This PR was created automatically after running `pnpm comparison:update`.
 
             cc @stefashkaa
-          branch: chore/weekly-readme-benchmarks
+          branch: chore/comparison-update
           branch-suffix: timestamp
           labels: |
             automation

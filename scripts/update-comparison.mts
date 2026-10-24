@@ -12,13 +12,11 @@ import {
   formatBenchmarkKb as formatKb,
   PACKAGE_STATS_INSTALL_TIMEOUT_MS,
   PHONE_ENGINE_PACKAGES
-} from './readme-benchmark-shared.mts';
+} from './comparison-shared.mts';
 import prettier from 'prettier';
 
-const README_PATH = new URL('../README.md', import.meta.url);
-const README_FILEPATH = fileURLToPath(README_PATH);
-const BENCHMARK_START_MARKER = '<!-- benchmarks:start -->';
-const BENCHMARK_END_MARKER = '<!-- benchmarks:end -->';
+const COMPARISON_PATH = new URL('../COMPARISON.md', import.meta.url);
+const COMPARISON_FILEPATH = fileURLToPath(COMPARISON_PATH);
 
 type GroupRow = {
   pkg: string;
@@ -82,7 +80,8 @@ const GROUPS: GroupDefinition[] = [
       { pkg: 'react-phone-number-input' },
       { pkg: 'react-phone-input-2' },
       { pkg: 'react-international-phone' },
-      { pkg: 'mui-tel-input' }
+      { pkg: 'mui-tel-input' },
+      { pkg: '@intl-tel-input/react' }
     ],
     note: 'React ecosystem note: `react-international-phone` removed built-in validation in v3 and recommends adding [`google-libphonenumber`](https://www.npmjs.com/package/google-libphonenumber) separately ([migration doc](https://github.com/ybrusentsov/react-international-phone/blob/master/packages/docs/docs/05-Migrations/02-migrate-to-v3.md)). Raw package gzip above does not include that optional validator overhead.'
   },
@@ -92,12 +91,17 @@ const GROUPS: GroupDefinition[] = [
       { pkg: '@desource/phone-mask-vue', highlight: true },
       { pkg: 'vue-tel-input' },
       { pkg: 'v-phone-input' },
-      { pkg: 'vue-phone-number-input' }
+      { pkg: 'vue-phone-number-input' },
+      { pkg: '@intl-tel-input/vue' }
     ]
   },
   {
     title: 'Svelte',
-    rows: [{ pkg: '@desource/phone-mask-svelte', highlight: true }, { pkg: 'svelte-tel-input' }]
+    rows: [
+      { pkg: '@desource/phone-mask-svelte', highlight: true },
+      { pkg: 'svelte-tel-input' },
+      { pkg: '@intl-tel-input/svelte' }
+    ]
   },
   {
     title: 'Angular',
@@ -107,7 +111,7 @@ const GROUPS: GroupDefinition[] = [
       { pkg: 'ngx-material-intl-tel-input' },
       { pkg: 'ngx-intl-tel-input' }
     ],
-    note: 'Angular measurements cover complete JavaScript entrypoints after public Angular linking and minification, with Angular (including Material/CDK), RxJS and declared peers external. Required phone-engine peers are added under `Data overhead`. These are not complete application download sizes: component-inlined CSS/images count; separately imported styles/assets do not. `@intl-tel-input/angular` uses its `/with-utils` entry to include formatting and validation. `ngx-material-intl-tel-input` includes embedded flag images and publishes a separate major for each Angular major; this table measures npm latest. `ngx-intl-tel-input` declares Angular >=17 compatibility; that declaration is not a compatibility test.'
+    note: '`@intl-tel-input/angular` uses its `/with-utils` entry to include formatting and validation'
   },
   {
     title: 'Nuxt',
@@ -118,8 +122,7 @@ const GROUPS: GroupDefinition[] = [
 
 const SOURCES = {
   npmRegistry: 'https://registry.npmjs.org',
-  bundlephobiaPackage: 'https://bundlephobia.com/package/',
-  benchmarkScript: 'https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-readme-benchmarks.mts'
+  comparisonScript: 'https://github.com/DeSource-Labs/phone-mask/blob/main/scripts/update-comparison.mts'
 };
 const MAX_FETCH_ATTEMPTS = 3;
 const FETCH_TIMEOUT_MS = 10_000;
@@ -280,7 +283,7 @@ async function fetchJson<T>(url: string): Promise<T | null> {
       const response = await fetch(url, {
         signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         headers: {
-          'user-agent': 'phone-mask-readme-benchmarks'
+          'user-agent': 'phone-mask-comparison'
         }
       });
 
@@ -585,12 +588,13 @@ function renderGroupBestLine(group: GroupDefinition, metrics: Map<string, Packag
   const winnerMetric = metrics.get(winner.pkg);
   if (!winnerMetric) return null;
 
-  return `Best choice in ${group.title}: **${winner.pkg}** (${formatKb(winnerMetric.comparableGzip)}).`;
+  const label = winner.highlight ? 'Best choice for bundle size' : 'Smallest measured bundle';
+  return `${label} in ${group.title}: **${winner.pkg}** (${formatKb(winnerMetric.comparableGzip)}).`;
 }
 
 function renderGroupSection(group: GroupDefinition, metrics: Map<string, PackageMetrics>): string[] {
   const lines = [
-    `#### ${group.title}`,
+    `### ${group.title}`,
     '',
     '| Package | Last published | Phone data source | Data overhead | Gzip | Total gzip |',
     '| --- | ---: | --- | ---: | ---: | ---: |'
@@ -614,16 +618,22 @@ function renderGroupSection(group: GroupDefinition, metrics: Map<string, Package
   return lines;
 }
 
-function renderSection(
+function renderComparison(
   metrics: Map<string, PackageMetrics>,
   snapshotDate = new Date().toISOString().slice(0, 10)
 ): string {
   const header = [
-    BENCHMARK_START_MARKER,
-    '### 🪶 Lightest in Class',
+    '# Phone Mask vs. alternatives',
     '',
-    'Real market comparison, segmented by ecosystem and measured for what developers actually ship.',
-    `Snapshot: **${snapshotDate}** ([Benchmark script](${SOURCES.benchmarkScript}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')}), [Bundlephobia package page](${SOURCES.bundlephobiaPackage}${encodeURIComponent('@desource/phone-mask')}) for independent reference).`,
+    '<!-- Generated by scripts/update-comparison.mts. Run pnpm comparison:update to refresh. -->',
+    '',
+    '[Back to README](./README.md)',
+    '',
+    'Phone Mask combines automatically updated [Google libphonenumber](https://github.com/google/libphonenumber) country masks with small bundles. Its packages are highlighted below, with the best choice for bundle size identified in each ecosystem where measurements are available.',
+    '',
+    `Snapshot: **${snapshotDate}** ([Comparison script](${SOURCES.comparisonScript}), [npm Registry API](${SOURCES.npmRegistry}/${encodeURIComponent('@desource/phone-mask')})).`,
+    '',
+    '## Bundle size and phone data',
     '',
     '*Use `Total gzip` as the primary comparison column.*',
     '*`Gzip` is measured locally by this repository benchmark pipeline (isolated temp install + minified bundle build).*',
@@ -633,47 +643,36 @@ function renderSection(
     ''
   ];
   const groupSections = GROUPS.flatMap((group) => renderGroupSection(group, metrics));
-  const lines = [...header, ...groupSections, BENCHMARK_END_MARKER];
+  const lines = [...header, ...groupSections];
 
   return lines.join('\n').trimEnd();
 }
 
-function updateReadmeSection(readme: string, newSection: string): string {
-  const markerStartIndex = readme.indexOf(BENCHMARK_START_MARKER);
-  const markerEndIndex = readme.indexOf(BENCHMARK_END_MARKER);
-
-  if (markerStartIndex >= 0 && markerEndIndex >= 0 && markerEndIndex > markerStartIndex) {
-    const markerEndOffset = markerEndIndex + BENCHMARK_END_MARKER.length;
-    return `${readme.slice(0, markerStartIndex)}${newSection}${readme.slice(markerEndOffset)}`;
-  }
-
-  throw new Error('Could not locate benchmark section markers in README.md');
-}
-
 async function formatMarkdown(markdown: string): Promise<string> {
-  const config = (await prettier.resolveConfig(README_FILEPATH)) ?? {};
+  const config = (await prettier.resolveConfig(COMPARISON_FILEPATH)) ?? {};
   return prettier.format(markdown, {
     ...config,
     parser: 'markdown',
-    filepath: README_FILEPATH
+    filepath: COMPARISON_FILEPATH
   });
 }
 
 async function main(): Promise<void> {
-  const readme = await readFile(README_PATH, 'utf8');
+  const comparison = await readFile(COMPARISON_PATH, 'utf8').catch((error: unknown) => {
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return '';
+    throw error;
+  });
 
   const metrics = await collectMetrics();
-  const section = renderSection(metrics);
-  const updated = updateReadmeSection(readme, section);
-  const formattedUpdated = await formatMarkdown(updated);
+  const formattedComparison = await formatMarkdown(renderComparison(metrics));
 
-  if (readme === formattedUpdated) {
-    console.log('README benchmark section already up to date.');
+  if (comparison === formattedComparison) {
+    console.log('COMPARISON.md already up to date.');
     return;
   }
 
-  await writeFile(README_PATH, formattedUpdated, 'utf8');
-  console.log('Updated README benchmark section.');
+  await writeFile(COMPARISON_PATH, formattedComparison, 'utf8');
+  console.log('Updated COMPARISON.md.');
 }
 
 try {

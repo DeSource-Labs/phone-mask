@@ -15,7 +15,7 @@ import {
   isFiniteBenchmarkNumber as isFiniteNumber,
   PACKAGE_STATS_INSTALL_TIMEOUT_MS,
   PHONE_ENGINE_PACKAGES
-} from './readme-benchmark-shared.mts';
+} from './comparison-shared.mts';
 
 type InstallScenario = 'local' | 'npm';
 type DependencyMap = Record<string, string>;
@@ -512,8 +512,8 @@ async function main(): Promise<void> {
 
   await buildLocalPackages();
 
-  console.info('Local publish preview vs npm latest (README benchmark sizing pipeline)');
-  console.info('README values use gzip bytes / 1024, rounded to one decimal place.');
+  console.info('Local publish preview vs npm latest (competitor comparison sizing pipeline)');
+  console.info('Comparison values use gzip bytes / 1024, rounded to one decimal place.');
   console.info('Columns: minified, gzip, data overhead, total gzip');
   console.info('');
 
