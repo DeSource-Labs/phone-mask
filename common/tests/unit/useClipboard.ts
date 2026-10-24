@@ -1,4 +1,5 @@
 /// <reference types="vitest/globals" />
+import { setupClipboardMock } from './setup/clipboard';
 import type { MaybeRef, TestTools } from './setup/tools';
 
 export const TEXT = '+1 234-567-8901';
@@ -20,25 +21,7 @@ export interface SetupOptions {
 export type SetupFn = (options?: SetupOptions) => ClipboardSetupResult;
 
 export function testUseClipboard(setup: SetupFn, { act, toValue }: TestTools): void {
-  const mockWriteText = vi.fn();
-
-  beforeAll(() => {
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText: mockWriteText },
-      writable: true,
-      configurable: true
-    });
-  });
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-    mockWriteText.mockResolvedValue(undefined);
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.clearAllMocks();
-  });
+  const mockWriteText = setupClipboardMock();
 
   describe('useClipboard', () => {
     describe('initial state', () => {

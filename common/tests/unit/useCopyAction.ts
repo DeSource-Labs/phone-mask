@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import type { Mock } from 'vitest';
 
+import { setupClipboardMock } from './setup/clipboard';
 import type { MaybeRef, TestTools } from './setup/tools';
 
 export const DELAY = 1_800;
@@ -27,25 +28,7 @@ export interface SetupOptions {
 export type SetupFn = (options: SetupOptions) => CopyActionSetupResult;
 
 export function testUseCopyAction(setup: SetupFn, { act, toValue }: TestTools): void {
-  const mockWriteText = vi.fn();
-
-  beforeAll(() => {
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText: mockWriteText },
-      writable: true,
-      configurable: true
-    });
-  });
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-    mockWriteText.mockResolvedValue(undefined);
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.clearAllMocks();
-  });
+  const mockWriteText = setupClipboardMock();
 
   describe('useCopyAction', () => {
     describe('initial state', () => {

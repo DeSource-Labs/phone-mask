@@ -295,27 +295,19 @@ describe('processKeydown', () => {
     expect(result).toBeUndefined();
   });
 
-  it('blocks non-numeric single characters', () => {
+  it.each([
+    { name: 'blocks non-numeric single characters', key: 'a', preventDefaultCalls: 1 },
+    { name: 'does not block multi-character non-navigation keys', key: 'F1', preventDefaultCalls: 0 },
+    { name: 'allows numeric input when below max digits', key: '3', preventDefaultCalls: 0 }
+  ])('$name', ({ key, preventDefaultCalls }) => {
     const formatter = createFormatter();
     const input = createInput(formatter.formatDisplay('12'));
     input.setSelectionRange(2, 2);
 
-    const event = createKeyboardEvent(input, 'a');
+    const event = createKeyboardEvent(input, key);
 
     const result = processKeydown(event, { digits: '12', formatter });
-    expect(event.preventDefault).toHaveBeenCalledTimes(1);
-    expect(result).toBeUndefined();
-  });
-
-  it('does not block multi-character non-navigation keys', () => {
-    const formatter = createFormatter();
-    const input = createInput(formatter.formatDisplay('12'));
-    input.setSelectionRange(2, 2);
-
-    const event = createKeyboardEvent(input, 'F1');
-
-    const result = processKeydown(event, { digits: '12', formatter });
-    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(event.preventDefault).toHaveBeenCalledTimes(preventDefaultCalls);
     expect(result).toBeUndefined();
   });
 
@@ -328,18 +320,6 @@ describe('processKeydown', () => {
 
     expect(() => processKeydown(event, { digits: '12', formatter })).not.toThrow();
     expect(event.preventDefault).not.toHaveBeenCalled();
-  });
-
-  it('allows numeric input when below max digits', () => {
-    const formatter = createFormatter();
-    const input = createInput(formatter.formatDisplay('12'));
-    input.setSelectionRange(2, 2);
-
-    const event = createKeyboardEvent(input, '3');
-
-    const result = processKeydown(event, { digits: '12', formatter });
-    expect(event.preventDefault).not.toHaveBeenCalled();
-    expect(result).toBeUndefined();
   });
 });
 
