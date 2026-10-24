@@ -215,7 +215,7 @@ phone-mask/
 │   ├── build-dual-types.mts             # ESM/CJS declaration outputs
 │   ├── check-package.mts                # Packed-package publication checks
 │   ├── compare-local-vs-npm.mts         # Bundle size comparison and budgets
-│   ├── update-readme-benchmarks.mts     # README competitor benchmarks
+│   ├── update-comparison.mts            # Generate COMPARISON.md (pnpm comparison:update)
 │   ├── stable-package-stats.mts         # Shared bundle measurement
 │   ├── build-coverage-pr-report.mts
 │   ├── comment-coverage-pr.mts
@@ -237,7 +237,7 @@ phone-mask/
         ├── release.yml                  # Changesets publish workflow
         ├── release-mask-sync.yml        # Metadata release PR
         ├── gen.yml                      # Metadata sync PR
-        └── weekly-benchmarks.yml        # Weekly README benchmark refresh PR
+        └── benchmarks.yml               # Competitor comparison refresh PR
 ```
 
 ## 🔄 Development Workflow

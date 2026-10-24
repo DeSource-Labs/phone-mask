@@ -18,7 +18,7 @@
     "changeset:version": "changeset version && pnpm changeset:format-changelogs",
     "changeset:publish": "pnpm build && pnpm publish:check && changeset publish --no-git-tag",
     "publish:check": "pnpm -r --filter \"./packages/**\" --stream run publish:check",
-    "readme:benchmarks": "node scripts/update-readme-benchmarks.mts",
+    "comparison:update": "node scripts/update-comparison.mts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{svelte,vue,js,jsx,cjs,mjs,ts,tsx,cts,mts,json,md}\"",
