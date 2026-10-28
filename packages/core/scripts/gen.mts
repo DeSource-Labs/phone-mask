@@ -320,7 +320,7 @@ function buildRegionMasks(countryCode: string, formats: NumberFormat[], examples
 
   // Mirror FIXED_LINE_OR_MOBILE intent from old implementation:
   // prefer fixed-line example, fallback to mobile.
-  const fixedOrMobile = examplesByType.fixedLine || examplesByType.mobile || null;
+  const fixedOrMobile = examplesByType.mobile || examplesByType.fixedLine || null;
   pushMaskForExample(countryCode, formats, fixedOrMobile, masks);
 
   for (const typeName of EXAMPLE_TYPES) {
