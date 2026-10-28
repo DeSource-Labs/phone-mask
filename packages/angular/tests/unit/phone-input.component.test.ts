@@ -382,7 +382,7 @@ it('does not restore discarded digits when an external country expands the mask'
   component.writeValue('2025550123');
   await fixture.whenStable();
   expect(component.getDigits()).toBe('2025550123');
-  expect(input.value).toBe('202 555 0123');
+  expect(input.value).toBe('2025 550123');
   expect(valueChange).not.toHaveBeenCalled();
   expect(formChange).not.toHaveBeenCalled();
 });

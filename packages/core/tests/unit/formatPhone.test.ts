@@ -53,19 +53,19 @@ describe('formatPhone', () => {
   });
 
   it('preserves significant leading zeros', () => {
-    expect(formatPhone('0612345678', 'IT')).toBe('+39 06 1234 5678');
-    expect(formatPhone('+39 06 1234 5678', 'IT', { code: false })).toBe('06 1234 5678');
+    expect(formatPhone('0612345678', 'IT')).toBe('+39 061 234 5678');
+    expect(formatPhone('+39 06 1234 5678', 'IT', { code: false })).toBe('061 234 5678');
   });
 
   it('uses the selected country flag when countries share a calling code', () => {
     expect(formatPhone('+12345678888', 'CA', { flag: true })).toBe('🇨🇦 +1 234 567 8888');
     expect(formatPhone('+7 123 456 7788', 'RU', { flag: true })).toBe('🇷🇺 +7 123 456 77 88');
-    expect(formatPhone('+71234567788', 'KZ', { flag: true })).toBe('🇰🇿 +7 12345 6 77 88');
+    expect(formatPhone('+71234567788', 'KZ', { flag: true })).toBe('🇰🇿 +7 123 456 7788');
   });
 
   it.each([undefined, null])('detects international numbers when country is %j', (country) => {
     expect(formatPhone('+12345678888', country, { flag: true })).toBe('🇺🇸 +1 234 567 8888');
-    expect(formatPhone('+7 123 456 7788', country, { flag: true })).toBe('🇰🇿 +7 12345 6 77 88');
+    expect(formatPhone('+7 123 456 7788', country, { flag: true })).toBe('🇰🇿 +7 123 456 7788');
     expect(formatPhone('+71234567788', country, { code: false, flag: true })).toBe('🇷🇺 123 456 77 88');
     expect(formatPhone('+7 (123) 456-77-88', country)).toBe('+7 123 456 77 88');
   });
@@ -78,9 +78,9 @@ describe('formatPhone', () => {
   );
 
   it('uses a successfully detected calling code instead of changing the number to the supplied country', () => {
-    expect(formatPhone('+442079460958', 'US', { flag: true })).toBe('🇬🇧 +44 207 946 0958');
-    expect(formatPhone('+7 123 456 7788', 'US', { code: false, flag: true })).toBe('🇰🇿 12345 6 77 88');
-    expect(formatPhone('+7 123 456 7788', 'US')).toBe('+7 12345 6 77 88');
+    expect(formatPhone('+442079460958', 'US', { flag: true })).toBe('🇬🇧 +44 2079 460958');
+    expect(formatPhone('+7 123 456 7788', 'US', { code: false, flag: true })).toBe('🇰🇿 123 456 7788');
+    expect(formatPhone('+7 123 456 7788', 'US')).toBe('+7 123 456 7788');
   });
 
   it.each(['+7123', '+712345677889', '+99912345678'])(

@@ -88,7 +88,7 @@ describe('vPhoneMask directive', () => {
     await nextTick();
     const input = container.firstElementChild as DirectiveHTMLInputElement;
     await tools.act(() => {
-      input.dispatchEvent(makePasteEvent('+7 12345 6 77 88'));
+      input.dispatchEvent(makePasteEvent('+7 123 456 7788'));
     });
 
     options.locale = 'fr';

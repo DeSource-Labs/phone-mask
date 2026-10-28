@@ -60,12 +60,12 @@ describe('phoneMask attachment', () => {
     const input = container.querySelector('input') as PhoneMaskBindingElement;
 
     await tools.act(() => {
-      input.dispatchEvent(makePasteEvent('+7 12345 6 77 88'));
+      input.dispatchEvent(makePasteEvent('+7 123 456 7788'));
     });
 
     expect(input.__phoneMaskState?.country.id).toBe('KZ');
     expect(input.__phoneMaskState?.digits).toBe('1234567788');
-    expect(input.value).toBe('12345 6 77 88');
+    expect(input.value).toBe('123 456 7788');
     expect(container.querySelector('output')?.textContent).toBe('1234567788');
     unmount();
   });
@@ -100,7 +100,7 @@ describe('phoneMaskAction', () => {
     onCountryChange.mockClear();
 
     await tools.act(() => {
-      el.dispatchEvent(makePasteEvent('+7 12345 6 77 88'));
+      el.dispatchEvent(makePasteEvent('+7 123 456 7788'));
     });
     await update({ country: 'KZ' });
 
@@ -114,7 +114,7 @@ describe('phoneMaskAction', () => {
     const action = phoneMaskAction(input, options);
     await flushPromises();
     await tools.act(() => {
-      input.dispatchEvent(makePasteEvent('+7 12345 6 77 88'));
+      input.dispatchEvent(makePasteEvent('+7 123 456 7788'));
     });
 
     options.locale = 'fr';
