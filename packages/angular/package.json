@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask-angular",
-  "version": "1.7.0",
+  "version": "2.0.0",
   "description": "Signal-based Angular phone input, directive and formatting pipe with SSR support.",
   "type": "module",
   "exports": {

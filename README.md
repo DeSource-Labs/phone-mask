@@ -22,6 +22,8 @@
   </p>
 </div>
 
+Before upgrading to 2.0.0, review [Migration from 1.7.0](./packages/core/CHANGELOG.md#migration-from-170) for breaking changes and required updates.
+
 ---
 
 ## 🎯 Why Phone Mask?

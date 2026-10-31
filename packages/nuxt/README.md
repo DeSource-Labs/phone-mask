@@ -12,6 +12,8 @@
 
 Drop-in Nuxt module with auto-imports, SSR support, and zero configuration.
 
+Before upgrading to 2.0.0, review [Migration from 1.7.0](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/nuxt/CHANGELOG.md#migration-from-170) for breaking changes and required updates.
+
 ## ✨ Features
 
 - 🎯 **Zero Config** — Works out of the box
