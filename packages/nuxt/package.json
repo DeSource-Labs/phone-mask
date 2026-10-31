@@ -1,6 +1,6 @@
 {
   "name": "@desource/phone-mask-nuxt",
-  "version": "1.7.0",
+  "version": "2.0.0",
   "description": "🎯 Zero-config Nuxt module for international phone masking. Powered by @desource/phone-mask with Google libphonenumber sync.",
   "type": "module",
   "exports": {
@@ -62,7 +62,7 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "peerDependencies": {
-    "@nuxt/kit": "^4.6.0",
+    "@nuxt/kit": "^3.13.2 || ^4.0.0",
     "vue": "^3.4.33"
   },
   "dependencies": {
