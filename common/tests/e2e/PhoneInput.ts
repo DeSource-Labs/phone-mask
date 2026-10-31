@@ -137,6 +137,28 @@ export function testPhoneInput(
       });
     }
 
+    for (const { name, start, end, expected } of [
+      { name: 'one selected digit', start: 11, end: 12, expected: '202-555-0129' },
+      { name: 'digits and a separator', start: 2, end: 5, expected: '209-550-123' },
+      { name: 'the entire number', start: 0, end: 12, expected: '9' },
+      { name: 'only a separator', start: 3, end: 4, expected: '202-555-0123' }
+    ]) {
+      test(`handles typing over ${name} at max length`, async () => {
+        await detectControl.uncheck();
+        await countrySelect.selectOption('US');
+        await phoneInput.fill('2025550123');
+        await expect(phoneInput).toHaveValue('202-555-0123');
+        await phoneInput.evaluate((input: HTMLInputElement, range) => input.setSelectionRange(...range), [
+          start,
+          end
+        ] as [number, number]);
+
+        await phoneInput.press('9');
+
+        await expect(phoneInput).toHaveValue(expected);
+      });
+    }
+
     for (const readonly of [false, true]) {
       test(`keeps entered digits and country when GeoIP arrives late (readonly=${readonly})`, async ({ page }) => {
         const pending: Route[] = [];

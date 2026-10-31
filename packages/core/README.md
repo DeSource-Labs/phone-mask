@@ -126,8 +126,8 @@ import { MasksFullMapEn } from '@desource/phone-mask';
 const gb = MasksFullMapEn.GB;
 console.log(gb.mask);
 // [
-//   "### ### ####",
 //   "#### ######",
+//   "### ### ####",
 //   "## #### ####"
 // ]
 ```
@@ -159,8 +159,8 @@ const stripped = removeCountryCodePrefix('+1 ###-###-####');
 // "###-###-####"
 
 // Pick best mask variant for digit count
-const variants = ['+44 ### ### ####', '+44 #### ######'];
-const best = pickMaskVariant(variants, 11);
+const variants = ['+44 #### ######', '+44 ### ### ####'];
+const best = pickMaskVariant(variants, 10);
 // "+44 #### ######"
 
 // Extract only digits from string
@@ -172,13 +172,16 @@ const digits = extractDigits('+1 (202) 555-1234');
 
 Use `createPhoneFormatter()` to validate length against a specific country's mask variants.
 
+The recipes below accept local numbers or international numbers with the selected country's calling code. They truncate excess digits to match the framework inputs. Use `country.code` to remove a known calling code from phone values; `removeCountryCodePrefix()` is intended for mask templates.
+
 ```ts
 import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
-import { createPhoneFormatter, extractDigits, removeCountryCodePrefix } from '@desource/phone-mask/kit';
+import { createPhoneFormatter, extractDigits } from '@desource/phone-mask/kit';
 
 function validateForCountry(input: string, id: CountryKey) {
   const country = MasksFullMapEn[id];
-  if (!country) {
+  const value = input.trim();
+  if (!country || (value.startsWith('+') && !value.startsWith(country.code))) {
     return {
       digits: '',
       display: '',
@@ -186,8 +189,8 @@ function validateForCountry(input: string, id: CountryKey) {
     };
   }
 
-  const formatter = createPhoneFormatter({ ...country, id });
-  const inputWithoutCode = removeCountryCodePrefix(input);
+  const formatter = createPhoneFormatter(country);
+  const inputWithoutCode = value.startsWith(country.code) ? value.slice(country.code.length) : value;
   const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
 
   return {
@@ -199,6 +202,8 @@ function validateForCountry(input: string, id: CountryKey) {
 
 validateForCountry('+1 (202) 555-1234', 'US');
 // { digits: "2025551234", display: "202-555-1234", isComplete: true }
+validateForCountry('+12025551234', 'US');
+// { digits: "2025551234", display: "202-555-1234", isComplete: true }
 ```
 
 ### Raw Digits for Backend Processing
@@ -207,14 +212,15 @@ Use raw digits for storage and transport. Keep formatting on the client only.
 
 ```ts
 import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
-import { createPhoneFormatter, extractDigits, removeCountryCodePrefix } from '@desource/phone-mask/kit';
+import { createPhoneFormatter, extractDigits } from '@desource/phone-mask/kit';
 
 function buildPhonePayload(input: string, id: CountryKey) {
   const country = MasksFullMapEn[id];
-  if (!country) return null;
+  const value = input.trim();
+  if (!country || (value.startsWith('+') && !value.startsWith(country.code))) return null;
 
-  const formatter = createPhoneFormatter({ ...country, id });
-  const inputWithoutCode = removeCountryCodePrefix(input);
+  const formatter = createPhoneFormatter(country);
+  const inputWithoutCode = value.startsWith(country.code) ? value.slice(country.code.length) : value;
   const localDigits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
 
   return {
@@ -231,7 +237,7 @@ Combine Phone Mask metadata with region-specific regex rules:
 
 ```ts
 import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
-import { createPhoneFormatter, extractDigits, removeCountryCodePrefix } from '@desource/phone-mask/kit';
+import { createPhoneFormatter, extractDigits } from '@desource/phone-mask/kit';
 
 const tenantCarrierRules: Partial<Record<CountryKey, RegExp>> = {
   BR: /^(11|21|31)\d{8,9}$/,
@@ -240,10 +246,11 @@ const tenantCarrierRules: Partial<Record<CountryKey, RegExp>> = {
 
 function validateWithCarrierRule(input: string, id: CountryKey): boolean {
   const country = MasksFullMapEn[id];
-  if (!country) return false;
+  const value = input.trim();
+  if (!country || (value.startsWith('+') && !value.startsWith(country.code))) return false;
 
-  const formatter = createPhoneFormatter({ ...country, id });
-  const inputWithoutCode = removeCountryCodePrefix(input);
+  const formatter = createPhoneFormatter(country);
+  const inputWithoutCode = value.startsWith(country.code) ? value.slice(country.code.length) : value;
   const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
   const carrierRule = tenantCarrierRules[id];
 
@@ -256,7 +263,7 @@ function validateWithCarrierRule(input: string, id: CountryKey): boolean {
 
 ```ts
 import { MasksFullMapEn, type CountryKey } from '@desource/phone-mask';
-import { createPhoneFormatter, extractDigits, removeCountryCodePrefix } from '@desource/phone-mask/kit';
+import { createPhoneFormatter, extractDigits } from '@desource/phone-mask/kit';
 
 type TenantPolicy = {
   defaultCountry: CountryKey;
@@ -272,17 +279,21 @@ function createTenantPhoneService(tenantId: string) {
   const policy = TENANT_POLICIES[tenantId] ?? { defaultCountry: 'US' as const };
   const id = policy.defaultCountry;
   const country = MasksFullMapEn[id];
-  const formatter = createPhoneFormatter({ ...country, id });
+  const formatter = createPhoneFormatter(country);
 
   return {
     defaultCountry: id,
     format(input: string) {
-      const inputWithoutCode = removeCountryCodePrefix(input);
+      const value = input.trim();
+      if (value.startsWith('+') && !value.startsWith(country.code)) return input;
+      const inputWithoutCode = value.startsWith(country.code) ? value.slice(country.code.length) : value;
       const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
       return formatter.formatDisplay(digits);
     },
     validate(input: string) {
-      const inputWithoutCode = removeCountryCodePrefix(input);
+      const value = input.trim();
+      if (value.startsWith('+') && !value.startsWith(country.code)) return false;
+      const inputWithoutCode = value.startsWith(country.code) ? value.slice(country.code.length) : value;
       const digits = extractDigits(inputWithoutCode, formatter.getMaxDigits());
       const complete = formatter.isComplete(digits);
       const prefixOk = policy.prefixRule ? policy.prefixRule.test(digits) : true;
@@ -453,7 +464,7 @@ function formatPhone(
 
 Only an explicit `+` calling code is removed; bare digits are treated as a number without a calling code. Pass an ISO country code for those values. With no country, detection requires a complete international number and uses mask shape, calling code, and length. Shared matches use a default country, such as US for `+1`; detection does not inspect area-code allocations. Pass `undefined` or `null` as the country to combine detection with options.
 
-A supplied country takes priority when its calling code matches, so `formatPhone('+12345678888', 'CA', { flag: true })` retains the Canadian flag. If codes conflict, successful detection takes priority: `formatPhone('+442079460958', 'US')` returns `'+44 207 946 0958'`. Unsuccessful detection preserves the original value.
+A supplied country takes priority when its calling code matches, so `formatPhone('+12345678888', 'CA', { flag: true })` retains the Canadian flag. If codes conflict, successful detection takes priority: `formatPhone('+442079460958', 'US')` returns `'+44 2079 460958'`. Unsuccessful detection preserves the original value.
 
 Significant leading zeros are preserved. Empty, whitespace-only, `null`, and `undefined` values return `''`. Unsupported countries, invalid characters, extensions, and values exceeding the selected mask's length remain unchanged. The function does not infer trunk prefixes or validate whether a number is assigned. Render its result as text, as with any user-provided value.
 

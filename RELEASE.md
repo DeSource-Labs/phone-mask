@@ -11,6 +11,7 @@ The following packages form a Changesets fixed group and always receive the same
 - `@desource/phone-mask-react`
 - `@desource/phone-mask-vue`
 - `@desource/phone-mask-svelte`
+- `@desource/phone-mask-angular`
 - `@desource/phone-mask-nuxt`
 
 ## Standard Release
@@ -45,14 +46,14 @@ In the prompts:
 pnpm changeset:version
 ```
 
-This consumes all pending changesets and updates the five package versions and changelogs. A pnpm
+This consumes all pending changesets and updates the six package versions and changelogs. A pnpm
 install is not required because internal packages use `workspace:*`; package version changes do not
 change the workspace importers in `pnpm-lock.yaml`.
 
 Before committing, verify:
 
-- all five `package.json` files contain the intended version;
-- all five changelogs contain the release summary;
+- all six `package.json` files contain the intended version;
+- all six changelogs contain the release summary;
 - `packages/core/CHANGELOG.md` has the content wanted for the GitHub release;
 - all temporary changeset files were consumed;
 - no unrelated files changed.
