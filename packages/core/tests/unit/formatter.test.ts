@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { describe, expect, it } from 'vitest';
 import { createPhoneFormatter } from '@src/formatter';
-import type { MaskFull } from '@src/entries';
+import { MasksMap, type MaskFull } from '@src/entries';
 
 const countryWithMultipleMasks: MaskFull = {
   id: 'AC',
@@ -42,6 +42,14 @@ describe('createPhoneFormatter', () => {
     expect(formatter.getCaretPosition(6)).toBe(6);
     expect(formatter.getCaretPosition(-1)).toBe(0);
     expect(formatter.getCaretPosition(99)).toBe(6);
+  });
+
+  it.each([
+    { country: 'AU', digits: '412345678' },
+    { country: 'DE', digits: '15123456789' }
+  ] as const)('uses the full $country number length to map a caret inside the number', ({ country, digits }) => {
+    const formatter = createPhoneFormatter(MasksMap[country]);
+    expect(formatter.getCaretPosition(2, digits.length)).toBe(2);
   });
 
   it('returns digit range from display selection', () => {

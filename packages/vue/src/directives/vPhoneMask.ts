@@ -73,7 +73,7 @@ function createHandler<T>(
     updateDigits(el, state, result.newDigits);
 
     nextTick(() => {
-      const pos = state.formatter.getCaretPosition(result.caretDigitIndex);
+      const pos = state.formatter.getCaretPosition(result.caretDigitIndex, result.newDigits.length);
       setCaret(el, pos);
     });
   };
