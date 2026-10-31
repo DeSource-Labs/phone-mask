@@ -453,7 +453,7 @@ function formatPhone(
 
 Only an explicit `+` calling code is removed; bare digits are treated as a number without a calling code. Pass an ISO country code for those values. With no country, detection requires a complete international number and uses mask shape, calling code, and length. Shared matches use a default country, such as US for `+1`; detection does not inspect area-code allocations. Pass `undefined` or `null` as the country to combine detection with options.
 
-A supplied country takes priority when its calling code matches, so `formatPhone('+12345678888', 'CA', { flag: true })` retains the Canadian flag. If codes conflict, successful detection takes priority: `formatPhone('+442079460958', 'US')` returns `'+44 207 946 0958'`. Unsuccessful detection preserves the original value.
+A supplied country takes priority when its calling code matches, so `formatPhone('+12345678888', 'CA', { flag: true })` retains the Canadian flag. If codes conflict, successful detection takes priority: `formatPhone('+442079460958', 'US')` returns `'+44 2079 460958'`. Unsuccessful detection preserves the original value.
 
 Significant leading zeros are preserved. Empty, whitespace-only, `null`, and `undefined` values return `''`. Unsupported countries, invalid characters, extensions, and values exceeding the selected mask's length remain unchanged. The function does not infer trunk prefixes or validate whether a number is assigned. Render its result as text, as with any user-provided value.
 
