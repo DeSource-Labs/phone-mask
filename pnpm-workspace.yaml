@@ -3,12 +3,13 @@ packages:
   - demo
 
 overrides:
-  glob: ^13.0.6
+  glob: ^14.0.3
   # Less has no patched image-size release in its legacy range; this repo does not use its image helpers.
   'less>image-size': '-'
 
 packageExtensions:
-  '@analogjs/vite-plugin-angular@2.8.0':
+  # The plugin imports TypeScript but does not declare it; use the Angular workspace's compiler.
+  '@analogjs/vite-plugin-angular@2.9.2':
     peerDependencies:
       typescript: '*'
 

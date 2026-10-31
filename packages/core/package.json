@@ -92,6 +92,6 @@
     "gen": "node scripts/gen.mts"
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^1.0.0"
+    "@rollup/plugin-terser": "^1.0.2"
   }
 }
