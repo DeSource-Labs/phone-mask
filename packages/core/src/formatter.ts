@@ -23,8 +23,9 @@ export interface FormatterHelpers {
 
   /**
    * Get caret position in display string for given digit index
+   * Pass the total digit count to select the current number's mask.
    */
-  getCaretPosition: (digitIndex: number) => number;
+  getCaretPosition: (digitIndex: number, digitsCount?: number) => number;
 
   /**
    * Get digit range [start, end) for selection range in display string
@@ -62,11 +63,11 @@ export function createPhoneFormatter(country: Pick<MaskFull, 'mask'>): Formatter
       return template;
     },
 
-    getCaretPosition: (digitIndex: number) => {
+    getCaretPosition: (digitIndex: number, digitsCount = digitIndex) => {
       const safeDigitIndex = Math.max(0, digitIndex);
       if (safeDigitIndex === 0) return 0;
 
-      const template = getMask(safeDigitIndex);
+      const template = getMask(digitsCount);
       const { display } = formatDigitsWithMap(template, '0'.repeat(safeDigitIndex));
       return display.length;
     },

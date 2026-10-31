@@ -41,7 +41,7 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
     const el = e.target as HTMLInputElement | null;
     nextTick(() => {
       if (!el) return;
-      const pos = toValue(formatter).getCaretPosition(result.caretDigitIndex);
+      const pos = toValue(formatter).getCaretPosition(result.caretDigitIndex, result.newDigits.length);
       setCaret(el, pos);
     });
     scheduleValidationHint?.(delay);

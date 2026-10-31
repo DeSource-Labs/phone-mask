@@ -34,7 +34,7 @@ export function useInputHandlers(options: UseInputHandlersOptions) {
     const el = e.target as HTMLInputElement | null;
     tick().then(() => {
       if (!el) return;
-      const pos = formatter().getCaretPosition(result.caretDigitIndex);
+      const pos = formatter().getCaretPosition(result.caretDigitIndex, result.newDigits.length);
       setCaret(el, pos);
     });
     scheduleValidationHint?.(delay);

@@ -47,7 +47,13 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
       onChange?.(result.newDigits);
       const el = evt.target as HTMLInputElement | null;
       setTimeout(() => {
-        if (el) setCaret(el, result.country ? el.value.length : formatter.getCaretPosition(result.caretDigitIndex));
+        if (el)
+          setCaret(
+            el,
+            result.country
+              ? el.value.length
+              : formatter.getCaretPosition(result.caretDigitIndex, result.newDigits.length)
+          );
       });
       scheduleValidationHint?.(delay);
     },

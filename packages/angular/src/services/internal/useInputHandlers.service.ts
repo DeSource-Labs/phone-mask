@@ -35,7 +35,7 @@ export function useInputHandlers({
     if (input) {
       const mask = readOption(formatter);
       input.value = mask.formatDisplay(result.newDigits);
-      setCaret(input, mask.getCaretPosition(result.caretDigitIndex));
+      setCaret(input, mask.getCaretPosition(result.caretDigitIndex, result.newDigits.length));
     }
     scheduleValidationHint?.(delay);
   };

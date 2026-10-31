@@ -94,6 +94,60 @@ export function testUsePhoneMask(
       }
     );
 
+    it.each([
+      {
+        country: 'AU',
+        digits: '412345678',
+        display: '412 345 678',
+        deletions: [
+          { digits: '41345678', display: '413 456 78', caret: 2 },
+          { digits: '4145678', display: '41 456 78', caret: 3 }
+        ]
+      },
+      {
+        country: 'DE',
+        digits: '15123456789',
+        display: '1512 3456789',
+        deletions: [
+          { digits: '1523456789', display: '152 3 456789', caret: 2 },
+          { digits: '153456789', display: '153 4 56789', caret: 2 }
+        ]
+      }
+    ])(
+      'preserves the digit boundary on consecutive Delete presses in $country',
+      async ({ country, digits, display, deletions }) => {
+        const { api, inputEl, getValue, unmount } = await setup();
+        try {
+          await act(() => {
+            api.setCountry(country);
+          });
+          await act(() => {
+            inputEl.value = digits;
+            inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+          });
+          expect(inputEl.value).toBe(display);
+          await waitFor(() => expect(inputEl.selectionStart).toBe(display.length));
+          inputEl.setSelectionRange(2, 2);
+
+          const deleteAndExpect = async (expected: (typeof deletions)[number]) => {
+            await act(() => {
+              inputEl.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true }));
+            });
+            expect(getValue()).toBe(expected.digits);
+            expect(inputEl.value).toBe(expected.display);
+            await waitFor(() => {
+              expect(inputEl.selectionStart).toBe(expected.caret);
+              expect(inputEl.selectionEnd).toBe(expected.caret);
+            });
+          };
+          await deleteAndExpect(deletions[0]);
+          await deleteAndExpect(deletions[1]);
+        } finally {
+          unmount();
+        }
+      }
+    );
+
     it('keeps country and inserts a fragment without a calling code at the caret', async () => {
       const { api, inputEl, onChange, getValue, unmount } = await setup('234567');
       await act(() => {
