@@ -217,7 +217,9 @@ export function processKeydown(e: KeyboardEvent, params: ProcessKeydownParams): 
 
   // Handle digits
   if (/^\d$/.test(key)) {
-    if (digits.length >= formatter.getMaxDigits()) {
+    const range = formatter.getDigitRange(digits, selectionStart, selectionEnd);
+    const selectedDigits = range ? range[1] - range[0] : 0;
+    if (digits.length - selectedDigits >= formatter.getMaxDigits()) {
       e.preventDefault();
     }
     return;

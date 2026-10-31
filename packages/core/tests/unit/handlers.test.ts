@@ -226,6 +226,21 @@ describe('processKeydown', () => {
     expect(result).toBeUndefined();
   });
 
+  it.each([
+    { name: 'one selected digit', selection: [6, 7], blocked: false },
+    { name: 'digits and delimiters', selection: [2, 6], blocked: false },
+    { name: 'the entire number', selection: [0, 7], blocked: false },
+    { name: 'only a delimiter', selection: [1, 2], blocked: true }
+  ])('handles typing over $name at max length', ({ selection, blocked }) => {
+    const formatter = createFormatter();
+    const input = createInput(formatter.formatDisplay('12345'));
+    input.setSelectionRange(selection[0], selection[1]);
+    const event = createKeyboardEvent(input, '9');
+
+    expect(processKeydown(event, { digits: '12345', formatter })).toBeUndefined();
+    expect(event.preventDefault).toHaveBeenCalledTimes(blocked ? 1 : 0);
+  });
+
   it('returns undefined for Backspace at start with no selection', () => {
     const formatter = createFormatter();
     const input = createInput(formatter.formatDisplay('12345'));
