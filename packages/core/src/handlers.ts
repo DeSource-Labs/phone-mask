@@ -176,7 +176,7 @@ export function processInput(e: Event, params: ProcessInputParams): InputResult 
 
   return {
     newDigits,
-    caretDigitIndex: newDigits.length
+    caretDigitIndex: extractDigits(el.value.slice(0, el.selectionStart ?? el.value.length), maxDigits).length
   };
 }
 

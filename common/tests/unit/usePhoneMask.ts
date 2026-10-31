@@ -97,6 +97,56 @@ export function testUsePhoneMask(
     it.each([
       {
         country: 'AU',
+        digits: '41345678',
+        display: '413 456 78',
+        inserted: '2',
+        expectedDigits: '412345678',
+        expectedDisplay: '412 345 678',
+        expectedCaret: 4
+      },
+      {
+        country: 'DE',
+        digits: '1523456789',
+        display: '152 3 456789',
+        inserted: '1',
+        expectedDigits: '15123456789',
+        expectedDisplay: '1512 3456789',
+        expectedCaret: 3
+      }
+    ])('preserves insertion position when the mask changes in $country', async (testCase) => {
+      const { api, inputEl, getValue, unmount } = await setup();
+      try {
+        await act(() => {
+          api.setCountry(testCase.country);
+        });
+        await act(() => {
+          inputEl.value = testCase.digits;
+          inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        expect(inputEl.value).toBe(testCase.display);
+        await waitFor(() => expect(inputEl.selectionStart).toBe(testCase.display.length));
+
+        await act(() => {
+          inputEl.setRangeText(testCase.inserted, 2, 2, 'end');
+          inputEl.dispatchEvent(
+            new InputEvent('input', { bubbles: true, inputType: 'insertText', data: testCase.inserted })
+          );
+        });
+
+        expect(getValue()).toBe(testCase.expectedDigits);
+        expect(inputEl.value).toBe(testCase.expectedDisplay);
+        await waitFor(() => {
+          expect(inputEl.selectionStart).toBe(testCase.expectedCaret);
+          expect(inputEl.selectionEnd).toBe(testCase.expectedCaret);
+        });
+      } finally {
+        unmount();
+      }
+    });
+
+    it.each([
+      {
+        country: 'AU',
         digits: '412345678',
         display: '412 345 678',
         deletions: [

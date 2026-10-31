@@ -46,7 +46,8 @@ export function useInputHandlers(options: UseInputHandlersOptions): UseInputHand
       onEdit?.(result.country);
       onChange?.(result.newDigits);
       const el = evt.target as HTMLInputElement | null;
-      setTimeout(() => {
+      // Restore selection after rendering, before the next keystroke.
+      queueMicrotask(() => {
         if (el)
           setCaret(
             el,

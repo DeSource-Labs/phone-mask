@@ -91,8 +91,9 @@ describe('locale helpers', () => {
 });
 
 describe('country helpers', () => {
-  it('checks country existence against english map', () => {
+  it('checks country existence without case sensitivity', () => {
     expect(hasCountry('US')).toBe(true);
+    expect(hasCountry('us')).toBe(true);
     expect(hasCountry('ZZ')).toBe(false);
   });
 
@@ -102,6 +103,8 @@ describe('country helpers', () => {
     expect(us.id).toBe('US');
     expect(fallback.id).toBe('US');
     expect(fallback).toMatchObject({ code: us.code, mask: us.mask });
+    expect(getCountry('de', 'de')).toMatchObject({ id: 'DE', code: '+49', name: 'Deutschland' });
+    expect(getCountry('ZZ', 'de').name).toBe(getCountry('US', 'de').name);
   });
 
   it('parses country code or fallback when invalid', () => {

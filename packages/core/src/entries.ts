@@ -138,12 +138,12 @@ export const MasksFull = (lang: string) => {
  * @example
  * MasksFullMapEn.US // { code: "+1", mask: ["###-###-####"], name: "United States", flag: "🇺🇸" }
  */
-export const MasksFullMapEn = MasksFullMap(DEFAULT_LANG);
+export const MasksFullMapEn = /* @__PURE__ */ MasksFullMap(DEFAULT_LANG);
 /**
  * Full masks array with name and flag emoji in English
  * @example
  * MasksFullEn[0] // { id: 'AC', code: "+247", mask: ["#####"], name: "Ascension Island", flag: "🇦🇨" }
  */
-export const MasksFullEn = MasksFull(DEFAULT_LANG);
+export const MasksFullEn = /* @__PURE__ */ MasksFull(DEFAULT_LANG);
 
 export type { CountryKey, MaskBaseMap, MaskBase, MaskMap, Mask, MaskWithFlagMap, MaskWithFlag, MaskFullMap, MaskFull };

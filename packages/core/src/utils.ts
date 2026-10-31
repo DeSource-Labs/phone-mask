@@ -1,5 +1,7 @@
-import { MasksFullMap, MasksFullMapEn } from './entries';
-import type { CountryKey, MaskFull } from './entries';
+// @ts-expect-error -- Generated JavaScript data
+import countries from './data.min.js';
+import { MasksFull } from './entries.js';
+import type { CountryKey, MaskFull } from './entries.js';
 
 export type FormatResult = {
   display: string;
@@ -32,20 +34,16 @@ export function detectCountryFromLocale(): string | null {
   return null;
 }
 
-/** Check if a country exists in the full mask map */
+/** Check if a country exists in the mask data */
 export function hasCountry(code: string): boolean {
-  const map = MasksFullMapEn;
-  const id = code.toUpperCase() as CountryKey;
-
-  return id in map;
+  return code.toUpperCase() in countries;
 }
 
 /** Get country data by ISO code and locale with fallback to US */
 export function getCountry(code: string, locale: string): MaskFull {
-  const map = MasksFullMap(locale);
   let id = code.toUpperCase() as CountryKey;
-  if (!(id in map)) id = 'US';
-  return { id, ...map[id] };
+  if (!(id in countries)) id = 'US';
+  return MasksFull(locale).find((country) => country.id === id)!;
 }
 
 export function parseCountryCode(code?: string | null, fallback?: string): string {
