@@ -313,7 +313,7 @@ interface PhoneInputProps {
   // - full: Full phone number with country code (e.g. +1234567890)
   // - fullFormatted: Full phone number formatted according to country rules (e.g. +1 234-567-890)
   // - digits: Only the digits of the phone number without country code (e.g. 234567890)
-  onPhoneChange?: (value: PhoneNumber) => void;
+  onPhoneChange?: (value: PMaskPhoneNumber) => void;
 
   // Callback when the selected country changes
   onCountryChange?: (country: MaskFull) => void;
@@ -387,7 +387,7 @@ interface UsePhoneMaskOptions {
   detect?: boolean;
 
   // Callback when the phone changes (full, fullFormatted, digits)
-  onPhoneChange?: (phone: PhoneNumber) => void;
+  onPhoneChange?: (phone: PMaskPhoneNumber) => void;
 
   // Country change callback
   onCountryChange?: (country: MaskFull) => void;
@@ -474,7 +474,7 @@ Customize colors via CSS variables:
 ### Dark Theme
 
 ```tsx
-<PhoneInput value={phone} theme="dark" />
+<PhoneInput value={phone} onChange={setPhone} theme="dark" />
 ```
 
 Or with CSS:

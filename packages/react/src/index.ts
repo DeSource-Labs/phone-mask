@@ -5,6 +5,7 @@ export type {
   PhoneInputProps,
   PhoneInputRef,
   PhoneNumber,
+  PhoneNumber as PMaskPhoneNumber,
   UsePhoneMaskOptions,
   UsePhoneMaskReturn,
   Size as PhoneInputSize,
