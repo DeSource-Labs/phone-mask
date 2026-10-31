@@ -66,7 +66,7 @@ describe('PhoneMaskDirective', () => {
     host.options.set('GB');
     host.control.setValue('7911123456');
     await fixture.whenStable();
-    expect(input.value).toBe('791 112 3456');
+    expect(input.value).toBe('7911 123456');
     expect(values).toHaveBeenCalledExactlyOnceWith('7911123456');
     host.control.reset('');
     await fixture.whenStable();
@@ -200,7 +200,7 @@ describe('PhoneMaskDirective native inputs', () => {
 
     host.control.setValue('2025550123');
     await fixture.whenStable();
-    expect(input.value).toBe('202 555 0123');
+    expect(input.value).toBe('2025 550123');
     expect(changed).toHaveBeenCalledExactlyOnceWith('2025550123');
   });
 

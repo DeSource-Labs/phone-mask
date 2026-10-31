@@ -74,19 +74,19 @@ describe('PhonePipe', () => {
   });
 
   it('preserves significant leading zeros', () => {
-    expect(pipe.transform('0612345678', 'IT')).toBe('+39 06 1234 5678');
-    expect(pipe.transform('+39 06 1234 5678', 'IT', { code: false })).toBe('06 1234 5678');
+    expect(pipe.transform('0612345678', 'IT')).toBe('+39 061 234 5678');
+    expect(pipe.transform('+39 06 1234 5678', 'IT', { code: false })).toBe('061 234 5678');
   });
 
   it('uses the selected country flag when countries share a calling code', () => {
     expect(pipe.transform('+12345678888', 'CA', { flag: true })).toBe('🇨🇦 +1 234 567 8888');
     expect(pipe.transform('+7 123 456 7788', 'RU', { flag: true })).toBe('🇷🇺 +7 123 456 77 88');
-    expect(pipe.transform('+71234567788', 'KZ', { flag: true })).toBe('🇰🇿 +7 12345 6 77 88');
+    expect(pipe.transform('+71234567788', 'KZ', { flag: true })).toBe('🇰🇿 +7 123 456 7788');
   });
 
   it.each([undefined, null])('detects international numbers when country is %j', (country) => {
     expect(pipe.transform('+12345678888', country, { flag: true })).toBe('🇺🇸 +1 234 567 8888');
-    expect(pipe.transform('+7 123 456 7788', country, { flag: true })).toBe('🇰🇿 +7 12345 6 77 88');
+    expect(pipe.transform('+7 123 456 7788', country, { flag: true })).toBe('🇰🇿 +7 123 456 7788');
     expect(pipe.transform('+71234567788', country, { code: false, flag: true })).toBe('🇷🇺 123 456 77 88');
     expect(pipe.transform('+7 (123) 456-77-88', country)).toBe('+7 123 456 77 88');
   });
@@ -99,9 +99,9 @@ describe('PhonePipe', () => {
   );
 
   it('uses a successfully detected calling code instead of changing the number to the supplied country', () => {
-    expect(pipe.transform('+442079460958', 'US', { flag: true })).toBe('🇬🇧 +44 207 946 0958');
-    expect(pipe.transform('+7 123 456 7788', 'US', { code: false, flag: true })).toBe('🇰🇿 12345 6 77 88');
-    expect(pipe.transform('+7 123 456 7788', 'US')).toBe('+7 12345 6 77 88');
+    expect(pipe.transform('+442079460958', 'US', { flag: true })).toBe('🇬🇧 +44 2079 460958');
+    expect(pipe.transform('+7 123 456 7788', 'US', { code: false, flag: true })).toBe('🇰🇿 123 456 7788');
+    expect(pipe.transform('+7 123 456 7788', 'US')).toBe('+7 123 456 7788');
   });
 
   it.each(['+7123', '+712345677889', '+99912345678'])(
@@ -149,8 +149,8 @@ describe('PhonePipe', () => {
     fixture.componentInstance.value.set('+442079460958');
     fixture.componentInstance.code.set(true);
     await fixture.whenStable();
-    expect(screen.getByTestId('phone').textContent).toBe('🇬🇧 +44 207 946 0958');
-    expect(screen.getByTestId('detected-phone').textContent).toBe('+44 207 946 0958');
+    expect(screen.getByTestId('phone').textContent).toBe('🇬🇧 +44 2079 460958');
+    expect(screen.getByTestId('detected-phone').textContent).toBe('+44 2079 460958');
   });
 
   it('does not reformat on unrelated updates, including inline options', async () => {

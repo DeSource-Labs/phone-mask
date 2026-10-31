@@ -256,7 +256,7 @@ The optional second argument accepts the exported `PhonePipeOptions` type:
 
 Only an explicit `+` calling code is removed from the input; bare digits are treated as a number without a calling code. Without a country, numbers lacking a calling code and unsuccessful detection return the original value. Mask detection uses a default country for ties, such as US for `+1`; it does not inspect area-code allocations. Pass `undefined` or `null` as the country to combine detection with options.
 
-A supplied country takes priority when its calling code matches the value, so `CA` keeps the Canadian flag for `+1`. If the calling code differs, successful detection takes priority: `'+7 123 456 7788' | phone: 'US'` displays `+7 12345 6 77 88` using KZ. If detection fails, the original value is preserved.
+A supplied country takes priority when its calling code matches the value, so `CA` keeps the Canadian flag for `+1`. If the calling code differs, successful detection takes priority: `'+7 123 456 7788' | phone: 'US'` displays `+7 123 456 7788` using KZ. If detection fails, the original value is preserved.
 
 The pipe preserves significant leading zeros and does not infer trunk prefixes or extensions. Empty, whitespace-only, `null`, and `undefined` values render as `''`. Unsupported countries, invalid characters, extensions, and numbers exceeding the selected mask's length return the original value unchanged.
 

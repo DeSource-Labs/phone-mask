@@ -414,7 +414,7 @@ unmatched lengths return `undefined`. Detection uses masks, not allocation prefi
 ```ts
 import { detectCountryFromPhone } from '@desource/phone-mask/kit';
 
-detectCountryFromPhone('+7 12345 6 77 88'); // 'KZ': unique mask
+detectCountryFromPhone('+7 123 456 7788'); // 'KZ': unique mask
 detectCountryFromPhone('+71234567788'); // 'RU': shared length, default country
 detectCountryFromPhone('1234567788'); // undefined: no international prefix
 ```

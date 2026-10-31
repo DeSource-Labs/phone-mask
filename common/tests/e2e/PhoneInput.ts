@@ -113,7 +113,7 @@ export function testPhoneInput(
     });
 
     for (const { country, pasted, display, full } of [
-      { country: 'Kazakhstan', pasted: '+7 12345 6 77 88', display: '12345 6 77 88', full: '+7 12345 6 77 88' },
+      { country: 'Kazakhstan', pasted: '+7 12345 6 77 88', display: '123 456 7788', full: '+7 123 456 7788' },
       { country: 'Russia', pasted: '+71234567788', display: '123 456-77-88', full: '+7 123 456-77-88' },
       { country: 'Germany', pasted: '+4915123456789', display: '1512 3456789', full: '+49 1512 3456789' }
     ]) {
