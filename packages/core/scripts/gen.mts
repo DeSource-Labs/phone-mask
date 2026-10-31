@@ -320,15 +320,15 @@ function buildRegionMasks(countryCode: string, formats: NumberFormat[], examples
 
   // Mirror FIXED_LINE_OR_MOBILE intent from old implementation:
   // prefer mobile example, fallback to fixed-line.
-  const fixedOrMobile = examplesByType.mobile || examplesByType.fixedLine || null;
-  pushMaskForExample(countryCode, formats, fixedOrMobile, masks);
+  const mobileOrFixed = examplesByType.mobile || examplesByType.fixedLine || null;
+  pushMaskForExample(countryCode, formats, mobileOrFixed, masks);
 
   for (const typeName of EXAMPLE_TYPES) {
     pushMaskForExample(countryCode, formats, examplesByType[typeName], masks);
   }
 
   // Keep the legacy fallback pass to preserve behavior ordering/coverage.
-  const fallback = fixedOrMobile || examplesByType.mobile || null;
+  const fallback = mobileOrFixed || examplesByType.mobile || null;
   pushMaskForExample(countryCode, formats, fallback, masks);
 
   return uniquePreserveOrder(masks);
