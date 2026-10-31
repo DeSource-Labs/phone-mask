@@ -18,6 +18,7 @@
     "changeset:version": "changeset version && pnpm changeset:format-changelogs",
     "changeset:publish": "pnpm build && pnpm publish:check && changeset publish --no-git-tag",
     "publish:check": "pnpm -r --filter \"./packages/**\" --stream run publish:check",
+    "check:release": "pnpm format:check && pnpm lint && pnpm check:peers && pnpm audit:prod && pnpm build && pnpm typecheck && pnpm publish:check && pnpm test:unit:coverage && pnpm test:e2e",
     "comparison:update": "node scripts/update-comparison.mts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
