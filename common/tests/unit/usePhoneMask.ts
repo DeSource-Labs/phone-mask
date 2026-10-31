@@ -129,7 +129,7 @@ export function testUsePhoneMask(
           await waitFor(() => expect(inputEl.selectionStart).toBe(display.length));
           inputEl.setSelectionRange(2, 2);
 
-          for (const expected of deletions) {
+          const deleteAndExpect = async (expected: (typeof deletions)[number]) => {
             await act(() => {
               inputEl.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true }));
             });
@@ -139,7 +139,9 @@ export function testUsePhoneMask(
               expect(inputEl.selectionStart).toBe(expected.caret);
               expect(inputEl.selectionEnd).toBe(expected.caret);
             });
-          }
+          };
+          await deleteAndExpect(deletions[0]);
+          await deleteAndExpect(deletions[1]);
         } finally {
           unmount();
         }
