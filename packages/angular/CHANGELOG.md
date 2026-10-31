@@ -80,3 +80,8 @@
 
 - Updated dependencies []:
   - @desource/phone-mask@2.0.0
+
+### Migration from 1.7.0
+
+- `@desource/phone-mask-angular` is new in 2.0.0, so no Angular-specific migration is required.
+- If you use other Phone Mask packages, update them together to 2.0.0 and follow the [shared migration instructions](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core/CHANGELOG.md#migration-from-170).

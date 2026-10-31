@@ -12,6 +12,8 @@
 
 Framework-agnostic phone masking library that stays up-to-date with Google's libphonenumber database.
 
+Before upgrading to 2.0.0, review [Migration from 1.7.0](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/core/CHANGELOG.md#migration-from-170) for breaking changes and required updates.
+
 ## ✨ Features
 
 - 🌍 **240+ countries** with accurate masks and dialing codes

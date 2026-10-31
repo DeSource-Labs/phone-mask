@@ -12,6 +12,8 @@
 
 Beautiful, accessible, extreme small & tree-shakeable React phone input with auto-formatting, country selector, and validation.
 
+Before upgrading to 2.0.0, review [Migration from 1.7.0](https://github.com/DeSource-Labs/phone-mask/blob/main/packages/react/CHANGELOG.md#migration-from-170) for breaking changes and required updates.
+
 ## ✨ Features
 
 - 🌐 **SSR Support** — `PhoneInput` renders formatted HTML on the server and hydrates in the browser
