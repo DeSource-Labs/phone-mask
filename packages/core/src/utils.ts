@@ -109,38 +109,39 @@ export function formatDigitsWithMap(maskTemplate: string, digitStr: string): For
   return { display: output, map };
 }
 
+/** Prefix matches receive twice the weight of substring matches */
+function matchScore(value: string, query: string, weight: number): number {
+  const index = value.indexOf(query);
+  if (index < 0) return 0;
+  return index === 0 ? weight * 2 : weight;
+}
+
 /** Filter and rank countries by a search query */
 export function filterCountries(countries: MaskFull[], search: string): MaskFull[] {
   const q = search.trim().toUpperCase();
 
   if (!q) return countries;
 
-  const qDigits = q.replace(/\D/g, '');
-  const isNumeric = qDigits.length > 0;
+  const digits = q.replace(/\D/g, '');
+  const matches: { country: MaskFull; score: number }[] = [];
 
-  return countries
-    .map((c) => {
-      const nameUpper = c.name.toUpperCase();
-      const idUpper = c.id.toUpperCase();
-      const codeUpper = c.code.toUpperCase();
-      const codeDigits = c.code.replace(/\D/g, '');
+  countries.forEach((country) => {
+    const id = country.id.toUpperCase();
 
-      let score = 0;
-      if (nameUpper.startsWith(q)) score = 1000;
-      else if (nameUpper.includes(q)) score = 500;
+    let score = matchScore(country.name.toUpperCase(), q, 500) + matchScore(country.code.toUpperCase(), q, 50);
 
-      if (codeUpper.startsWith(q)) score += 100;
-      else if (codeUpper.includes(q)) score += 50;
+    if (id.startsWith(q)) {
+      score += id === q ? 200 : 150;
+    }
 
-      if (idUpper === q) score += 200;
-      else if (idUpper.startsWith(q)) score += 150;
+    if (digits) {
+      score += matchScore(country.code.replace(/\D/g, ''), digits, 40);
+    }
 
-      if (isNumeric && codeDigits.startsWith(qDigits)) score += 80;
-      else if (isNumeric && codeDigits.includes(qDigits)) score += 40;
+    if (score) matches.push({ country, score });
+  });
 
-      return { country: c, score };
-    })
-    .filter((x) => x.score)
+  return matches
     .sort((a, b) => b.score - a.score || a.country.name.localeCompare(b.country.name))
-    .map((x) => x.country);
+    .map((match) => match.country);
 }
