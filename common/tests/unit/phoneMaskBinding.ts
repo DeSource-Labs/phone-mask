@@ -62,6 +62,36 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act,
     detectByGeoIpMock.mockResolvedValue(null);
   });
 
+  it('keeps consecutive inserted digits at the same editing position', async () => {
+    const { el, onChange, unmount } = await setup('input', '20255501')({ country: 'US', detect: false });
+    try {
+      expect(el.value).toBe('202-555-01');
+      el.setSelectionRange(4, 4);
+      onChange.mockClear();
+
+      const insertAndCheck = async (digit: string, display: string, caret: number) => {
+        await act(() => {
+          el.setRangeText(digit, el.selectionStart!, el.selectionEnd!, 'end');
+          el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: digit }));
+        });
+
+        expect(el.value).toBe(display);
+        await waitFor(() => {
+          expect(el.selectionStart).toBe(caret);
+          expect(el.selectionEnd).toBe(caret);
+        });
+      };
+
+      await insertAndCheck('9', '202-955-501', 5);
+      await insertAndCheck('8', '202-985-5501', 6);
+
+      expect(el.__phoneMaskState?.digits).toBe('2029855501');
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ digits: '2029855501' }));
+    } finally {
+      unmount();
+    }
+  });
+
   it.each(internationalPasteCases)(
     'selects $country from pasted $text before formatting',
     async ({ text, country, digits, display }) => {

@@ -127,6 +127,22 @@ export function testUsePhoneMask(containerSelector: string, controls: UsePhoneMa
       });
     });
 
+    test('preserves the caret through consecutive mid-number insertions', async () => {
+      await setCountryUsBtn.click();
+      await phoneInput.fill('20255501');
+      await expect(phoneInput).toHaveValue('202-555-01');
+      await expect.poll(() => phoneInput.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(10);
+      await phoneInput.evaluate((input: HTMLInputElement) => input.setSelectionRange(4, 4));
+
+      await phoneInput.pressSequentially('98');
+
+      await expect(phoneInput).toHaveValue('202-985-5501');
+      await expect(metaDigits).toContainText('2029855501');
+      await expect
+        .poll(() => phoneInput.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd]))
+        .toEqual([6, 6]);
+    });
+
     test.describe('complete number', () => {
       test.beforeEach(async () => {
         await setCountryUsBtn.click();

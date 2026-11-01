@@ -121,6 +121,60 @@ describe('processBeforeInput', () => {
 });
 
 describe('processInput', () => {
+  it.each([
+    { name: 'an empty input', value: '', caret: 0, digits: '', digitIndex: 0 },
+    { name: 'the first digit', value: '9', caret: 1, digits: '9', digitIndex: 1 },
+    { name: 'insertion at the start', value: '9202-555-01', caret: 1, digits: '920255501', digitIndex: 1 },
+    { name: 'insertion before a separator', value: '2029-555-01', caret: 4, digits: '202955501', digitIndex: 4 },
+    { name: 'insertion after a separator', value: '202-9555-01', caret: 5, digits: '202955501', digitIndex: 4 },
+    { name: 'insertion within a digit group', value: '202-5955-01', caret: 6, digits: '202595501', digitIndex: 5 },
+    { name: 'insertion at the end', value: '202-555-019', caret: 11, digits: '202555019', digitIndex: 9 },
+    { name: 'multiple inserted digits', value: '202-98555-01', caret: 6, digits: '2029855501', digitIndex: 5 },
+    { name: 'selection replacement', value: '202-985-0123', caret: 6, digits: '2029850123', digitIndex: 5 },
+    { name: 'full replacement', value: '98', caret: 2, digits: '98', digitIndex: 2 },
+    { name: 'filtered characters', value: '202-9x 8555-01', caret: 8, digits: '2029855501', digitIndex: 5 },
+    { name: 'only separators', value: '()- ', caret: 3, digits: '', digitIndex: 0 },
+    { name: 'a caret at zero', value: '202-555-01', caret: 0, digits: '20255501', digitIndex: 0 },
+    { name: 'overflow after the caret', value: '202-987555-0123', caret: 7, digits: '2029875550', digitIndex: 6 },
+    { name: 'overflow before the caret', value: '202-555-0123987', caret: 15, digits: '2025550123', digitIndex: 10 }
+  ])('preserves the digit boundary for $name', ({ value, caret, digits, digitIndex }) => {
+    const formatter = createPhoneFormatter({ mask: ['###-###-####'] });
+    const input = createInput(value);
+    input.setSelectionRange(caret, caret);
+
+    expect(processInput({ target: input } as unknown as Event, { formatter })).toEqual({
+      newDigits: digits,
+      caretDigitIndex: digitIndex
+    });
+  });
+
+  it.each([
+    { value: '129-34', caret: 3, digits: '12934', digitIndex: 3, display: '(129) 34', formattedCaret: 6 },
+    { value: '(19) 45', caret: 3, digits: '1945', digitIndex: 2, display: '19-45', formattedCaret: 3 }
+  ])('preserves the inserted digit boundary when the mask changes for $value', (testCase) => {
+    const formatter = createPhoneFormatter({ mask: ['##-##', '(###) ###'] });
+    const input = createInput(testCase.value);
+    input.setSelectionRange(testCase.caret, testCase.caret);
+
+    const result = processInput({ target: input } as unknown as Event, { formatter });
+
+    expect(result).toEqual({ newDigits: testCase.digits, caretDigitIndex: testCase.digitIndex });
+    expect(formatter.formatDisplay(result!.newDigits)).toBe(testCase.display);
+    expect(formatter.getCaretPosition(result!.caretDigitIndex, result!.newDigits.length)).toBe(testCase.formattedCaret);
+  });
+
+  it('falls back to the end when the input does not support selection', () => {
+    const formatter = createFormatter();
+    const input = createInput('123456');
+    input.type = 'number';
+    expect(input.selectionStart).toBeNull();
+
+    expect(processInput({ target: input } as unknown as Event, { formatter })).toEqual({
+      newDigits: '12345',
+      caretDigitIndex: 5
+    });
+  });
+
   it('extracts digits and clamps to max count', () => {
     const formatter = createFormatter();
     const input = createInput('1234-56');

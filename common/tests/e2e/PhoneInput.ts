@@ -137,11 +137,82 @@ export function testPhoneInput(
       });
     }
 
-    for (const { name, start, end, expected } of [
-      { name: 'one selected digit', start: 11, end: 12, expected: '202-555-0129' },
-      { name: 'digits and a separator', start: 2, end: 5, expected: '209-550-123' },
-      { name: 'the entire number', start: 0, end: 12, expected: '9' },
-      { name: 'only a separator', start: 3, end: 4, expected: '202-555-0123' }
+    for (const { position, expected, caret } of [
+      { position: 0, expected: '982-025-5501', caret: 2 },
+      { position: 1, expected: '298-025-5501', caret: 4 },
+      { position: 2, expected: '209-825-5501', caret: 5 },
+      { position: 3, expected: '202-985-5501', caret: 6 },
+      { position: 4, expected: '202-985-5501', caret: 6 },
+      { position: 5, expected: '202-598-5501', caret: 8 },
+      { position: 6, expected: '202-559-8501', caret: 9 },
+      { position: 7, expected: '202-555-9801', caret: 10 },
+      { position: 8, expected: '202-555-9801', caret: 10 },
+      { position: 9, expected: '202-555-0981', caret: 11 },
+      { position: 10, expected: '202-555-0198', caret: 12 }
+    ]) {
+      for (const inputMethod of ['typing', 'insertText'] as const) {
+        test(`preserves insertion at position ${position} with ${inputMethod}`, async ({ page }) => {
+          await detectControl.uncheck();
+          await countrySelect.selectOption('US');
+          await phoneInput.fill('20255501');
+          await expect(phoneInput).toHaveValue('202-555-01');
+          await expect.poll(() => phoneInput.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(10);
+          await phoneInput.evaluate(
+            (input: HTMLInputElement, start) => input.setSelectionRange(start, start),
+            position
+          );
+
+          if (inputMethod === 'typing') await phoneInput.pressSequentially('98');
+          else await page.keyboard.insertText('98');
+
+          await expect(phoneInput).toHaveValue(expected);
+          await expect
+            .poll(() => phoneInput.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd]))
+            .toEqual([caret, caret]);
+        });
+      }
+    }
+
+    for (const direction of ['forward', 'backward'] as const) {
+      test(`continues typing after replacing a ${direction} selection`, async () => {
+        await detectControl.uncheck();
+        await countrySelect.selectOption('US');
+        await phoneInput.fill('2025550123');
+        await expect.poll(() => phoneInput.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(12);
+        await phoneInput.evaluate(
+          (input: HTMLInputElement, selectionDirection) => input.setSelectionRange(4, 6, selectionDirection),
+          direction
+        );
+
+        await phoneInput.pressSequentially('98');
+
+        await expect(phoneInput).toHaveValue('202-985-0123');
+        await expect
+          .poll(() => phoneInput.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd]))
+          .toEqual([6, 6]);
+      });
+    }
+
+    test('keeps the insertion boundary when native input exceeds the mask length', async ({ page }) => {
+      await detectControl.uncheck();
+      await countrySelect.selectOption('US');
+      await phoneInput.fill('2025550123');
+      await expect.poll(() => phoneInput.evaluate((input: HTMLInputElement) => input.selectionStart)).toBe(12);
+      await phoneInput.evaluate((input: HTMLInputElement) => input.setSelectionRange(4, 6));
+
+      await page.keyboard.insertText('9876');
+
+      await expect(phoneInput).toHaveValue('202-987-6501');
+      await expect
+        .poll(() => phoneInput.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd]))
+        .toEqual([9, 9]);
+    });
+
+    for (const { name, start, end, expected, selection } of [
+      { name: 'one selected digit', start: 11, end: 12, expected: '202-555-0129', selection: [12, 12] },
+      { name: 'digits and a separator', start: 2, end: 5, expected: '209-550-123', selection: [4, 4] },
+      { name: 'the entire number', start: 0, end: 12, expected: '9', selection: [1, 1] },
+      { name: 'only a separator', start: 3, end: 4, expected: '202-555-0123', selection: [3, 4] }
     ]) {
       test(`handles typing over ${name} at max length`, async () => {
         await detectControl.uncheck();
@@ -156,6 +227,9 @@ export function testPhoneInput(
         await phoneInput.press('9');
 
         await expect(phoneInput).toHaveValue(expected);
+        await expect
+          .poll(() => phoneInput.evaluate((input: HTMLInputElement) => [input.selectionStart, input.selectionEnd]))
+          .toEqual(selection);
       });
     }
 

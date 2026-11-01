@@ -3,7 +3,6 @@
 import type { FormatterHelpers } from './formatter.js';
 import type { CountryKey } from './data-types.js';
 import { detectCountryFromPhone } from './country-detection.js';
-// @ts-expect-error -- Generated JavaScript data
 import countries from './data.min.js';
 
 export const DELIMITERS = [' ', '-', '(', ')'];
@@ -176,7 +175,7 @@ export function processInput(e: Event, params: ProcessInputParams): InputResult 
 
   return {
     newDigits,
-    caretDigitIndex: newDigits.length
+    caretDigitIndex: extractDigits(el.value.slice(0, el.selectionStart ?? el.value.length), maxDigits).length
   };
 }
 

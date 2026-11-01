@@ -1,4 +1,3 @@
-// @ts-expect-error -- Generated JavaScript data
 import countries, { masks, defaultCountryByCallingCode } from './data.min.js';
 import type { CountryKey } from './data-types.js';
 
@@ -23,8 +22,10 @@ export function detectCountryFromPhone(value: string): CountryKey | undefined {
     const number = text.slice(code.length + 1).trim();
     const shape = number.replace(/\d/g, '#');
     const digitCount = number.replace(/\D/g, '').length;
-    if (/\D/.test(number) && indices.some((index: string) => masks[index] === shape)) exact.push(country);
-    if (indices.some((index: string) => masks[index].split('#').length - 1 === digitCount)) lengths.push(country);
+    if (/\D/.test(number) && indices.some((index: string) => masks[index as `${number}`] === shape))
+      exact.push(country);
+    if (indices.some((index: string) => masks[index as `${number}`].split('#').length - 1 === digitCount))
+      lengths.push(country);
   }
 
   const matches = exact.length ? exact : lengths;
