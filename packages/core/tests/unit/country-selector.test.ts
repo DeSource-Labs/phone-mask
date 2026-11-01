@@ -34,6 +34,7 @@ describe('country selector DOM helpers', () => {
 
     expect(measure).not.toHaveBeenCalled();
     expect(setStyle).not.toHaveBeenCalled();
+    expect(dropdown.dataset.placement).toBeUndefined();
   });
 
   it('positions the dropdown below the root by default', () => {
