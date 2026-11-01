@@ -23,6 +23,19 @@ describe('country selector DOM helpers', () => {
     });
   });
 
+  it('skips positioning when either element is missing', () => {
+    const root = document.createElement('div');
+    const dropdown = document.createElement('div');
+    const measure = vi.spyOn(root, 'getBoundingClientRect');
+    const setStyle = vi.spyOn(dropdown.style, 'setProperty');
+
+    positionCountryDropdown(null, dropdown);
+    positionCountryDropdown(root, null);
+
+    expect(measure).not.toHaveBeenCalled();
+    expect(setStyle).not.toHaveBeenCalled();
+  });
+
   it('positions the dropdown below the root by default', () => {
     const root = document.createElement('div');
     const dropdown = document.createElement('div');
