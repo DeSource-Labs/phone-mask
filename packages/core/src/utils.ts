@@ -1,4 +1,3 @@
-// @ts-expect-error -- Generated JavaScript data
 import countries from './data.min.js';
 import { MasksFull } from './entries.js';
 import type { CountryKey, MaskFull } from './entries.js';

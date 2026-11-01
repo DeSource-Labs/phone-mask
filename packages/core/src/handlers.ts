@@ -3,7 +3,6 @@
 import type { FormatterHelpers } from './formatter.js';
 import type { CountryKey } from './data-types.js';
 import { detectCountryFromPhone } from './country-detection.js';
-// @ts-expect-error -- Generated JavaScript data
 import countries from './data.min.js';
 
 export const DELIMITERS = [' ', '-', '(', ')'];

@@ -1,4 +1,3 @@
-// @ts-expect-error -- Ignore import of JS file
 import countries, { masks } from './data.min.js';
 import { ccToEmoji } from './country-code-emodji.js';
 import type { CountryKey } from './data-types.js';
@@ -46,7 +45,7 @@ const countryRows = Object.entries(countries) as Array<[CountryKey, string]>;
 
 const masksWithFlagValue: MaskWithFlag[] = /* @__PURE__ */ countryRows.map(([id, row]) => {
   const [code, ...indices] = row.split('|');
-  return { id, code: `+${code}`, mask: indices.map((index) => masks[index]), flag: ccToEmoji(id) };
+  return { id, code: `+${code}`, mask: indices.map((index) => masks[index as `${number}`]), flag: ccToEmoji(id) };
 });
 const masksBaseValue: MaskBase[] = /* @__PURE__ */ masksWithFlagValue.map(({ id, code, mask }) => ({
   id,
