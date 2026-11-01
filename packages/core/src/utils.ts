@@ -140,7 +140,6 @@ export function filterCountries(countries: MaskFull[], search: string): MaskFull
     if (score) matches.push({ country, score });
   });
 
-  return matches
-    .sort((a, b) => b.score - a.score || a.country.name.localeCompare(b.country.name))
-    .map((match) => match.country);
+  matches.sort((a, b) => b.score - a.score || a.country.name.localeCompare(b.country.name));
+  return matches.map((match) => match.country);
 }

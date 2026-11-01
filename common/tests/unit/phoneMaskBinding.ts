@@ -69,10 +69,7 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act,
       el.setSelectionRange(4, 4);
       onChange.mockClear();
 
-      for (const { digit, display, caret } of [
-        { digit: '9', display: '202-955-501', caret: 5 },
-        { digit: '8', display: '202-985-5501', caret: 6 }
-      ]) {
+      const insertAndCheck = async (digit: string, display: string, caret: number) => {
         await act(() => {
           el.setRangeText(digit, el.selectionStart!, el.selectionEnd!, 'end');
           el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: digit }));
@@ -83,7 +80,10 @@ export function testPhoneMaskBinding(setup: SetupFn, config: SetupConfig, { act,
           expect(el.selectionStart).toBe(caret);
           expect(el.selectionEnd).toBe(caret);
         });
-      }
+      };
+
+      await insertAndCheck('9', '202-955-501', 5);
+      await insertAndCheck('8', '202-985-5501', 6);
 
       expect(el.__phoneMaskState?.digits).toBe('2029855501');
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ digits: '2029855501' }));
