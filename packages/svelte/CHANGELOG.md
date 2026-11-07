@@ -1,5 +1,33 @@
 # @desource/phone-mask-svelte
 
+## 2.1.0
+
+### Minor Changes
+
+- Core/Vue/React/Svelte/Angular/Nuxt Upgrades:
+  - Improved caret placement during digit insertion and selection replacement, including edits beside separators and changes between mask variants.
+  - Preserved the insertion position when input exceeds the mask's maximum length.
+  - Synced phone masks with Google libphonenumber:
+    - removed 🇧🇯 Benin's legacy eight-digit variant;
+    - corrected 🇿🇼 Zimbabwe's `+263 ## #####` variant to `+263 ## #######`.
+  - Expanded shared unit and end-to-end regression coverage for consecutive insertions, selection replacement, overflow, and caret positioning.
+
+- React Upgrades:
+  - Moved caret restoration to a microtask after rendering so subsequent keystrokes use the updated position.
+
+- Core Upgrades:
+  - Reduced temporary allocations in country filtering while preserving search ranking.
+  - Updated country existence checks to use mask data directly and country lookups to reuse localized country arrays.
+  - Improved tree-shaking by marking `MasksFullMapEn` and `MasksFullEn` initialization as pure.
+  - Added TypeScript declarations for generated mask data and removed import error suppressions.
+  - Simplified formatter digit counting.
+  - Expanded tests for missing dropdown elements, case-insensitive country checks, and localized country lookup fallbacks.
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @desource/phone-mask@2.1.0
+
 ## 2.0.0
 
 ### Major Changes
