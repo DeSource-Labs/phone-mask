@@ -1,5 +1,22 @@
 # @desource/phone-mask-vue
 
+## 2.1.1
+
+### Patch Changes
+
+- Core/Vue/React/Svelte/Angular/Nuxt Upgrades:
+  - Updated build, lint, test, and framework development dependencies.
+
+- Core/Vue/React/Angular Upgrades:
+  - Updated TypeScript declaration bundling for the upgraded Rolldown tooling, replacing `dtsInput` with `dtsOnly` and using absolute declaration entry paths.
+
+- Angular Upgrades:
+  - Updated `tslib` to `^2.9.1` and aligned compatibility checks with version 2.9.1.
+  - Updated `@analogjs/vite-plugin-angular` to 2.9.7 and its TypeScript peer-dependency configuration.
+
+- Updated dependencies []:
+  - @desource/phone-mask@2.1.1
+
 ## 2.1.0
 
 ### Minor Changes
