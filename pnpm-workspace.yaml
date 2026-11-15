@@ -4,6 +4,8 @@ packages:
 
 overrides:
   glob: ^14.0.6
+  # Angular CLI pins pacote 20.0.0; 20.0.1 updates its tar dependency to supported 7.x.
+  '@angular/cli@19.2.27>pacote': ^20.0.1
   # Less has no patched image-size release in its legacy range; this repo does not use its image helpers.
   'less>image-size': '-'
 
