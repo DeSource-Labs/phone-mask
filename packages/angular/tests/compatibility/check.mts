@@ -29,7 +29,7 @@ try {
     '@desource/phone-mask-angular': 'file:./angular.tgz',
     typescript,
     rxjs: '7.8.2',
-    tslib: '2.8.1'
+    tslib: '2.9.1'
   });
   await writeFile(
     join(directory, 'package.json'),

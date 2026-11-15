@@ -1,12 +1,12 @@
-import { isAbsolute } from 'node:path';
+import { isAbsolute, resolve } from 'node:path';
 import { build } from 'rolldown';
 import { dts } from 'rolldown-plugin-dts';
 
 await build(
   ['ts', 'cts'].map((extension) => ({
-    input: Object.fromEntries(process.argv.slice(2).map((entry) => [entry, `dist/types/${entry}.d.ts`])),
+    input: Object.fromEntries(process.argv.slice(2).map((entry) => [entry, resolve(`dist/types/${entry}.d.ts`)])),
     external: (id: string) => !id.startsWith('.') && !isAbsolute(id),
-    plugins: [dts({ dtsInput: true, sourcemap: false })],
+    plugins: [dts({ dtsOnly: true, sourcemap: false })],
     output: {
       dir: 'dist',
       format: 'es' as const,
