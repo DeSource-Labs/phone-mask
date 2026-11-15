@@ -1,5 +1,5 @@
 import { globSync, rmSync } from 'node:fs';
-import { isAbsolute, join } from 'node:path';
+import { isAbsolute, join, resolve } from 'node:path';
 import { build } from 'rolldown';
 import { dts } from 'rolldown-plugin-dts';
 
@@ -7,9 +7,9 @@ const previousDeclarations = globSync('dist/**/*.d.ts');
 const result = await build({
   // These declarations are already compiled; avoid unrelated workspace tsconfig discovery.
   tsconfig: false,
-  input: { index: 'dist/index.d.ts', 'core/index': 'dist/core/index.d.ts' },
+  input: { index: resolve('dist/index.d.ts'), 'core/index': resolve('dist/core/index.d.ts') },
   external: (id) => !id.startsWith('.') && !isAbsolute(id),
-  plugins: [dts({ dtsInput: true, sourcemap: false })],
+  plugins: [dts({ dtsOnly: true, sourcemap: false })],
   output: {
     dir: 'dist',
     format: 'es',
