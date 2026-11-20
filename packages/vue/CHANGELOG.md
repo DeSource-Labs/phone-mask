@@ -1,5 +1,16 @@
 # @desource/phone-mask-vue
 
+## 2.1.2
+
+### Patch Changes
+
+- Core Upgrades:
+  - Sync country masks with google-libphonenumber (🇳🇴 Norway updates)
+  - Sync country masks with google-libphonenumber (🇸🇯 Svalbard & Jan Mayen updates)
+
+- Updated dependencies []:
+  - @desource/phone-mask@2.1.2
+
 ## 2.1.1
 
 ### Patch Changes

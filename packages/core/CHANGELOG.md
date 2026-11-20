@@ -1,5 +1,13 @@
 # @desource/phone-mask
 
+## 2.1.2
+
+### Patch Changes
+
+- Core Upgrades:
+  - Sync country masks with google-libphonenumber (🇳🇴 Norway updates)
+  - Sync country masks with google-libphonenumber (🇸🇯 Svalbard & Jan Mayen updates)
+
 ## 2.1.1
 
 ### Patch Changes
